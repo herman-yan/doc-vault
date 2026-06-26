@@ -288,6 +288,15 @@
             background: #dc2626;
         }
 
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
         /* ========== 内容区域 ========== */
         .content-area {
             flex: 1;
@@ -748,12 +757,14 @@
             background: var(--bg-white);
             border-radius: 12px;
             padding: 24px;
-            width: 420px;
+            width: 460px;
             max-width: 90%;
             opacity: 0;
             visibility: hidden;
             transition: all var(--transition-normal);
             z-index: 201;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .settings-panel.open {
@@ -793,6 +804,12 @@
             font-size: 13px;
             color: var(--text-gray);
             margin-bottom: 12px;
+        }
+
+        .settings-item .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         /* ========== 确认弹窗 ========== */
@@ -1084,6 +1101,40 @@
             font-size: 13px;
         }
 
+        /* 共享模式指示器 */
+        .shared-mode-badge {
+            background: var(--success);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        /* 数据模式指示器 */
+        .data-mode-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            background: var(--bg-light);
+            color: var(--text-gray);
+            margin-bottom: 12px;
+        }
+
+        .data-mode-indicator.shared {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .data-mode-indicator.local {
+            background: rgba(107, 114, 128, 0.1);
+            color: var(--text-gray);
+        }
+
     </style>
 </head>
 <body>
@@ -1126,7 +1177,10 @@
         <main class="main-content">
             <!-- 顶部导航栏 -->
             <header class="header">
-                <h1 class="header-title">📂 企业档案资料库</h1>
+                <h1 class="header-title">
+                    📂 企业档案资料库
+                    <span class="shared-mode-badge" id="sharedBadge" style="display:none">共享模式</span>
+                </h1>
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
                     <input type="text" id="searchInput" placeholder="搜索文件名、标签、摘要或分类...">
@@ -1135,6 +1189,7 @@
                     <!-- 统计由JS动态生成 -->
                 </div>
                 <div class="header-actions">
+                    <button class="btn btn-outline" id="syncBtn" title="同步共享数据" style="display:none">🔄 同步</button>
                     <button class="btn btn-outline" id="settingsBtn">⚙️ 设置</button>
                 </div>
             </header>
@@ -1203,6 +1258,23 @@
             <button class="detail-close" id="settingsClose">×</button>
         </div>
         <div class="settings-content">
+            <!-- 数据模式指示器 -->
+            <div class="data-mode-indicator local" id="dataModeIndicator">
+                <span>📱</span>
+                <span id="dataModeText">本地模式</span>
+            </div>
+
+            <!-- 共享数据部分（共享模式下显示） -->
+            <div class="settings-item" id="sharedSettingsSection" style="display:none">
+                <h4>☁️ 共享数据管理</h4>
+                <p>管理团队共享的文档数据</p>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="exportSharedBtn">📤 导出共享数据</button>
+                    <button class="btn btn-outline" id="syncSettingsBtn">🔄 同步数据</button>
+                </div>
+                <p style="margin-top:8px;font-size:11px;color:var(--text-light);">导出后将文件提交到仓库更新共享数据</p>
+            </div>
+
             <div class="settings-item">
                 <h4>📤 导出数据</h4>
                 <p>将所有文件和分类信息导出为JSON备份文件</p>
@@ -1250,7 +1322,124 @@
     <script>
         /* ============================================================
          * 企业档案资料库 - 主脚本
+         * 支持共享数据模式
          * ============================================================ */
+
+        // ========== 共享数据管理器 ==========
+        const SharedDataManager = {
+            DATA_URL: 'data.json',
+            data: null,
+            isSharedMode: false,
+
+            // 加载共享数据
+            async load() {
+                try {
+                    const response = await fetch(this.DATA_URL);
+                    if (!response.ok) {
+                        throw new Error('data.json not found');
+                    }
+                    this.data = await response.json();
+                    this.isSharedMode = true;
+                    return true;
+                } catch (error) {
+                    this.data = null;
+                    this.isSharedMode = false;
+                    return false;
+                }
+            },
+
+            // 获取密码验证信息
+            getPasswordInfo() {
+                if (!this.isSharedMode || !this.data || !this.data.password) {
+                    return null;
+                }
+                return this.data.password;
+            },
+
+            // 获取文档列表
+            getDocuments() {
+                if (!this.isSharedMode || !this.data) {
+                    return [];
+                }
+                return this.data.documents || [];
+            },
+
+            // 更新本地数据
+            updateDocuments(documents) {
+                if (!this.isSharedMode || !this.data) return;
+                this.data.documents = documents;
+                this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+            },
+
+            // 添加文档
+            addDocument(doc) {
+                if (!this.isSharedMode || !this.data) return;
+                if (!this.data.documents) this.data.documents = [];
+                this.data.documents.push(doc);
+                this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+            },
+
+            // 更新文档
+            updateDocument(id, updates) {
+                if (!this.isSharedMode || !this.data) return;
+                const idx = this.data.documents.findIndex(d => d.id === id);
+                if (idx !== -1) {
+                    this.data.documents[idx] = { ...this.data.documents[idx], ...updates };
+                    this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                }
+            },
+
+            // 删除文档
+            deleteDocument(id) {
+                if (!this.isSharedMode || !this.data) return;
+                this.data.documents = this.data.documents.filter(d => d.id !== id);
+                this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+            },
+
+            // 生成新的ID
+            generateId() {
+                if (!this.data || !this.data.documents) return 1;
+                return Math.max(0, ...this.data.documents.map(d => d.id)) + 1;
+            },
+
+            // 导出共享数据JSON
+            exportSharedData() {
+                if (!this.data) return null;
+                const exportData = {
+                    version: this.data.version || 1,
+                    password: this.data.password,
+                    documents: this.data.documents.map(d => ({
+                        ...d,
+                        // 将 blob 转换为 base64
+                        fileContent: d.blob ? this.blobToBase64(d.blob) : (d.fileContent || '')
+                    })),
+                    lastUpdated: new Date().toLocaleString('zh-CN')
+                };
+                return exportData;
+            },
+
+            // Blob转Base64
+            blobToBase64(blob) {
+                if (typeof blob === 'string') return blob;
+                const reader = new FileReader();
+                return new Promise((resolve) => {
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            },
+
+            // Base64转Blob
+            base64ToBlob(base64, type) {
+                if (typeof base64 === 'object') return base64;
+                const byteString = atob(base64.split(',')[1] || base64);
+                const ab = new ArrayBuffer(byteString.length);
+                const ia = new Uint8Array(ab);
+                for (let i = 0; i < byteString.length; i++) {
+                    ia[i] = byteString.charCodeAt(i);
+                }
+                return new Blob([ab], { type: type || 'application/octet-stream' });
+            }
+        };
 
         // ========== 密码管理模块 ==========
         const PasswordManager = {
@@ -1273,9 +1462,14 @@
                 return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             },
 
-            // 检查是否已设置密码
-            hasPassword() {
+            // 检查是否已设置密码（本地）
+            hasLocalPassword() {
                 return localStorage.getItem(this.STORAGE_KEY) !== null;
+            },
+
+            // 检查是否使用共享密码
+            hasSharedPassword() {
+                return SharedDataManager.isSharedMode && SharedDataManager.getPasswordInfo();
             },
 
             // 设置密码（首次或修改）
@@ -1284,19 +1478,35 @@
                 const hash = await this.hash(password, salt);
                 localStorage.setItem(this.STORAGE_KEY, hash);
                 localStorage.setItem(this.SALT_KEY, salt);
+                
+                // 如果是共享模式，同时更新 data.json
+                if (SharedDataManager.isSharedMode) {
+                    SharedDataManager.data.password = { hash, salt };
+                }
             },
 
             // 验证密码
             async verify(password) {
+                // 优先使用共享密码
+                if (this.hasSharedPassword()) {
+                    const pwdInfo = SharedDataManager.getPasswordInfo();
+                    const hash = await this.hash(password, pwdInfo.salt);
+                    return hash === pwdInfo.hash;
+                }
+                
+                // 否则使用本地密码
+                if (!this.hasLocalPassword()) return false;
                 const storedHash = localStorage.getItem(this.STORAGE_KEY);
                 const salt = localStorage.getItem(this.SALT_KEY);
-                if (!storedHash || !salt) return false;
                 const hash = await this.hash(password, salt);
                 return hash === storedHash;
             },
 
             // 初始化登录流程
             async init() {
+                // 先尝试加载共享数据
+                const hasShared = await SharedDataManager.load();
+                
                 const loginScreen = document.getElementById('loginScreen');
                 const appContainer = document.getElementById('appContainer');
                 const loginBtn = document.getElementById('loginBtn');
@@ -1304,8 +1514,14 @@
                 const loginError = document.getElementById('loginError');
                 const loginTitle = document.getElementById('loginTitle');
                 const loginSubtitle = document.getElementById('loginSubtitle');
+                const loginHint = document.getElementById('loginHint');
 
-                if (!this.hasPassword()) {
+                // 根据模式设置提示文字
+                if (hasShared) {
+                    loginHint.textContent = '共享模式：密码由管理员管理';
+                }
+
+                if (!this.hasLocalPassword() && !hasShared) {
                     // 首次使用，设置密码模式
                     loginTitle.textContent = '首次使用，请设置密码';
                     loginSubtitle.textContent = '设置密码后，每次打开都需要验证';
@@ -1539,18 +1755,88 @@
                 this.searchQuery = '';
                 this.sortOrder = 'time-desc';
                 this.confirmCallback = null;
+                this.isSharedMode = false;
             }
 
             // 初始化应用
             async init() {
                 try {
-                    await this.db.init();
-                    this.files = await this.db.getAllFiles();
+                    // 检查是否为共享模式
+                    this.isSharedMode = SharedDataManager.isSharedMode;
+                    
+                    // 更新UI指示器
+                    this.updateModeIndicator();
+                    
+                    if (this.isSharedMode) {
+                        // 共享模式：从 data.json 加载文档
+                        this.loadSharedDocuments();
+                    } else {
+                        // 本地模式：使用 IndexedDB
+                        await this.db.init();
+                        this.files = await this.db.getAllFiles();
+                    }
+                    
                     this.bindEvents();
                     this.render();
                 } catch (error) {
                     console.error('初始化失败:', error);
                     this.showToast('初始化失败，请刷新页面重试', 'error');
+                }
+            }
+
+            // 更新模式指示器
+            updateModeIndicator() {
+                const badge = document.getElementById('sharedBadge');
+                const indicator = document.getElementById('dataModeIndicator');
+                const modeText = document.getElementById('dataModeText');
+                const syncBtn = document.getElementById('syncBtn');
+                const sharedSection = document.getElementById('sharedSettingsSection');
+
+                if (this.isSharedMode) {
+                    badge.style.display = 'inline';
+                    indicator.classList.remove('local');
+                    indicator.classList.add('shared');
+                    indicator.querySelector('span:first-child').textContent = '☁️';
+                    modeText.textContent = '共享模式';
+                    syncBtn.style.display = 'flex';
+                    sharedSection.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                    indicator.classList.remove('shared');
+                    indicator.classList.add('local');
+                    indicator.querySelector('span:first-child').textContent = '📱';
+                    modeText.textContent = '本地模式';
+                    syncBtn.style.display = 'none';
+                    sharedSection.style.display = 'none';
+                }
+            }
+
+            // 加载共享文档
+            loadSharedDocuments() {
+                const docs = SharedDataManager.getDocuments();
+                this.files = docs.map(d => ({
+                    ...d,
+                    blob: d.fileContent ? SharedDataManager.base64ToBlob(d.fileContent, d.type) : null
+                }));
+            }
+
+            // 同步共享数据
+            async syncSharedData() {
+                if (!this.isSharedMode) return;
+                
+                try {
+                    this.showToast('正在同步数据...', 'info');
+                    const success = await SharedDataManager.load();
+                    if (success) {
+                        this.loadSharedDocuments();
+                        this.render();
+                        this.showToast('同步成功', 'success');
+                    } else {
+                        this.showToast('同步失败：无法获取共享数据', 'error');
+                    }
+                } catch (error) {
+                    console.error('同步失败:', error);
+                    this.showToast('同步失败', 'error');
                 }
             }
 
@@ -1614,6 +1900,11 @@
                 document.getElementById('importInput').addEventListener('change', (e) => this.importData(e));
                 document.getElementById('clearAllBtn').addEventListener('click', () => this.confirmClearAll());
 
+                // 共享模式相关按钮
+                document.getElementById('syncBtn').addEventListener('click', () => this.syncSharedData());
+                document.getElementById('syncSettingsBtn').addEventListener('click', () => this.syncSharedData());
+                document.getElementById('exportSharedBtn').addEventListener('click', () => this.exportSharedData());
+
                 // 修改密码
                 document.getElementById('changePasswordBtn').addEventListener('click', async () => {
                     const oldPw = document.getElementById('oldPasswordInput').value;
@@ -1669,13 +1960,27 @@
                         }
 
                         const fileInfo = await this.processFile(file);
-                        const id = await this.db.addFile(fileInfo);
-                        fileInfo.id = id;
-                        this.files.push(fileInfo);
+                        
+                        if (this.isSharedMode) {
+                            // 共享模式
+                            const id = SharedDataManager.generateId();
+                            fileInfo.id = id;
+                            SharedDataManager.addDocument({
+                                ...fileInfo,
+                                fileContent: await SharedDataManager.blobToBase64(fileInfo.blob)
+                            });
+                            delete fileInfo.blob;
+                            this.files.push(fileInfo);
+                        } else {
+                            // 本地模式
+                            const id = await this.db.addFile(fileInfo);
+                            fileInfo.id = id;
+                            this.files.push(fileInfo);
+                        }
                         
                         // 高亮动画
                         setTimeout(() => {
-                            const card = document.querySelector(`[data-id="${id}"]`);
+                            const card = document.querySelector(`[data-id="${fileInfo.id}"]`);
                             if (card) card.classList.add('highlight');
                         }, 100);
                         
@@ -1790,7 +2095,6 @@
             // 渲染统计信息
             renderStats() {
                 const stats = document.getElementById('headerStats');
-                const counts = this.getCategoryCounts();
                 const today = new Date().toDateString();
                 const todayCount = this.files.filter(f => new Date(f.uploadTime).toDateString() === today).length;
                 
@@ -1822,7 +2126,6 @@
             // 渲染文件列表
             renderFiles() {
                 const container = document.getElementById('filesContainer');
-                const emptyState = document.getElementById('emptyState');
                 
                 // 过滤文件
                 let filtered = this.filterFiles();
@@ -1983,7 +2286,7 @@
                 const tagsHtml = file.tags.map(t => `
                     <span class="detail-tag">
                         ${t}
-                        <button onclick="app.removeTag(${fileId}, '${t}')">×</button>
+                        <button onclick="app.removeTag(${fileId}, '${t.replace(/'/g, "\\'")}')">×</button>
                     </span>
                 `).join('');
                 
@@ -2055,7 +2358,13 @@
                 if (!file) return;
                 
                 file.category = newCategory;
-                await this.db.updateFile(fileId, file);
+                
+                if (this.isSharedMode) {
+                    SharedDataManager.updateDocument(fileId, { category: newCategory });
+                } else {
+                    await this.db.updateFile(fileId, file);
+                }
+                
                 this.render();
                 this.openDetail(fileId);
                 this.showToast('分类已更新', 'success');
@@ -2076,7 +2385,13 @@
                 }
                 
                 file.tags.push(tag);
-                await this.db.updateFile(fileId, file);
+                
+                if (this.isSharedMode) {
+                    SharedDataManager.updateDocument(fileId, { tags: file.tags });
+                } else {
+                    await this.db.updateFile(fileId, file);
+                }
+                
                 input.value = '';
                 this.openDetail(fileId);
                 this.renderFiles();
@@ -2089,7 +2404,13 @@
                 if (!file) return;
                 
                 file.tags = file.tags.filter(t => t !== tag);
-                await this.db.updateFile(fileId, file);
+                
+                if (this.isSharedMode) {
+                    SharedDataManager.updateDocument(fileId, { tags: file.tags });
+                } else {
+                    await this.db.updateFile(fileId, file);
+                }
+                
                 this.openDetail(fileId);
                 this.renderFiles();
                 this.showToast('标签已移除', 'success');
@@ -2099,15 +2420,35 @@
             downloadFile() {
                 if (!this.currentFile) return;
                 
-                const blob = new Blob([this.currentFile.blob], { type: this.currentFile.type });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = this.currentFile.name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                const blob = this.currentFile.blob;
+                if (typeof blob === 'string') {
+                    // base64 格式
+                    const byteString = atob(blob.split(',')[1]);
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) {
+                        ia[i] = byteString.charCodeAt(i);
+                    }
+                    const blobDownload = new Blob([ab], { type: this.currentFile.type });
+                    const url = URL.createObjectURL(blobDownload);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = this.currentFile.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } else {
+                    // Blob 格式
+                    const url = URL.createObjectURL(new Blob([blob], { type: this.currentFile.type }));
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = this.currentFile.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
             }
 
             // 确认删除
@@ -2122,7 +2463,11 @@
                 if (!file) return;
                 
                 this.confirmCallback = async () => {
-                    await this.db.deleteFile(fileId);
+                    if (this.isSharedMode) {
+                        SharedDataManager.deleteDocument(fileId);
+                    } else {
+                        await this.db.deleteFile(fileId);
+                    }
                     this.files = this.files.filter(f => f.id !== fileId);
                     this.closeDetail();
                     this.render();
@@ -2152,7 +2497,98 @@
                 document.getElementById('settingsPanel').classList.remove('open');
             }
 
-            // 导出数据
+            // 导出共享数据
+            exportSharedData() {
+                if (!this.isSharedMode) {
+                    this.showToast('仅在共享模式下可用', 'error');
+                    return;
+                }
+                
+                try {
+                    // 更新所有文档的 fileContent
+                    const docsToExport = this.files.map(f => {
+                        let fileContent = '';
+                        if (f.blob) {
+                            if (typeof f.blob === 'string') {
+                                fileContent = f.blob;
+                            } else {
+                                // Blob 转 base64
+                                const reader = new FileReader();
+                                fileContent = new Promise((resolve) => {
+                                    reader.onloadend = () => resolve(reader.result);
+                                    reader.readAsDataURL(f.blob);
+                                });
+                            }
+                        } else if (f.fileContent) {
+                            fileContent = f.fileContent;
+                        }
+                        
+                        // 如果是 Promise，等待它
+                        if (fileContent instanceof Promise) {
+                            fileContent.then(content => {
+                                const exportDoc = {
+                                    ...f,
+                                    blob: undefined,
+                                    fileContent: content
+                                };
+                                return exportDoc;
+                            });
+                        }
+                        
+                        return {
+                            ...f,
+                            blob: undefined,
+                            fileContent: typeof fileContent === 'string' ? fileContent : ''
+                        };
+                    });
+                    
+                    // 同步处理所有文件
+                    const exportDocs = this.files.map(async f => {
+                        let fileContent = '';
+                        if (f.blob) {
+                            if (typeof f.blob === 'string') {
+                                fileContent = f.blob;
+                            } else {
+                                fileContent = await SharedDataManager.blobToBase64(f.blob);
+                            }
+                        } else if (f.fileContent) {
+                            fileContent = f.fileContent;
+                        }
+                        return {
+                            ...f,
+                            blob: undefined,
+                            fileContent: fileContent
+                        };
+                    });
+                    
+                    Promise.all(exportDocs).then(exportedFiles => {
+                        const exportData = {
+                            version: SharedDataManager.data.version || 1,
+                            password: SharedDataManager.data.password,
+                            documents: exportedFiles,
+                            lastUpdated: new Date().toLocaleString('zh-CN')
+                        };
+                        
+                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'data.json';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        this.closeSettings();
+                        this.showToast('共享数据已导出，请提交到仓库更新', 'success');
+                    });
+                } catch (error) {
+                    console.error('导出共享数据失败:', error);
+                    this.showToast('导出失败', 'error');
+                }
+            }
+
+            // 导出数据（本地备份）
             async exportData() {
                 try {
                     const exportData = {
@@ -2196,8 +2632,14 @@
                     }
                     
                     // 清空现有数据
-                    await this.db.clearAll();
-                    this.files = [];
+                    if (this.isSharedMode) {
+                        // 共享模式下清空本地缓存
+                        this.files = [];
+                        SharedDataManager.data.documents = [];
+                    } else {
+                        await this.db.clearAll();
+                        this.files = [];
+                    }
                     
                     // 导入文件
                     for (const f of importData.files) {
@@ -2207,8 +2649,21 @@
                             blob: blob
                         };
                         delete fileData.id;
-                        const id = await this.db.addFile(fileData);
-                        this.files.push({ ...fileData, id });
+                        
+                        if (this.isSharedMode) {
+                            const id = SharedDataManager.generateId();
+                            fileData.id = id;
+                            SharedDataManager.addDocument({
+                                ...fileData,
+                                fileContent: await SharedDataManager.blobToBase64(fileData.blob)
+                            });
+                            delete fileData.blob;
+                            this.files.push(fileData);
+                        } else {
+                            const id = await this.db.addFile(fileData);
+                            fileData.id = id;
+                            this.files.push(fileData);
+                        }
                     }
                     
                     event.target.value = '';
@@ -2224,8 +2679,13 @@
             // 确认清空所有数据
             confirmClearAll() {
                 this.confirmCallback = async () => {
-                    await this.db.clearAll();
-                    this.files = [];
+                    if (this.isSharedMode) {
+                        SharedDataManager.data.documents = [];
+                        this.files = [];
+                    } else {
+                        await this.db.clearAll();
+                        this.files = [];
+                    }
                     this.closeSettings();
                     this.closeDetail();
                     this.render();
