@@ -1201,7 +1201,7 @@
                     <div class="upload-icon">📤</div>
                     <h3>拖拽文件到此处或点击选择</h3>
                     <p>支持 PDF、Word、Excel、PPT、图片、文本等多种格式</p>
-                    <div class="uploader-input-wrap" style="margin-top:12px;display:flex;align-items:center;gap:8px;justify-content:center;">
+                    <div class="uploader-input-wrap" id="uploaderInputWrap" style="margin-top:12px;display:flex;align-items:center;gap:8px;justify-content:center;">
                         <label style="font-size:14px;color:var(--text-gray);white-space:nowrap;">上传人：</label>
                         <input type="text" id="uploaderNameInput" placeholder="请输入姓名" style="padding:6px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:14px;width:160px;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--primary-blue)'" onblur="this.style.borderColor='var(--border-color)'">
                     </div>
@@ -1859,6 +1859,12 @@
                 // 上传区域
                 const uploadZone = document.getElementById('uploadZone');
                 const fileInput = document.getElementById('fileInput');
+                const uploaderInputWrap = document.getElementById('uploaderInputWrap');
+                
+                // 阻止上传人输入区域点击冒泡到上传区域
+                uploaderInputWrap.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
                 
                 uploadZone.addEventListener('click', () => fileInput.click());
                 uploadZone.addEventListener('dragover', (e) => {
