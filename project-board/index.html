@@ -1129,6 +1129,123 @@
       display: flex;
       gap: 8px;
     }
+
+    /* 团队总览视图 */
+    .team-overview {
+      padding: 20px;
+    }
+    .team-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .team-member-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+    .team-member-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .member-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .member-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .member-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .member-team {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .member-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .member-stat {
+      text-align: center;
+      padding: 8px;
+      background: var(--bg-hover);
+      border-radius: 8px;
+    }
+    .member-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .member-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .member-progress-bar {
+      height: 6px;
+      background: var(--bg-hover);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .member-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--accent), #0fd4a4);
+      transition: width 0.3s;
+    }
+    .member-projects-list {
+      margin-top: 12px;
+    }
+    .member-project-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 13px;
+    }
+    .member-project-item:last-child {
+      border-bottom: none;
+    }
+    .member-project-name {
+      color: var(--text-primary);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .member-project-status {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .status-dot-sm {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
   </style>
 </head>
 <body>
@@ -1151,6 +1268,10 @@
       <button class="view-btn" data-view="gantt">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5v14h18V5H3zm2 2h4v4H5V7zm6 0h4v2h-4V7zm0 4h4v2h-4v-2zm6 0h4v2h-4v-2zm-6 4h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
         甘特图
+      </button>
+      <button class="view-btn" data-view="team">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        团队总览
       </button>
     </div>
 
@@ -1331,6 +1452,13 @@
         </div>
       </div>
       <div class="gantt-body" id="ganttBody"></div>
+    </div>
+
+    <!-- 团队总览视图 -->
+    <div class="team-overview" id="teamView" style="display: none;">
+      <div class="team-summary" id="teamSummary"></div>
+      <h3 style="color: var(--text-primary); margin-bottom: 16px; font-size: 16px;">📋 成员项目明细</h3>
+      <div id="teamDetail"></div>
     </div>
   </main>
 
@@ -1882,12 +2010,106 @@
     }
 
     // 渲染所有视图
+
+    // 渲染团队总览
+    function renderTeamView() {
+      const summaryEl = document.getElementById('teamSummary');
+      const detailEl = document.getElementById('teamDetail');
+      if (!summaryEl || !detailEl) return;
+
+      // 按负责人分组
+      const memberMap = {};
+      const filtered = getFilteredProjects();
+      filtered.forEach(p => {
+        const owner = p.owner || '未分配';
+        if (!memberMap[owner]) memberMap[owner] = [];
+        memberMap[owner].push(p);
+      });
+
+      const members = Object.entries(memberMap).sort((a, b) => b[1].length - a[1].length);
+      const colors = ['#1d9bf0', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#6366f1'];
+
+      // 顶部汇总卡片
+      summaryEl.innerHTML = members.map(([name, projs], i) => {
+        const avgProgress = Math.round(projs.reduce((s, p) => s + (p.progress || 0), 0) / projs.length);
+        const active = projs.filter(p => p.status === '进行中').length;
+        const completed = projs.filter(p => p.status === '已完成').length;
+        const delayed = projs.filter(p => p.status === '已延期').length;
+        const color = colors[i % colors.length];
+        return `
+          <div class="team-member-card">
+            <div class="member-header">
+              <div class="member-avatar" style="background: ${color};">${name.charAt(0)}</div>
+              <div>
+                <div class="member-name">${name}</div>
+                <div class="member-team">${projs[0].team || ''} · ${projs.length}个项目</div>
+              </div>
+            </div>
+            <div class="member-stats">
+              <div class="member-stat">
+                <div class="member-stat-value">${active}</div>
+                <div class="member-stat-label">进行中</div>
+              </div>
+              <div class="member-stat">
+                <div class="member-stat-value" style="color: var(--status-completed);">${completed}</div>
+                <div class="member-stat-label">已完成</div>
+              </div>
+            </div>
+            <div class="member-progress-bar">
+              <div class="member-progress-fill" style="width: ${avgProgress}%;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);">
+              <span>平均进度</span>
+              <span style="color:var(--text-primary);font-weight:600;">${avgProgress}%</span>
+            </div>
+            ${delayed > 0 ? `<div style="margin-top:8px;font-size:12px;color:var(--status-delayed);">⚠️ ${delayed}个项目已延期</div>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      // 成员项目明细
+      detailEl.innerHTML = members.map(([name, projs], i) => {
+        const color = colors[i % colors.length];
+        const statusColors = {
+          '未开始': 'var(--status-pending)',
+          '进行中': 'var(--status-progress)',
+          '已完成': 'var(--status-completed)',
+          '已延期': 'var(--status-delayed)',
+          '已暂停': 'var(--status-paused)'
+        };
+        return `
+          <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:20px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+              <div class="member-avatar" style="background:${color};width:32px;height:32px;font-size:14px;">${name.charAt(0)}</div>
+              <span style="font-size:15px;font-weight:600;color:var(--text-primary);">${name}</span>
+              <span style="font-size:12px;color:var(--text-muted);">${projs.length}个项目</span>
+            </div>
+            <div class="member-projects-list">
+              ${projs.map(p => {
+                const sc = statusColors[p.status] || 'var(--status-pending)';
+                return `
+                  <div class="member-project-item" style="cursor:pointer;" onclick="openProject('${p.id}')">
+                    <span class="member-project-name">${p.name}</span>
+                    <span style="font-size:12px;color:var(--text-secondary);margin-right:12px;">${p.progress || 0}%</span>
+                    <span class="member-project-status" style="background:${sc}22;color:${sc};">
+                      <span class="status-dot-sm" style="background:${sc};"></span>${p.status}
+                    </span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     function renderAll() {
       updateStats();
       updateOwnerFilter();
       renderKanbanView();
       renderListView();
       renderGanttView();
+      renderTeamView();
     }
 
     // 切换视图
@@ -1901,6 +2123,7 @@
       document.getElementById('kanbanView').style.display = view === 'kanban' ? 'flex' : 'none';
       document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
       document.getElementById('ganttView').style.display = view === 'gantt' ? 'block' : 'none';
+      document.getElementById('teamView').style.display = view === 'team' ? 'block' : 'none';
 
       renderAll();
     }
