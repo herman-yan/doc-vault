@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服务站工单看板</title>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-light: #dbeafe;
+  --success: #16a34a;
+  --success-light: #dcfce7;
+  --warning: #d97706;
+  --warning-light: #fef3c7;
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  --gray: #64748b;
+  --gray-light: #f1f5f9;
+  --border: #e2e8f0;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-s: #64748b;
+  --bg: #f0f4f8;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* Top Bar */
+.topbar { background:#1e293b; color:#fff; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.topbar-title { font-size:18px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.topbar-title .icon { font-size:22px; }
+.topbar-right { display:flex; gap:12px; align-items:center; }
+.topbar-stat { background:rgba(255,255,255,.1); padding:6px 14px; border-radius:6px; font-size:13px; }
+.topbar-stat b { color:#60a5fa; font-size:16px; }
+
+/* Type Tabs */
+.type-tabs { display:flex; background:#fff; border-bottom:2px solid var(--border); padding:0 24px; }
+.type-tab { padding:14px 28px; font-size:15px; font-weight:500; cursor:pointer; border-bottom:3px solid transparent; color:var(--text-s); transition:all .15s; }
+.type-tab:hover { color:var(--text); }
+.type-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+.type-tab .count { font-size:12px; margin-left:4px; background:var(--gray-light); padding:1px 6px; border-radius:8px; }
+.type-tab.active .count { background:var(--primary-light); color:var(--primary); }
+
+/* Filter Bar */
+.filter-bar { padding:12px 24px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#fff; border-bottom:1px solid var(--border); }
+.filter-bar input, .filter-bar select { padding:7px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; }
+.filter-bar input:focus, .filter-bar select:focus { outline:none; border-color:var(--primary); }
+.search-input { min-width:220px; }
+
+/* Kanban Board */
+.kanban-container { padding:20px 24px; overflow-x:auto; }
+.kanban-board { display:flex; gap:16px; min-height:calc(100vh - 200px); }
+.kanban-column { min-width:280px; max-width:340px; flex:1; display:flex; flex-direction:column; }
+.kanban-col-header { padding:12px 14px; border-radius:10px 10px 0 0; font-size:14px; font-weight:600; display:flex; align-items:center; justify-content:space-between; position:sticky; top:60px; z-index:10; }
+.kanban-col-header .col-count { background:rgba(0,0,0,.15); padding:1px 8px; border-radius:10px; font-size:12px; font-weight:500; }
+.kanban-col-body { flex:1; overflow-y:auto; padding:4px 0; }
+.kanban-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; cursor:pointer; transition:all .15s; font-size:13px; }
+.kanban-card:hover { box-shadow:0 4px 12px rgba(0,0,0,.08); border-color:#cbd5e1; transform:translateY(-1px); }
+.card-id { font-weight:700; font-size:13px; color:var(--primary); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+.card-tag { font-size:10px; padding:1px 6px; border-radius:4px; font-weight:500; }
+.tag-乘用车, .tag-乘用 { background:#dbeafe; color:#1d4ed8; }
+.tag-商用车, .tag-商用 { background:#dcfce7; color:#166534; }
+.tag-EU5检测 { background:#fef3c7; color:#92400e; }
+.tag-保内 { background:#dbeafe; color:#1d4ed8; }
+.tag-保外 { background:#f3e8ff; color:#7c3aed; }
+.tag-非售后 { background:#f1f5f9; color:#475569; }
+.tag-批改 { background:#fef3c7; color:#92400e; }
+.tag-常规维修 { background:#e0e7ff; color:#4338ca; }
+.tag-CTP { background:#fce7f3; color:#be185d; }
+.tag-电箱 { background:#d1fae5; color:#065f46; }
+.tag-MTP { background:#fef3c7; color:#92400e; }
+.tag-urgent { background:#fee2e2; color:#dc2626; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+.card-row { display:flex; gap:4px; margin-top:4px; line-height:1.5; }
+.card-row .label { color:var(--text-s); font-size:12px; min-width:52px; flex-shrink:0; }
+.card-row .value { color:var(--text); font-size:12px; word-break:break-all; }
+.card-row .value.money { color:var(--success); font-weight:600; }
+.card-row .value.danger { color:var(--danger); font-weight:600; }
+.card-engineer { margin-top:6px; padding-top:6px; border-top:1px dashed var(--border); display:flex; align-items:center; gap:6px; }
+.card-engineer .eng-avatar { width:24px; height:24px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; }
+.card-engineer .eng-name { font-size:12px; font-weight:500; }
+.card-time { margin-top:4px; font-size:11px; color:var(--text-s); }
+
+/* Column color themes */
+.col-未派工 .kanban-col-header { background:#f1f5f9; color:#475569; }
+.col-未开工 .kanban-col-header { background:#fef3c7; color:#92400e; }
+.col-在修 .kanban-col-header { background:#dbeafe; color:#1d4ed8; }
+.col-已竣工 .kanban-col-header { background:#d1fae5; color:#065f46; }
+.col-已结算 .kanban-col-header { background:#dcfce7; color:#166534; }
+.col-已结清 .kanban-col-header { background:#bbf7d0; color:#14532d; }
+.col-已终止 .kanban-col-header { background:#fee2e2; color:#991b1b; }
+.col-待客户确认 .kanban-col-header { background:#fef3c7; color:#92400e; }
+.col-维修完成 .kanban-col-header { background:#d1fae5; color:#065f46; }
+.col-关闭工单 .kanban-col-header { background:#f1f5f9; color:#475569; }
+
+/* Detail Modal */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1000; align-items:flex-start; justify-content:center; padding:30px 16px; overflow-y:auto; }
+.modal-overlay.show { display:flex; }
+.modal { background:#fff; border-radius:12px; width:100%; max-width:860px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.15); }
+.modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; position:sticky; top:0; background:#fff; z-index:1; border-radius:12px 12px 0 0; }
+.modal-title { font-size:16px; font-weight:700; }
+.modal-subtitle { font-size:12px; color:var(--text-s); margin-top:2px; }
+.modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-s); padding:4px; }
+.modal-close:hover { color:var(--text); }
+.modal-body { padding:20px 24px; }
+.section { margin-bottom:20px; }
+.section-title { font-size:13px; font-weight:600; color:var(--text-s); padding-bottom:8px; border-bottom:1px solid var(--border); margin-bottom:12px; text-transform:uppercase; letter-spacing:.5px; }
+.field-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
+.field { }
+.field-label { font-size:11px; color:var(--text-s); }
+.field-value { font-size:13px; font-weight:500; margin-top:1px; }
+.field-value.highlight { color:var(--primary); }
+.field-value.money { color:var(--success); }
+.field-value.danger { color:var(--danger); }
+.field.full { grid-column:1/-1; }
+
+/* Progress bar in detail */
+.progress-bar { height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; margin-top:6px; }
+.progress-fill { height:100%; border-radius:3px; transition:width .3s; }
+
+/* Stats row */
+.stats-row { display:flex; gap:12px; padding:16px 24px; background:#fff; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.mini-stat { text-align:center; padding:4px 16px; border-right:1px solid var(--border); }
+.mini-stat:last-child { border-right:none; }
+.mini-stat .num { font-size:20px; font-weight:700; }
+.mini-stat .lbl { font-size:11px; color:var(--text-s); margin-top:2px; }
+
+/* Empty column */
+.empty-col { text-align:center; color:var(--text-s); padding:24px; font-size:13px; }
+
+/* Upload button & status */
+.upload-btn { background:#3b82f6; color:#fff; border:none; padding:6px 16px; border-radius:6px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background .15s; }
+.upload-btn:hover { background:#2563eb; }
+.upload-btn svg { width:16px; height:16px; }
+.upload-status { padding:8px 24px; background:#fff; border-bottom:1px solid var(--border); font-size:13px; display:none; align-items:center; gap:8px; }
+.upload-status.show { display:flex; }
+.upload-status.success { color:var(--success); }
+.upload-status.error { color:var(--danger); }
+.upload-status.info { color:var(--primary); }
+.upload-badge { background:var(--primary-light); color:var(--primary); padding:2px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+</style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title"><span class="icon">⚡</span> 服务站工单看板</div>
+  <div class="topbar-right" id="topStats">
+    <button class="upload-btn" onclick="document.getElementById('excelFileInput').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      上传Excel
+    </button>
+  </div>
+  <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelUpload(this)">
+</div>
+
+<div class="upload-status" id="uploadStatus"></div>
+
+<div class="type-tabs">
+  <div class="type-tab active" data-type="warranty" onclick="switchType('warranty')">🔧 保内工单<span class="count" id="tab-count-wn">0</span></div>
+  <div class="type-tab" data-type="nonwarranty" onclick="switchType('nonwarranty')">🔩 保外工单<span class="count" id="tab-count-nw">0</span></div>
+</div>
+
+<div class="stats-row" id="statsRow"></div>
+
+<div class="filter-bar">
+  <input class="search-input" placeholder="搜索编号/客户/车辆/工程师..." oninput="applyFilter()" id="searchInput">
+  <select onchange="applyFilter()" id="filterEngineer"><option value="">全部工程师</option></select>
+  <select onchange="applyFilter()" id="filterType" style="display:none"><option value="">全部工单类型</option></select>
+  <select onchange="applyFilter()" id="filterProduct"><option value="">全部产品类型</option></select>
+  <span style="margin-left:auto;font-size:12px;color:var(--text-s)">点击卡片查看详情</span>
+</div>
+
+<div class="kanban-container">
+  <div class="kanban-board" id="kanbanBoard"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+// ===== DATA =====
+let WN_DATA = [];
+let NW_DATA = [];
+let currentType = 'warranty';
+
+// Load data from JSON files
+async function loadData() {
+  try {
+    const r1 = await fetch('data_wn.json');
+    WN_DATA = await r1.json();
+  } catch(e) { WN_DATA = []; }
+  try {
+    const r2 = await fetch('data_nw.json');
+    NW_DATA = await r2.json();
+  } catch(e) { NW_DATA = []; }
+  initFilters();
+  render();
+}
+
+// ===== RENDER =====
+function switchType(type) {
+  currentType = type;
+  document.querySelectorAll('.type-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+  document.getElementById('filterType').style.display = type === 'warranty' ? '' : 'none';
+  initFilters();
+  render();
+}
+
+function render() {
+  const data = currentType === 'warranty' ? WN_DATA : NW_DATA;
+  const filtered = getFiltered();
+
+  // Tab counts
+  document.getElementById('tab-count-wn').textContent = WN_DATA.length;
+  document.getElementById('tab-count-nw').textContent = NW_DATA.length;
+
+  // Top stats
+  renderTopStats(data);
+
+  // Stats row
+  renderStatsRow(filtered);
+
+  // Kanban
+  renderKanban(filtered);
+}
+
+function renderTopStats(data) {
+  const active = data.filter(o => !['已结清','已终止','关闭工单'].includes(o.status)).length;
+  const today = new Date().toISOString().slice(0,10);
+  const el = document.getElementById('topStats');
+  if(currentType === 'warranty') {
+    const totalFee = data.reduce((s,o) => s + (parseFloat(o.totalFee)||0), 0);
+    el.innerHTML = `
+      <div class="topbar-stat">进行中 <b>${active}</b></div>
+      <div class="topbar-stat">总工单 <b>${data.length}</b></div>
+      <div class="topbar-stat">总费用 <b>¥${(totalFee/10000).toFixed(1)}万</b></div>
+    `;
+  } else {
+    const received = data.reduce((s,o) => s + (parseFloat(o.receivedAmount)||0), 0);
+    const unreceived = data.reduce((s,o) => s + (parseFloat(o.unreceivedAmount)||0), 0);
+    el.innerHTML = `
+      <div class="topbar-stat">进行中 <b>${active}</b></div>
+      <div class="topbar-stat">总工单 <b>${data.length}</b></div>
+      <div class="topbar-stat">已回款 <b>¥${(received/10000).toFixed(1)}万</b></div>
+      <div class="topbar-stat">未回款 <b style="color:#f87171">¥${(unreceived/10000).toFixed(1)}万</b></div>
+    `;
+  }
+}
+
+function renderStatsRow(data) {
+  const el = document.getElementById('statsRow');
+  if(currentType === 'warranty') {
+    const statuses = ['未派工','未开工','在修','已竣工','已结算','已结清','已终止'];
+    const colors = ['#64748b','#d97706','#2563eb','#16a34a','#15803d','#059669','#dc2626'];
+    el.innerHTML = statuses.map((s,i) => {
+      const c = data.filter(o => o.status === s).length;
+      return `<div class="mini-stat"><div class="num" style="color:${colors[i]}">${c}</div><div class="lbl">${s}</div></div>`;
+    }).join('');
+  } else {
+    const statuses = ['待客户确认','维修完成','关闭工单'];
+    const colors = ['#d97706','#16a34a','#64748b'];
+    el.innerHTML = statuses.map((s,i) => {
+      const c = data.filter(o => o.status === s).length;
+      return `<div class="mini-stat"><div class="num" style="color:${colors[i]}">${c}</div><div class="lbl">${s}</div></div>`;
+    }).join('');
+  }
+}
+
+function renderKanban(data) {
+  const board = document.getElementById('kanbanBoard');
+  const columns = currentType === 'warranty'
+    ? ['未派工','未开工','在修','已竣工','已结算','已结清','已终止']
+    : ['待客户确认','维修完成','关闭工单'];
+
+  board.innerHTML = columns.map(col => {
+    const items = data.filter(o => o.status === col);
+    return `
+      <div class="kanban-column col-${col}">
+        <div class="kanban-col-header">
+          <span>${col}</span>
+          <span class="col-count">${items.length}</span>
+        </div>
+        <div class="kanban-col-body">
+          ${items.length ? items.map(o => currentType === 'warranty' ? renderWnCard(o) : renderNwCard(o)).join('') : '<div class="empty-col">暂无工单</div>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderWnCard(o) {
+  const isUrgent = o.urgent === '1';
+  const orderTag = getOrderTag(o.orderType);
+  const repairTag = o.repairType === '乘用车' ? '乘用车' : '商用车';
+  return `
+    <div class="kanban-card" onclick="viewWnDetail('${o.id}')">
+      <div class="card-id">
+        ${o.id}
+        <span class="card-tag tag-${repairTag}">${o.repairType}</span>
+        ${orderTag}
+        ${isUrgent ? '<span class="card-tag tag-urgent">加急</span>' : ''}
+      </div>
+      <div class="card-row"><span class="label">客户</span><span class="value">${o.customerName || '-'}</span></div>
+      <div class="card-row"><span class="label">车辆</span><span class="value">${o.vehicleInfo || '-'}</span></div>
+      <div class="card-row"><span class="label">故障</span><span class="value">${(o.faultDesc||'-').substring(0,30)}</span></div>
+      ${o.totalFee ? `<div class="card-row"><span class="label">费用</span><span class="value money">¥${parseFloat(o.totalFee).toLocaleString()}</span></div>` : ''}
+      ${o.engineer ? `
+        <div class="card-engineer">
+          <div class="eng-avatar">${o.engineer.charAt(0)}</div>
+          <div class="eng-name">${o.engineer}</div>
+        </div>
+      ` : ''}
+      <div class="card-time">${o.registerDate || o.startDate || ''}</div>
+    </div>
+  `;
+}
+
+function renderNwCard(o) {
+  const productTag = o.productType === '乘用' ? '乘用' : '商用';
+  const projectTag = getProjectTag(o.projectType);
+  return `
+    <div class="kanban-card" onclick="viewNwDetail(${o.seq})">
+      <div class="card-id">
+        #${o.seq}
+        <span class="card-tag tag-${productTag}">${o.productType}</span>
+        ${projectTag}
+        ${o.city ? `<span style="font-size:11px;color:var(--text-s);margin-left:auto">${o.city}</span>` : ''}
+      </div>
+      <div class="card-row"><span class="label">客户</span><span class="value">${o.signedCustomer || '-'}</span></div>
+      <div class="card-row"><span class="label">车牌</span><span class="value">${o.plateNumber || '-'}</span></div>
+      <div class="card-row"><span class="label">需求</span><span class="value">${(o.faultDesc||'-').substring(0,30)}</span></div>
+      ${o.quoteTotal ? `<div class="card-row"><span class="label">报价</span><span class="value money">¥${parseFloat(o.quoteTotal).toLocaleString()}</span></div>` : ''}
+      ${parseFloat(o.unreceivedAmount) > 0 ? `<div class="card-row"><span class="label">未回款</span><span class="value danger">¥${parseFloat(o.unreleasedAmount||o.unreceivedAmount).toLocaleString()}</span></div>` : ''}
+      ${o.repairEngineer && o.repairEngineer !== '无' ? `
+        <div class="card-engineer">
+          <div class="eng-avatar">${o.repairEngineer.charAt(0)}</div>
+          <div class="eng-name">${o.repairEngineer}</div>
+          ${o.repairArea ? `<span style="font-size:11px;color:var(--text-s);margin-left:auto">${o.repairArea}</span>` : ''}
+        </div>
+      ` : ''}
+      <div class="card-time">${o.requestDate || o.dealDate || ''}</div>
+    </div>
+  `;
+}
+
+function getOrderTag(type) {
+  if(!type) return '';
+  const map = {'EU5检测':'tag-EU5检测','保内':'tag-保内','保外':'tag-保外','非售后':'tag-非售后','批改':'tag-批改'};
+  return `<span class="card-tag ${map[type]||'tag-保内'}">${type}</span>`;
+}
+
+function getProjectTag(type) {
+  if(!type) return '';
+  if(type.includes('CTP')) return '<span class="card-tag tag-CTP">CTP</span>';
+  if(type.includes('MTP')) return '<span class="card-tag tag-MTP">MTP</span>';
+  if(type.includes('电箱')) return '<span class="card-tag tag-电箱">电箱</span>';
+  return `<span class="card-tag tag-常规维修">${type}</span>`;
+}
+
+// ===== DETAIL MODALS =====
+function viewWnDetail(id) {
+  const o = WN_DATA.find(x => x.id === id);
+  if(!o) return;
+
+  // Progress
+  const statusFlow = ['未派工','未开工','在修','已竣工','已结算','已结清'];
+  const currentIdx = statusFlow.indexOf(o.status);
+  const progress = o.status === '已终止' ? 0 : (currentIdx >= 0 ? Math.round((currentIdx / (statusFlow.length-1)) * 100) : 0);
+  const progressColor = o.status === '已终止' ? '#dc2626' : currentIdx >= 4 ? '#16a34a' : '#2563eb';
+
+  const html = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">${o.id}</div>
+        <div class="modal-subtitle">${o.customerName} · ${o.vehicleInfo} · ${o.repairType} · ${o.orderType}</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <span style="font-size:14px;font-weight:600">${o.status}</span>
+        ${o.urgent==='1'?'<span class="card-tag tag-urgent">加急</span>':''}
+        <div style="flex:1">
+          <div class="progress-bar"><div class="progress-fill" style="width:${progress}%;background:${progressColor}"></div></div>
+          <div style="font-size:11px;color:var(--text-s);margin-top:2px">进度 ${progress}%</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📋 基本信息</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-label">登记日期</div><div class="field-value">${o.registerDate||'-'}</div></div>
+          <div class="field"><div class="field-label">客户名称</div><div class="field-value">${o.customerName||'-'}</div></div>
+          <div class="field"><div class="field-label">联系人</div><div class="field-value">${o.contact||'-'}</div></div>
+          <div class="field"><div class="field-label">车辆信息</div><div class="field-value">${o.vehicleInfo||'-'}</div></div>
+          <div class="field"><div class="field-label">维修类型</div><div class="field-value">${o.repairType||'-'}</div></div>
+          <div class="field"><div class="field-label">工单类型</div><div class="field-value">${o.orderType||'-'}</div></div>
+          <div class="field full"><div class="field-label">故障描述</div><div class="field-value">${o.faultDesc||'-'}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">👷 工程师与进度</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-label">责任工程师</div><div class="field-value highlight">${o.engineer||'未派工'}</div></div>
+          <div class="field"><div class="field-label">责任外服</div><div class="field-value">${o.externalService||'-'}</div></div>
+          <div class="field"><div class="field-label">PM/PQM</div><div class="field-value">${o.pm||'-'}</div></div>
+          <div class="field"><div class="field-label">GSS工单号</div><div class="field-value">${o.gssOrderNo||'-'}</div></div>
+          <div class="field"><div class="field-label">开工时间</div><div class="field-value">${o.startDate||'-'}</div></div>
+          <div class="field"><div class="field-label">完工日期</div><div class="field-value">${o.completeDate||'-'}</div></div>
+          <div class="field"><div class="field-label">工程师产值</div><div class="field-value">${o.engineerOutput||'-'}</div></div>
+          <div class="field full"><div class="field-label">工程师备注</div><div class="field-value">${o.engineerNote||'-'}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📦 物料与仓库</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-label">是否申领物料</div><div class="field-value">${o.needMaterial==='1'?'✅ 是':'否'}</div></div>
+          <div class="field"><div class="field-label">申领日期</div><div class="field-value">${o.materialApplyDate||'-'}</div></div>
+          <div class="field"><div class="field-label">领用物料日期</div><div class="field-value">${o.materialReceiveDate||'-'}</div></div>
+          <div class="field"><div class="field-label">是否加急</div><div class="field-value">${o.urgent==='1'?'🔴 是':'否'}</div></div>
+          <div class="field"><div class="field-label">订货日期</div><div class="field-value">${o.orderDate||'-'}</div></div>
+          <div class="field"><div class="field-label">订货成本</div><div class="field-value">${o.orderCost?'¥'+parseFloat(o.orderCost).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">齐套日期</div><div class="field-value">${o.readyDate||'-'}</div></div>
+          <div class="field"><div class="field-label">工程师领料时间</div><div class="field-value">${o.engineerPickDate||'-'}</div></div>
+          <div class="field"><div class="field-label">旧件接收日期</div><div class="field-value">${o.oldPartReceiveDate||'-'}</div></div>
+          <div class="field"><div class="field-label">旧件返厂日期</div><div class="field-value">${o.oldPartReturnDate||'-'}</div></div>
+          <div class="field full"><div class="field-label">旧件备注</div><div class="field-value">${o.oldPartNote||'-'}</div></div>
+          <div class="field full"><div class="field-label">库房备注</div><div class="field-value">${o.warehouseNote||'-'}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">💰 费用与结算</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-label">报单员</div><div class="field-value">${o.reporter||'-'}</div></div>
+          <div class="field"><div class="field-label">报单绩效</div><div class="field-value">${o.reporterBonus||'-'}</div></div>
+          <div class="field"><div class="field-label">GSS总费用</div><div class="field-value money">${o.gssFee?'¥'+parseFloat(o.gssFee).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">保外成交金额</div><div class="field-value">${o.outWarrantyAmount&&o.outWarrantyAmount!=='0.0'?'¥'+parseFloat(o.outWarrantyAmount).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">总费用</div><div class="field-value money">${o.totalFee?'¥'+parseFloat(o.totalFee).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">建单日期</div><div class="field-value">${o.submitDate||'-'}</div></div>
+          <div class="field"><div class="field-label">工单提交时间</div><div class="field-value">${o.orderSubmitDate||'-'}</div></div>
+        </div>
+      </div>
+
+      ${o.platformNote ? `
+      <div class="section">
+        <div class="section-title">📝 备注</div>
+        <div class="field-grid">
+          <div class="field full"><div class="field-label">中台备注</div><div class="field-value">${o.platformNote}</div></div>
+        </div>
+      </div>` : ''}
+    </div>
+  `;
+  showModal(html);
+}
+
+function viewNwDetail(seq) {
+  const o = NW_DATA.find(x => x.seq === String(seq));
+  if(!o) return;
+
+  const statusFlow = ['待客户确认','维修完成','关闭工单'];
+  const currentIdx = statusFlow.indexOf(o.status);
+  const progress = currentIdx >= 0 ? Math.round((currentIdx / (statusFlow.length-1)) * 100) : 0;
+  const progressColor = currentIdx >= 1 ? '#16a34a' : '#d97706';
+
+  const grossProfit = parseFloat(o.grossProfit)||0;
+  const grossMargin = o.grossMargin ? (parseFloat(o.grossMargin)*100).toFixed(1)+'%' : '-';
+
+  const html = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">#${o.seq} · ${o.plateNumber || o.signedCustomer}</div>
+        <div class="modal-subtitle">${o.signedCustomer} · ${o.productType} · ${o.projectType} · ${o.city}</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <span style="font-size:14px;font-weight:600">${o.status}</span>
+        <div style="flex:1">
+          <div class="progress-bar"><div class="progress-fill" style="width:${progress}%;background:${progressColor}"></div></div>
+          <div style="font-size:11px;color:var(--text-s);margin-top:2px">进度 ${progress}%</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📋 基本信息</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-label">城市</div><div class="field-value">${o.city||'-'}</div></div>
+          <div class="field"><div class="field-label">业务需求提出时间</div><div class="field-value">${o.requestDate||'-'}</div></div>
+          <div class="field"><div class="field-label">签约客户</div><div class="field-value">${o.signedCustomer||'-'}</div></div>
+          <div class="field"><div class="field-label">车牌号</div><div class="field-value">${o.plateNumber||'-'}</div></div>
+          <div class="field"><div class="field-label">Barcode号</div><div class="field-value">${o.barcode||'-'}</div></div>
+          <div class="field"><div class="field-label">车架号</div><div class="field-value">${o.vin||'-'}</div></div>
+          <div class="field"><div class="field-label">产品PN</div><div class="field-value">${o.productPN||'-'}</div></div>
+          <div class="field"><div class="field-label">产品类型</div><div class="field-value">${o.productType||'-'}</div></div>
+          <div class="field"><div class="field-label">项目类型</div><div class="field-value">${o.projectType||'-'}</div></div>
+          <div class="field"><div class="field-label">业务对接人</div><div class="field-value">${o.bizContact||'-'}</div></div>
+          <div class="field"><div class="field-label">客户姓名</div><div class="field-value">${o.customerName||'-'}</div></div>
+          <div class="field"><div class="field-label">客户电话</div><div class="field-value">${o.customerPhone||'-'}</div></div>
+          <div class="field full"><div class="field-label">业务需求描述</div><div class="field-value">${o.faultDesc||'-'}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">👷 维修信息</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-label">维修工程师</div><div class="field-value highlight">${o.repairEngineer||'-'}</div></div>
+          <div class="field"><div class="field-label">维修区域</div><div class="field-value">${o.repairArea||'-'}</div></div>
+          <div class="field"><div class="field-label">维修成交时间</div><div class="field-value">${o.dealDate||'-'}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">💰 报价与费用明细</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-label">报价单总金额</div><div class="field-value money">${o.quoteTotal?'¥'+parseFloat(o.quoteTotal).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">报价单应回款</div><div class="field-value">${o.quoteReceivable?'¥'+parseFloat(o.quoteReceivable).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">配件销售金额</div><div class="field-value">${o.partsSale?'¥'+parseFloat(o.partsSale).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">工时费金额</div><div class="field-value">${o.laborFee?'¥'+parseFloat(o.laborFee).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">配件进购价格</div><div class="field-value">${o.partsCost?'¥'+parseFloat(o.partsCost).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">物流往返费用</div><div class="field-value">${o.logisticsFee?'¥'+parseFloat(o.logisticsFee).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">分润</div><div class="field-value">${o.profitShare?'¥'+parseFloat(o.profitShare).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">物流打款</div><div class="field-value">${o.logisticsPayment||'-'}</div></div>
+          <div class="field"><div class="field-label">物流发票</div><div class="field-value">${o.logisticsInvoice||'-'}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">💳 回款与开票</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-label">付款方式</div><div class="field-value">${o.paymentMethod||'-'}</div></div>
+          <div class="field"><div class="field-label">付款状态</div><div class="field-value">${o.paymentStatus||'-'}</div></div>
+          <div class="field"><div class="field-label">已回款金额</div><div class="field-value money">${o.receivedAmount?'¥'+parseFloat(o.receivedAmount).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">未回款金额</div><div class="field-value ${parseFloat(o.unreceivedAmount||0)>0?'danger':''}">${o.unreceivedAmount?'¥'+parseFloat(o.unreceivedAmount).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">开票金额</div><div class="field-value">${o.invoiceAmount?'¥'+parseFloat(o.invoiceAmount).toLocaleString():'-'}</div></div>
+          <div class="field"><div class="field-label">开票日期</div><div class="field-value">${o.invoiceDate||'-'}</div></div>
+          <div class="field"><div class="field-label">报价总额回款时间</div><div class="field-value">${o.paymentDate||'-'}</div></div>
+          <div class="field"><div class="field-label">是否给宁德打款</div><div class="field-value">${o.payCatl||'-'}</div></div>
+          <div class="field"><div class="field-label">宁德是否开具发票</div><div class="field-value">${o.catlInvoice||'-'}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📊 利润</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-label">实际业务毛利润</div><div class="field-value ${grossProfit>=0?'money':'danger'}">¥${grossProfit.toLocaleString()}</div></div>
+          <div class="field"><div class="field-label">实际业务毛利率</div><div class="field-value">${o.grossMargin ? (parseFloat(o.grossMargin)*100).toFixed(1)+'%' : '-'}</div></div>
+        </div>
+      </div>
+
+      ${(o.reviewNote||o.remark) ? `
+      <div class="section">
+        <div class="section-title">📝 备注</div>
+        <div class="field-grid">
+          ${o.reviewNote?`<div class="field full"><div class="field-label">业务复盘记录</div><div class="field-value">${o.reviewNote}</div></div>`:''}
+          ${o.remark?`<div class="field full"><div class="field-label">备注</div><div class="field-value">${o.remark}</div></div>`:''}
+        </div>
+      </div>` : ''}
+    </div>
+  `;
+  showModal(html);
+}
+
+// ===== FILTERS =====
+function initFilters() {
+  const data = currentType === 'warranty' ? WN_DATA : NW_DATA;
+  const engKey = currentType === 'warranty' ? 'engineer' : 'repairEngineer';
+  const engineers = [...new Set(data.map(o => o[engKey]).filter(Boolean))].sort();
+
+  const engSel = document.getElementById('filterEngineer');
+  engSel.innerHTML = '<option value="">全部工程师</option>' + engineers.map(e => `<option value="${e}">${e}</option>`).join('');
+
+  if(currentType === 'warranty') {
+    const types = [...new Set(data.map(o => o.orderType).filter(Boolean))].sort();
+    document.getElementById('filterType').innerHTML = '<option value="">全部工单类型</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+  }
+
+  const prodKey = currentType === 'warranty' ? 'repairType' : 'productType';
+  const products = [...new Set(data.map(o => o[prodKey]).filter(Boolean))].sort();
+  document.getElementById('filterProduct').innerHTML = '<option value="">全部产品类型</option>' + products.map(p => `<option value="${p}">${p}</option>`).join('');
+}
+
+function getFiltered() {
+  const data = currentType === 'warranty' ? WN_DATA : NW_DATA;
+  const search = (document.getElementById('searchInput').value || '').toLowerCase();
+  const eng = document.getElementById('filterEngineer').value;
+  const type = document.getElementById('filterType').value;
+  const prod = document.getElementById('filterProduct').value;
+  const engKey = currentType === 'warranty' ? 'engineer' : 'repairEngineer';
+  const typeKey = 'orderType';
+  const prodKey = currentType === 'warranty' ? 'repairType' : 'productType';
+
+  return data.filter(o => {
+    if(eng && o[engKey] !== eng) return false;
+    if(type && o[typeKey] !== type) return false;
+    if(prod && o[prodKey] !== prod) return false;
+    if(search) {
+      const haystack = (o.id + o.customerName + o.vehicleInfo + o.plateNumber + o.faultDesc + o[engKey] + o.signedCustomer).toLowerCase();
+      if(!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function applyFilter() {
+  const filtered = getFiltered();
+  renderStatsRow(filtered);
+  renderKanban(filtered);
+}
+
+// ===== MODAL =====
+function showModal(html) {
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+// ===== INIT =====
+loadData();
+
+// ===== EXCEL UPLOAD =====
+// 保内列名映射（Excel中文列头 → JS字段key）
+const WN_COLUMN_MAP = {
+  '编号':'id','登记日期':'registerDate','客户名称':'customerName','联系人':'contact',
+  '车辆信息':'vehicleInfo','故障描述':'faultDesc','维修类型':'repairType',
+  '工单类型':'orderType','完成状态':'status','责任工程师':'engineer',
+  '责任外服':'externalService','PM/PQM':'pm','中台备注':'platformNote',
+  'GSS工单号':'gssOrderNo','开工时间':'startDate','是否申领物料':'needMaterial',
+  '申领日期':'materialApplyDate','是否加急':'urgent','领用物料日期':'materialReceiveDate',
+  '完工日期':'completeDate','工程师备注':'engineerNote','工程师产值':'engineerOutput',
+  '工程师产值分解':'engineerOutputDetail','报单员':'reporter','报单绩效':'reporterBonus',
+  '建单日期':'submitDate','工单提交时间':'orderSubmitDate','GSS总费用':'gssFee',
+  '保外成交金额':'outWarrantyAmount','总费用':'totalFee','订货日期':'orderDate',
+  '订货成本':'orderCost','齐套日期':'readyDate','工程师领料时间':'engineerPickDate',
+  '旧件接收日期':'oldPartReceiveDate','旧件返厂日期':'oldPartReturnDate',
+  '旧件备注':'oldPartNote','库房备注':'warehouseNote'
+};
+
+// 保外列名映射
+const NW_COLUMN_MAP = {
+  '序号':'seq','城市':'city','工单号':'orderNo','车牌号':'plateNumber',
+  'Barcode号':'barcode','车架号':'vin','产品PN':'productPN',
+  '签约客户名称':'signedCustomer','产品类型':'productType','项目类型':'projectType',
+  '业务对接人':'bizContact','客户姓名':'customerName','客户电话':'customerPhone',
+  '业务需求提出时间':'requestDate','维修状态':'status','业务需求描述':'faultDesc',
+  '维修工程师':'repairEngineer','报价单总金额':'quoteTotal','报价单应回款':'quoteReceivable',
+  '配件销售金额':'partsSale','工时费金额':'laborFee','配件进购价格':'partsCost',
+  '物流往返费用':'logisticsFee','物流打款':'logisticsPayment','物流发票':'logisticsInvoice',
+  '分润':'profitShare','维修成交时间':'dealDate','维修区域':'repairArea',
+  '报价总额回款时间':'paymentDate','付款方式':'paymentMethod','付款状态':'paymentStatus',
+  '已回款金额':'receivedAmount','未回款金额':'unreceivedAmount','开票金额':'invoiceAmount',
+  '开票日期':'invoiceDate','实际业务毛利润':'grossProfit','实际业务毛利率':'grossMargin',
+  '是否给宁德打款':'payCatl','宁德是否开具发票':'catlInvoice','业务复盘记录':'reviewNote',
+  '备注':'remark'
+};
+
+// 保内默认值模板
+const WN_DEFAULTS = {
+  id:'',registerDate:'',customerName:'',contact:'',vehicleInfo:'',faultDesc:'',
+  repairType:'',orderType:'',status:'未派工',engineer:'',externalService:'',pm:'',
+  platformNote:'',gssOrderNo:'',startDate:'',needMaterial:'0',materialApplyDate:'',
+  urgent:'0',materialReceiveDate:'',completeDate:'',engineerNote:'',engineerOutput:'',
+  reporter:'',reporterBonus:'',submitDate:'',orderSubmitDate:'',gssFee:'0.0',
+  outWarrantyAmount:'0.0',totalFee:'0.0',orderDate:'',orderCost:'',readyDate:'',
+  engineerPickDate:'',oldPartReceiveDate:'',oldPartReturnDate:'',oldPartNote:'',
+  warehouseNote:''
+};
+
+// 保外默认值模板
+const NW_DEFAULTS = {
+  seq:'',city:'',orderNo:'',plateNumber:'',barcode:'',vin:'',productPN:'',
+  signedCustomer:'',productType:'',projectType:'',bizContact:'',customerName:'',
+  customerPhone:'',requestDate:'',status:'待客户确认',faultDesc:'',repairEngineer:'',
+  quoteTotal:'',quoteReceivable:'',partsSale:'',laborFee:'',partsCost:'',
+  logisticsFee:'',logisticsPayment:'',logisticsInvoice:'',profitShare:'',
+  dealDate:'',repairArea:'',paymentDate:'',paymentMethod:'',paymentStatus:'',
+  receivedAmount:'',unreceivedAmount:'',invoiceAmount:'',invoiceDate:'',
+  grossProfit:'',grossMargin:'',payCatl:'',catlInvoice:'',reviewNote:'',remark:''
+};
+
+function showUploadStatus(msg, type) {
+  const el = document.getElementById('uploadStatus');
+  el.className = 'upload-status show ' + type;
+  el.innerHTML = msg;
+  if(type === 'success') setTimeout(() => { el.className = 'upload-status show info'; }, 8000);
+}
+
+function detectSheetType(headers) {
+  // 检测列头判断保内还是保外
+  const wnKeys = ['编号','登记日期','维修类型','完成状态','责任工程师'];
+  const nwKeys = ['序号','城市','签约客户名称','维修状态','报价单总金额'];
+  let wnScore = 0, nwScore = 0;
+  headers.forEach(h => {
+    const hTrim = h.trim();
+    if(wnKeys.includes(hTrim)) wnScore++;
+    if(nwKeys.includes(hTrim)) nwScore++;
+  });
+  if(wnScore >= 2 && wnScore > nwScore) return 'warranty';
+  if(nwScore >= 2 && nwScore > wnScore) return 'nonwarranty';
+  // fallback: 看是否包含特定关键字
+  if(headers.some(h => h.includes('完成状态'))) return 'warranty';
+  if(headers.some(h => h.includes('维修状态'))) return 'nonwarranty';
+  return null;
+}
+
+function mapRow(rawRow, columnMap, defaults) {
+  const obj = {...defaults};
+  for(const [cnHeader, jsKey] of Object.entries(columnMap)) {
+    if(rawRow[cnHeader] !== undefined && rawRow[cnHeader] !== null) {
+      let val = rawRow[cnHeader];
+      // 处理日期类型
+      if(val instanceof Date) {
+        const y = val.getFullYear();
+        const m = String(val.getMonth()+1).padStart(2,'0');
+        const d = String(val.getDate()).padStart(2,'0');
+        val = `${y}-${m}-${d}`;
+      } else {
+        val = String(val).trim();
+      }
+      obj[jsKey] = val;
+    }
+  }
+  return obj;
+}
+
+function handleExcelUpload(input) {
+  const file = input.files[0];
+  if(!file) return;
+
+  showUploadStatus('⏳ 正在读取 <b>' + file.name + '</b> ...', 'info');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type:'array', cellDates:true});
+
+      // 处理所有sheet
+      let totalWn = 0, totalNw = 0;
+      const newWnData = [], newNwData = [];
+
+      for(const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, {defval:''});
+        if(!jsonData.length) continue;
+
+        const headers = Object.keys(jsonData[0]);
+        const sheetType = detectSheetType(headers);
+
+        if(sheetType === 'warranty') {
+          jsonData.forEach(row => {
+            const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
+            // 如果没有编号，自动生成
+            if(!mapped.id) mapped.id = 'WN-' + String(newWnData.length + 1).padStart(6,'0');
+            // 状态映射：确保状态值在合法枚举中
+            const validStatuses = ['未派工','未开工','在修','已竣工','已结算','已结清','已终止'];
+            if(!validStatuses.includes(mapped.status)) mapped.status = '未派工';
+            newWnData.push(mapped);
+          });
+          totalWn += jsonData.length;
+        } else if(sheetType === 'nonwarranty') {
+          jsonData.forEach(row => {
+            const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
+            if(!mapped.seq) mapped.seq = String(newNwData.length + 1);
+            const validStatuses = ['待客户确认','维修完成','关闭工单'];
+            if(!validStatuses.includes(mapped.status)) mapped.status = '待客户确认';
+            newNwData.push(mapped);
+          });
+          totalNw += jsonData.length;
+        } else {
+          // 无法自动识别，尝试模糊匹配
+          // 检查是否包含"保内"相关关键词
+          const hasWnHeaders = headers.some(h => h.includes('完成状态') || h.includes('责任工程师') || h.includes('维修类型'));
+          const hasNwHeaders = headers.some(h => h.includes('维修状态') || h.includes('签约客户') || h.includes('报价单'));
+          if(hasWnHeaders && !hasNwHeaders) {
+            jsonData.forEach(row => {
+              const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
+              if(!mapped.id) mapped.id = 'WN-' + String(newWnData.length + 1).padStart(6,'0');
+              const validStatuses = ['未派工','未开工','在修','已竣工','已结算','已结清','已终止'];
+              if(!validStatuses.includes(mapped.status)) mapped.status = '未派工';
+              newWnData.push(mapped);
+            });
+            totalWn += jsonData.length;
+          } else if(hasNwHeaders && !hasWnHeaders) {
+            jsonData.forEach(row => {
+              const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
+              if(!mapped.seq) mapped.seq = String(newNwData.length + 1);
+              const validStatuses = ['待客户确认','维修完成','关闭工单'];
+              if(!validStatuses.includes(mapped.status)) mapped.status = '待客户确认';
+              newNwData.push(mapped);
+            });
+            totalNw += jsonData.length;
+          }
+        }
+      }
+
+      if(totalWn === 0 && totalNw === 0) {
+        showUploadStatus('⚠️ 未能识别数据类型，请确保Excel列头与保内/保外模板一致', 'error');
+        input.value = '';
+        return;
+      }
+
+      // 替换数据并重新渲染
+      if(totalWn > 0) WN_DATA = newWnData;
+      if(totalNw > 0) NW_DATA = newNwData;
+
+      initFilters();
+      render();
+
+      let msg = '✅ 导入成功！';
+      const parts = [];
+      if(totalWn > 0) parts.push('保内 <span class="upload-badge">' + totalWn + ' 条</span>');
+      if(totalNw > 0) parts.push('保外 <span class="upload-badge">' + totalNw + ' 条</span>');
+      msg += ' ' + parts.join(' · ') + ' — 来自 <b>' + file.name + '</b>';
+      showUploadStatus(msg, 'success');
+
+    } catch(err) {
+      console.error(err);
+      showUploadStatus('❌ 解析失败：' + err.message, 'error');
+    }
+  };
+  reader.onerror = function() {
+    showUploadStatus('❌ 文件读取失败', 'error');
+  };
+  reader.readAsArrayBuffer(file);
+  // 清空input以便重复上传同一文件
+  input.value = '';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目管理看板</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0f1419;
+      --bg-secondary: #1a2332;
+      --bg-card: #1e2a3a;
+      --bg-hover: #243447;
+      --border-color: #2d3f52;
+      --text-primary: #e7e9ea;
+      --text-secondary: #8899a6;
+      --text-muted: #657786;
+      --accent: #1d9bf0;
+      --accent-hover: #1a8cd8;
+      --status-pending: #6b7280;
+      --status-progress: #3b82f6;
+      --status-completed: #10b981;
+      --status-delayed: #ef4444;
+      --status-paused: #f59e0b;
+      --priority-high: #ef4444;
+      --priority-medium: #f59e0b;
+      --priority-low: #10b981;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* 顶部导航栏 */
+    .navbar {
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .navbar-brand h1 {
+      font-size: 20px;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--accent) 0%, #0fd4a4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .navbar-brand svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--accent);
+    }
+
+    .navbar-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #0fd4a4 100%);
+      border: none;
+      color: white;
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(29, 155, 240, 0.3);
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .view-switcher {
+      display: flex;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .view-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .view-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .view-btn:hover:not(.active) {
+      color: var(--text-primary);
+    }
+
+    /* 统计概览区 */
+    .stats-overview {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-card .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .stat-card .stat-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .stat-card.total .stat-icon { background: rgba(59, 130, 246, 0.2); }
+    .stat-card.total .stat-icon svg { fill: var(--status-progress); }
+
+    .stat-card.progress .stat-icon { background: rgba(16, 185, 129, 0.2); }
+    .stat-card.progress .stat-icon svg { fill: var(--status-completed); }
+
+    .stat-card.completed .stat-icon { background: rgba(16, 185, 129, 0.2); }
+    .stat-card.completed .stat-icon svg { fill: var(--status-completed); }
+
+    .stat-card.delayed .stat-icon { background: rgba(239, 68, 68, 0.2); }
+    .stat-card.delayed .stat-icon svg { fill: var(--status-delayed); }
+
+    .stat-card .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .stat-card.delayed .stat-value {
+      color: var(--status-delayed);
+    }
+
+    /* 筛选栏 */
+    .filter-bar {
+      padding: 0 24px 16px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-group label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .filter-select, .filter-input {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 13px;
+      min-width: 120px;
+    }
+
+    .filter-select:focus, .filter-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .filter-input {
+      min-width: 180px;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      padding: 0 24px 24px;
+    }
+
+    /* 看板视图 */
+    .kanban-board {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 16px;
+    }
+
+    .kanban-column {
+      min-width: 300px;
+      flex: 1;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+    }
+
+    .column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid;
+    }
+
+    .column-header.pending { border-color: var(--status-pending); }
+    .column-header.active { border-color: var(--status-progress); }
+    .column-header.completed { border-color: var(--status-completed); }
+    .column-header.delayed { border-color: var(--status-delayed); }
+    .column-header.paused { border-color: var(--status-paused); }
+
+    .column-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .column-status {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .column-status.pending { background: var(--status-pending); }
+    .column-status.active { background: var(--status-progress); }
+    .column-status.completed { background: var(--status-completed); }
+    .column-status.delayed { background: var(--status-delayed); }
+    .column-status.paused { background: var(--status-paused); }
+
+    .column-count {
+      background: var(--bg-primary);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .column-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 200px;
+    }
+
+    /* 项目卡片 */
+    .project-card {
+      background: var(--bg-card);
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .project-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      border-color: var(--accent);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .card-owner {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .priority-tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .priority-tag.high { background: rgba(239, 68, 68, 0.2); color: var(--priority-high); }
+    .priority-tag.medium { background: rgba(245, 158, 11, 0.2); color: var(--priority-medium); }
+    .priority-tag.low { background: rgba(16, 185, 129, 0.2); color: var(--priority-low); }
+
+    .card-dates {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-progress {
+      margin-bottom: 12px;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--bg-primary);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #0fd4a4);
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .milestone-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .attachment-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 列表视图 */
+    .list-view {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .list-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .list-table th {
+      background: var(--bg-card);
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .list-table th:hover {
+      color: var(--text-primary);
+    }
+
+    .list-table th svg {
+      width: 12px;
+      height: 12px;
+      margin-left: 4px;
+      vertical-align: middle;
+      opacity: 0.5;
+    }
+
+    .list-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 13px;
+    }
+
+    .list-table tr:hover td {
+      background: var(--bg-hover);
+    }
+
+    .list-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-badge.pending { background: rgba(107, 114, 128, 0.2); color: var(--status-pending); }
+    .status-badge.active { background: rgba(59, 130, 246, 0.2); color: var(--status-progress); }
+    .status-badge.completed { background: rgba(16, 185, 129, 0.2); color: var(--status-completed); }
+    .status-badge.delayed { background: rgba(239, 68, 68, 0.2); color: var(--status-delayed); }
+    .status-badge.paused { background: rgba(245, 158, 11, 0.2); color: var(--status-paused); }
+
+    .action-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--accent);
+    }
+
+    .action-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* 甘特图视图 */
+    .gantt-container {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .gantt-header {
+      display: flex;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .gantt-label-col {
+      width: 200px;
+      padding: 14px 16px;
+      font-weight: 600;
+      font-size: 13px;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .gantt-timeline-col {
+      flex: 1;
+      overflow-x: auto;
+    }
+
+    .gantt-months {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .gantt-month {
+      min-width: 100px;
+      padding: 10px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+      border-right: 1px solid var(--border-color);
+    }
+
+    .gantt-days {
+      display: flex;
+    }
+
+    .gantt-day {
+      min-width: 14px;
+      height: 24px;
+      font-size: 9px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .gantt-body {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .gantt-row {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .gantt-row:hover {
+      background: var(--bg-hover);
+    }
+
+    .gantt-row-label {
+      width: 200px;
+      padding: 12px 16px;
+      font-size: 13px;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .gantt-row-label .name {
+      font-weight: 500;
+    }
+
+    .gantt-row-label .owner {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .gantt-row-timeline {
+      flex: 1;
+      position: relative;
+      height: 60px;
+      padding: 10px 0;
+    }
+
+    .gantt-bar {
+      position: absolute;
+      height: 24px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 11px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 40px;
+    }
+
+    .gantt-bar:hover {
+      transform: scaleY(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .gantt-bar.pending { background: var(--status-pending); }
+    .gantt-bar.active { background: var(--status-progress); }
+    .gantt-bar.completed { background: var(--status-completed); }
+    .gantt-bar.delayed { background: var(--status-delayed); }
+    .gantt-bar.paused { background: var(--status-paused); }
+
+    /* 模态框 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      width: 90%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(20px);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+      border-color: var(--accent);
+    }
+
+    .modal-close svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.1);
+    }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-slider-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .form-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-primary);
+      outline: none;
+    }
+
+    .form-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    .slider-value {
+      min-width: 50px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* 里程碑 */
+    .milestones-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .milestones-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .milestones-header h3 {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .milestone-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .milestone-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: 2px solid var(--border-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .milestone-checkbox.checked {
+      background: var(--status-completed);
+      border-color: var(--status-completed);
+    }
+
+    .milestone-checkbox svg {
+      width: 12px;
+      height: 12px;
+      fill: white;
+    }
+
+    .milestone-name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .milestone-date {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .milestone-delete {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .milestone-delete:hover {
+      color: var(--status-delayed);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .milestone-delete svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .add-milestone {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .add-milestone input {
+      flex: 1;
+    }
+
+    /* 附件 */
+    .attachments-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .attachment-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .attachment-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .attachment-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--accent);
+    }
+
+    .attachment-info {
+      flex: 1;
+    }
+
+    .attachment-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .attachment-size {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .attachment-download {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .attachment-download:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .attachment-download svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .attachment-delete {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .attachment-delete:hover {
+      color: var(--status-delayed);
+    }
+
+    .attachment-delete svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .file-upload-area {
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .file-upload-area:hover {
+      border-color: var(--accent);
+      background: rgba(29, 155, 240, 0.05);
+    }
+
+    .file-upload-area svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .file-upload-area p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .file-upload-area span {
+      color: var(--accent);
+    }
+
+    .modal-footer {
+      padding: 20px 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--status-delayed);
+      color: var(--status-delayed);
+    }
+
+    .btn-danger:hover {
+      background: var(--status-delayed);
+      color: white;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      fill: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    /* 隐藏文件输入 */
+    .hidden-input {
+      display: none;
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 12px 16px;
+      }
+
+      .navbar-brand h1 {
+        font-size: 16px;
+      }
+
+      .stats-overview {
+        padding: 16px;
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .stat-card .stat-value {
+        font-size: 22px;
+      }
+
+      .filter-bar {
+        padding: 0 16px 16px;
+      }
+
+      .main-content {
+        padding: 0 16px 16px;
+      }
+
+      .kanban-column {
+        min-width: 280px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .modal {
+        width: 95%;
+        max-height: 95vh;
+      }
+    }
+
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* 导出导入按钮 */
+    .import-export-group {
+      display: flex;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航栏 -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v10h14V7H5zm2 2h4v4H7V9zm6 0h4v2h-4V9zm0 4h4v2h-4v-2z"/></svg>
+      <h1>项目管理看板</h1>
+    </div>
+
+    <div class="view-switcher">
+      <button class="view-btn active" data-view="kanban">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/></svg>
+        看板
+      </button>
+      <button class="view-btn" data-view="list">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg>
+        列表
+      </button>
+      <button class="view-btn" data-view="gantt">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5v14h18V5H3zm2 2h4v4H5V7zm6 0h4v2h-4V7zm0 4h4v2h-4v-2zm6 0h4v2h-4v-2zm-6 4h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
+        甘特图
+      </button>
+    </div>
+
+    <div class="navbar-actions">
+      <div class="import-export-group">
+        <button class="btn" id="importBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+          导入
+        </button>
+        <button class="btn" id="exportBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          导出
+        </button>
+      </div>
+      <button class="btn btn-primary" id="newProjectBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        新建项目
+      </button>
+    </div>
+  </nav>
+
+  <!-- 统计概览区 -->
+  <div class="stats-overview">
+    <div class="stat-card total">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+      </div>
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-label">项目总数</div>
+    </div>
+    <div class="stat-card progress">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      </div>
+      <div class="stat-value" id="statActive">0</div>
+      <div class="stat-label">进行中</div>
+    </div>
+    <div class="stat-card completed">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+      </div>
+      <div class="stat-value" id="statCompleted">0</div>
+      <div class="stat-label">已完成</div>
+    </div>
+    <div class="stat-card delayed">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+      </div>
+      <div class="stat-value" id="statDelayed">0</div>
+      <div class="stat-label">已延期</div>
+    </div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>负责人</label>
+      <select class="filter-select" id="filterOwner">
+        <option value="">全部</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>状态</label>
+      <select class="filter-select" id="filterStatus">
+        <option value="">全部</option>
+        <option value="未开始">未开始</option>
+        <option value="进行中">进行中</option>
+        <option value="已完成">已完成</option>
+        <option value="已延期">已延期</option>
+        <option value="已暂停">已暂停</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>优先级</label>
+      <select class="filter-select" id="filterPriority">
+        <option value="">全部</option>
+        <option value="高">高</option>
+        <option value="中">中</option>
+        <option value="低">低</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>排序</label>
+      <select class="filter-select" id="filterSort">
+        <option value="updatedAt-desc">最近更新</option>
+        <option value="updatedAt-asc">最早更新</option>
+        <option value="startDate-desc">开始日期(新)</option>
+        <option value="startDate-asc">开始日期(早)</option>
+        <option value="endDate-desc">截止日期(新)</option>
+        <option value="endDate-asc">截止日期(早)</option>
+        <option value="progress-desc">进度(高→低)</option>
+        <option value="progress-asc">进度(低→高)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 看板视图 -->
+    <div class="kanban-board" id="kanbanView">
+      <div class="kanban-column" data-status="未开始">
+        <div class="column-header pending">
+          <div class="column-title">
+            <span class="column-status pending"></span>
+            未开始
+          </div>
+          <span class="column-count">0</span>
+        </div>
+        <div class="column-cards"></div>
+      </div>
+      <div class="kanban-column" data-status="进行中">
+        <div class="column-header active">
+          <div class="column-title">
+            <span class="column-status active"></span>
+            进行中
+          </div>
+          <span class="column-count">0</span>
+        </div>
+        <div class="column-cards"></div>
+      </div>
+      <div class="kanban-column" data-status="已完成">
+        <div class="column-header completed">
+          <div class="column-title">
+            <span class="column-status completed"></span>
+            已完成
+          </div>
+          <span class="column-count">0</span>
+        </div>
+        <div class="column-cards"></div>
+      </div>
+      <div class="kanban-column" data-status="已延期">
+        <div class="column-header delayed">
+          <div class="column-title">
+            <span class="column-status delayed"></span>
+            已延期
+          </div>
+          <span class="column-count">0</span>
+        </div>
+        <div class="column-cards"></div>
+      </div>
+      <div class="kanban-column" data-status="已暂停">
+        <div class="column-header paused">
+          <div class="column-title">
+            <span class="column-status paused"></span>
+            已暂停
+          </div>
+          <span class="column-count">0</span>
+        </div>
+        <div class="column-cards"></div>
+      </div>
+    </div>
+
+    <!-- 列表视图 -->
+    <div class="list-view" id="listView" style="display: none;">
+      <table class="list-table">
+        <thead>
+          <tr>
+            <th data-sort="name">项目名称 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg></th>
+            <th data-sort="owner">负责人 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg></th>
+            <th data-sort="status">状态 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg></th>
+            <th data-sort="priority">优先级 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg></th>
+            <th data-sort="progress">进度 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg></th>
+            <th data-sort="endDate">截止日期 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5H7z"/></svg></th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="listTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- 甘特图视图 -->
+    <div class="gantt-container" id="ganttView" style="display: none;">
+      <div class="gantt-header">
+        <div class="gantt-label-col">项目名称</div>
+        <div class="gantt-timeline-col">
+          <div class="gantt-months" id="ganttMonths"></div>
+          <div class="gantt-days" id="ganttDays"></div>
+        </div>
+      </div>
+      <div class="gantt-body" id="ganttBody"></div>
+    </div>
+  </main>
+
+  <!-- 项目详情/编辑模态框 -->
+  <div class="modal-overlay" id="projectModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">新建项目</h2>
+        <button class="modal-close" id="modalClose">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="projectForm">
+          <input type="hidden" id="projectId">
+          
+          <div class="form-group">
+            <label>项目名称 *</label>
+            <input type="text" class="form-input" id="projectName" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>负责人 *</label>
+              <input type="text" class="form-input" id="projectOwner" required>
+            </div>
+            <div class="form-group">
+              <label>团队</label>
+              <input type="text" class="form-input" id="projectTeam">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>状态</label>
+              <select class="form-select" id="projectStatus">
+                <option value="未开始">未开始</option>
+                <option value="进行中">进行中</option>
+                <option value="已完成">已完成</option>
+                <option value="已延期">已延期</option>
+                <option value="已暂停">已暂停</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>优先级</label>
+              <select class="form-select" id="projectPriority">
+                <option value="高">高</option>
+                <option value="中">中</option>
+                <option value="低">低</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>开始日期</label>
+              <input type="date" class="form-input" id="projectStartDate">
+            </div>
+            <div class="form-group">
+              <label>预计完成日期</label>
+              <input type="date" class="form-input" id="projectEndDate">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>进度</label>
+            <div class="form-slider-group">
+              <input type="range" class="form-slider" id="projectProgress" min="0" max="100" value="0">
+              <span class="slider-value" id="progressValue">0%</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>项目描述</label>
+            <textarea class="form-textarea" id="projectDescription" placeholder="描述项目的目标、背景等信息..."></textarea>
+          </div>
+
+          <!-- 里程碑 -->
+          <div class="milestones-section">
+            <div class="milestones-header">
+              <h3>里程碑</h3>
+              <button type="button" class="btn" id="addMilestoneBtn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                添加
+              </button>
+            </div>
+            <div id="milestonesList"></div>
+            <div class="add-milestone" id="addMilestoneForm" style="display: none;">
+              <input type="text" class="form-input" id="newMilestoneName" placeholder="里程碑名称">
+              <input type="date" class="form-input" id="newMilestoneDate" style="width: 150px;">
+              <button type="button" class="btn btn-primary" id="confirmAddMilestone">添加</button>
+              <button type="button" class="btn" id="cancelAddMilestone">取消</button>
+            </div>
+          </div>
+
+          <!-- 附件 -->
+          <div class="attachments-section">
+            <div class="milestones-header">
+              <h3>附件</h3>
+            </div>
+            <div id="attachmentsList"></div>
+            <div class="file-upload-area" id="fileUploadArea">
+              <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+              <p>点击或拖拽文件到此处上传<br><span>支持 PDF、Word、图片等文件</span></p>
+            </div>
+            <input type="file" class="hidden-input" id="fileInput" multiple>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="deleteProjectBtn" style="display: none;">删除</button>
+        <button type="button" class="btn" id="cancelBtn">取消</button>
+        <button type="button" class="btn btn-primary" id="saveProjectBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导入模态框 -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>导入数据</h2>
+        <button class="modal-close" id="importModalClose">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="file-upload-area" id="importFileArea" style="padding: 48px;">
+          <svg viewBox="0 0 24 24" style="width: 48px; height: 48px;"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+          <p style="margin-top: 16px;">点击选择 JSON 文件导入<br><span>或拖拽文件到此处</span></p>
+        </div>
+        <input type="file" class="hidden-input" id="importFileInput" accept=".json">
+        <p style="margin-top: 16px; font-size: 12px; color: var(--text-muted);">
+          导入将覆盖现有数据，请谨慎操作
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 数据存储
+    const STORAGE_KEY = 'projectKanban';
+    
+    // 示例数据
+    const sampleProjects = [
+      {
+        id: generateId(),
+        name: '电商平台重构项目',
+        owner: '张明',
+        team: '技术研发部',
+        status: '进行中',
+        priority: '高',
+        startDate: '2026-05-01',
+        endDate: '2026-08-30',
+        progress: 45,
+        description: '对公司现有电商平台进行全面技术重构，提升系统性能和用户体验。',
+        milestones: [
+          { name: '需求分析', completed: true, date: '2026-05-15' },
+          { name: '架构设计', completed: true, date: '2026-06-01' },
+          { name: '核心模块开发', completed: false, date: '2026-07-15' },
+          { name: '系统测试', completed: false, date: '2026-08-15' },
+          { name: '上线部署', completed: false, date: '2026-08-30' }
+        ],
+        attachments: [],
+        createdAt: '2026-05-01T10:00:00',
+        updatedAt: '2026-06-28T14:30:00'
+      },
+      {
+        id: generateId(),
+        name: '智能客服系统开发',
+        owner: '李华',
+        team: 'AI产品部',
+        status: '已延期',
+        priority: '高',
+        startDate: '2026-04-01',
+        endDate: '2026-06-15',
+        progress: 60,
+        description: '基于大语言模型的智能客服系统，实现自动问答和问题分类功能。',
+        milestones: [
+          { name: '模型选型', completed: true, date: '2026-04-10' },
+          { name: '数据标注', completed: true, date: '2026-05-01' },
+          { name: '模型训练', completed: true, date: '2026-05-20' },
+          { name: '接口开发', completed: false, date: '2026-06-10' },
+          { name: '集成测试', completed: false, date: '2026-06-15' }
+        ],
+        attachments: [
+          { name: '技术方案.pdf', type: 'application/pdf', content: '', size: 1024000 }
+        ],
+        createdAt: '2026-04-01T09:00:00',
+        updatedAt: '2026-06-20T16:45:00'
+      },
+      {
+        id: generateId(),
+        name: '企业知识库建设',
+        owner: '王芳',
+        team: '产品运营部',
+        status: '已完成',
+        priority: '中',
+        startDate: '2026-03-01',
+        endDate: '2026-05-31',
+        progress: 100,
+        description: '整合公司各类文档和知识资源，建立统一的企业知识库平台。',
+        milestones: [
+          { name: '需求调研', completed: true, date: '2026-03-15' },
+          { name: '内容整理', completed: true, date: '2026-04-15' },
+          { name: '平台开发', completed: true, date: '2026-05-15' },
+          { name: '内部测试', completed: true, date: '2026-05-25' },
+          { name: '正式上线', completed: true, date: '2026-05-31' }
+        ],
+        attachments: [],
+        createdAt: '2026-03-01T08:00:00',
+        updatedAt: '2026-05-31T18:00:00'
+      }
+    ];
+
+    // 状态映射
+    const statusMap = {
+      '未开始': 'pending',
+      '进行中': 'active',
+      '已完成': 'completed',
+      '已延期': 'delayed',
+      '已暂停': 'paused'
+    };
+
+    // 全局变量
+    let currentView = 'kanban';
+    let projects = [];
+    let currentProject = null;
+    let milestones = [];
+    let attachments = [];
+
+    // 生成UUID
+    function generateId() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    // 格式化日期
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    // 格式化日期时间
+    function formatDateTime(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    }
+
+    // 加载数据
+    function loadData() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          projects = data.projects || [];
+        } catch (e) {
+          projects = [...sampleProjects];
+        }
+      } else {
+        projects = [...sampleProjects];
+        saveData();
+      }
+    }
+
+    // 保存数据
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects }));
+    }
+
+    // 更新统计
+    function updateStats() {
+      const total = projects.length;
+      const active = projects.filter(p => p.status === '进行中').length;
+      const completed = projects.filter(p => p.status === '已完成').length;
+      const delayed = projects.filter(p => p.status === '已延期').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statActive').textContent = active;
+      document.getElementById('statCompleted').textContent = completed;
+      document.getElementById('statDelayed').textContent = delayed;
+    }
+
+    // 更新负责人筛选
+    function updateOwnerFilter() {
+      const owners = [...new Set(projects.map(p => p.owner))].filter(Boolean);
+      const select = document.getElementById('filterOwner');
+      select.innerHTML = '<option value="">全部</option>';
+      owners.forEach(owner => {
+        select.innerHTML += `<option value="${owner}">${owner}</option>`;
+      });
+    }
+
+    // 获取筛选后的项目
+    function getFilteredProjects() {
+      const owner = document.getElementById('filterOwner').value;
+      const status = document.getElementById('filterStatus').value;
+      const priority = document.getElementById('filterPriority').value;
+      const sort = document.getElementById('filterSort').value;
+      const [sortField, sortDir] = sort.split('-');
+
+      let filtered = [...projects];
+
+      if (owner) {
+        filtered = filtered.filter(p => p.owner === owner);
+      }
+      if (status) {
+        filtered = filtered.filter(p => p.status === status);
+      }
+      if (priority) {
+        filtered = filtered.filter(p => p.priority === priority);
+      }
+
+      filtered.sort((a, b) => {
+        let valA = a[sortField];
+        let valB = b[sortField];
+        
+        if (sortField === 'updatedAt' || sortField === 'startDate' || sortField === 'endDate') {
+          valA = valA ? new Date(valA).getTime() : 0;
+          valB = valB ? new Date(valB).getTime() : 0;
+        }
+        
+        if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      return filtered;
+    }
+
+    // 渲染项目卡片
+    function renderProjectCard(project) {
+      const completedMilestones = project.milestones.filter(m => m.completed).length;
+      return `
+        <div class="project-card" data-id="${project.id}" onclick="openProject('${project.id}')">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${project.name}</div>
+              <div class="card-owner">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                ${project.owner}${project.team ? ' · ' + project.team : ''}
+              </div>
+            </div>
+            <span class="priority-tag ${project.priority === '高' ? 'high' : project.priority === '中' ? 'medium' : 'low'}">${project.priority}</span>
+          </div>
+          <div class="card-dates">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+            ${formatDate(project.startDate)} - ${formatDate(project.endDate)}
+          </div>
+          <div class="card-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${project.progress}%"></div>
+            </div>
+            <div class="progress-text">
+              <span>进度</span>
+              <span>${project.progress}%</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="milestone-count">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+              ${completedMilestones}/${project.milestones.length} 里程碑
+            </span>
+            ${project.attachments.length > 0 ? `
+              <span class="attachment-count">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
+                ${project.attachments.length}
+              </span>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // 渲染看板视图
+    function renderKanbanView() {
+      const columns = document.querySelectorAll('.kanban-column');
+      const statuses = ['未开始', '进行中', '已完成', '已延期', '已暂停'];
+      const filtered = getFilteredProjects();
+
+      columns.forEach(column => {
+        const status = column.dataset.status;
+        const cards = filtered.filter(p => p.status === status);
+        column.querySelector('.column-count').textContent = cards.length;
+        column.querySelector('.column-cards').innerHTML = cards.length > 0 
+          ? cards.map(renderProjectCard).join('')
+          : '<div class="empty-state" style="padding: 24px;"><p style="color: var(--text-muted);">暂无项目</p></div>';
+      });
+    }
+
+    // 渲染列表视图
+    function renderListView() {
+      const tbody = document.getElementById('listTableBody');
+      const filtered = getFilteredProjects();
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 48px; color: var(--text-secondary);">
+              暂无项目
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(project => `
+        <tr>
+          <td>
+            <div style="font-weight: 500;">${project.name}</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${project.team || ''}</div>
+          </td>
+          <td>${project.owner}</td>
+          <td><span class="status-badge ${statusMap[project.status]}">${project.status}</span></td>
+          <td><span class="priority-tag ${project.priority === '高' ? 'high' : project.priority === '中' ? 'medium' : 'low'}">${project.priority}</span></td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="progress-bar" style="width: 60px;">
+                <div class="progress-fill" style="width: ${project.progress}%"></div>
+              </div>
+              <span style="font-size: 12px; color: var(--text-secondary);">${project.progress}%</span>
+            </div>
+          </td>
+          <td style="color: ${project.status === '已延期' ? 'var(--status-delayed)' : 'var(--text-secondary)'}">
+            ${formatDate(project.endDate)}
+          </td>
+          <td>
+            <div class="action-btns">
+              <button class="action-btn" onclick="event.stopPropagation(); openProject('${project.id}')" title="编辑">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+              </button>
+              <button class="action-btn" onclick="event.stopPropagation(); deleteProject('${project.id}')" title="删除">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // 渲染甘特图视图
+    function renderGanttView() {
+      const filtered = getFilteredProjects();
+      
+      if (filtered.length === 0) {
+        document.getElementById('ganttBody').innerHTML = `
+          <div style="text-align: center; padding: 48px; color: var(--text-secondary);">暂无项目</div>
+        `;
+        document.getElementById('ganttMonths').innerHTML = '';
+        document.getElementById('ganttDays').innerHTML = '';
+        return;
+      }
+
+      // 计算时间范围
+      const dates = filtered.flatMap(p => [p.startDate, p.endDate]).filter(Boolean);
+      if (dates.length === 0) {
+        document.getElementById('ganttBody').innerHTML = `
+          <div style="text-align: center; padding: 48px; color: var(--text-secondary);">暂无项目</div>
+        `;
+        return;
+      }
+
+      const minDate = new Date(Math.min(...dates.map(d => new Date(d).getTime())));
+      const maxDate = new Date(Math.max(...dates.map(d => new Date(d).getTime())));
+      
+      // 扩展范围
+      minDate.setDate(minDate.getDate() - 7);
+      maxDate.setDate(maxDate.getDate() + 14);
+
+      // 生成月份和日期头
+      const months = [];
+      const days = [];
+      let current = new Date(minDate);
+      current.setDate(1);
+      
+      while (current <= maxDate) {
+        const monthStart = new Date(current);
+        let monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+        if (monthEnd > maxDate) monthEnd = maxDate;
+        
+        const daysCount = Math.ceil((monthEnd - monthStart) / (1000 * 60 * 60 * 24)) + 1;
+        months.push({
+          name: `${current.getFullYear()}.${String(current.getMonth() + 1).padStart(2, '0')}`,
+          days: daysCount
+        });
+        
+        current = new Date(current.getFullYear(), current.getMonth() + 1, 1);
+      }
+
+      // 生成日期行
+      current = new Date(minDate);
+      while (current <= maxDate) {
+        days.push(current.getDate());
+        current.setDate(current.getDate() + 1);
+      }
+
+      document.getElementById('ganttMonths').innerHTML = months.map(m => 
+        `<div class="gantt-month" style="width: ${m.days * 14}px;">${m.name}</div>`
+      ).join('');
+      
+      document.getElementById('ganttDays').innerHTML = days.map(d => 
+        `<div class="gantt-day">${d}</div>`
+      ).join('');
+
+      // 渲染甘特条
+      const totalDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
+      const dayWidth = 14;
+
+      document.getElementById('ganttBody').innerHTML = filtered.map(project => {
+        let left = 0;
+        let width = 0;
+
+        if (project.startDate && project.endDate) {
+          const start = new Date(project.startDate);
+          const end = new Date(project.endDate);
+          left = Math.max(0, Math.floor((start - minDate) / (1000 * 60 * 60 * 24))) * dayWidth;
+          width = Math.max(40, Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1) * dayWidth;
+        } else if (project.startDate) {
+          const start = new Date(project.startDate);
+          left = Math.max(0, Math.floor((start - minDate) / (1000 * 60 * 60 * 24))) * dayWidth;
+          width = 100;
+        } else {
+          left = 0;
+          width = 100;
+        }
+
+        return `
+          <div class="gantt-row">
+            <div class="gantt-row-label">
+              <span class="name">${project.name}</span>
+              <span class="owner">${project.owner}</span>
+            </div>
+            <div class="gantt-row-timeline">
+              <div class="gantt-bar ${statusMap[project.status]}" 
+                   style="left: ${left}px; width: ${width}px;"
+                   onclick="openProject('${project.id}')"
+                   title="${project.name} - ${project.progress}%">
+                ${project.progress}%
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 渲染所有视图
+    function renderAll() {
+      updateStats();
+      updateOwnerFilter();
+      renderKanbanView();
+      renderListView();
+      renderGanttView();
+    }
+
+    // 切换视图
+    function switchView(view) {
+      currentView = view;
+      
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+      });
+
+      document.getElementById('kanbanView').style.display = view === 'kanban' ? 'flex' : 'none';
+      document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+      document.getElementById('ganttView').style.display = view === 'gantt' ? 'block' : 'none';
+
+      renderAll();
+    }
+
+    // 打开项目详情
+    function openProject(id) {
+      const project = projects.find(p => p.id === id);
+      if (!project) return;
+
+      currentProject = project;
+      document.getElementById('modalTitle').textContent = '编辑项目';
+      document.getElementById('deleteProjectBtn').style.display = 'block';
+
+      // 填充表单
+      document.getElementById('projectId').value = project.id;
+      document.getElementById('projectName').value = project.name;
+      document.getElementById('projectOwner').value = project.owner;
+      document.getElementById('projectTeam').value = project.team || '';
+      document.getElementById('projectStatus').value = project.status;
+      document.getElementById('projectPriority').value = project.priority;
+      document.getElementById('projectStartDate').value = project.startDate || '';
+      document.getElementById('projectEndDate').value = project.endDate || '';
+      document.getElementById('projectProgress').value = project.progress;
+      document.getElementById('progressValue').textContent = project.progress + '%';
+      document.getElementById('projectDescription').value = project.description || '';
+
+      milestones = [...project.milestones];
+      attachments = [...project.attachments];
+
+      renderMilestones();
+      renderAttachments();
+
+      document.getElementById('projectModal').classList.add('active');
+    }
+
+    // 新建项目
+    function newProject() {
+      currentProject = null;
+      document.getElementById('modalTitle').textContent = '新建项目';
+      document.getElementById('deleteProjectBtn').style.display = 'none';
+      document.getElementById('projectForm').reset();
+      document.getElementById('projectId').value = '';
+      document.getElementById('progressValue').textContent = '0%';
+      
+      milestones = [];
+      attachments = [];
+      
+      renderMilestones();
+      renderAttachments();
+
+      document.getElementById('projectModal').classList.add('active');
+    }
+
+    // 关闭模态框
+    function closeModal() {
+      document.getElementById('projectModal').classList.remove('active');
+      currentProject = null;
+    }
+
+    // 保存项目
+    function saveProject() {
+      const id = document.getElementById('projectId').value || generateId();
+      const project = {
+        id,
+        name: document.getElementById('projectName').value,
+        owner: document.getElementById('projectOwner').value,
+        team: document.getElementById('projectTeam').value,
+        status: document.getElementById('projectStatus').value,
+        priority: document.getElementById('projectPriority').value,
+        startDate: document.getElementById('projectStartDate').value,
+        endDate: document.getElementById('projectEndDate').value,
+        progress: parseInt(document.getElementById('projectProgress').value),
+        description: document.getElementById('projectDescription').value,
+        milestones: milestones,
+        attachments: attachments,
+        createdAt: currentProject ? currentProject.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      if (!project.name || !project.owner) {
+        alert('请填写项目名称和负责人');
+        return;
+      }
+
+      const index = projects.findIndex(p => p.id === id);
+      if (index >= 0) {
+        projects[index] = project;
+      } else {
+        projects.push(project);
+      }
+
+      saveData();
+      renderAll();
+      closeModal();
+    }
+
+    // 删除项目
+    function deleteProject(id) {
+      if (!confirm('确定要删除这个项目吗？')) return;
+      
+      projects = projects.filter(p => p.id !== id);
+      saveData();
+      renderAll();
+      closeModal();
+    }
+
+    // 渲染里程碑
+    function renderMilestones() {
+      const container = document.getElementById('milestonesList');
+      if (milestones.length === 0) {
+        container.innerHTML = '<p style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 16px;">暂无里程碑</p>';
+        return;
+      }
+
+      container.innerHTML = milestones.map((m, i) => `
+        <div class="milestone-item">
+          <div class="milestone-checkbox ${m.completed ? 'checked' : ''}" onclick="toggleMilestone(${i})">
+            ${m.completed ? '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>' : ''}
+          </div>
+          <span class="milestone-name" style="${m.completed ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${m.name}</span>
+          <span class="milestone-date">${formatDate(m.date)}</span>
+          <button class="milestone-delete" onclick="deleteMilestone(${i})">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // 添加里程碑
+    function showAddMilestoneForm() {
+      document.getElementById('addMilestoneForm').style.display = 'flex';
+      document.getElementById('newMilestoneName').value = '';
+      document.getElementById('newMilestoneDate').value = '';
+      document.getElementById('newMilestoneName').focus();
+    }
+
+    function confirmAddMilestone() {
+      const name = document.getElementById('newMilestoneName').value.trim();
+      const date = document.getElementById('newMilestoneDate').value;
+      
+      if (!name) {
+        alert('请输入里程碑名称');
+        return;
+      }
+
+      milestones.push({ name, date, completed: false });
+      renderMilestones();
+      cancelAddMilestone();
+    }
+
+    function cancelAddMilestone() {
+      document.getElementById('addMilestoneForm').style.display = 'none';
+    }
+
+    function toggleMilestone(index) {
+      milestones[index].completed = !milestones[index].completed;
+      renderMilestones();
+    }
+
+    function deleteMilestone(index) {
+      milestones.splice(index, 1);
+      renderMilestones();
+    }
+
+    // 渲染附件
+    function renderAttachments() {
+      const container = document.getElementById('attachmentsList');
+      if (attachments.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = attachments.map((a, i) => `
+        <div class="attachment-item">
+          <div class="attachment-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          </div>
+          <div class="attachment-info">
+            <div class="attachment-name">${a.name}</div>
+            <div class="attachment-size">${formatFileSize(a.size)}</div>
+          </div>
+          ${a.content ? `
+            <button class="attachment-download" onclick="downloadAttachment(${i})" title="下载">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </button>
+          ` : ''}
+          <button class="attachment-delete" onclick="deleteAttachment(${i})" title="删除">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function formatFileSize(bytes) {
+      if (!bytes) return '-';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function handleFileUpload(files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          attachments.push({
+            name: file.name,
+            type: file.type,
+            content: e.target.result,
+            size: file.size
+          });
+          renderAttachments();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function downloadAttachment(index) {
+      const attachment = attachments[index];
+      if (!attachment.content) return;
+
+      const link = document.createElement('a');
+      link.href = attachment.content;
+      link.download = attachment.name;
+      link.click();
+    }
+
+    function deleteAttachment(index) {
+      attachments.splice(index, 1);
+      renderAttachments();
+    }
+
+    // 导出数据
+    function exportData() {
+      const data = { projects };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `项目管理看板_${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // 导入数据
+    function showImportModal() {
+      document.getElementById('importModal').classList.add('active');
+    }
+
+    function hideImportModal() {
+      document.getElementById('importModal').classList.remove('active');
+      document.getElementById('importFileInput').value = '';
+    }
+
+    function handleImportFile(file) {
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.projects && Array.isArray(data.projects)) {
+            if (confirm('导入将覆盖现有数据，确定要继续吗？')) {
+              projects = data.projects;
+              saveData();
+              renderAll();
+              hideImportModal();
+              alert('导入成功！');
+            }
+          } else {
+            alert('文件格式不正确');
+          }
+        } catch (err) {
+          alert('文件解析失败');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // 事件绑定
+    document.addEventListener('DOMContentLoaded', function() {
+      loadData();
+      renderAll();
+
+      // 视图切换
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchView(btn.dataset.view));
+      });
+
+      // 筛选
+      document.getElementById('filterOwner').addEventListener('change', renderAll);
+      document.getElementById('filterStatus').addEventListener('change', renderAll);
+      document.getElementById('filterPriority').addEventListener('change', renderAll);
+      document.getElementById('filterSort').addEventListener('change', renderAll);
+
+      // 新建项目
+      document.getElementById('newProjectBtn').addEventListener('click', newProject);
+
+      // 模态框
+      document.getElementById('modalClose').addEventListener('click', closeModal);
+      document.getElementById('cancelBtn').addEventListener('click', closeModal);
+      document.getElementById('projectModal').addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) closeModal();
+      });
+
+      // 进度滑块
+      document.getElementById('projectProgress').addEventListener('input', (e) => {
+        document.getElementById('progressValue').textContent = e.target.value + '%';
+      });
+
+      // 里程碑
+      document.getElementById('addMilestoneBtn').addEventListener('click', showAddMilestoneForm);
+      document.getElementById('confirmAddMilestone').addEventListener('click', confirmAddMilestone);
+      document.getElementById('cancelAddMilestone').addEventListener('click', cancelAddMilestone);
+
+      // 附件上传
+      document.getElementById('fileUploadArea').addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+      });
+      document.getElementById('fileInput').addEventListener('change', (e) => {
+        handleFileUpload(e.target.files);
+        e.target.value = '';
+      });
+
+      // 拖拽上传
+      document.getElementById('fileUploadArea').addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.currentTarget.style.borderColor = 'var(--accent)';
+      });
+      document.getElementById('fileUploadArea').addEventListener('dragleave', (e) => {
+        e.currentTarget.style.borderColor = 'var(--border-color)';
+      });
+      document.getElementById('fileUploadArea').addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.currentTarget.style.borderColor = 'var(--border-color)';
+        handleFileUpload(e.dataTransfer.files);
+      });
+
+      // 保存和删除
+      document.getElementById('saveProjectBtn').addEventListener('click', saveProject);
+      document.getElementById('deleteProjectBtn').addEventListener('click', () => {
+        const id = document.getElementById('projectId').value;
+        if (id) deleteProject(id);
+      });
+
+      // 导出
+      document.getElementById('exportBtn').addEventListener('click', exportData);
+      document.getElementById('importBtn').addEventListener('click', showImportModal);
+      document.getElementById('importModalClose').addEventListener('click', hideImportModal);
+      document.getElementById('importModal').addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) hideImportModal();
+      });
+      document.getElementById('importFileArea').addEventListener('click', () => {
+        document.getElementById('importFileInput').click();
+      });
+      document.getElementById('importFileInput').addEventListener('change', (e) => {
+        handleImportFile(e.target.files[0]);
+      });
+
+      // 拖拽导入
+      document.getElementById('importFileArea').addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.currentTarget.style.borderColor = 'var(--accent)';
+      });
+      document.getElementById('importFileArea').addEventListener('dragleave', (e) => {
+        e.currentTarget.style.borderColor = 'var(--border-color)';
+      });
+      document.getElementById('importFileArea').addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.currentTarget.style.borderColor = 'var(--border-color)';
+        handleImportFile(e.dataTransfer.files[0]);
+      });
+    });
+  </script>
+</body>
+</html>
