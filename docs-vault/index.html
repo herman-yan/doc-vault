@@ -900,6 +900,10 @@
             background: var(--danger);
         }
 
+        .toast.loading {
+            background: var(--text-gray);
+        }
+
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -956,204 +960,118 @@
                 display: none;
             }
         }
-        /* ========== 登录界面 ========== */
-        .login-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(135deg, #1a2332 0%, #2d3748 50%, #1a2332 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
-        }
 
-        .login-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            padding: 48px 40px;
-            width: 400px;
-            max-width: 90vw;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-        }
-
-        .login-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        .login-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1a2332;
-            margin-bottom: 8px;
-        }
-
-        .login-subtitle {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 28px;
-        }
-
-        .login-input-group {
-            position: relative;
-            margin-bottom: 16px;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.2s;
-            background: #f9fafb;
-        }
-
-        .login-input:focus {
-            border-color: var(--primary-blue);
-            background: #fff;
-        }
-
-        .login-input.error {
-            border-color: var(--danger);
-            animation: shake 0.3s ease;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            75% { transform: translateX(6px); }
-        }
-
-        .login-error-msg {
-            color: var(--danger);
-            font-size: 13px;
-            margin-bottom: 12px;
-            min-height: 20px;
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary-blue);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .login-btn:hover {
-            background: #2563eb;
-        }
-
-        .login-btn:active {
-            transform: scale(0.98);
-        }
-
-        .login-hint {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #9ca3af;
-        }
-
-        /* 设置项中的密码修改 */
-        .settings-item .password-change {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        .settings-item .password-change input {
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .settings-item .password-change input:focus {
-            border-color: var(--primary-blue);
-        }
-
-        .settings-item .password-change .pw-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .settings-item .password-change .pw-actions button {
-            padding: 8px 16px;
-            font-size: 13px;
-        }
-
-        /* 共享模式指示器 */
-        .shared-mode-badge {
-            background: var(--success);
-            color: #fff;
+        /* ========== 云端同步指示器 ========== */
+        .cloud-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
             padding: 4px 10px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: 500;
             margin-left: 8px;
-        }
-
-        /* 数据模式指示器 */
-        .data-mode-indicator {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            background: var(--bg-light);
-            color: var(--text-gray);
+            gap: 4px;
+        }
+
+        /* ========== 初始化加载状态 ========== */
+        .init-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a2332 0%, #2d3748 50%, #1a2332 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.4s ease;
+        }
+
+        .init-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .init-overlay .init-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .init-overlay h2 {
+            color: #fff;
+            font-size: 24px;
             margin-bottom: 12px;
         }
 
-        .data-mode-indicator.shared {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
+        .init-overlay p {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            margin-bottom: 24px;
         }
 
-        .data-mode-indicator.local {
-            background: rgba(107, 114, 128, 0.1);
-            color: var(--text-gray);
+        .init-overlay .init-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
+        .init-overlay .error-box {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .init-overlay .error-box p {
+            color: #fca5a5;
+            margin-bottom: 16px;
+        }
+
+        .init-overlay .error-box button {
+            padding: 10px 20px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .init-overlay .error-box button:hover {
+            background: var(--primary-blue-light);
+        }
     </style>
 </head>
 <body>
-    <!-- ========== 登录验证界面 ========== -->
-    <div class="login-screen" id="loginScreen">
-        <div class="login-card">
-            <div class="login-icon">🔐</div>
-            <div class="login-title" id="loginTitle">中央资料管理库</div>
-            <div class="login-subtitle" id="loginSubtitle">请输入密码以访问</div>
-            <div class="login-input-group">
-                <input type="password" class="login-input" id="loginPassword" placeholder="请输入密码" autocomplete="off">
-            </div>
-            <div class="login-error-msg" id="loginError"></div>
-            <button class="login-btn" id="loginBtn">进入系统</button>
-            <div class="login-hint" id="loginHint">密码验证在本地完成，数据不会上传</div>
+    <!-- ========== 初始化加载界面 ========== -->
+    <div class="init-overlay" id="initOverlay">
+        <div class="init-icon">☁️</div>
+        <h2>中央资料管理库</h2>
+        <p id="initMessage">正在从云端同步数据...</p>
+        <div class="init-spinner"></div>
+        <div class="error-box" id="errorBox" style="display: none;">
+            <p id="errorMessage">加载失败</p>
+            <button onclick="app.init()">重试</button>
         </div>
     </div>
 
-    <div class="app-container" id="appContainer" style="display:none">
+    <div class="app-container" id="appContainer">
         <!-- ========== 左侧边栏 ========== -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -1179,7 +1097,7 @@
             <header class="header">
                 <h1 class="header-title">
                     📂 中央资料管理库
-                    <span class="shared-mode-badge" id="sharedBadge" style="display:none">共享模式</span>
+                    <span class="cloud-badge">☁️ 云端同步</span>
                 </h1>
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
@@ -1189,7 +1107,6 @@
                     <!-- 统计由JS动态生成 -->
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-outline" id="syncBtn" title="同步共享数据" style="display:none">🔄 同步</button>
                     <button class="btn btn-outline" id="settingsBtn">⚙️ 设置</button>
                 </div>
             </header>
@@ -1262,23 +1179,11 @@
             <button class="detail-close" id="settingsClose">×</button>
         </div>
         <div class="settings-content">
-            <!-- 数据模式指示器 -->
-            <div class="data-mode-indicator local" id="dataModeIndicator">
-                <span>📱</span>
-                <span id="dataModeText">本地模式</span>
+            <div class="settings-item">
+                <h4>☁️ 从云端同步</h4>
+                <p>重新从GitHub仓库加载最新数据</p>
+                <button class="btn btn-primary" id="syncBtn">🔄 同步数据</button>
             </div>
-
-            <!-- 共享数据部分（共享模式下显示） -->
-            <div class="settings-item" id="sharedSettingsSection" style="display:none">
-                <h4>☁️ 共享数据管理</h4>
-                <p>管理团队共享的文档数据</p>
-                <div class="btn-group">
-                    <button class="btn btn-primary" id="exportSharedBtn">📤 导出共享数据</button>
-                    <button class="btn btn-outline" id="syncSettingsBtn">🔄 同步数据</button>
-                </div>
-                <p style="margin-top:8px;font-size:11px;color:var(--text-light);">导出后将文件提交到仓库更新共享数据</p>
-            </div>
-
             <div class="settings-item">
                 <h4>📤 导出数据</h4>
                 <p>将所有文件和分类信息导出为JSON备份文件</p>
@@ -1289,18 +1194,6 @@
                 <p>从JSON备份文件恢复所有数据</p>
                 <input type="file" id="importInput" accept=".json" style="display:none">
                 <button class="btn btn-outline" id="importBtn">选择备份文件</button>
-            </div>
-            <div class="settings-item">
-                <h4>🔑 修改密码</h4>
-                <p>更改系统访问密码</p>
-                <div class="password-change">
-                    <input type="password" id="oldPasswordInput" placeholder="当前密码">
-                    <input type="password" id="newPasswordInput" placeholder="新密码（至少4位）">
-                    <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
-                    <div class="pw-actions">
-                        <button class="btn btn-primary" id="changePasswordBtn">确认修改</button>
-                    </div>
-                </div>
             </div>
             <div class="settings-item">
                 <h4>🗑️ 清空数据</h4>
@@ -1325,285 +1218,191 @@
 
     <script>
         /* ============================================================
-         * 中央资料管理库 - 主脚本
-         * 支持共享数据模式
+         * 中央资料管理库 - GitHub API 共享版
+         * 所有数据存储在GitHub仓库中
          * ============================================================ */
 
-        // ========== 共享数据管理器 ==========
-        const SharedDataManager = {
-            DATA_URL: 'data.json',
+        // ========== GitHub 数据管理器 ==========
+        const GitHubDataManager = {
+            REPO: 'herman-yan/doc-vault',
+            PATH: 'docs-vault/data.json',
+            TOKEN: 'YOUR_GITHUB_TOKEN_HERE',
+            API_BASE: 'https://api.github.com',
             data: null,
-            isSharedMode: false,
+            sha: null, // 用于更新时的乐观锁
 
-            // 加载共享数据
+            // 从GitHub读取data.json
             async load() {
                 try {
-                    const response = await fetch(this.DATA_URL);
+                    const url = `${this.API_BASE}/repos/${this.REPO}/contents/${this.PATH}`;
+                    const response = await fetch(url, {
+                        headers: {
+                            'Authorization': `token ${this.TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+
                     if (!response.ok) {
-                        throw new Error('data.json not found');
+                        if (response.status === 404) {
+                            // 文件不存在，创建初始数据
+                            this.data = {
+                                version: 2,
+                                documents: [],
+                                lastUpdated: new Date().toLocaleString('zh-CN')
+                            };
+                            this.sha = null;
+                            await this.save();
+                            return true;
+                        }
+                        throw new Error(`HTTP ${response.status}`);
                     }
-                    this.data = await response.json();
-                    this.isSharedMode = true;
+
+                    const result = await response.json();
+                    const content = atob(result.content);
+                    this.data = JSON.parse(content);
+                    this.sha = result.sha;
                     return true;
                 } catch (error) {
-                    this.data = null;
-                    this.isSharedMode = false;
-                    return false;
+                    console.error('加载数据失败:', error);
+                    throw error;
                 }
             },
 
-            // 获取密码验证信息
-            getPasswordInfo() {
-                if (!this.isSharedMode || !this.data || !this.data.password) {
-                    return null;
+            // 写入data.json到GitHub
+            async save() {
+                try {
+                    const content = JSON.stringify(this.data, null, 2);
+                    const base64Content = btoa(unescape(encodeURIComponent(content)));
+
+                    const url = `${this.API_BASE}/repos/${this.REPO}/contents/${this.PATH}`;
+                    const body = {
+                        message: `update: 文档数据 ${new Date().toLocaleString('zh-CN')}`,
+                        content: base64Content
+                    };
+
+                    // 如果有sha（已存在的文件），需要包含sha
+                    if (this.sha) {
+                        body.sha = this.sha;
+                    }
+
+                    const response = await fetch(url, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${this.TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    this.sha = result.content.sha;
+                    return true;
+                } catch (error) {
+                    console.error('保存数据失败:', error);
+                    throw error;
                 }
-                return this.data.password;
             },
 
-            // 获取文档列表
+            // 保存数据（带冲突重试）
+            async saveWithRetry() {
+                try {
+                    return await this.save();
+                } catch (error) {
+                    // 如果是sha冲突，重新加载后重试
+                    if (error.message && error.message.includes('422')) {
+                        console.log('检测到SHA冲突，重新加载数据...');
+                        await this.load();
+                        return await this.save();
+                    }
+                    throw error;
+                }
+            },
+
+            // 获取所有文档
             getDocuments() {
-                if (!this.isSharedMode || !this.data) {
-                    return [];
-                }
+                if (!this.data) return [];
                 return this.data.documents || [];
             },
 
-            // 更新本地数据
-            updateDocuments(documents) {
-                if (!this.isSharedMode || !this.data) return;
-                this.data.documents = documents;
-                this.data.lastUpdated = new Date().toLocaleString('zh-CN');
-            },
-
             // 添加文档
-            addDocument(doc) {
-                if (!this.isSharedMode || !this.data) return;
+            async addDocument(doc) {
+                if (!this.data) this.data = { version: 2, documents: [], lastUpdated: '' };
                 if (!this.data.documents) this.data.documents = [];
+                
+                doc.id = this.generateId();
+                doc.uploadTime = new Date().toISOString();
                 this.data.documents.push(doc);
                 this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                
+                await this.saveWithRetry();
+                return doc;
             },
 
             // 更新文档
-            updateDocument(id, updates) {
-                if (!this.isSharedMode || !this.data) return;
+            async updateDocument(id, updates) {
+                if (!this.data) return;
                 const idx = this.data.documents.findIndex(d => d.id === id);
                 if (idx !== -1) {
                     this.data.documents[idx] = { ...this.data.documents[idx], ...updates };
                     this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                    await this.saveWithRetry();
                 }
             },
 
             // 删除文档
-            deleteDocument(id) {
-                if (!this.isSharedMode || !this.data) return;
+            async deleteDocument(id) {
+                if (!this.data) return;
                 this.data.documents = this.data.documents.filter(d => d.id !== id);
                 this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                await this.saveWithRetry();
+            },
+
+            // 清空所有文档
+            async clearDocuments() {
+                if (!this.data) return;
+                this.data.documents = [];
+                this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                await this.saveWithRetry();
             },
 
             // 生成新的ID
             generateId() {
-                if (!this.data || !this.data.documents) return 1;
-                return Math.max(0, ...this.data.documents.map(d => d.id)) + 1;
-            },
-
-            // 导出共享数据JSON
-            exportSharedData() {
-                if (!this.data) return null;
-                const exportData = {
-                    version: this.data.version || 1,
-                    password: this.data.password,
-                    documents: this.data.documents.map(d => ({
-                        ...d,
-                        // 将 blob 转换为 base64
-                        fileContent: d.blob ? this.blobToBase64(d.blob) : (d.fileContent || '')
-                    })),
-                    lastUpdated: new Date().toLocaleString('zh-CN')
-                };
-                return exportData;
-            },
-
-            // Blob转Base64
-            blobToBase64(blob) {
-                if (typeof blob === 'string') return blob;
-                const reader = new FileReader();
-                return new Promise((resolve) => {
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(blob);
-                });
+                if (!this.data || !this.data.documents) return Date.now();
+                const maxId = this.data.documents.reduce((max, d) => Math.max(max, d.id || 0), 0);
+                return maxId + 1;
             },
 
             // Base64转Blob
             base64ToBlob(base64, type) {
+                if (!base64) return null;
                 if (typeof base64 === 'object') return base64;
-                const byteString = atob(base64.split(',')[1] || base64);
-                const ab = new ArrayBuffer(byteString.length);
-                const ia = new Uint8Array(ab);
-                for (let i = 0; i < byteString.length; i++) {
-                    ia[i] = byteString.charCodeAt(i);
-                }
-                return new Blob([ab], { type: type || 'application/octet-stream' });
-            }
-        };
-
-        // ========== 密码管理模块 ==========
-        const PasswordManager = {
-            STORAGE_KEY: 'docvault_password_hash',
-            SALT_KEY: 'docvault_salt',
-
-            // 生成随机盐值
-            generateSalt() {
-                const array = new Uint8Array(16);
-                crypto.getRandomValues(array);
-                return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
-            },
-
-            // SHA-256 哈希
-            async hash(password, salt) {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(password + salt);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            },
-
-            // 检查是否已设置密码（本地）
-            hasLocalPassword() {
-                return localStorage.getItem(this.STORAGE_KEY) !== null;
-            },
-
-            // 检查是否使用共享密码
-            hasSharedPassword() {
-                return SharedDataManager.isSharedMode && SharedDataManager.getPasswordInfo();
-            },
-
-            // 设置密码（首次或修改）
-            async setPassword(password) {
-                const salt = this.generateSalt();
-                const hash = await this.hash(password, salt);
-                localStorage.setItem(this.STORAGE_KEY, hash);
-                localStorage.setItem(this.SALT_KEY, salt);
-                
-                // 如果是共享模式，同时更新 data.json
-                if (SharedDataManager.isSharedMode) {
-                    SharedDataManager.data.password = { hash, salt };
+                try {
+                    const byteString = atob(base64.split(',')[1] || base64);
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) {
+                        ia[i] = byteString.charCodeAt(i);
+                    }
+                    return new Blob([ab], { type: type || 'application/octet-stream' });
+                } catch (e) {
+                    console.error('Base64转Blob失败:', e);
+                    return null;
                 }
             },
 
-            // 验证密码
-            async verify(password) {
-                // 优先使用共享密码
-                if (this.hasSharedPassword()) {
-                    const pwdInfo = SharedDataManager.getPasswordInfo();
-                    const hash = await this.hash(password, pwdInfo.salt);
-                    return hash === pwdInfo.hash;
-                }
-                
-                // 否则使用本地密码
-                if (!this.hasLocalPassword()) return false;
-                const storedHash = localStorage.getItem(this.STORAGE_KEY);
-                const salt = localStorage.getItem(this.SALT_KEY);
-                const hash = await this.hash(password, salt);
-                return hash === storedHash;
-            },
-
-            // 初始化登录流程
-            async init() {
-                // 先尝试加载共享数据
-                const hasShared = await SharedDataManager.load();
-                
-                const loginScreen = document.getElementById('loginScreen');
-                const appContainer = document.getElementById('appContainer');
-                const loginBtn = document.getElementById('loginBtn');
-                const loginInput = document.getElementById('loginPassword');
-                const loginError = document.getElementById('loginError');
-                const loginTitle = document.getElementById('loginTitle');
-                const loginSubtitle = document.getElementById('loginSubtitle');
-                const loginHint = document.getElementById('loginHint');
-
-                // 根据模式设置提示文字
-                if (hasShared) {
-                    loginHint.textContent = '共享模式：密码由管理员管理';
-                }
-
-                if (!this.hasLocalPassword() && !hasShared) {
-                    // 首次使用，设置密码模式
-                    loginTitle.textContent = '首次使用，请设置密码';
-                    loginSubtitle.textContent = '设置密码后，每次打开都需要验证';
-                    loginInput.placeholder = '设置密码（至少4位）';
-                    loginBtn.textContent = '确认设置';
-
-                    // 需要确认密码
-                    const confirmGroup = document.createElement('div');
-                    confirmGroup.className = 'login-input-group';
-                    confirmGroup.id = 'confirmGroup';
-                    confirmGroup.innerHTML = '<input type="password" class="login-input" id="loginConfirm" placeholder="再次输入确认" autocomplete="off">';
-                    loginInput.parentElement.after(confirmGroup);
-
-                    loginBtn.onclick = async () => {
-                        const pw = loginInput.value.trim();
-                        const confirm = document.getElementById('loginConfirm').value.trim();
-                        if (pw.length < 4) {
-                            loginError.textContent = '密码至少4位';
-                            loginInput.classList.add('error');
-                            setTimeout(() => loginInput.classList.remove('error'), 300);
-                            return;
-                        }
-                        if (pw !== confirm) {
-                            loginError.textContent = '两次输入不一致';
-                            loginInput.classList.add('error');
-                            setTimeout(() => loginInput.classList.remove('error'), 300);
-                            return;
-                        }
-                        await this.setPassword(pw);
-                        loginScreen.classList.add('hidden');
-                        appContainer.style.display = '';
-                    };
-
-                    loginInput.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            document.getElementById('loginConfirm').focus();
-                        }
-                    });
-                    document.getElementById('loginConfirm').addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') loginBtn.click();
-                    });
-                } else {
-                    // 已有密码，验证模式
-                    loginBtn.onclick = async () => {
-                        const pw = loginInput.value;
-                        if (!pw) {
-                            loginError.textContent = '请输入密码';
-                            loginInput.classList.add('error');
-                            setTimeout(() => loginInput.classList.remove('error'), 300);
-                            return;
-                        }
-                        const valid = await this.verify(pw);
-                        if (!valid) {
-                            loginError.textContent = '密码错误，请重试';
-                            loginInput.classList.add('error');
-                            loginInput.value = '';
-                            setTimeout(() => loginInput.classList.remove('error'), 300);
-                            return;
-                        }
-                        loginScreen.classList.add('hidden');
-                        appContainer.style.display = '';
-                    };
-
-                    loginInput.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') loginBtn.click();
-                    });
-
-                    // 自动聚焦
-                    setTimeout(() => loginInput.focus(), 300);
-                }
-            },
-
-            // 修改密码
-            async changePassword(oldPw, newPw) {
-                const valid = await this.verify(oldPw);
-                if (!valid) throw new Error('当前密码不正确');
-                if (newPw.length < 4) throw new Error('新密码至少4位');
-                await this.setPassword(newPw);
+            // Blob转Base64
+            blobToBase64(blob) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
             }
         };
 
@@ -1648,7 +1447,6 @@
             'image/bmp': { icon: '🖼️', color: '#ec4899', name: '图片' }
         };
 
-        // 根据扩展名判断文件类型
         const EXT_TYPE_MAP = {
             '.pdf': 'application/pdf',
             '.doc': 'application/msword',
@@ -1668,129 +1466,9 @@
             '.bmp': 'image/bmp'
         };
 
-        // ========== IndexedDB 封装 ==========
-        class DBManager {
-            constructor() {
-                this.dbName = 'DocClassificationDB';
-                this.dbVersion = 1;
-                this.db = null;
-            }
-
-            async init() {
-                // 检测 IndexedDB 是否可用（隐私模式下可能不可用）
-                try {
-                    const testKey = '__idb_test__';
-                    const testReq = indexedDB.open(testKey);
-                    await new Promise((res, rej) => { testReq.onsuccess = res; testReq.onerror = rej; });
-                    testReq.result.close();
-                    indexedDB.deleteDatabase(testKey);
-                } catch (e) {
-                    console.warn('IndexedDB 不可用，降级为 localStorage 模式');
-                    this.useLocalStorage = true;
-                    this.db = null;
-                    return;
-                }
-
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(this.dbName, this.dbVersion);
-                    
-                    request.onerror = () => {
-                        console.warn('IndexedDB 打开失败，降级为 localStorage 模式');
-                        this.useLocalStorage = true;
-                        resolve();
-                    };
-                    request.onsuccess = () => {
-                        this.db = request.result;
-                        resolve(this.db);
-                    };
-                    
-                    request.onupgradeneeded = (event) => {
-                        const db = event.target.result;
-                        if (!db.objectStoreNames.contains('files')) {
-                            const store = db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
-                            store.createIndex('category', 'category', { unique: false });
-                            store.createIndex('uploadTime', 'uploadTime', { unique: false });
-                        }
-                    };
-                });
-            }
-
-            async getAllFiles() {
-                if (this.useLocalStorage) {
-                    try {
-                        const data = localStorage.getItem('docvault_files');
-                        return data ? JSON.parse(data) : [];
-                    } catch (e) { return []; }
-                }
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction('files', 'readonly');
-                    const store = tx.objectStore('files');
-                    const request = store.getAll();
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async addFile(fileData) {
-                if (this.useLocalStorage) {
-                    // localStorage 降级模式：将 ArrayBuffer 转为 base64 存储
-                    const storable = { ...fileData };
-                    if (storable.blob instanceof ArrayBuffer) {
-                        const bytes = new Uint8Array(storable.blob);
-                        let binary = '';
-                        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-                        storable.blob = 'base64:' + btoa(binary);
-                    }
-                    storable.id = Date.now() + Math.floor(Math.random() * 1000);
-                    const files = await this.getAllFiles();
-                    files.push(storable);
-                    localStorage.setItem('docvault_files', JSON.stringify(files));
-                    return storable.id;
-                }
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction('files', 'readwrite');
-                    const store = tx.objectStore('files');
-                    const request = store.add(fileData);
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async updateFile(id, fileData) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction('files', 'readwrite');
-                    const store = tx.objectStore('files');
-                    const request = store.put({ ...fileData, id });
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async deleteFile(id) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction('files', 'readwrite');
-                    const store = tx.objectStore('files');
-                    const request = store.delete(id);
-                    request.onsuccess = () => resolve();
-                    request.onerror = () => reject(request.error);
-                });
-            }
-
-            async clearAll() {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction('files', 'readwrite');
-                    const store = tx.objectStore('files');
-                    const request = store.clear();
-                    request.onsuccess = () => resolve();
-                    request.onerror = () => reject(request.error);
-                });
-            }
-        }
-
         // ========== 应用主类 ==========
         class DocClassificationApp {
             constructor() {
-                this.db = new DBManager();
                 this.files = [];
                 this.currentCategory = 'all';
                 this.currentView = 'grid';
@@ -1798,28 +1476,27 @@
                 this.searchQuery = '';
                 this.sortOrder = 'time-desc';
                 this.confirmCallback = null;
-                this.isSharedMode = false;
+                this.currentUploader = 'all';
             }
 
             // 初始化应用
             async init() {
                 try {
-                    // 检查是否为共享模式
-                    this.isSharedMode = SharedDataManager.isSharedMode;
+                    this.showInitLoading('正在从云端同步数据...');
                     
-                    // 更新UI指示器
-                    this.updateModeIndicator();
+                    // 从GitHub加载数据
+                    await GitHubDataManager.load();
                     
-                    if (this.isSharedMode) {
-                        // 共享模式：从 data.json 加载文档
-                        this.loadSharedDocuments();
-                    } else {
-                        // 本地模式：使用 IndexedDB
-                        await this.db.init();
-                        this.files = await this.db.getAllFiles();
-                    }
+                    // 将GitHub数据转换为本地文件格式
+                    this.loadFilesFromGitHub();
                     
+                    // 隐藏加载界面
+                    this.hideInitOverlay();
+                    
+                    // 绑定事件
                     this.bindEvents();
+                    
+                    // 渲染UI
                     this.render();
                     
                     // 恢复上次输入的上传人姓名
@@ -1829,67 +1506,61 @@
                         if (lastUploader) uploaderInput.value = lastUploader;
                     }
                     
-                    // 添加上传人筛选
-                    this.currentUploader = 'all';
+                    this.showToast('数据同步成功', 'success');
                 } catch (error) {
                     console.error('初始化失败:', error);
-                    this.showToast('初始化失败，请刷新页面重试', 'error');
+                    this.showInitError('加载失败: ' + error.message);
                 }
             }
 
-            // 更新模式指示器
-            updateModeIndicator() {
-                const badge = document.getElementById('sharedBadge');
-                const indicator = document.getElementById('dataModeIndicator');
-                const modeText = document.getElementById('dataModeText');
-                const syncBtn = document.getElementById('syncBtn');
-                const sharedSection = document.getElementById('sharedSettingsSection');
-
-                if (this.isSharedMode) {
-                    badge.style.display = 'inline';
-                    indicator.classList.remove('local');
-                    indicator.classList.add('shared');
-                    indicator.querySelector('span:first-child').textContent = '☁️';
-                    modeText.textContent = '共享模式';
-                    syncBtn.style.display = 'flex';
-                    sharedSection.style.display = 'block';
-                } else {
-                    badge.style.display = 'none';
-                    indicator.classList.remove('shared');
-                    indicator.classList.add('local');
-                    indicator.querySelector('span:first-child').textContent = '📱';
-                    modeText.textContent = '本地模式';
-                    syncBtn.style.display = 'none';
-                    sharedSection.style.display = 'none';
-                }
+            // 显示初始化加载状态
+            showInitLoading(message) {
+                const overlay = document.getElementById('initOverlay');
+                const messageEl = document.getElementById('initMessage');
+                const errorBox = document.getElementById('errorBox');
+                
+                if (messageEl) messageEl.textContent = message;
+                if (errorBox) errorBox.style.display = 'none';
+                if (overlay) overlay.classList.remove('hidden');
             }
 
-            // 加载共享文档
-            loadSharedDocuments() {
-                const docs = SharedDataManager.getDocuments();
+            // 隐藏初始化界面
+            hideInitOverlay() {
+                const overlay = document.getElementById('initOverlay');
+                if (overlay) overlay.classList.add('hidden');
+            }
+
+            // 显示初始化错误
+            showInitError(message) {
+                const errorBox = document.getElementById('errorBox');
+                const errorMessage = document.getElementById('errorMessage');
+                const overlay = document.getElementById('initOverlay');
+                
+                if (errorMessage) errorMessage.textContent = message;
+                if (errorBox) errorBox.style.display = 'block';
+                if (overlay) overlay.classList.remove('hidden');
+            }
+
+            // 从GitHub数据加载文件
+            loadFilesFromGitHub() {
+                const docs = GitHubDataManager.getDocuments();
                 this.files = docs.map(d => ({
                     ...d,
-                    blob: d.fileContent ? SharedDataManager.base64ToBlob(d.fileContent, d.type) : null
+                    blob: d.fileContent ? GitHubDataManager.base64ToBlob(d.fileContent, d.type) : null
                 }));
             }
 
-            // 同步共享数据
-            async syncSharedData() {
-                if (!this.isSharedMode) return;
-                
+            // 同步数据
+            async syncData() {
                 try {
-                    this.showToast('正在同步数据...', 'info');
-                    const success = await SharedDataManager.load();
-                    if (success) {
-                        this.loadSharedDocuments();
-                        this.render();
-                        this.showToast('同步成功', 'success');
-                    } else {
-                        this.showToast('同步失败：无法获取共享数据', 'error');
-                    }
+                    this.showToast('正在同步...', 'loading');
+                    await GitHubDataManager.load();
+                    this.loadFilesFromGitHub();
+                    this.render();
+                    this.showToast('同步成功', 'success');
                 } catch (error) {
                     console.error('同步失败:', error);
-                    this.showToast('同步失败', 'error');
+                    this.showToast('同步失败: ' + error.message, 'error');
                 }
             }
 
@@ -1900,7 +1571,6 @@
                 const fileInput = document.getElementById('fileInput');
                 const uploaderInputWrap = document.getElementById('uploaderInputWrap');
                 
-                // 阻止上传人输入区域点击冒泡到上传区域
                 uploaderInputWrap.addEventListener('click', (e) => {
                     e.stopPropagation();
                 });
@@ -1958,40 +1628,7 @@
                 document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importInput').click());
                 document.getElementById('importInput').addEventListener('change', (e) => this.importData(e));
                 document.getElementById('clearAllBtn').addEventListener('click', () => this.confirmClearAll());
-
-                // 共享模式相关按钮
-                document.getElementById('syncBtn').addEventListener('click', () => this.syncSharedData());
-                document.getElementById('syncSettingsBtn').addEventListener('click', () => this.syncSharedData());
-                document.getElementById('exportSharedBtn').addEventListener('click', () => this.exportSharedData());
-
-                // 修改密码
-                document.getElementById('changePasswordBtn').addEventListener('click', async () => {
-                    const oldPw = document.getElementById('oldPasswordInput').value;
-                    const newPw = document.getElementById('newPasswordInput').value;
-                    const confirmPw = document.getElementById('confirmPasswordInput').value;
-
-                    if (!oldPw || !newPw || !confirmPw) {
-                        this.showToast('请填写所有密码字段', 'error');
-                        return;
-                    }
-                    if (newPw.length < 4) {
-                        this.showToast('新密码至少4位', 'error');
-                        return;
-                    }
-                    if (newPw !== confirmPw) {
-                        this.showToast('两次新密码输入不一致', 'error');
-                        return;
-                    }
-                    try {
-                        await PasswordManager.changePassword(oldPw, newPw);
-                        this.showToast('密码修改成功', 'success');
-                        document.getElementById('oldPasswordInput').value = '';
-                        document.getElementById('newPasswordInput').value = '';
-                        document.getElementById('confirmPasswordInput').value = '';
-                    } catch (err) {
-                        this.showToast(err.message, 'error');
-                    }
-                });
+                document.getElementById('syncBtn').addEventListener('click', () => this.syncData());
 
                 // 确认弹窗
                 document.getElementById('confirmCancel').addEventListener('click', () => this.closeConfirm());
@@ -2010,11 +1647,9 @@
             async handleFiles(fileList) {
                 const validExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.md', '.json', '.csv', '.jpg', '.jpeg', '.png', '.gif', '.bmp'];
                 
-                // 获取上传人姓名
                 const uploaderInput = document.getElementById('uploaderNameInput');
                 const uploaderName = uploaderInput ? uploaderInput.value.trim() : '';
                 
-                // 记住上次输入的上传人
                 if (uploaderName && uploaderInput) {
                     localStorage.setItem('docvault_last_uploader', uploaderName);
                 }
@@ -2030,22 +1665,20 @@
                         const fileInfo = await this.processFile(file);
                         fileInfo.uploader = uploaderName || '未知';
                         
-                        if (this.isSharedMode) {
-                            // 共享模式
-                            const id = SharedDataManager.generateId();
-                            fileInfo.id = id;
-                            SharedDataManager.addDocument({
-                                ...fileInfo,
-                                fileContent: await SharedDataManager.blobToBase64(fileInfo.blob)
-                            });
-                            delete fileInfo.blob;
-                            this.files.push(fileInfo);
-                        } else {
-                            // 本地模式
-                            const id = await this.db.addFile(fileInfo);
-                            fileInfo.id = id;
-                            this.files.push(fileInfo);
-                        }
+                        // 添加到GitHub
+                        const docToSave = {
+                            ...fileInfo,
+                            fileContent: fileInfo.fileContent
+                        };
+                        delete docToSave.blob;
+                        
+                        await GitHubDataManager.addDocument(docToSave);
+                        
+                        // 更新本地文件列表
+                        delete fileInfo.fileContent;
+                        fileInfo.id = docToSave.id;
+                        fileInfo.uploadTime = docToSave.uploadTime;
+                        this.files.push(fileInfo);
                         
                         // 高亮动画
                         setTimeout(() => {
@@ -2070,19 +1703,28 @@
                 const mimeType = EXT_TYPE_MAP[ext] || file.type || 'application/octet-stream';
                 const typeInfo = FILE_TYPES[mimeType] || { icon: '📎', color: '#6b7280', name: '其他' };
                 
-                // 使用 FileReader 读取文件（兼容性更好，支持移动端）
-                const blob = await new Promise((resolve, reject) => {
+                // 使用 FileReader 读取文件
+                const arrayBuffer = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result);
                     reader.onerror = () => reject(new Error('文件读取失败: ' + file.name));
                     reader.readAsArrayBuffer(file);
                 });
                 
+                // 转换为 base64
+                const uint8Array = new Uint8Array(arrayBuffer);
+                let binary = '';
+                for (let i = 0; i < uint8Array.length; i++) {
+                    binary += String.fromCharCode(uint8Array[i]);
+                }
+                const base64 = btoa(binary);
+                const fileContent = `data:${mimeType};base64,${base64}`;
+                
                 // 生成摘要（文本类文件）
                 let summary = '';
                 if (['text/plain', 'text/markdown', 'application/json', 'text/csv'].includes(mimeType)) {
                     try {
-                        const text = new TextDecoder().decode(blob).substring(0, 500);
+                        const text = new TextDecoder().decode(arrayBuffer).substring(0, 500);
                         summary = text;
                     } catch (e) {
                         summary = '(无法读取文件内容)';
@@ -2102,8 +1744,8 @@
                     category: category,
                     tags: [],
                     summary: summary,
-                    uploadTime: new Date().toISOString(),
-                    blob: blob
+                    fileContent: fileContent,
+                    blob: arrayBuffer
                 };
             }
 
@@ -2111,7 +1753,6 @@
             autoClassify(filename) {
                 const lowerName = filename.toLowerCase();
                 
-                // 按优先级匹配
                 for (const cat of CATEGORIES) {
                     if (cat.id === 'other') continue;
                     for (const keyword of cat.keywords) {
@@ -2155,7 +1796,7 @@
                     `;
                 });
                 
-                // 添加上传人筛选区域
+                // 上传人筛选区域
                 const uploaders = [...new Set(this.files.map(f => f.uploader || '未知'))].filter(u => u);
                 if (uploaders.length > 0) {
                     html += '<div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);">';
@@ -2181,69 +1822,63 @@
                 // 绑定分类点击事件
                 nav.querySelectorAll('.nav-item[data-category]').forEach(item => {
                     item.addEventListener('click', () => {
+                        nav.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
                         this.currentCategory = item.dataset.category;
-                        this.renderCategories();
+                        this.currentUploader = 'all';
                         this.renderFiles();
                     });
                 });
-                
-                // 绑定上传人点击事件
+
                 nav.querySelectorAll('.nav-item[data-uploader]').forEach(item => {
                     item.addEventListener('click', () => {
+                        nav.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
                         this.currentUploader = item.dataset.uploader;
-                        this.renderCategories();
+                        this.currentCategory = 'all';
                         this.renderFiles();
                     });
                 });
             }
 
-            // 渲染统计信息
+            // 获取分类统计
+            getCategoryCounts() {
+                const counts = {};
+                CATEGORIES.forEach(cat => {
+                    counts[cat.id] = this.files.filter(f => f.category === cat.id).length;
+                });
+                return counts;
+            }
+
+            // 渲染统计
             renderStats() {
                 const stats = document.getElementById('headerStats');
-                const today = new Date().toDateString();
-                const todayCount = this.files.filter(f => new Date(f.uploadTime).toDateString() === today).length;
-                const uniqueUploaders = new Set(this.files.map(f => f.uploader || '未知')).size;
+                const totalSize = this.files.reduce((sum, f) => sum + (f.size || 0), 0);
+                const uploaders = [...new Set(this.files.map(f => f.uploader || '未知'))].length;
                 
                 stats.innerHTML = `
                     <div class="stat-item">
                         <div class="stat-value">${this.files.length}</div>
-                        <div class="stat-label">总文件数</div>
+                        <div class="stat-label">文件数</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">${CATEGORIES.length - 1}</div>
-                        <div class="stat-label">分类数</div>
+                        <div class="stat-value">${this.formatSize(totalSize)}</div>
+                        <div class="stat-label">总大小</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">${uniqueUploaders}</div>
+                        <div class="stat-value">${uploaders}</div>
                         <div class="stat-label">上传人</div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${todayCount}</div>
-                        <div class="stat-label">今日上传</div>
-                    </div>
                 `;
-            }
-
-            // 获取各分类数量
-            getCategoryCounts() {
-                const counts = {};
-                this.files.forEach(f => {
-                    counts[f.category] = (counts[f.category] || 0) + 1;
-                });
-                return counts;
             }
 
             // 渲染文件列表
             renderFiles() {
                 const container = document.getElementById('filesContainer');
                 
-                // 过滤文件
                 let filtered = this.filterFiles();
-                
-                // 排序
                 filtered = this.sortFiles(filtered);
                 
-                // 更新计数
                 document.getElementById('resultsCount').textContent = `共 ${filtered.length} 个文件`;
                 
                 if (filtered.length === 0) {
@@ -2337,17 +1972,14 @@
             // 过滤文件
             filterFiles() {
                 return this.files.filter(f => {
-                    // 分类过滤
                     if (this.currentCategory !== 'all' && f.category !== this.currentCategory) {
                         return false;
                     }
                     
-                    // 上传人过滤
                     if (this.currentUploader && this.currentUploader !== 'all' && (f.uploader || '未知') !== this.currentUploader) {
                         return false;
                     }
                     
-                    // 搜索过滤
                     if (this.searchQuery) {
                         const searchIn = [
                             f.name.toLowerCase(),
@@ -2400,7 +2032,6 @@
                 this.currentFile = file;
                 const panel = document.getElementById('detailPanel');
                 const body = document.getElementById('detailBody');
-                const cat = CATEGORIES.find(c => c.id === file.category) || CATEGORIES[CATEGORIES.length - 1];
                 
                 const tagsHtml = file.tags.map(t => `
                     <span class="detail-tag">
@@ -2483,11 +2114,7 @@
                 
                 file.category = newCategory;
                 
-                if (this.isSharedMode) {
-                    SharedDataManager.updateDocument(fileId, { category: newCategory });
-                } else {
-                    await this.db.updateFile(fileId, file);
-                }
+                await GitHubDataManager.updateDocument(fileId, { category: newCategory });
                 
                 this.render();
                 this.openDetail(fileId);
@@ -2510,11 +2137,7 @@
                 
                 file.tags.push(tag);
                 
-                if (this.isSharedMode) {
-                    SharedDataManager.updateDocument(fileId, { tags: file.tags });
-                } else {
-                    await this.db.updateFile(fileId, file);
-                }
+                await GitHubDataManager.updateDocument(fileId, { tags: file.tags });
                 
                 input.value = '';
                 this.openDetail(fileId);
@@ -2529,11 +2152,7 @@
                 
                 file.tags = file.tags.filter(t => t !== tag);
                 
-                if (this.isSharedMode) {
-                    SharedDataManager.updateDocument(fileId, { tags: file.tags });
-                } else {
-                    await this.db.updateFile(fileId, file);
-                }
+                await GitHubDataManager.updateDocument(fileId, { tags: file.tags });
                 
                 this.openDetail(fileId);
                 this.renderFiles();
@@ -2545,16 +2164,8 @@
                 if (!this.currentFile) return;
                 
                 const blob = this.currentFile.blob;
-                if (typeof blob === 'string') {
-                    // base64 格式
-                    const byteString = atob(blob.split(',')[1]);
-                    const ab = new ArrayBuffer(byteString.length);
-                    const ia = new Uint8Array(ab);
-                    for (let i = 0; i < byteString.length; i++) {
-                        ia[i] = byteString.charCodeAt(i);
-                    }
-                    const blobDownload = new Blob([ab], { type: this.currentFile.type });
-                    const url = URL.createObjectURL(blobDownload);
+                if (blob) {
+                    const url = URL.createObjectURL(new Blob([blob], { type: this.currentFile.type }));
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = this.currentFile.name;
@@ -2562,9 +2173,15 @@
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                } else {
-                    // Blob 格式
-                    const url = URL.createObjectURL(new Blob([blob], { type: this.currentFile.type }));
+                } else if (this.currentFile.fileContent) {
+                    const byteString = atob(this.currentFile.fileContent.split(',')[1]);
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) {
+                        ia[i] = byteString.charCodeAt(i);
+                    }
+                    const blobDownload = new Blob([ab], { type: this.currentFile.type });
+                    const url = URL.createObjectURL(blobDownload);
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = this.currentFile.name;
@@ -2587,11 +2204,7 @@
                 if (!file) return;
                 
                 this.confirmCallback = async () => {
-                    if (this.isSharedMode) {
-                        SharedDataManager.deleteDocument(fileId);
-                    } else {
-                        await this.db.deleteFile(fileId);
-                    }
+                    await GitHubDataManager.deleteDocument(fileId);
                     this.files = this.files.filter(f => f.id !== fileId);
                     this.closeDetail();
                     this.render();
@@ -2621,59 +2234,20 @@
                 document.getElementById('settingsPanel').classList.remove('open');
             }
 
-            // 导出共享数据
-            exportSharedData() {
-                if (!this.isSharedMode) {
-                    this.showToast('仅在共享模式下可用', 'error');
-                    return;
-                }
-                
+            // 导出数据
+            async exportData() {
                 try {
-                    // 更新所有文档的 fileContent
-                    const docsToExport = this.files.map(f => {
+                    const exportDocs = await Promise.all(this.files.map(async f => {
                         let fileContent = '';
-                        if (f.blob) {
-                            if (typeof f.blob === 'string') {
-                                fileContent = f.blob;
-                            } else {
-                                // Blob 转 base64
-                                const reader = new FileReader();
-                                fileContent = new Promise((resolve) => {
-                                    reader.onloadend = () => resolve(reader.result);
-                                    reader.readAsDataURL(f.blob);
-                                });
+                        if (f.blob && f.blob instanceof ArrayBuffer) {
+                            const uint8Array = new Uint8Array(f.blob);
+                            let binary = '';
+                            for (let i = 0; i < uint8Array.length; i++) {
+                                binary += String.fromCharCode(uint8Array[i]);
                             }
-                        } else if (f.fileContent) {
-                            fileContent = f.fileContent;
-                        }
-                        
-                        // 如果是 Promise，等待它
-                        if (fileContent instanceof Promise) {
-                            fileContent.then(content => {
-                                const exportDoc = {
-                                    ...f,
-                                    blob: undefined,
-                                    fileContent: content
-                                };
-                                return exportDoc;
-                            });
-                        }
-                        
-                        return {
-                            ...f,
-                            blob: undefined,
-                            fileContent: typeof fileContent === 'string' ? fileContent : ''
-                        };
-                    });
-                    
-                    // 同步处理所有文件
-                    const exportDocs = this.files.map(async f => {
-                        let fileContent = '';
-                        if (f.blob) {
-                            if (typeof f.blob === 'string') {
-                                fileContent = f.blob;
-                            } else {
-                                fileContent = await SharedDataManager.blobToBase64(f.blob);
+                            fileContent = btoa(binary);
+                            if (f.type) {
+                                fileContent = `data:${f.type};base64,${fileContent}`;
                             }
                         } else if (f.fileContent) {
                             fileContent = f.fileContent;
@@ -2683,48 +2257,16 @@
                             blob: undefined,
                             fileContent: fileContent
                         };
-                    });
+                    }));
                     
-                    Promise.all(exportDocs).then(exportedFiles => {
-                        const exportData = {
-                            version: SharedDataManager.data.version || 1,
-                            password: SharedDataManager.data.password,
-                            documents: exportedFiles,
-                            lastUpdated: new Date().toLocaleString('zh-CN')
-                        };
-                        
-                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'data.json';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        
-                        this.closeSettings();
-                        this.showToast('共享数据已导出，请提交到仓库更新', 'success');
-                    });
-                } catch (error) {
-                    console.error('导出共享数据失败:', error);
-                    this.showToast('导出失败', 'error');
-                }
-            }
-
-            // 导出数据（本地备份）
-            async exportData() {
-                try {
                     const exportData = {
-                        version: 1,
+                        version: 2,
                         exportTime: new Date().toISOString(),
-                        files: this.files.map(f => ({
-                            ...f,
-                            blob: Array.from(new Uint8Array(f.blob))
-                        }))
+                        documents: exportDocs,
+                        lastUpdated: new Date().toLocaleString('zh-CN')
                     };
                     
-                    const blob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -2751,43 +2293,38 @@
                     const text = await file.text();
                     const importData = JSON.parse(text);
                     
-                    if (!importData.files || !Array.isArray(importData.files)) {
+                    if (!importData.documents || !Array.isArray(importData.documents)) {
                         throw new Error('无效的备份文件格式');
                     }
                     
                     // 清空现有数据
-                    if (this.isSharedMode) {
-                        // 共享模式下清空本地缓存
-                        this.files = [];
-                        SharedDataManager.data.documents = [];
-                    } else {
-                        await this.db.clearAll();
-                        this.files = [];
-                    }
+                    await GitHubDataManager.clearDocuments();
+                    this.files = [];
                     
                     // 导入文件
-                    for (const f of importData.files) {
-                        const blob = new Uint8Array(f.blob).buffer;
-                        const fileData = {
-                            ...f,
-                            blob: blob
+                    for (const f of importData.documents) {
+                        const docToAdd = {
+                            name: f.name,
+                            size: f.size,
+                            type: f.type,
+                            typeName: f.typeName,
+                            icon: f.icon,
+                            color: f.color,
+                            category: f.category || 'other',
+                            tags: f.tags || [],
+                            summary: f.summary || '',
+                            uploader: f.uploader || '未知',
+                            fileContent: f.fileContent || ''
                         };
-                        delete fileData.id;
                         
-                        if (this.isSharedMode) {
-                            const id = SharedDataManager.generateId();
-                            fileData.id = id;
-                            SharedDataManager.addDocument({
-                                ...fileData,
-                                fileContent: await SharedDataManager.blobToBase64(fileData.blob)
-                            });
-                            delete fileData.blob;
-                            this.files.push(fileData);
-                        } else {
-                            const id = await this.db.addFile(fileData);
-                            fileData.id = id;
-                            this.files.push(fileData);
-                        }
+                        const added = await GitHubDataManager.addDocument(docToAdd);
+                        
+                        this.files.push({
+                            ...docToAdd,
+                            id: added.id,
+                            uploadTime: added.uploadTime,
+                            blob: docToAdd.fileContent ? GitHubDataManager.base64ToBlob(docToAdd.fileContent, docToAdd.type) : null
+                        });
                     }
                     
                     event.target.value = '';
@@ -2803,13 +2340,8 @@
             // 确认清空所有数据
             confirmClearAll() {
                 this.confirmCallback = async () => {
-                    if (this.isSharedMode) {
-                        SharedDataManager.data.documents = [];
-                        this.files = [];
-                    } else {
-                        await this.db.clearAll();
-                        this.files = [];
-                    }
+                    await GitHubDataManager.clearDocuments();
+                    this.files = [];
                     this.closeSettings();
                     this.closeDetail();
                     this.render();
@@ -2841,29 +2373,13 @@
                 setTimeout(() => {
                     toast.style.opacity = '0';
                     setTimeout(() => toast.remove(), 300);
-                }, 3000);
+                }, type === 'loading' ? 10000 : 3000);
             }
         }
 
         // ========== 启动应用 ==========
         const app = new DocClassificationApp();
-
-        // 先初始化密码验证，验证通过后再启动主应用
-        PasswordManager.init().then(() => {
-            // 监听密码验证完成事件（appContainer从display:none变为可见时触发）
-            const observer = new MutationObserver((mutations) => {
-                for (const m of mutations) {
-                    if (m.type === 'attributes' && m.attributeName === 'style') {
-                        const container = document.getElementById('appContainer');
-                        if (container && container.style.display !== 'none') {
-                            app.init();
-                            observer.disconnect();
-                        }
-                    }
-                }
-            });
-            observer.observe(document.getElementById('appContainer'), { attributes: true });
-        });
+        app.init();
     </script>
 </body>
 </html>
