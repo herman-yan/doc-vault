@@ -1059,6 +1059,52 @@
       margin-bottom: 20px;
     }
 
+    /* 快速模板选择器 */
+    .template-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .template-card {
+      flex: 1;
+      min-width: 90px;
+      padding: 12px 8px;
+      background: var(--bg-hover);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .template-card:hover {
+      border-color: var(--accent);
+      background: rgba(29, 157, 240, 0.1);
+    }
+    .template-card.active {
+      border-color: var(--accent);
+      background: rgba(29, 157, 240, 0.15);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .template-icon {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+    .template-name {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .template-card.active .template-name {
+      color: var(--accent);
+    }
+    .template-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-style: italic;
+    }
+
     /* 隐藏文件输入 */
     .hidden-input {
       display: none;
@@ -1475,6 +1521,34 @@
         <form id="projectForm">
           <input type="hidden" id="projectId">
           
+          <!-- 快速模板 -->
+          <div class="form-group">
+            <label>📋 快速选择模板</label>
+            <div class="template-selector" id="templateSelector">
+              <div class="template-card" data-template="rd">
+                <div class="template-icon">🔬</div>
+                <div class="template-name">研发项目</div>
+              </div>
+              <div class="template-card" data-template="engineering">
+                <div class="template-icon">🏗️</div>
+                <div class="template-name">工程项目</div>
+              </div>
+              <div class="template-card" data-template="market">
+                <div class="template-icon">📈</div>
+                <div class="template-name">市场项目</div>
+              </div>
+              <div class="template-card" data-template="ops">
+                <div class="template-icon">🔧</div>
+                <div class="template-name">运维售后</div>
+              </div>
+              <div class="template-card active" data-template="blank">
+                <div class="template-icon">📝</div>
+                <div class="template-name">空白自建</div>
+              </div>
+            </div>
+            <div class="template-hint" id="templateHint">选择模板可自动填充标准里程碑，也可手动编辑</div>
+          </div>
+
           <div class="form-group">
             <label>项目名称 *</label>
             <input type="text" class="form-input" id="projectName" required>
@@ -2136,6 +2210,10 @@
       currentProject = project;
       document.getElementById('modalTitle').textContent = '编辑项目';
       document.getElementById('deleteProjectBtn').style.display = 'block';
+      
+      // 编辑模式隐藏模板选择
+      const tplSection = document.getElementById('templateSelector').closest('.form-group');
+      if (tplSection) tplSection.style.display = 'none';
 
       // 填充表单
       document.getElementById('projectId').value = project.id;
@@ -2159,14 +2237,119 @@
       document.getElementById('projectModal').classList.add('active');
     }
 
+    // ========== 项目模板定义 ==========
+    const PROJECT_TEMPLATES = {
+      rd: {
+        label: '研发项目',
+        priority: '高',
+        description: '',
+        hint: '已填充研发标准流程：需求分析→方案设计→开发实施→测试验证→验收交付',
+        milestones: [
+          { name: '需求分析', completed: false, date: '' },
+          { name: '方案设计', completed: false, date: '' },
+          { name: '开发实施', completed: false, date: '' },
+          { name: '测试验证', completed: false, date: '' },
+          { name: '验收交付', completed: false, date: '' }
+        ]
+      },
+      engineering: {
+        label: '工程项目',
+        priority: '高',
+        description: '',
+        hint: '已填充工程标准流程：勘察设计→采购招标→施工建设→调试验收',
+        milestones: [
+          { name: '勘察设计', completed: false, date: '' },
+          { name: '采购招标', completed: false, date: '' },
+          { name: '施工建设', completed: false, date: '' },
+          { name: '调试验收', completed: false, date: '' }
+        ]
+      },
+      market: {
+        label: '市场项目',
+        priority: '中',
+        description: '',
+        hint: '已填充市场标准流程：市场调研→方案策划→执行推广→效果评估',
+        milestones: [
+          { name: '市场调研', completed: false, date: '' },
+          { name: '方案策划', completed: false, date: '' },
+          { name: '执行推广', completed: false, date: '' },
+          { name: '效果评估', completed: false, date: '' }
+        ]
+      },
+      ops: {
+        label: '运维售后',
+        priority: '中',
+        description: '',
+        hint: '已填充运维标准流程：现状评估→方案制定→执行维护→验收确认',
+        milestones: [
+          { name: '现状评估', completed: false, date: '' },
+          { name: '方案制定', completed: false, date: '' },
+          { name: '执行维护', completed: false, date: '' },
+          { name: '验收确认', completed: false, date: '' }
+        ]
+      },
+      blank: {
+        label: '空白自建',
+        priority: '中',
+        description: '',
+        hint: '空白模板，可自由填写所有字段和里程碑',
+        milestones: []
+      }
+    };
+
+    let selectedTemplate = 'blank';
+
+    // 应用模板
+    function applyTemplate(templateKey) {
+      const tpl = PROJECT_TEMPLATES[templateKey];
+      if (!tpl) return;
+
+      selectedTemplate = templateKey;
+
+      // 更新模板卡片选中状态
+      document.querySelectorAll('.template-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.template === templateKey);
+      });
+
+      // 更新提示文字
+      document.getElementById('templateHint').textContent = tpl.hint;
+
+      // 填充优先级
+      document.getElementById('projectPriority').value = tpl.priority;
+
+      // 填充里程碑
+      milestones = tpl.milestones.map(m => ({ ...m }));
+      renderMilestones();
+    }
+
+    // 绑定模板选择事件
+    function initTemplateSelector() {
+      document.querySelectorAll('.template-card').forEach(card => {
+        card.addEventListener('click', () => {
+          applyTemplate(card.dataset.template);
+        });
+      });
+    }
+
     // 新建项目
     function newProject() {
+      // 显示模板选择区域
+      const tplSection = document.getElementById('templateSelector').closest('.form-group');
+      if (tplSection) tplSection.style.display = '';
+      
       currentProject = null;
       document.getElementById('modalTitle').textContent = '新建项目';
       document.getElementById('deleteProjectBtn').style.display = 'none';
       document.getElementById('projectForm').reset();
       document.getElementById('projectId').value = '';
       document.getElementById('progressValue').textContent = '0%';
+      
+      // 重置模板为空白
+      selectedTemplate = 'blank';
+      document.querySelectorAll('.template-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.template === 'blank');
+      });
+      document.getElementById('templateHint').textContent = PROJECT_TEMPLATES.blank.hint;
       
       milestones = [];
       attachments = [];
@@ -2406,6 +2589,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       loadData();
       renderAll();
+      initTemplateSelector();
 
       // 视图切换
       document.querySelectorAll('.view-btn').forEach(btn => {
