@@ -1258,7 +1258,9 @@
                     }
 
                     const result = await response.json();
-                    const content = atob(result.content);
+                    // 去除base64中的换行符，正确处理UTF-8
+                    const b64 = result.content.replace(/\n/g, '');
+                    const content = decodeURIComponent(escape(atob(b64)));
                     this.data = JSON.parse(content);
                     this.sha = result.sha;
                     return true;
@@ -1481,6 +1483,10 @@
 
             // 初始化应用
             async init() {
+                // 绑定事件
+                this.bindEvents();
+                
+                let loadSuccess = false;
                 try {
                     this.showInitLoading('正在从云端同步数据...');
                     
@@ -1489,27 +1495,32 @@
                     
                     // 将GitHub数据转换为本地文件格式
                     this.loadFilesFromGitHub();
-                    
-                    // 隐藏加载界面
-                    this.hideInitOverlay();
-                    
-                    // 绑定事件
-                    this.bindEvents();
-                    
-                    // 渲染UI
-                    this.render();
-                    
-                    // 恢复上次输入的上传人姓名
-                    const uploaderInput = document.getElementById('uploaderNameInput');
-                    if (uploaderInput) {
-                        const lastUploader = localStorage.getItem('docvault_last_uploader');
-                        if (lastUploader) uploaderInput.value = lastUploader;
-                    }
-                    
-                    this.showToast('数据同步成功', 'success');
+                    loadSuccess = true;
                 } catch (error) {
-                    console.error('初始化失败:', error);
-                    this.showInitError('加载失败: ' + error.message);
+                    console.error('云端加载失败，使用空数据启动:', error);
+                    // 加载失败时，初始化空数据
+                    GitHubDataManager.data = { version: 2, documents: [], lastUpdated: '' };
+                    GitHubDataManager.sha = null;
+                    this.files = [];
+                }
+                
+                // 无论加载成功与否，都显示界面
+                this.hideInitOverlay();
+                
+                // 渲染UI
+                this.render();
+                
+                // 恢复上次输入的上传人姓名
+                const uploaderInput = document.getElementById('uploaderNameInput');
+                if (uploaderInput) {
+                    const lastUploader = localStorage.getItem('docvault_last_uploader');
+                    if (lastUploader) uploaderInput.value = lastUploader;
+                }
+                
+                if (loadSuccess) {
+                    this.showToast('数据同步成功', 'success');
+                } else {
+                    this.showToast('云端同步失败，以空数据启动', 'error');
                 }
             }
 
