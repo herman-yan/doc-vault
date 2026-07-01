@@ -162,6 +162,16 @@ tbody tr { cursor: pointer; }
   .form-grid { grid-template-columns: 1fr; }
 }
 
+/* Upload */
+.btn-upload { background:#3b82f6; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background .15s; }
+.btn-upload:hover { background:#2563eb; }
+.upload-status-bar { padding:10px 24px; background:#fff; border-bottom:1px solid var(--border); font-size:13px; display:none; align-items:center; gap:8px; border-radius:0 0 10px 10px; margin-bottom:12px; }
+.upload-status-bar.show { display:flex; }
+.upload-status-bar.success { color:var(--success); background:#f0fdf4; border-color:#bbf7d0; }
+.upload-status-bar.error { color:var(--danger); background:#fef2f2; border-color:#fecaca; }
+.upload-status-bar.info { color:var(--primary); background:#eff6ff; border-color:#bfdbfe; }
+.upload-badge { background:#dbeafe; color:var(--primary); padding:2px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+
 /* Print */
 @media print {
   .sidebar, .btn, .filter-bar, .pipeline { display: none !important; }
@@ -205,6 +215,10 @@ tbody tr { cursor: pointer; }
 
 <!-- Main Content -->
 <div class="main" id="mainContent">
+  <!-- Hidden file input for Excel upload -->
+  <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelUpload(this)">
+  <!-- Upload status bar -->
+  <div class="upload-status-bar" id="uploadStatusBar"></div>
   <!-- Pages will be rendered here -->
 </div>
 
@@ -213,6 +227,7 @@ tbody tr { cursor: pointer; }
   <div class="modal" id="modalContent"></div>
 </div>
 
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script>
 // ===== DATA STORE =====
 const STORAGE_KEY = 'station_mgmt_data';
@@ -361,7 +376,10 @@ function renderWarrantyList() {
   return `
     <div class="page-header">
       <div><div class="page-title">保内工单</div><div class="page-subtitle">服务站保内维修工单管理</div></div>
-      <button class="btn btn-primary" onclick="openWarrantyForm()">+ 新建保内工单</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-upload" onclick="document.getElementById('excelFileInput').click()">📥 导入Excel</button>
+        <button class="btn btn-primary" onclick="openWarrantyForm()">+ 新建保内工单</button>
+      </div>
     </div>
     <div class="pipeline">
       <div class="pipeline-step" onclick="filterWarranty('')"><span>全部</span></div>
@@ -446,7 +464,10 @@ function renderNonWarrantyList() {
   return `
     <div class="page-header">
       <div><div class="page-title">保外工单</div><div class="page-subtitle">保外维修业务台账管理</div></div>
-      <button class="btn btn-primary" onclick="openNonWarrantyForm()">+ 新建保外工单</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-upload" onclick="document.getElementById('excelFileInput').click()">📥 导入Excel</button>
+        <button class="btn btn-primary" onclick="openNonWarrantyForm()">+ 新建保外工单</button>
+      </div>
     </div>
     <div class="pipeline">
       <div class="pipeline-step" onclick="filterNonWarranty('')"><span>全部</span></div>
@@ -1616,6 +1637,210 @@ function closeModal() {
 document.getElementById('modalOverlay').addEventListener('click', function(e) {
   if(e.target === this) closeModal();
 });
+
+// ===== EXCEL UPLOAD =====
+// 保内列名映射
+const WN_COLUMN_MAP = {
+  '编号':'id','登记日期':'registerDate','客户名称':'customerName','联系人':'contact',
+  '车辆信息':'vehicleInfo','故障描述':'faultDesc','维修类型':'repairType',
+  '工单类型':'orderType','完成状态':'status','责任工程师':'engineer',
+  '责任外服':'externalService','PM/PQM':'pm','中台备注':'platformNote',
+  'GSS工单号':'gssOrderNo','开工时间':'startDate','是否申领物料':'needMaterial',
+  '申领日期':'materialApplyDate','是否加急':'urgent','领用物料日期':'materialReceiveDate',
+  '完工日期':'completeDate','工程师备注':'engineerNote','工程师产值':'engineerOutput',
+  '工程师产值分解':'engineerOutputDetail','报单员':'reporter','报单绩效':'reporterBonus',
+  '建单日期':'submitDate','工单提交时间':'orderSubmitDate','GSS总费用':'gssFee',
+  '保外成交金额':'outWarrantyAmount','总费用':'totalFee','订货日期':'orderDate',
+  '订货成本':'orderCost','齐套日期':'readyDate','工程师领料时间':'engineerPickDate',
+  '旧件接收日期':'oldPartReceiveDate','旧件返厂日期':'oldPartReturnDate',
+  '旧件备注':'oldPartNote','库房备注':'warehouseNote'
+};
+
+// 保外列名映射
+const NW_COLUMN_MAP = {
+  '序号':'seq','城市':'city','工单号':'orderNo','车牌号':'plateNumber',
+  'Barcode号':'barcode','车架号':'vin','产品PN':'productPN',
+  '签约客户名称':'signedCustomer','产品类型':'productType','项目类型':'projectType',
+  '业务对接人':'bizContact','客户姓名':'customerName','客户电话':'customerPhone',
+  '业务需求提出时间':'requestDate','维修状态':'status','业务需求描述':'faultDesc',
+  '维修工程师':'repairEngineer','报价单总金额':'quoteTotal','报价单应回款':'quoteReceivable',
+  '配件销售金额':'partsSale','工时费金额':'laborFee','配件进购价格':'partsCost',
+  '物流往返费用':'logisticsFee','物流打款':'logisticsPayment','物流发票':'logisticsInvoice',
+  '分润':'profitShare','维修成交时间':'dealDate','维修区域':'repairArea',
+  '报价总额回款时间':'paymentDate','付款方式':'paymentMethod','付款状态':'paymentStatus',
+  '已回款金额':'receivedAmount','未回款金额':'unreceivedAmount','开票金额':'invoiceAmount',
+  '开票日期':'invoiceDate','实际业务毛利润':'grossProfit','实际业务毛利率':'grossMargin',
+  '是否给宁德打款':'payCatl','宁德是否开具发票':'catlInvoice','业务复盘记录':'reviewNote',
+  '备注':'remark'
+};
+
+// 保内默认值
+const WN_DEFAULTS = {
+  id:'',registerDate:'',customerName:'',contact:'',vehicleInfo:'',faultDesc:'',
+  repairType:'',orderType:'',status:'未派工',engineer:'',externalService:'',pm:'',
+  platformNote:'',gssOrderNo:'',startDate:'',needMaterial:'0',materialApplyDate:'',
+  urgent:'0',materialReceiveDate:'',completeDate:'',engineerNote:'',engineerOutput:'',
+  reporter:'',reporterBonus:'',submitDate:'',orderSubmitDate:'',gssFee:'0.0',
+  outWarrantyAmount:'0.0',totalFee:'0.0',orderDate:'',orderCost:'',readyDate:'',
+  engineerPickDate:'',oldPartReceiveDate:'',oldPartReturnDate:'',oldPartNote:'',
+  warehouseNote:''
+};
+
+// 保外默认值
+const NW_DEFAULTS = {
+  seq:'',city:'',orderNo:'',plateNumber:'',barcode:'',vin:'',productPN:'',
+  signedCustomer:'',productType:'',projectType:'',bizContact:'',customerName:'',
+  customerPhone:'',requestDate:'',status:'待客户确认',faultDesc:'',repairEngineer:'',
+  quoteTotal:'',quoteReceivable:'',partsSale:'',laborFee:'',partsCost:'',
+  logisticsFee:'',logisticsPayment:'',logisticsInvoice:'',profitShare:'',
+  dealDate:'',repairArea:'',paymentDate:'',paymentMethod:'',paymentStatus:'',
+  receivedAmount:'',unreceivedAmount:'',invoiceAmount:'',invoiceDate:'',
+  grossProfit:'',grossMargin:'',payCatl:'',catlInvoice:'',reviewNote:'',remark:''
+};
+
+function showUploadStatus(msg, type) {
+  const el = document.getElementById('uploadStatusBar');
+  if (!el) return;
+  el.className = 'upload-status-bar show ' + type;
+  el.innerHTML = msg;
+  if (type === 'success') setTimeout(() => { el.className = 'upload-status-bar show info'; }, 8000);
+}
+
+function detectSheetType(headers) {
+  const wnKeys = ['编号','登记日期','维修类型','完成状态','责任工程师'];
+  const nwKeys = ['序号','城市','签约客户名称','维修状态','报价单总金额'];
+  let wnScore = 0, nwScore = 0;
+  headers.forEach(h => {
+    const ht = h.trim();
+    if (wnKeys.includes(ht)) wnScore++;
+    if (nwKeys.includes(ht)) nwScore++;
+  });
+  if (wnScore >= 2 && wnScore > nwScore) return 'warranty';
+  if (nwScore >= 2 && nwScore > wnScore) return 'nonwarranty';
+  if (headers.some(h => h.includes('完成状态'))) return 'warranty';
+  if (headers.some(h => h.includes('维修状态'))) return 'nonwarranty';
+  return null;
+}
+
+function mapRow(rawRow, columnMap, defaults) {
+  const obj = {...defaults};
+  for (const [cnHeader, jsKey] of Object.entries(columnMap)) {
+    if (rawRow[cnHeader] !== undefined && rawRow[cnHeader] !== null) {
+      let val = rawRow[cnHeader];
+      if (val instanceof Date) {
+        const y = val.getFullYear();
+        const m = String(val.getMonth()+1).padStart(2,'0');
+        const d = String(val.getDate()).padStart(2,'0');
+        val = `${y}-${m}-${d}`;
+      } else {
+        val = String(val).trim();
+      }
+      obj[jsKey] = val;
+    }
+  }
+  return obj;
+}
+
+function handleExcelUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  showUploadStatus('⏳ 正在读取 <b>' + file.name + '</b> ...', 'info');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type:'array', cellDates:true});
+
+      let totalWn = 0, totalNw = 0;
+      const newWnData = [], newNwData = [];
+
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, {defval:''});
+        if (!jsonData.length) continue;
+
+        const headers = Object.keys(jsonData[0]);
+        const sheetType = detectSheetType(headers);
+
+        if (sheetType === 'warranty') {
+          jsonData.forEach(row => {
+            const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
+            if (!mapped.id) mapped.id = genId('wn');
+            const validStatuses = ['未派工','未开工','在修','已竣工','已结算','已结清','已终止'];
+            if (!validStatuses.includes(mapped.status)) mapped.status = '未派工';
+            newWnData.push(mapped);
+          });
+          totalWn += jsonData.length;
+        } else if (sheetType === 'nonwarranty') {
+          jsonData.forEach(row => {
+            const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
+            if (!mapped.seq) mapped.seq = String(newNwData.length + 1);
+            const validStatuses = ['待客户确认','维修完成','关闭工单'];
+            if (!validStatuses.includes(mapped.status)) mapped.status = '待客户确认';
+            newNwData.push(mapped);
+          });
+          totalNw += jsonData.length;
+        } else {
+          const hasWnHeaders = headers.some(h => h.includes('完成状态') || h.includes('责任工程师') || h.includes('维修类型'));
+          const hasNwHeaders = headers.some(h => h.includes('维修状态') || h.includes('签约客户') || h.includes('报价单'));
+          if (hasWnHeaders && !hasNwHeaders) {
+            jsonData.forEach(row => {
+              const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
+              if (!mapped.id) mapped.id = genId('wn');
+              const validStatuses = ['未派工','未开工','在修','已竣工','已结算','已结清','已终止'];
+              if (!validStatuses.includes(mapped.status)) mapped.status = '未派工';
+              newWnData.push(mapped);
+            });
+            totalWn += jsonData.length;
+          } else if (hasNwHeaders && !hasWnHeaders) {
+            jsonData.forEach(row => {
+              const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
+              if (!mapped.seq) mapped.seq = String(newNwData.length + 1);
+              const validStatuses = ['待客户确认','维修完成','关闭工单'];
+              if (!validStatuses.includes(mapped.status)) mapped.status = '待客户确认';
+              newNwData.push(mapped);
+            });
+            totalNw += jsonData.length;
+          }
+        }
+      }
+
+      if (totalWn === 0 && totalNw === 0) {
+        showUploadStatus('⚠️ 未能识别数据类型，请确保Excel列头与保内/保外模板一致', 'error');
+        input.value = '';
+        return;
+      }
+
+      // 合并到现有数据
+      if (totalWn > 0) {
+        APP.warrantyOrders = APP.warrantyOrders.concat(newWnData);
+      }
+      if (totalNw > 0) {
+        APP.nonWarrantyOrders = APP.nonWarrantyOrders.concat(newNwData);
+      }
+      saveData(APP);
+      renderPage();
+
+      let msg = '✅ 导入成功！';
+      const parts = [];
+      if (totalWn > 0) parts.push('保内 <span class="upload-badge">' + totalWn + ' 条</span>');
+      if (totalNw > 0) parts.push('保外 <span class="upload-badge">' + totalNw + ' 条</span>');
+      msg += ' ' + parts.join(' · ') + ' — 来自 <b>' + file.name + '</b>';
+      showUploadStatus(msg, 'success');
+
+    } catch(err) {
+      console.error(err);
+      showUploadStatus('❌ 解析失败：' + err.message, 'error');
+    }
+  };
+  reader.onerror = function() {
+    showUploadStatus('❌ 文件读取失败', 'error');
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
 
 // ===== INIT =====
 renderPage();
