@@ -155,11 +155,21 @@ tbody tr { cursor: pointer; }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .sidebar { width: 60px; }
-  .sidebar-brand, .nav-section, .nav-item span, .nav-badge { display: none; }
-  .nav-item .icon { margin-right: 0; }
-  .main { margin-left: 60px; }
+  .sidebar { width: 180px; font-size: 12px; }
+  .sidebar-brand { font-size: 13px; padding: 8px; }
+  .sidebar-brand small { font-size: 9px; }
+  .nav-item { padding: 6px 8px; font-size: 11px; }
+  .nav-item .icon { font-size: 13px; }
+  .nav-section { font-size: 9px; padding: 5px 8px 2px; }
+  .nav-badge { font-size: 9px; padding: 1px 4px; }
+  .main { margin-left: 180px; }
   .form-grid { grid-template-columns: 1fr; }
+  .header { padding: 8px 10px; }
+  .header h1 { font-size: 14px; }
+  .content { padding: 10px; }
+  .stat-card { padding: 8px; }
+  .stat-value { font-size: 18px; }
+  .stat-label { font-size: 10px; }
 }
 
 /* Upload */
@@ -1843,7 +1853,48 @@ function handleExcelUpload(input) {
 }
 
 // ===== INIT =====
-renderPage();
+async function initApp() {
+  // Check if localStorage has data
+  let hasData = false;
+  try {
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (d && (d.warrantyOrders.length > 0 || d.nonWarrantyOrders.length > 0)) {
+      hasData = true;
+    }
+  } catch(e) {}
+  
+  // If no data, load default from GitHub
+  if (!hasData) {
+    try {
+      console.log('Loading default data from GitHub...');
+      const [wnResp, nwResp] = await Promise.all([
+        fetch('https://herman-yan.github.io/doc-vault/work-order/data_wn.json'),
+        fetch('https://herman-yan.github.io/doc-vault/work-order/data_nw.json')
+      ]);
+      
+      if (wnResp.ok && nwResp.ok) {
+        const wnData = await wnResp.json();
+        const nwData = await nwResp.json();
+        
+        APP.warrantyOrders = wnData;
+        APP.nonWarrantyOrders = nwData;
+        
+        // Set idCounters based on loaded data
+        APP.idCounters.wn = wnData.length;
+        APP.idCounters.nw = nwData.length;
+        
+        saveData(APP);
+        console.log(`Loaded ${wnData.length} warranty + ${nwData.length} non-warranty orders`);
+      }
+    } catch(e) {
+      console.error('Failed to load default data:', e);
+    }
+  }
+  
+  renderPage();
+}
+
+initApp();
 </script>
 </body>
 </html>
