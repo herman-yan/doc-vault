@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>销售管理系统 - 宁家服务数字化运营系统</title>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --sidebar-w: 220px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Sidebar */
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); background: #1e293b; color: #fff; z-index: 100; display: flex; flex-direction: column; }
+.sidebar-brand { padding: 20px 16px; font-size: 16px; font-weight: 700; border-bottom: 1px solid #334155; }
+.sidebar-brand small { display: block; font-size: 11px; font-weight: 400; color: #94a3b8; margin-top: 4px; }
+.sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+.nav-section { padding: 8px 16px 4px; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+.nav-item { display: flex; align-items: center; padding: 10px 16px; cursor: pointer; color: #cbd5e1; font-size: 14px; transition: all .15s; border-left: 3px solid transparent; }
+.nav-item:hover { background: #334155; color: #fff; }
+.nav-item.active { background: #334155; color: #60a5fa; border-left-color: var(--primary); }
+.nav-item .icon { width: 20px; margin-right: 10px; text-align: center; font-size: 15px; }
+.nav-badge { margin-left: auto; background: var(--primary); color: #fff; font-size: 11px; padding: 1px 7px; border-radius: 10px; }
+
+/* Main */
+.main { margin-left: var(--sidebar-w); padding: 24px; min-height: 100vh; }
+
+/* Header */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.page-title { font-size: 22px; font-weight: 700; }
+.page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+/* Cards */
+.card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
+.card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+.badge-blue { background: #dbeafe; color: var(--primary); }
+.badge-green { background: #dcfce7; color: var(--success); }
+.badge-yellow { background: #fef3c7; color: var(--warning); }
+.badge-red { background: #fee2e2; color: var(--danger); }
+.badge-gray { background: #f1f5f9; color: var(--text-secondary); }
+.badge-purple { background: #ede9fe; color: #7c3aed; }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 16px; text-align: center; }
+.stat-number { font-size: 28px; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+/* Pipeline / Status Filter */
+.pipeline { display: flex; align-items: center; gap: 0; margin-bottom: 24px; overflow-x: auto; padding-bottom: 8px; }
+.pipeline-step { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; white-space: nowrap; cursor: pointer; transition: all .15s; }
+.pipeline-step:hover { border-color: var(--primary); }
+.pipeline-step.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pipeline-arrow { color: #cbd5e1; font-size: 18px; margin: 0 4px; flex-shrink: 0; }
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: #f8fafc; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--border); white-space: nowrap; position: sticky; top: 0; }
+tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+tbody tr:hover { background: #f8fafc; }
+tbody tr { cursor: pointer; }
+
+/* Status pills */
+.status-pill { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+.status-待返厂 { background: #fef3c7; color: #92400e; }
+.status-返厂中 { background: #dbeafe; color: #1d4ed8; }
+.status-维修中 { background: #fef3c7; color: #92400e; }
+.status-物料采购中 { background: #ede9fe; color: #5b21b6; }
+.status-待付款 { background: #fee2e2; color: #991b1b; }
+.status-已付款 { background: #d1fae5; color: #065f46; }
+.status-已完成 { background: #dcfce7; color: #166534; }
+.status-已寄回 { background: #d1fae5; color: #065f46; }
+
+/* Type tabs */
+.type-tabs { display: flex; gap: 0; margin-bottom: 20px; background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+.type-tab { padding: 10px 24px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; }
+.type-tab:hover { background: #f8fafc; }
+.type-tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #eff6ff; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-light); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #15803d; }
+.btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-danger { background: #fff; color: var(--danger); border: 1px solid #fecaca; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-upload { background: #3b82f6; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .15s; }
+.btn-upload:hover { background: #2563eb; }
+
+/* Form */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.form-group { display: flex; flex-direction: column; }
+.form-group.full { grid-column: 1 / -1; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+.form-label .required { color: var(--danger); margin-left: 2px; }
+.form-input, .form-select, .form-textarea { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; transition: border-color .15s; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.form-textarea { min-height: 60px; resize: vertical; }
+.form-input[readonly] { background: #f8fafc; color: var(--text-secondary); }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 12px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 1; border-radius: 12px 12px 0 0; }
+.modal-title { font-size: 16px; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary); padding: 4px; }
+.modal-body { padding: 24px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: #fff; border-radius: 0 0 12px 12px; }
+
+/* Detail view */
+.detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.detail-id { font-size: 18px; font-weight: 700; }
+.detail-section { margin-bottom: 20px; }
+.detail-section-title { font-size: 14px; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 12px; color: var(--text-secondary); }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.detail-field-label { font-size: 11px; color: var(--text-secondary); }
+.detail-field-value { font-size: 14px; font-weight: 500; margin-top: 2px; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+.timeline-item { position: relative; padding-bottom: 16px; }
+.timeline-item::before { content: ''; position: absolute; left: -20px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+.timeline-item.done::before { background: var(--success); }
+.timeline-item.current::before { background: var(--primary); box-shadow: 0 0 0 4px rgba(37,99,235,.2); }
+.timeline-time { font-size: 11px; color: var(--text-secondary); }
+.timeline-content { font-size: 13px; margin-top: 2px; }
+
+/* Filter bar */
+.filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.filter-bar .form-input, .filter-bar .form-select { padding: 7px 10px; font-size: 13px; }
+.search-input { min-width: 200px; }
+
+/* Upload status */
+.upload-status-bar { padding: 10px 24px; background: #fff; border-bottom: 1px solid var(--border); font-size: 13px; display: none; align-items: center; gap: 8px; border-radius: 0 0 10px 10px; margin-bottom: 12px; }
+.upload-status-bar.show { display: flex; }
+.upload-status-bar.success { color: var(--success); background: #f0fdf4; border-color: #bbf7d0; }
+.upload-status-bar.error { color: var(--danger); background: #fef2f2; border-color: #fecaca; }
+.upload-status-bar.info { color: var(--primary); background: #eff6ff; border-color: #bfdbfe; }
+
+/* Year tabs */
+.year-tabs { display: flex; gap: 0; margin-bottom: 16px; background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; width: fit-content; }
+.year-tab { padding: 8px 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; }
+.year-tab:hover { background: #f8fafc; }
+.year-tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #eff6ff; }
+
+/* CRM Card view */
+.crm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.crm-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 16px; cursor: pointer; transition: all .15s; }
+.crm-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(37,99,235,.1); transform: translateY(-2px); }
+.crm-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.crm-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; }
+.crm-card-name { font-size: 15px; font-weight: 600; }
+.crm-card-type { font-size: 11px; color: var(--text-secondary); }
+.crm-card-info { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.crm-card-info span { display: flex; align-items: center; gap: 6px; }
+.crm-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.crm-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+.tag-vip { background: #fef3c7; color: #92400e; }
+.tag-key { background: #dbeafe; color: #1d4ed8; }
+.tag-new { background: #dcfce7; color: #166534; }
+
+/* Customer detail panel */
+.customer-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.follow-record { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.follow-record:last-child { border-bottom: none; }
+.follow-date { font-size: 11px; color: var(--text-secondary); min-width: 80px; }
+.follow-content { font-size: 13px; flex: 1; }
+
+/* View toggle */
+.view-toggle { display: flex; gap: 4px; background: #f1f5f9; border-radius: 6px; padding: 2px; }
+.view-toggle-btn { padding: 6px 12px; font-size: 12px; border: none; background: transparent; cursor: pointer; border-radius: 4px; transition: all .15s; }
+.view-toggle-btn.active { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); font-weight: 500; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { width: 180px; font-size: 12px; }
+  .sidebar-brand { font-size: 13px; padding: 8px; }
+  .sidebar-brand small { font-size: 9px; }
+  .nav-item { padding: 6px 8px; font-size: 11px; }
+  .nav-item .icon { font-size: 13px; }
+  .nav-section { font-size: 9px; padding: 5px 8px 2px; }
+  .nav-badge { font-size: 9px; padding: 1px 4px; }
+  .main { margin-left: 180px; padding: 12px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .customer-detail { grid-template-columns: 1fr; }
+  .crm-cards { grid-template-columns: 1fr; }
+}
+
+/* Print */
+@media print {
+  .sidebar, .btn, .filter-bar, .pipeline, .type-tabs, .year-tabs { display: none !important; }
+  .main { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    💼 销售管理
+    <small>返修进度 & 客户资源</small>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">工作台</div>
+    <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+      <span class="icon">📊</span><span>数据概览</span>
+    </div>
+    <div class="nav-section">返修管理</div>
+    <div class="nav-item" data-page="repair" onclick="switchPage('repair')">
+      <span class="icon">🔧</span><span>返修进度管理</span><span class="nav-badge" id="nav-badge-repair">0</span>
+    </div>
+    <div class="nav-section">客户管理</div>
+    <div class="nav-item" data-page="crm" onclick="switchPage('crm')">
+      <span class="icon">👥</span><span>客户资源管理</span><span class="nav-badge" id="nav-badge-crm">0</span>
+    </div>
+    <div class="nav-section">系统</div>
+    <div class="nav-item" data-page="export" onclick="switchPage('export')">
+      <span class="icon">📥</span><span>数据导入导出</span>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main" id="mainContent">
+  <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelUpload(this)">
+  <div class="upload-status-bar" id="uploadStatusBar"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script>
+// ===== DATA STORE =====
+const STORAGE_KEY = 'sales_mgmt_data';
+
+function getDefaultData() {
+  return {
+    repairOrders: [],
+    customers: [],
+    idCounters: { rp: 0, cr: 0 }
+  };
+}
+
+function loadData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (d) return { ...getDefaultData(), ...d };
+  } catch(e) {}
+  return getDefaultData();
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+let APP = loadData();
+
+function genId(prefix) {
+  APP.idCounters[prefix]++;
+  saveData(APP);
+  const n = String(APP.idCounters[prefix]).padStart(6, '0');
+  return prefix === 'rp' ? `RP-${n}` : `CR-${n}`;
+}
+
+// ===== PAGE ROUTER =====
+let currentPage = 'dashboard';
+
+function switchPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === page);
+  });
+  renderPage();
+}
+
+function renderPage() {
+  const main = document.getElementById('mainContent');
+  const statusBar = '<input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelUpload(this)><div class="upload-status-bar" id="uploadStatusBar"></div>';
+  switch(currentPage) {
+    case 'dashboard': main.innerHTML = statusBar + renderDashboard(); break;
+    case 'repair': main.innerHTML = statusBar + renderRepairList(); break;
+    case 'crm': main.innerHTML = statusBar + renderCRM(); break;
+    case 'export': main.innerHTML = statusBar + renderExport(); break;
+  }
+  updateNavBadges();
+}
+
+function updateNavBadges() {
+  const rpActive = APP.repairOrders.filter(o => !['已完成','已寄回'].includes(o.status)).length;
+  document.getElementById('nav-badge-repair').textContent = rpActive;
+  document.getElementById('nav-badge-crm').textContent = APP.customers.length;
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const orders = APP.repairOrders;
+  const total = orders.length;
+  const inProgress = orders.filter(o => !['已完成','已寄回'].includes(o.status)).length;
+  const completed = orders.filter(o => ['已完成','已寄回'].includes(o.status)).length;
+  const thisMonth = orders.filter(o => {
+    const d = o.returnFactoryDate || o.createDate || '';
+    return d.startsWith(todayStr().substring(0,7));
+  }).length;
+
+  // Business type stats
+  const bnCount = orders.filter(o => o.businessType === '保内').length;
+  const bwCount = orders.filter(o => o.businessType === '保外').length;
+
+  // Status distribution
+  const statusCounts = {};
+  orders.forEach(o => { statusCounts[o.status] = (statusCounts[o.status]||0)+1; });
+
+  // Recent orders
+  const recent = [...orders].sort((a,b) => (b.createDate||'').localeCompare(a.createDate||'')).slice(0,8);
+
+  // Customer stats
+  const totalCustomers = APP.customers.length;
+  const vipCustomers = APP.customers.filter(c => (c.tags||[]).includes('VIP')).length;
+
+  return `
+    <div class="page-header">
+      <div><div class="page-title">数据概览</div><div class="page-subtitle">${todayStr()} 销售管理系统实时数据</div></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">返修订单总数</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${inProgress}</div><div class="stat-label">进行中</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--success)">${completed}</div><div class="stat-label">已完成</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--primary)">${thisMonth}</div><div class="stat-label">本月新增</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--primary)">${totalCustomers}</div><div class="stat-label">客户总数</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card">
+        <div class="card-title">🔧 返修状态分布</div>
+        ${renderStatusBar(statusCounts, ['待返厂','返厂中','维修中','物料采购中','待付款','已付款','已完成','已寄回'])}
+      </div>
+      <div class="card">
+        <div class="card-title">📊 业务类型分布</div>
+        <div style="display:flex;flex-direction:column;gap:12px;padding:16px 0">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:60px;font-size:13px;color:var(--text-secondary);text-align:right">保内</span>
+            <div style="flex:1;height:28px;background:#f1f5f9;border-radius:6px;overflow:hidden">
+              <div style="height:100%;width:${total?bnCount/total*100:0}%;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;min-width:${bnCount?'30px':'0'}">${bnCount}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:60px;font-size:13px;color:var(--text-secondary);text-align:right">保外</span>
+            <div style="flex:1;height:28px;background:#f1f5f9;border-radius:6px;overflow:hidden">
+              <div style="height:100%;width:${total?bwCount/total*100:0}%;background:var(--warning);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;min-width:${bwCount?'30px':'0'}">${bwCount}</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:8px 0;font-size:12px;color:var(--text-secondary)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>保内占比</span><span>${total?Math.round(bnCount/total*100):0}%</span></div>
+          <div style="display:flex;justify-content:space-between"><span>保外占比</span><span>${total?Math.round(bwCount/total*100):0}%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <div class="card-title">📋 最近返修订单</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>工单号</th><th>客户</th><th>车牌</th><th>业务类型</th><th>状态</th><th>返厂时间</th><th>维修人</th></tr></thead>
+        <tbody>
+          ${recent.length ? recent.map(o => `
+            <tr onclick="switchPage('repair')">
+              <td style="font-weight:600">${o.workOrderNo||'-'}</td>
+              <td>${o.customer||'-'}</td>
+              <td>${o.plateNumber||'-'}</td>
+              <td><span class="badge ${o.businessType==='保内'?'badge-blue':'badge-yellow'}">${o.businessType||'-'}</span></td>
+              <td><span class="status-pill status-${o.status}">${o.status}</span></td>
+              <td>${o.returnFactoryDate||'-'}</td>
+              <td>${o.repairPerson||'-'}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:40px">暂无返修订单</td></tr>'}
+        </tbody>
+      </table></div>
+    </div>
+  `;
+}
+
+function renderStatusBar(statusCounts, statuses) {
+  const max = Math.max(...statuses.map(s => statusCounts[s]||0), 1);
+  const colors = ['#94a3b8','#3b82f6','#d97706','#7c3aed','#dc2626','#16a34a','#059669','#065f46'];
+  return `<div style="display:flex;flex-direction:column;gap:8px">
+    ${statuses.map((s,i) => `
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="width:80px;font-size:12px;color:var(--text-secondary);text-align:right">${s}</span>
+        <div style="flex:1;height:22px;background:#f1f5f9;border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${(statusCounts[s]||0)/max*100}%;background:${colors[i]};border-radius:4px;min-width:${(statusCounts[s]||0)>0?'4px':'0'}"></div>
+        </div>
+        <span style="width:30px;font-size:13px;font-weight:600">${statusCounts[s]||0}</span>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+// ===== REPAIR LIST =====
+let rpFilterStatus = '', rpFilterYear = '26年度', rpFilterType = '', rpSearchText = '';
+
+function renderRepairList() {
+  return `
+    <div class="page-header">
+      <div><div class="page-title">返修进度管理</div><div class="page-subtitle">C to B 返修订单全流程追踪</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-upload" onclick="document.getElementById('excelFileInput').click()">📥 导入Excel</button>
+        <button class="btn btn-primary" onclick="openRepairForm()">+ 新建返修记录</button>
+      </div>
+    </div>
+    <div class="type-tabs">
+      <div class="type-tab ${rpFilterType===''?'active':''}" onclick="filterRepairType('')">全部</div>
+      <div class="type-tab ${rpFilterType==='保内'?'active':''}" onclick="filterRepairType('保内')">🔧 保内返修</div>
+      <div class="type-tab ${rpFilterType==='保外'?'active':''}" onclick="filterRepairType('保外')">🔩 保外返修</div>
+    </div>
+    <div class="year-tabs">
+      <div class="year-tab ${rpFilterYear==='25年度'?'active':''}" onclick="filterRepairYear('25年度')">25年度</div>
+      <div class="year-tab ${rpFilterYear==='26年度'?'active':''}" onclick="filterRepairYear('26年度')">26年度</div>
+      <div class="year-tab ${rpFilterYear==='全部'?'active':''}" onclick="filterRepairYear('全部')">全部</div>
+    </div>
+    <div class="pipeline">
+      <div class="pipeline-step ${rpFilterStatus===''?'active':''}" onclick="filterRepairStatus('')"><span>全部</span></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step ${rpFilterStatus==='待返厂'?'active':''}" onclick="filterRepairStatus('待返厂')"><span>待返厂</span></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step ${rpFilterStatus==='返厂中'?'active':''}" onclick="filterRepairStatus('返厂中')"><span>返厂中</span></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step ${rpFilterStatus==='维修中'?'active':''}" onclick="filterRepairStatus('维修中')"><span>维修中</span></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step ${rpFilterStatus==='物料采购中'?'active':''}" onclick="filterRepairStatus('物料采购中')"><span>物料采购</span></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step ${rpFilterStatus==='待付款'?'active':''}" onclick="filterRepairStatus('待付款')"><span>待付款</span></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step ${rpFilterStatus==='已完成'?'active':''}" onclick="filterRepairStatus('已完成')"><span>已完成</span></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step ${rpFilterStatus==='已寄回'?'active':''}" onclick="filterRepairStatus('已寄回')"><span>已寄回</span></div>
+    </div>
+    <div class="filter-bar">
+      <input class="form-input search-input" placeholder="搜索工单号/客户/车牌/对接人..." oninput="searchRepair(this.value)" id="rpSearch" value="${rpSearchText}">
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>工单号</th><th>业务类型</th><th>客户</th><th>车牌</th><th>车架号</th>
+          <th>返厂时间</th><th>维修完成</th><th>返回时间</th><th>维修人</th>
+          <th>进度</th><th>状态</th><th>操作</th>
+        </tr></thead>
+        <tbody id="rpTableBody">
+          ${renderRepairRows(getFilteredRepairs())}
+        </tbody>
+      </table></div>
+    </div>
+  `;
+}
+
+function getFilteredRepairs() {
+  let filtered = APP.repairOrders;
+  
+  // Year filter
+  if (rpFilterYear !== '全部') {
+    const yearPrefix = rpFilterYear === '25年度' ? '2025' : '2026';
+    filtered = filtered.filter(o => {
+      const dateStr = o.returnFactoryDate || o.createDate || '';
+      return dateStr.startsWith(yearPrefix);
+    });
+  }
+  
+  // Type filter
+  if (rpFilterType) filtered = filtered.filter(o => o.businessType === rpFilterType);
+  
+  // Status filter
+  if (rpFilterStatus) filtered = filtered.filter(o => o.status === rpFilterStatus);
+  
+  // Search
+  if (rpSearchText) {
+    const t = rpSearchText.toLowerCase();
+    filtered = filtered.filter(o => (
+      (o.workOrderNo||'') + (o.customer||'') + (o.plateNumber||'') + 
+      (o.contactPerson||'') + (o.vin||'') + (o.barcode||'')
+    ).toLowerCase().includes(t));
+  }
+  
+  return filtered;
+}
+
+function renderRepairRows(orders) {
+  if(!orders.length) return '<tr><td colspan="12" style="text-align:center;color:var(--text-secondary);padding:40px">暂无返修记录</td></tr>';
+  return orders.map(o => `
+    <tr onclick="viewRepair('${o.id}')">
+      <td style="font-weight:600">${o.workOrderNo||'-'}</td>
+      <td><span class="badge ${o.businessType==='保内'?'badge-blue':'badge-yellow'}">${o.businessType||'-'}</span></td>
+      <td>${o.customer||'-'}</td>
+      <td>${o.plateNumber||'-'}</td>
+      <td>${o.vin||'-'}</td>
+      <td>${o.returnFactoryDate||'-'}</td>
+      <td>${o.repairCompleteDate||'-'}</td>
+      <td>${o.returnDate||'-'}</td>
+      <td>${o.repairPerson||'-'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${o.progress||''}">${o.progress||'-'}</td>
+      <td><span class="status-pill status-${o.status}">${o.status}</span></td>
+      <td class="action-group" onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-outline" onclick="editRepair('${o.id}')">编辑</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteRepair('${o.id}')">删除</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterRepairStatus(status) { rpFilterStatus = status; renderPage(); }
+function filterRepairYear(year) { rpFilterYear = year; renderPage(); }
+function filterRepairType(type) { rpFilterType = type; renderPage(); }
+function searchRepair(text) { rpSearchText = text; applyRepairFilter(); }
+
+function applyRepairFilter() {
+  document.getElementById('rpTableBody').innerHTML = renderRepairRows(getFilteredRepairs());
+}
+
+// ===== REPAIR FORM =====
+function openRepairForm(id) {
+  const o = id ? APP.repairOrders.find(x => x.id === id) : null;
+  const isNew = !o;
+  const html = `
+    <div class="modal-header">
+      <div class="modal-title">${isNew ? '新建返修记录' : '编辑返修记录 - ' + (o.workOrderNo||o.id)}</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section">
+        <div class="detail-section-title">📋 基本信息</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">返修地址<span class="required">*</span></label>
+            <input class="form-input" id="f_rp_repairAddress" value="${o?.repairAddress||'宁家服务'}" placeholder="返修地址">
+          </div>
+          <div class="form-group">
+            <label class="form-label">工单号<span class="required">*</span></label>
+            <input class="form-input" id="f_rp_workOrderNo" value="${o?.workOrderNo||''}" placeholder="工单号">
+          </div>
+          <div class="form-group">
+            <label class="form-label">现场工单</label>
+            <input class="form-input" id="f_rp_fieldOrder" value="${o?.fieldOrder||''}" placeholder="现场工单号">
+          </div>
+          <div class="form-group">
+            <label class="form-label">报单状态</label>
+            <input class="form-input" id="f_rp_reportStatus" value="${o?.reportStatus||''}" placeholder="报单状态">
+          </div>
+          <div class="form-group">
+            <label class="form-label">业务类型<span class="required">*</span></label>
+            <select class="form-select" id="f_rp_businessType">
+              <option value="保内" ${o?.businessType==='保内'?'selected':''}>保内</option>
+              <option value="保外" ${o?.businessType==='保外'?'selected':''}>保外</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">客户<span class="required">*</span></label>
+            <input class="form-input" id="f_rp_customer" value="${o?.customer||''}" placeholder="客户名称">
+          </div>
+          <div class="form-group">
+            <label class="form-label">对接人</label>
+            <input class="form-input" id="f_rp_contactPerson" value="${o?.contactPerson||''}" placeholder="对接人">
+          </div>
+          <div class="form-group">
+            <label class="form-label">车牌</label>
+            <input class="form-input" id="f_rp_plateNumber" value="${o?.plateNumber||''}" placeholder="车牌号">
+          </div>
+          <div class="form-group">
+            <label class="form-label">车架号</label>
+            <input class="form-input" id="f_rp_vin" value="${o?.vin||''}" placeholder="车架号">
+          </div>
+          <div class="form-group">
+            <label class="form-label">BARCODE</label>
+            <input class="form-input" id="f_rp_barcode" value="${o?.barcode||''}" placeholder="BARCODE">
+          </div>
+          <div class="form-group">
+            <label class="form-label">PN</label>
+            <input class="form-input" id="f_rp_pn" value="${o?.pn||''}" placeholder="PN">
+          </div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">📅 时间节点</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">返厂时间</label>
+            <input class="form-input" type="date" id="f_rp_returnFactoryDate" value="${o?.returnFactoryDate||''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">维修完成时间</label>
+            <input class="form-input" type="date" id="f_rp_repairCompleteDate" value="${o?.repairCompleteDate||''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">返回时间</label>
+            <input class="form-input" type="date" id="f_rp_returnDate" value="${o?.returnDate||''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">物料采购时间</label>
+            <input class="form-input" type="date" id="f_rp_materialPurchaseDate" value="${o?.materialPurchaseDate||''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">物料到货时间</label>
+            <input class="form-input" type="date" id="f_rp_materialArrivalDate" value="${o?.materialArrivalDate||''}">
+          </div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">🔧 维修信息</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">维修人</label>
+            <input class="form-input" id="f_rp_repairPerson" value="${o?.repairPerson||''}" placeholder="维修人员">
+          </div>
+          <div class="form-group">
+            <label class="form-label">当前状态<span class="required">*</span></label>
+            <select class="form-select" id="f_rp_status">
+              <option value="待返厂" ${o?.status==='待返厂'?'selected':''}>待返厂</option>
+              <option value="返厂中" ${o?.status==='返厂中'?'selected':''}>返厂中</option>
+              <option value="维修中" ${o?.status==='维修中'?'selected':''}>维修中</option>
+              <option value="物料采购中" ${o?.status==='物料采购中'?'selected':''}>物料采购中</option>
+              <option value="待付款" ${o?.status==='待付款'?'selected':''}>待付款</option>
+              <option value="已付款" ${o?.status==='已付款'?'selected':''}>已付款</option>
+              <option value="已完成" ${o?.status==='已完成'?'selected':''}>已完成</option>
+              <option value="已寄回" ${o?.status==='已寄回'?'selected':''}>已寄回</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">进度1</label>
+            <textarea class="form-textarea" id="f_rp_progress" placeholder="当前进度描述">${o?.progress||''}</textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">进度2</label>
+            <textarea class="form-textarea" id="f_rp_progress2" placeholder="补充进度信息">${o?.progress2||''}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveRepair('${id||''}')">${isNew?'创建记录':'保存修改'}</button>
+    </div>
+  `;
+  showModal(html);
+}
+
+function saveRepair(editId) {
+  const data = {
+    repairAddress: document.getElementById('f_rp_repairAddress').value,
+    workOrderNo: document.getElementById('f_rp_workOrderNo').value,
+    fieldOrder: document.getElementById('f_rp_fieldOrder').value,
+    reportStatus: document.getElementById('f_rp_reportStatus').value,
+    businessType: document.getElementById('f_rp_businessType').value,
+    customer: document.getElementById('f_rp_customer').value,
+    contactPerson: document.getElementById('f_rp_contactPerson').value,
+    plateNumber: document.getElementById('f_rp_plateNumber').value,
+    vin: document.getElementById('f_rp_vin').value,
+    barcode: document.getElementById('f_rp_barcode').value,
+    pn: document.getElementById('f_rp_pn').value,
+    returnFactoryDate: document.getElementById('f_rp_returnFactoryDate').value,
+    repairCompleteDate: document.getElementById('f_rp_repairCompleteDate').value,
+    returnDate: document.getElementById('f_rp_returnDate').value,
+    materialPurchaseDate: document.getElementById('f_rp_materialPurchaseDate').value,
+    materialArrivalDate: document.getElementById('f_rp_materialArrivalDate').value,
+    repairPerson: document.getElementById('f_rp_repairPerson').value,
+    status: document.getElementById('f_rp_status').value,
+    progress: document.getElementById('f_rp_progress').value,
+    progress2: document.getElementById('f_rp_progress2').value,
+  };
+
+  if(!data.workOrderNo || !data.customer) {
+    alert('请填写必填项：工单号、客户');
+    return;
+  }
+
+  if(editId) {
+    const idx = APP.repairOrders.findIndex(o => o.id === editId);
+    if(idx >= 0) Object.assign(APP.repairOrders[idx], data);
+  } else {
+    data.id = genId('rp');
+    data.createDate = todayStr();
+    APP.repairOrders.push(data);
+    
+    // Auto-create customer if not exists
+    autoCreateCustomer(data.customer, data.contactPerson);
+  }
+  saveData(APP);
+  closeModal();
+  renderPage();
+}
+
+function editRepair(id) {
+  openRepairForm(id);
+}
+
+function deleteRepair(id) {
+  if(!confirm('确认删除此返修记录？')) return;
+  APP.repairOrders = APP.repairOrders.filter(o => o.id !== id);
+  saveData(APP);
+  renderPage();
+}
+
+function viewRepair(id) {
+  const o = APP.repairOrders.find(x => x.id === id);
+  if(!o) return;
+  
+  const timeline = buildTimeline(o);
+  
+  const html = `
+    <div class="modal-header">
+      <div class="modal-title">返修详情 - ${o.workOrderNo||o.id}</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-header">
+        <span class="badge ${o.businessType==='保内'?'badge-blue':'badge-yellow'}">${o.businessType}</span>
+        <span class="detail-id">${o.workOrderNo}</span>
+        <span class="status-pill status-${o.status}">${o.status}</span>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">📋 基本信息</div>
+        <div class="detail-grid">
+          <div class="detail-field"><div class="detail-field-label">返修地址</div><div class="detail-field-value">${o.repairAddress||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">客户</div><div class="detail-field-value">${o.customer||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">对接人</div><div class="detail-field-value">${o.contactPerson||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">车牌</div><div class="detail-field-value">${o.plateNumber||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">车架号</div><div class="detail-field-value">${o.vin||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">BARCODE</div><div class="detail-field-value">${o.barcode||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">PN</div><div class="detail-field-value">${o.pn||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">现场工单</div><div class="detail-field-value">${o.fieldOrder||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">报单状态</div><div class="detail-field-value">${o.reportStatus||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">维修人</div><div class="detail-field-value">${o.repairPerson||'-'}</div></div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">📅 时间节点</div>
+        <div class="detail-grid">
+          <div class="detail-field"><div class="detail-field-label">返厂时间</div><div class="detail-field-value">${o.returnFactoryDate||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">维修完成时间</div><div class="detail-field-value">${o.repairCompleteDate||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">返回时间</div><div class="detail-field-value">${o.returnDate||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">物料采购时间</div><div class="detail-field-value">${o.materialPurchaseDate||'-'}</div></div>
+          <div class="detail-field"><div class="detail-field-label">物料到货时间</div><div class="detail-field-value">${o.materialArrivalDate||'-'}</div></div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">📝 进度信息</div>
+        <div class="detail-grid">
+          <div class="detail-field" style="grid-column:1/-1"><div class="detail-field-label">进度1</div><div class="detail-field-value">${o.progress||'-'}</div></div>
+          <div class="detail-field" style="grid-column:1/-1"><div class="detail-field-label">进度2</div><div class="detail-field-value">${o.progress2||'-'}</div></div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">📈 进度时间线</div>
+        ${timeline}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">关闭</button>
+      <button class="btn btn-primary" onclick="closeModal();editRepair('${o.id}')">编辑</button>
+    </div>
+  `;
+  showModal(html);
+}
+
+function buildTimeline(o) {
+  const steps = [
+    { label: '返厂', date: o.returnFactoryDate },
+    { label: '物料采购', date: o.materialPurchaseDate },
+    { label: '物料到货', date: o.materialArrivalDate },
+    { label: '维修完成', date: o.repairCompleteDate },
+    { label: '返回客户', date: o.returnDate },
+  ];
+  
+  return '<div class="timeline">' + steps.map((s, i) => {
+    const done = !!s.date;
+    const isCurrent = done && (i === steps.length-1 || !steps[i+1].date);
+    return `<div class="timeline-item ${done?'done':''} ${isCurrent?'current':''}">
+      <div class="timeline-time">${s.date||'待完成'}</div>
+      <div class="timeline-content">${s.label}</div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// ===== CRM =====
+let crmViewMode = 'table';
+let crmSearchText = '';
+let crmFilterTag = '';
+let crmFilterType = '';
+
+function renderCRM() {
+  const customers = getFilteredCustomers();
+  
+  return `
+    <div class="page-header">
+      <div><div class="page-title">客户资源管理</div><div class="page-subtitle">客户信息登记、跟进记录与分类管理</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="view-toggle">
+          <button class="view-toggle-btn ${crmViewMode==='table'?'active':''}" onclick="setCRMView('table')">📋 表格</button>
+          <button class="view-toggle-btn ${crmViewMode==='card'?'active':''}" onclick="setCRMView('card')">🃏 卡片</button>
+        </div>
+        <button class="btn btn-primary" onclick="openCustomerForm()">+ 新增客户</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input class="form-input search-input" placeholder="搜索客户名称/联系人/电话/地址..." oninput="searchCRM(this.value)" id="crmSearch" value="${crmSearchText}">
+      <select class="form-select" onchange="filterCRMTag(this.value)">
+        <option value="">全部标签</option>
+        <option value="新客" ${crmFilterTag==='新客'?'selected':''}>新客</option>
+        <option value="老客" ${crmFilterTag==='老客'?'selected':''}>老客</option>
+        <option value="重点客户" ${crmFilterTag==='重点客户'?'selected':''}>重点客户</option>
+        <option value="VIP" ${crmFilterTag==='VIP'?'selected':''}>VIP</option>
+        <option value="大客户" ${crmFilterTag==='大客户'?'selected':''}>大客户</option>
+        <option value="中小客户" ${crmFilterTag==='中小客户'?'selected':''}>中小客户</option>
+      </select>
+      <select class="form-select" onchange="filterCRMType(this.value)">
+        <option value="">全部区域</option>
+        ${getUniqueRegions().map(r => `<option value="${r}" ${crmFilterType===r?'selected':''}>${r}</option>`).join('')}
+      </select>
+    </div>
+    ${crmViewMode === 'table' ? renderCRMTable(customers) : renderCRMCards(customers)}
+  `;
+}
+
+function getFilteredCustomers() {
+  let filtered = APP.customers;
+  if (crmSearchText) {
+    const t = crmSearchText.toLowerCase();
+    filtered = filtered.filter(c => (
+      (c.name||'') + (c.contact||'') + (c.phone||'') + (c.address||'')
+    ).toLowerCase().includes(t));
+  }
+  if (crmFilterTag) filtered = filtered.filter(c => (c.tags||[]).includes(crmFilterTag));
+  if (crmFilterType) filtered = filtered.filter(c => c.region === crmFilterType);
+  return filtered;
+}
+
+function getUniqueRegions() {
+  const regions = new Set(APP.customers.map(c => c.region).filter(Boolean));
+  return [...regions].sort();
+}
+
+function renderCRMTable(customers) {
+  if(!customers.length) return '<div class="card" style="text-align:center;color:var(--text-secondary);padding:40px">暂无客户数据</div>';
+  return `
+    <div class="card" style="padding:0">
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>客户名称</th><th>联系人</th><th>电话</th><th>地址</th>
+          <th>区域</th><th>客户类型</th><th>标签</th><th>关联工单</th><th>最近跟进</th><th>操作</th>
+        </tr></thead>
+        <tbody>
+          ${customers.map(c => `
+            <tr onclick="viewCustomer('${c.id}')">
+              <td style="font-weight:600">${c.name||'-'}</td>
+              <td>${c.contact||'-'}</td>
+              <td>${c.phone||'-'}</td>
+              <td>${c.address||'-'}</td>
+              <td>${c.region||'-'}</td>
+              <td><span class="badge ${c.customerType==='大客户'?'badge-purple':'badge-gray'}">${c.customerType||'中小客户'}</span></td>
+              <td>${(c.tags||[]).map(t => `<span class="crm-tag ${t==='VIP'?'tag-vip':t==='重点客户'?'tag-key':'tag-new'}">${t}</span>`).join(' ')}</td>
+              <td>${getRelatedOrderCount(c.name)}</td>
+              <td>${getLastFollowDate(c)}</td>
+              <td class="action-group" onclick="event.stopPropagation()">
+                <button class="btn btn-sm btn-outline" onclick="editCustomer('${c.id}')">编辑</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteCustomer('${c.id}')">删除</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table></div>
+    </div>
+  `;
+}
+
+function renderCRMCards(customers) {
+  if(!customers.length) return '<div class="card" style="text-align:center;color:var(--text-secondary);padding:40px">暂无客户数据</div>';
+  return `
+    <div class="crm-cards">
+      ${customers.map(c => `
+        <div class="crm-card" onclick="viewCustomer('${c.id}')">
+          <div class="crm-card-header">
+            <div class="crm-avatar">${(c.name||'?')[0]}</div>
+            <div>
+              <div class="crm-card-name">${c.name||'-'}</div>
+              <div class="crm-card-type">${c.customerType||'中小客户'} · ${c.region||'-'}</div>
+            </div>
+          </div>
+          <div class="crm-card-info">
+            <span>👤 ${c.contact||'暂无联系人'}</span>
+            <span>📞 ${c.phone||'-'}</span>
+            <span>📍 ${c.address||'-'}</span>
+          </div>
+          <div class="crm-tags">
+            ${(c.tags||[]).map(t => `<span class="crm-tag ${t==='VIP'?'tag-vip':t==='重点客户'?'tag-key':'tag-new'}">${t}</span>`).join('')}
+            <span class="crm-tag badge-gray">${getRelatedOrderCount(c.name)} 工单</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function getRelatedOrderCount(customerName) {
+  if(!customerName) return 0;
+  return APP.repairOrders.filter(o => o.customer && o.customer.includes(customerName)).length;
+}
+
+function getLastFollowDate(customer) {
+  const follows = customer.followUps || [];
+  if(!follows.length) return '-';
+  return follows[follows.length-1].date || '-';
+}
+
+function setCRMView(mode) { crmViewMode = mode; renderPage(); }
+function searchCRM(text) { crmSearchText = text; applyCRMFilter(); }
+function filterCRMTag(tag) { crmFilterTag = tag; renderPage(); }
+function filterCRMType(type) { crmFilterType = type; renderPage(); }
+
+function applyCRMFilter() {
+  if(crmViewMode === 'table') {
+    // Re-render for table mode
+    renderPage();
+  } else {
+    renderPage();
+  }
+}
+
+// Customer Form
+function openCustomerForm(id) {
+  const c = id ? APP.customers.find(x => x.id === id) : null;
+  const isNew = !c;
+  const html = `
+    <div class="modal-header">
+      <div class="modal-title">${isNew ? '新增客户' : '编辑客户 - ' + (c.name||c.id)}</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section">
+        <div class="detail-section-title">📋 基本信息</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">客户名称<span class="required">*</span></label>
+            <input class="form-input" id="f_cr_name" value="${c?.name||''}" placeholder="客户名称">
+          </div>
+          <div class="form-group">
+            <label class="form-label">联系人</label>
+            <input class="form-input" id="f_cr_contact" value="${c?.contact||''}" placeholder="联系人姓名">
+          </div>
+          <div class="form-group">
+            <label class="form-label">电话</label>
+            <input class="form-input" id="f_cr_phone" value="${c?.phone||''}" placeholder="联系电话">
+          </div>
+          <div class="form-group">
+            <label class="form-label">地址</label>
+            <input class="form-input" id="f_cr_address" value="${c?.address||''}" placeholder="详细地址">
+          </div>
+          <div class="form-group">
+            <label class="form-label">区域</label>
+            <select class="form-select" id="f_cr_region">
+              <option value="">-- 请选择 --</option>
+              <option value="北京" ${c?.region==='北京'?'selected':''}>北京</option>
+              <option value="上海" ${c?.region==='上海'?'selected':''}>上海</option>
+              <option value="广州" ${c?.region==='广州'?'selected':''}>广州</option>
+              <option value="深圳" ${c?.region==='深圳'?'selected':''}>深圳</option>
+              <option value="杭州" ${c?.region==='杭州'?'selected':''}>杭州</option>
+              <option value="成都" ${c?.region==='成都'?'selected':''}>成都</option>
+              <option value="武汉" ${c?.region==='武汉'?'selected':''}>武汉</option>
+              <option value="南京" ${c?.region==='南京'?'selected':''}>南京</option>
+              <option value="其他" ${c?.region==='其他'?'selected':''}>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">客户类型</label>
+            <select class="form-select" id="f_cr_customerType">
+              <option value="中小客户" ${c?.customerType==='中小客户'?'selected':''}>中小客户</option>
+              <option value="大客户" ${c?.customerType==='大客户'?'selected':''}>大客户</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">客户标签</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="f_cr_tag_new" ${(c?.tags||[]).includes('新客')?'checked':''}> 新客
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="f_cr_tag_old" ${(c?.tags||[]).includes('老客')?'checked':''}> 老客
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="f_cr_tag_key" ${(c?.tags||[]).includes('重点客户')?'checked':''}> 重点客户
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="f_cr_tag_vip" ${(c?.tags||[]).includes('VIP')?'checked':''}> VIP
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">📝 备注</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">备注信息</label>
+            <textarea class="form-textarea" id="f_cr_remark" placeholder="客户备注信息">${c?.remark||''}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveCustomer('${id||''}')">${isNew?'创建客户':'保存修改'}</button>
+    </div>
+  `;
+  showModal(html);
+}
+
+function saveCustomer(editId) {
+  const tags = [];
+  if(document.getElementById('f_cr_tag_new')?.checked) tags.push('新客');
+  if(document.getElementById('f_cr_tag_old')?.checked) tags.push('老客');
+  if(document.getElementById('f_cr_tag_key')?.checked) tags.push('重点客户');
+  if(document.getElementById('f_cr_tag_vip')?.checked) tags.push('VIP');
+  
+  const data = {
+    name: document.getElementById('f_cr_name').value,
+    contact: document.getElementById('f_cr_contact').value,
+    phone: document.getElementById('f_cr_phone').value,
+    address: document.getElementById('f_cr_address').value,
+    region: document.getElementById('f_cr_region').value,
+    customerType: document.getElementById('f_cr_customerType').value,
+    tags: tags,
+    remark: document.getElementById('f_cr_remark').value,
+  };
+
+  if(!data.name) {
+    alert('请填写客户名称');
+    return;
+  }
+
+  if(editId) {
+    const idx = APP.customers.findIndex(o => o.id === editId);
+    if(idx >= 0) Object.assign(APP.customers[idx], data);
+  } else {
+    data.id = genId('cr');
+    data.followUps = [];
+    data.createDate = todayStr();
+    APP.customers.push(data);
+  }
+  saveData(APP);
+  closeModal();
+  renderPage();
+}
+
+function editCustomer(id) {
+  openCustomerForm(id);
+}
+
+function deleteCustomer(id) {
+  if(!confirm('确认删除此客户？')) return;
+  APP.customers = APP.customers.filter(o => o.id !== id);
+  saveData(APP);
+  renderPage();
+}
+
+function viewCustomer(id) {
+  const c = APP.customers.find(x => x.id === id);
+  if(!c) return;
+  
+  const relatedOrders = APP.repairOrders.filter(o => o.customer && o.customer.includes(c.name));
+  const follows = c.followUps || [];
+  
+  const html = `
+    <div class="modal-header">
+      <div class="modal-title">客户详情 - ${c.name}</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-header">
+        <div class="crm-avatar" style="width:48px;height:48px;font-size:20px">${c.name[0]}</div>
+        <div>
+          <div style="font-size:18px;font-weight:700">${c.name}</div>
+          <div style="font-size:13px;color:var(--text-secondary)">${c.customerType||'中小客户'} · ${c.region||'-'}</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          ${(c.tags||[]).map(t => `<span class="crm-tag ${t==='VIP'?'tag-vip':t==='重点客户'?'tag-key':'tag-new'}">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="customer-detail">
+        <div>
+          <div class="detail-section">
+            <div class="detail-section-title">📋 基本信息</div>
+            <div class="detail-grid">
+              <div class="detail-field"><div class="detail-field-label">联系人</div><div class="detail-field-value">${c.contact||'-'}</div></div>
+              <div class="detail-field"><div class="detail-field-label">电话</div><div class="detail-field-value">${c.phone||'-'}</div></div>
+              <div class="detail-field"><div class="detail-field-label">地址</div><div class="detail-field-value">${c.address||'-'}</div></div>
+              <div class="detail-field"><div class="detail-field-label">区域</div><div class="detail-field-value">${c.region||'-'}</div></div>
+              <div class="detail-field"><div class="detail-field-label">创建时间</div><div class="detail-field-value">${c.createDate||'-'}</div></div>
+              <div class="detail-field"><div class="detail-field-label">备注</div><div class="detail-field-value">${c.remark||'-'}</div></div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">🔧 关联工单 (${relatedOrders.length})</div>
+            ${relatedOrders.length ? `<div class="table-wrap"><table>
+              <thead><tr><th>工单号</th><th>状态</th><th>返厂时间</th></tr></thead>
+              <tbody>
+                ${relatedOrders.map(o => `<tr>
+                  <td style="font-weight:600">${o.workOrderNo||'-'}</td>
+                  <td><span class="status-pill status-${o.status}">${o.status}</span></td>
+                  <td>${o.returnFactoryDate||'-'}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table></div>` : '<p style="color:var(--text-secondary);font-size:13px">暂无关联工单</p>'}
+          </div>
+        </div>
+        <div>
+          <div class="detail-section">
+            <div class="detail-section-title" style="display:flex;justify-content:space-between;align-items:center">
+              <span>📝 跟进记录</span>
+              <button class="btn btn-sm btn-primary" onclick="closeModal();addFollowUp('${c.id}')">+ 添加</button>
+            </div>
+            ${follows.length ? follows.map(f => `
+              <div class="follow-record">
+                <div class="follow-date">${f.date}</div>
+                <div class="follow-content">${f.content}</div>
+              </div>
+            `).join('') : '<p style="color:var(--text-secondary);font-size:13px">暂无跟进记录</p>'}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">关闭</button>
+      <button class="btn btn-primary" onclick="closeModal();editCustomer('${c.id}')">编辑客户</button>
+    </div>
+  `;
+  showModal(html);
+}
+
+function addFollowUp(customerId) {
+  const content = prompt('请输入跟进内容：');
+  if(!content) return;
+  
+  const c = APP.customers.find(x => x.id === customerId);
+  if(!c) return;
+  
+  if(!c.followUps) c.followUps = [];
+  c.followUps.push({ date: todayStr(), content: content });
+  saveData(APP);
+  viewCustomer(customerId);
+}
+
+// Auto-create customer from repair order
+function autoCreateCustomer(customerName, contactPerson) {
+  if(!customerName) return;
+  const exists = APP.customers.find(c => c.name === customerName);
+  if(!exists) {
+    APP.customers.push({
+      id: genId('cr'),
+      name: customerName,
+      contact: contactPerson || '',
+      phone: '',
+      address: '',
+      region: '',
+      customerType: '中小客户',
+      tags: ['新客'],
+      followUps: [],
+      createDate: todayStr(),
+      remark: '自动创建'
+    });
+  }
+}
+
+// ===== EXCEL IMPORT =====
+const RP_COLUMN_MAP = {
+  '返修地址':'repairAddress','工单号':'workOrderNo','现场工单':'fieldOrder',
+  '报单状态':'reportStatus','车牌':'plateNumber','车架号':'vin',
+  'BARCODE':'barcode','PN':'pn','对接人':'contactPerson','客户':'customer',
+  '返厂时间':'returnFactoryDate','维修完成时间':'repairCompleteDate',
+  '返回时间':'returnDate','物料采购时间':'materialPurchaseDate',
+  '物料到货时间':'materialArrivalDate','维修人':'repairPerson',
+  '进度1':'progress','进度2':'progress2'
+};
+
+const RP_DEFAULTS = {
+  repairAddress:'宁家服务',workOrderNo:'',fieldOrder:'',reportStatus:'',
+  businessType:'保内',customer:'',contactPerson:'',plateNumber:'',vin:'',
+  barcode:'',pn:'',returnFactoryDate:'',repairCompleteDate:'',returnDate:'',
+  materialPurchaseDate:'',materialArrivalDate:'',repairPerson:'',
+  status:'待返厂',progress:'',progress2:'',createDate:''
+};
+
+function showUploadStatus(msg, type) {
+  const el = document.getElementById('uploadStatusBar');
+  if (!el) return;
+  el.className = 'upload-status-bar show ' + type;
+  el.innerHTML = msg;
+  if (type === 'success') setTimeout(() => { el.className = 'upload-status-bar show info'; }, 8000);
+}
+
+function detectRepairSheet(headers) {
+  const repairKeys = ['工单号','返修地址','客户','返厂时间','维修人'];
+  let score = 0;
+  headers.forEach(h => { if (repairKeys.includes(h.trim())) score++; });
+  return score >= 2;
+}
+
+function mapRepairRow(rawRow) {
+  const obj = {...RP_DEFAULTS};
+  for (const [cnHeader, jsKey] of Object.entries(RP_COLUMN_MAP)) {
+    if (rawRow[cnHeader] !== undefined && rawRow[cnHeader] !== null) {
+      let val = rawRow[cnHeader];
+      if (val instanceof Date) {
+        const y = val.getFullYear();
+        const m = String(val.getMonth()+1).padStart(2,'0');
+        const d = String(val.getDate()).padStart(2,'0');
+        val = `${y}-${m}-${d}`;
+      } else {
+        val = String(val).trim();
+      }
+      obj[jsKey] = val;
+    }
+  }
+  return obj;
+}
+
+function handleExcelUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  showUploadStatus('⏳ 正在读取 <b>' + file.name + '</b> ...', 'info');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type:'array', cellDates:true});
+
+      let totalImported = 0;
+
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, {defval:''});
+        if (!jsonData.length) continue;
+
+        const headers = Object.keys(jsonData[0]);
+        
+        if (detectRepairSheet(headers)) {
+          jsonData.forEach(row => {
+            const mapped = mapRepairRow(row);
+            if (!mapped.workOrderNo) return;
+            
+            // Auto-detect business type
+            if (!mapped.businessType || mapped.businessType === '保内') {
+              const progressStr = (mapped.progress || '').toLowerCase();
+              if (progressStr.includes('保外') || progressStr.includes('付费')) {
+                mapped.businessType = '保外';
+              }
+            }
+            
+            // Auto-detect status from dates and progress
+            if (!mapped.status || mapped.status === '待返厂') {
+              if (mapped.returnDate) mapped.status = '已寄回';
+              else if (mapped.repairCompleteDate) mapped.status = '已完成';
+              else if (mapped.materialArrivalDate) mapped.status = '维修中';
+              else if (mapped.materialPurchaseDate) mapped.status = '物料采购中';
+              else if (mapped.returnFactoryDate) mapped.status = '返厂中';
+            }
+            
+            mapped.id = genId('rp');
+            mapped.createDate = todayStr();
+            APP.repairOrders.push(mapped);
+            totalImported++;
+            
+            // Auto-create customer
+            autoCreateCustomer(mapped.customer, mapped.contactPerson);
+          });
+        }
+      }
+
+      saveData(APP);
+      
+      if (totalImported > 0) {
+        showUploadStatus('✅ 成功导入 <b>' + totalImported + '</b> 条返修记录', 'success');
+      } else {
+        showUploadStatus('⚠️ 未检测到返修数据，请确认Excel表头包含：工单号、客户、返厂时间等字段', 'error');
+      }
+      
+      renderPage();
+      input.value = '';
+    } catch(err) {
+      showUploadStatus('❌ 文件解析失败：' + err.message, 'error');
+      input.value = '';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ===== EXPORT =====
+function renderExport() {
+  return `
+    <div class="page-header">
+      <div><div class="page-title">数据导入导出</div><div class="page-subtitle">管理您的销售数据</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card">
+        <div class="card-title">📥 导入Excel</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">支持导入返修进度Excel数据。表头需包含：工单号、客户、返厂时间等字段。</p>
+        <button class="btn-upload" onclick="document.getElementById('excelFileInput').click()">📥 选择文件导入</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📤 导出返修数据</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">共 ${APP.repairOrders.length} 条返修记录</p>
+        <button class="btn btn-primary" onclick="exportRepairCSV()">导出返修数据 CSV</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📤 导出客户数据</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">共 ${APP.customers.length} 个客户</p>
+        <button class="btn btn-primary" onclick="exportCustomerCSV()">导出客户数据 CSV</button>
+      </div>
+      <div class="card">
+        <div class="card-title">⚙️ 系统数据</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">导出/导入完整系统数据（JSON格式）</p>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-outline" onclick="exportJSON()">导出JSON</button>
+          <label class="btn btn-outline" style="cursor:pointer">导入JSON<input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function exportRepairCSV() {
+  const headers = ['工单号','业务类型','客户','对接人','车牌','车架号','BARCODE','PN','返修地址','报单状态','返厂时间','维修完成时间','返回时间','物料采购时间','物料到货时间','维修人','状态','进度1','进度2'];
+  const rows = APP.repairOrders.map(o => [o.workOrderNo,o.businessType,o.customer,o.contactPerson,o.plateNumber,o.vin,o.barcode,o.pn,o.repairAddress,o.reportStatus,o.returnFactoryDate,o.repairCompleteDate,o.returnDate,o.materialPurchaseDate,o.materialArrivalDate,o.repairPerson,o.status,o.progress,o.progress2]);
+  const bom = '\uFEFF';
+  const csv = bom + [headers.join(','), ...rows.map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `返修数据_${todayStr()}.csv`;
+  a.click();
+}
+
+function exportCustomerCSV() {
+  const headers = ['客户名称','联系人','电话','地址','区域','客户类型','标签','备注','创建时间'];
+  const rows = APP.customers.map(c => [c.name,c.contact,c.phone,c.address,c.region,c.customerType,(c.tags||[]).join('/'),c.remark,c.createDate]);
+  const bom = '\uFEFF';
+  const csv = bom + [headers.join(','), ...rows.map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `客户数据_${todayStr()}.csv`;
+  a.click();
+}
+
+function exportJSON() {
+  const json = JSON.stringify(APP, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `sales_data_${todayStr()}.json`;
+  a.click();
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(confirm('导入将覆盖当前所有数据，确认继续？')) {
+        APP = { ...getDefaultData(), ...data };
+        saveData(APP);
+        renderPage();
+        alert('导入成功！');
+      }
+    } catch(err) {
+      alert('文件格式错误，请选择有效的JSON文件');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ===== UTILS =====
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function showModal(html) {
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if(e.target === this) closeModal();
+});
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', function() {
+  renderPage();
+});
+</script>
+</body>
+</html>
