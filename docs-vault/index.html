@@ -1235,15 +1235,17 @@
             async load() {
                 try {
                     const url = `${this.API_BASE}/repos/${this.REPO}/contents/${this.PATH}`;
-                    const response = await fetch(url, {
+                    
+                    // 先获取文件元信息（SHA等）
+                    const metaResponse = await fetch(url, {
                         headers: {
                             'Authorization': `token ${this.TOKEN}`,
                             'Accept': 'application/vnd.github.v3+json'
                         }
                     });
 
-                    if (!response.ok) {
-                        if (response.status === 404) {
+                    if (!metaResponse.ok) {
+                        if (metaResponse.status === 404) {
                             // 文件不存在，创建初始数据
                             this.data = {
                                 version: 2,
@@ -1254,15 +1256,32 @@
                             await this.save();
                             return true;
                         }
-                        throw new Error(`HTTP ${response.status}`);
+                        throw new Error(`HTTP ${metaResponse.status}`);
                     }
 
-                    const result = await response.json();
-                    // 去除base64中的换行符，正确处理UTF-8
-                    const b64 = result.content.replace(/\n/g, '');
-                    const content = decodeURIComponent(escape(atob(b64)));
-                    this.data = JSON.parse(content);
-                    this.sha = result.sha;
+                    const meta = await metaResponse.json();
+                    this.sha = meta.sha;
+
+                    // 检查是否需要使用raw方式获取（文件大于1MB时base64内容为空）
+                    if (meta.encoding === 'base64' && meta.content) {
+                        // 标准base64方式
+                        const b64 = meta.content.replace(/\n/g, '');
+                        const content = decodeURIComponent(escape(atob(b64)));
+                        this.data = JSON.parse(content);
+                    } else {
+                        // 大文件使用raw方式获取
+                        const rawResponse = await fetch(url, {
+                            headers: {
+                                'Authorization': `token ${this.TOKEN}`,
+                                'Accept': 'application/vnd.github.v3.raw'
+                            }
+                        });
+                        if (!rawResponse.ok) {
+                            throw new Error(`Raw fetch failed: HTTP ${rawResponse.status}`);
+                        }
+                        const content = await rawResponse.text();
+                        this.data = JSON.parse(content);
+                    }
                     return true;
                 } catch (error) {
                     console.error('加载数据失败:', error);
