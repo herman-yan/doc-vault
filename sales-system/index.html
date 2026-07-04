@@ -869,7 +869,7 @@ function renderCRMTable(customers) {
     <div class="card" style="padding:0">
       <div class="table-wrap"><table>
         <thead><tr>
-          <th>客户名称</th><th>联系人</th><th>电话</th>
+          <th>客户名称</th><th>联系人</th><th>电话</th><th>手机号</th><th>地址</th>
           <th>车型/品牌</th><th>电池型号</th><th>保修状态</th>
           <th>客户类型</th><th>标签</th><th>关联工单</th><th>操作</th>
         </tr></thead>
@@ -879,6 +879,8 @@ function renderCRMTable(customers) {
               <td style="font-weight:600">${c.name||'-'}</td>
               <td>${c.contact||'-'}</td>
               <td>${c.phone||'-'}</td>
+              <td>${c.mobile||'-'}</td>
+              <td>${c.address||'-'}</td>
               <td>${c.vehicleBrand||'-'}</td>
               <td>${c.batteryModel||'-'}</td>
               <td><span class="badge ${c.warrantyStatus==='保外'?'badge-yellow':c.warrantyStatus==='混合'?'badge-purple':'badge-green'}">${c.warrantyStatus||'保内'}</span></td>
@@ -913,6 +915,7 @@ function renderCRMCards(customers) {
           <div class="crm-card-info">
             <span>👤 ${c.contact||'暂无联系人'}</span>
             <span>📞 ${c.phone||'-'}</span>
+            <span>📱 ${c.mobile||'-'}</span>
             <span>📍 ${c.address||'-'}</span>
           </div>
           <div class="crm-tags">
