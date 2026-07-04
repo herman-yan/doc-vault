@@ -1317,7 +1317,8 @@
                     });
 
                     if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
+                        const errText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errText}`);
                     }
 
                     const result = await response.json();
@@ -1329,18 +1330,28 @@
                 }
             },
 
-            // 保存数据（带冲突重试）
-            async saveWithRetry() {
-                try {
-                    return await this.save();
-                } catch (error) {
-                    // 如果是sha冲突，重新加载后重试
-                    if (error.message && error.message.includes('422')) {
-                        console.log('检测到SHA冲突，重新加载数据...');
+            // 原子操作：重新加载最新数据后执行变更，确保SHA一致
+            async _reloadAndApply(applyFn) {
+                const maxRetries = 3;
+                for (let attempt = 0; attempt < maxRetries; attempt++) {
+                    try {
+                        // 每次都先加载最新数据
                         await this.load();
-                        return await this.save();
+                        // 在最新数据上应用变更
+                        applyFn();
+                        // 保存
+                        await this.save();
+                        return true;
+                    } catch (error) {
+                        if (error.message && (error.message.includes('422') || error.message.includes('409'))) {
+                            console.log(`SHA冲突，第 ${attempt+1} 次重试...`);
+                            if (attempt === maxRetries - 1) {
+                                throw new Error('保存失败：多次重试后仍有冲突，请刷新页面重试');
+                            }
+                            continue;
+                        }
+                        throw error;
                     }
-                    throw error;
                 }
             },
 
@@ -1350,45 +1361,49 @@
                 return this.data.documents || [];
             },
 
-            // 添加文档
+            // 添加文档（原子操作，防止并发冲突丢数据）
             async addDocument(doc) {
-                if (!this.data) this.data = { version: 2, documents: [], lastUpdated: '' };
-                if (!this.data.documents) this.data.documents = [];
-                
-                doc.id = this.generateId();
-                doc.uploadTime = new Date().toISOString();
-                this.data.documents.push(doc);
-                this.data.lastUpdated = new Date().toLocaleString('zh-CN');
-                
-                await this.saveWithRetry();
+                const uploadTime = new Date().toISOString();
+                await this._reloadAndApply(() => {
+                    if (!this.data) this.data = { version: 2, documents: [], lastUpdated: '' };
+                    if (!this.data.documents) this.data.documents = [];
+                    
+                    doc.id = this.generateId();
+                    doc.uploadTime = uploadTime;
+                    this.data.documents.push(doc);
+                    this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                });
                 return doc;
             },
 
-            // 更新文档
+            // 更新文档（原子操作）
             async updateDocument(id, updates) {
-                if (!this.data) return;
-                const idx = this.data.documents.findIndex(d => d.id === id);
-                if (idx !== -1) {
-                    this.data.documents[idx] = { ...this.data.documents[idx], ...updates };
-                    this.data.lastUpdated = new Date().toLocaleString('zh-CN');
-                    await this.saveWithRetry();
-                }
+                await this._reloadAndApply(() => {
+                    if (!this.data) return;
+                    const idx = this.data.documents.findIndex(d => d.id === id);
+                    if (idx !== -1) {
+                        this.data.documents[idx] = { ...this.data.documents[idx], ...updates };
+                        this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                    }
+                });
             },
 
-            // 删除文档
+            // 删除文档（原子操作）
             async deleteDocument(id) {
-                if (!this.data) return;
-                this.data.documents = this.data.documents.filter(d => d.id !== id);
-                this.data.lastUpdated = new Date().toLocaleString('zh-CN');
-                await this.saveWithRetry();
+                await this._reloadAndApply(() => {
+                    if (!this.data) return;
+                    this.data.documents = this.data.documents.filter(d => d.id !== id);
+                    this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                });
             },
 
-            // 清空所有文档
+            // 清空所有文档（原子操作）
             async clearDocuments() {
-                if (!this.data) return;
-                this.data.documents = [];
-                this.data.lastUpdated = new Date().toLocaleString('zh-CN');
-                await this.saveWithRetry();
+                await this._reloadAndApply(() => {
+                    if (!this.data) return;
+                    this.data.documents = [];
+                    this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                });
             },
 
             // 生成新的ID
