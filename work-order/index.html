@@ -148,6 +148,12 @@ tbody tr { cursor: pointer; }
 /* Filter bar */
 .filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
 .filter-bar .form-input, .filter-bar .form-select { padding: 7px 10px; font-size: 13px; }
+.time-filter { display: flex; gap: 0; margin-bottom: 16px; background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; width: fit-content; }
+.time-btn { padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; border: none; background: transparent; color: var(--text); border-right: 1px solid var(--border); }
+.time-btn:last-child { border-right: none; }
+.time-btn:hover { background: #f8fafc; }
+.time-btn.active { color: var(--primary); background: #eff6ff; font-weight: 600; }
+.time-filter-label { padding: 8px 12px; font-size: 12px; color: var(--text-secondary); background: #f8fafc; border-right: 1px solid var(--border); display: flex; align-items: center; }
 .search-input { min-width: 200px; }
 
 /* Actions in table */
@@ -311,14 +317,23 @@ function renderDashboard() {
   const nw = APP.nonWarrantyOrders;
   const wnActive = wn.filter(o => !['已结清','已终止'].includes(o.status));
   const nwActive = nw.filter(o => !['关闭工单'].includes(o.status));
-  const wnToday = wn.filter(o => o.registerDate === todayStr());
-  const nwToday = nw.filter(o => o.requestDate === todayStr());
   const wnUnassigned = wn.filter(o => o.status === '未派工').length;
   const nwPending = nw.filter(o => o.status === '待客户确认').length;
   const wnInProgress = wn.filter(o => ['在修','已竣工'].includes(o.status)).length;
   const nwInProgress = nw.filter(o => o.status === '维修完成').length;
   const totalRevenue = nw.reduce((s, o) => s + (parseFloat(o.receivedAmount) || 0), 0);
   const wnRevenue = wn.reduce((s, o) => s + (parseFloat(o.totalFee) || 0), 0);
+
+  // 时间维度统计
+  const wnToday = wn.filter(o => isInPeriod(o.registerDate, 'today'));
+  const nwToday = nw.filter(o => isInPeriod(o.requestDate, 'today'));
+  const wnWeek = wn.filter(o => isInPeriod(o.registerDate, 'week'));
+  const nwWeek = nw.filter(o => isInPeriod(o.requestDate, 'week'));
+  const wnMonth = wn.filter(o => isInPeriod(o.registerDate, 'month'));
+  const nwMonth = nw.filter(o => isInPeriod(o.requestDate, 'month'));
+  const revToday = nwToday.reduce((s,o) => s + (parseFloat(o.receivedAmount)||0), 0) + wnToday.reduce((s,o) => s + (parseFloat(o.totalFee)||0), 0);
+  const revWeek = nwWeek.reduce((s,o) => s + (parseFloat(o.receivedAmount)||0), 0) + wnWeek.reduce((s,o) => s + (parseFloat(o.totalFee)||0), 0);
+  const revMonth = nwMonth.reduce((s,o) => s + (parseFloat(o.receivedAmount)||0), 0) + wnMonth.reduce((s,o) => s + (parseFloat(o.totalFee)||0), 0);
 
   return `
     <div class="page-header">
@@ -330,6 +345,35 @@ function renderDashboard() {
       <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${nwPending}</div><div class="stat-label">保外待确认</div></div>
       <div class="stat-card"><div class="stat-number" style="color:var(--success)">${wnInProgress + nwInProgress}</div><div class="stat-label">维修中/已完成</div></div>
       <div class="stat-card"><div class="stat-number" style="color:var(--primary)">¥${(totalRevenue + wnRevenue).toLocaleString()}</div><div class="stat-label">累计营收</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">📊 时间维度工单统计</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div style="background:#eff6ff;border-radius:10px;padding:16px;border:1px solid #bfdbfe">
+          <div style="font-size:13px;color:#3b82f6;font-weight:600;margin-bottom:12px">📅 今日 (${todayStr()})</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:#2563eb">${wnToday.length}</div><div style="font-size:11px;color:#64748b">保内工单</div></div>
+            <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:#d97706">${nwToday.length}</div><div style="font-size:11px;color:#64748b">保外工单</div></div>
+          </div>
+          <div style="margin-top:10px;text-align:center;font-size:12px;color:#64748b">合计 <b style="color:#1e293b">${wnToday.length + nwToday.length}</b> 单 · 营收 <b style="color:#16a34a">¥${revToday.toLocaleString()}</b></div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:10px;padding:16px;border:1px solid #bbf7d0">
+          <div style="font-size:13px;color:#16a34a;font-weight:600;margin-bottom:12px">📆 本周 (${weekStartStr()} ~ ${todayStr()})</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:#2563eb">${wnWeek.length}</div><div style="font-size:11px;color:#64748b">保内工单</div></div>
+            <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:#d97706">${nwWeek.length}</div><div style="font-size:11px;color:#64748b">保外工单</div></div>
+          </div>
+          <div style="margin-top:10px;text-align:center;font-size:12px;color:#64748b">合计 <b style="color:#1e293b">${wnWeek.length + nwWeek.length}</b> 单 · 营收 <b style="color:#16a34a">¥${revWeek.toLocaleString()}</b></div>
+        </div>
+        <div style="background:#fefce8;border-radius:10px;padding:16px;border:1px solid #fde68a">
+          <div style="font-size:13px;color:#d97706;font-weight:600;margin-bottom:12px">🗓️ 本月 (${monthStartStr()} ~ ${todayStr()})</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:#2563eb">${wnMonth.length}</div><div style="font-size:11px;color:#64748b">保内工单</div></div>
+            <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:#d97706">${nwMonth.length}</div><div style="font-size:11px;color:#64748b">保外工单</div></div>
+          </div>
+          <div style="margin-top:10px;text-align:center;font-size:12px;color:#64748b">合计 <b style="color:#1e293b">${wnMonth.length + nwMonth.length}</b> 单 · 营收 <b style="color:#16a34a">¥${revMonth.toLocaleString()}</b></div>
+        </div>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
       <div class="card">
@@ -406,6 +450,13 @@ function renderWarrantyList() {
       <div class="pipeline-arrow">→</div>
       <div class="pipeline-step" onclick="filterWarranty('已结清')"><span>已结清</span></div>
     </div>
+    <div class="time-filter time-filter-wn">
+      <div class="time-filter-label">📅 时间</div>
+      <button class="time-btn ${!wnFilterTime?'active':''}" data-period="" onclick="filterWarrantyTime('')">全部</button>
+      <button class="time-btn ${wnFilterTime==='today'?'active':''}" data-period="today" onclick="filterWarrantyTime('today')">今日</button>
+      <button class="time-btn ${wnFilterTime==='week'?'active':''}" data-period="week" onclick="filterWarrantyTime('week')">本周</button>
+      <button class="time-btn ${wnFilterTime==='month'?'active':''}" data-period="month" onclick="filterWarrantyTime('month')">本月</button>
+    </div>
     <div class="filter-bar">
       <input class="form-input search-input" placeholder="搜索客户/车辆/编号..." oninput="searchWarranty(this.value)" id="wnSearch">
       <select class="form-select" onchange="filterWarrantyEngineer(this.value)" id="wnEngFilter">
@@ -451,7 +502,8 @@ function renderWarrantyRows(orders) {
   `).join('');
 }
 
-let wnFilterStatus = '', wnFilterEngineer = '', wnSearchText = '';
+let wnFilterStatus = '', wnFilterEngineer = '', wnSearchText = '', wnFilterTime = '';
+let nwFilterTime = '';
 
 function filterWarranty(status) { wnFilterStatus = status; applyWarrantyFilter(); }
 function filterWarrantyEngineer(eng) { wnFilterEngineer = eng; applyWarrantyFilter(); }
@@ -461,6 +513,7 @@ function applyWarrantyFilter() {
   let filtered = APP.warrantyOrders;
   if(wnFilterStatus) filtered = filtered.filter(o => o.status === wnFilterStatus);
   if(wnFilterEngineer) filtered = filtered.filter(o => o.engineer === wnFilterEngineer);
+  if(wnFilterTime) filtered = filtered.filter(o => isInPeriod(o.registerDate, wnFilterTime));
   if(wnSearchText) {
     const t = wnSearchText.toLowerCase();
     filtered = filtered.filter(o => (o.id+o.customerName+o.vehicleInfo+o.faultDesc).toLowerCase().includes(t));
@@ -487,6 +540,13 @@ function renderNonWarrantyList() {
       <div class="pipeline-step" onclick="filterNonWarranty('维修完成')"><span>维修完成</span></div>
       <div class="pipeline-arrow">→</div>
       <div class="pipeline-step" onclick="filterNonWarranty('关闭工单')"><span>关闭工单</span></div>
+    </div>
+    <div class="time-filter time-filter-nw">
+      <div class="time-filter-label">📅 时间</div>
+      <button class="time-btn ${!nwFilterTime?'active':''}" data-period="" onclick="filterNonWarrantyTime('')">全部</button>
+      <button class="time-btn ${nwFilterTime==='today'?'active':''}" data-period="today" onclick="filterNonWarrantyTime('today')">今日</button>
+      <button class="time-btn ${nwFilterTime==='week'?'active':''}" data-period="week" onclick="filterNonWarrantyTime('week')">本周</button>
+      <button class="time-btn ${nwFilterTime==='month'?'active':''}" data-period="month" onclick="filterNonWarrantyTime('month')">本月</button>
     </div>
     <div class="filter-bar">
       <input class="form-input search-input" placeholder="搜索客户/车牌/编号..." oninput="searchNonWarranty(this.value)" id="nwSearch">
@@ -552,6 +612,7 @@ function applyNonWarrantyFilter() {
   if(nwFilterStatus) filtered = filtered.filter(o => o.status === nwFilterStatus);
   if(nwFilterEngineer) filtered = filtered.filter(o => o.repairEngineer === nwFilterEngineer);
   if(nwFilterProject) filtered = filtered.filter(o => o.projectType === nwFilterProject);
+  if(nwFilterTime) filtered = filtered.filter(o => isInPeriod(o.requestDate, nwFilterTime));
   if(nwSearchText) {
     const t = nwSearchText.toLowerCase();
     filtered = filtered.filter(o => (o.id+o.signedCustomer+o.plateNumber+o.faultDesc).toLowerCase().includes(t));
@@ -1633,6 +1694,33 @@ function importJSON(event) {
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function weekStartStr() {
+  const d = new Date();
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function monthStartStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+}
+function isInPeriod(dateStr, period) {
+  if (!dateStr || !period) return true;
+  if (period === 'today') return dateStr === todayStr();
+  if (period === 'week') return dateStr >= weekStartStr() && dateStr <= todayStr();
+  if (period === 'month') return dateStr >= monthStartStr() && dateStr <= todayStr();
+  return true;
+}
+function filterWarrantyTime(period) {
+  wnFilterTime = period;
+  applyWarrantyFilter();
+  document.querySelectorAll('.time-filter-wn .time-btn').forEach(b => b.classList.toggle('active', b.dataset.period === period));
+}
+function filterNonWarrantyTime(period) {
+  nwFilterTime = period;
+  applyNonWarrantyFilter();
+  document.querySelectorAll('.time-filter-nw .time-btn').forEach(b => b.classList.toggle('active', b.dataset.period === period));
 }
 
 function showModal(html) {
