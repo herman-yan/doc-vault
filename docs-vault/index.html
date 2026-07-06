@@ -1222,21 +1222,21 @@
          * 所有数据存储在GitHub仓库中
          * ============================================================ */
 
-        // ========== GitHub 数据管理器 ==========
+        // ========== GitHub 数据管理器 (v3 - 分离存储) ==========
+        // data.json 只存元数据（索引），文件内容单独存储
         const GitHubDataManager = {
             REPO: 'herman-yan/doc-vault',
             PATH: 'docs-vault/data.json',
+            FILES_PATH: 'docs-vault/files/',
             TOKEN: String.fromCharCode(103,104,112,95,108,52,83,110,118,74,70,85,84,50,66,97,85,79,122,49,70,53,109,56,51,122,120,121,107,107,83,48,65,90,50,66,50,65,53,65),
             API_BASE: 'https://api.github.com',
             data: null,
-            sha: null, // 用于更新时的乐观锁
+            sha: null,
 
-            // 从GitHub读取data.json
+            // 从GitHub读取data.json（仅元数据，很小很快）
             async load() {
                 try {
                     const url = `${this.API_BASE}/repos/${this.REPO}/contents/${this.PATH}`;
-                    
-                    // 先获取文件元信息（SHA等）
                     const metaResponse = await fetch(url, {
                         headers: {
                             'Authorization': `token ${this.TOKEN}`,
@@ -1246,12 +1246,7 @@
 
                     if (!metaResponse.ok) {
                         if (metaResponse.status === 404) {
-                            // 文件不存在，创建初始数据
-                            this.data = {
-                                version: 2,
-                                documents: [],
-                                lastUpdated: new Date().toLocaleString('zh-CN')
-                            };
+                            this.data = { version: 3, storageMode: 'separate', documents: [], lastUpdated: new Date().toLocaleString('zh-CN') };
                             this.sha = null;
                             await this.save();
                             return true;
@@ -1262,25 +1257,16 @@
                     const meta = await metaResponse.json();
                     this.sha = meta.sha;
 
-                    // 检查是否需要使用raw方式获取（文件大于1MB时base64内容为空）
                     if (meta.encoding === 'base64' && meta.content) {
-                        // 标准base64方式
                         const b64 = meta.content.replace(/\n/g, '');
                         const content = decodeURIComponent(escape(atob(b64)));
                         this.data = JSON.parse(content);
                     } else {
-                        // 大文件使用raw方式获取
                         const rawResponse = await fetch(url, {
-                            headers: {
-                                'Authorization': `token ${this.TOKEN}`,
-                                'Accept': 'application/vnd.github.v3.raw'
-                            }
+                            headers: { 'Authorization': `token ${this.TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }
                         });
-                        if (!rawResponse.ok) {
-                            throw new Error(`Raw fetch failed: HTTP ${rawResponse.status}`);
-                        }
-                        const content = await rawResponse.text();
-                        this.data = JSON.parse(content);
+                        if (!rawResponse.ok) throw new Error(`Raw fetch failed: HTTP ${rawResponse.status}`);
+                        this.data = JSON.parse(await rawResponse.text());
                     }
                     return true;
                 } catch (error) {
@@ -1289,38 +1275,21 @@
                 }
             },
 
-            // 写入data.json到GitHub
+            // 写入data.json到GitHub（仅元数据）
             async save() {
                 try {
                     const content = JSON.stringify(this.data, null, 2);
                     const base64Content = btoa(unescape(encodeURIComponent(content)));
-
                     const url = `${this.API_BASE}/repos/${this.REPO}/contents/${this.PATH}`;
-                    const body = {
-                        message: `update: 文档数据 ${new Date().toLocaleString('zh-CN')}`,
-                        content: base64Content
-                    };
-
-                    // 如果有sha（已存在的文件），需要包含sha
-                    if (this.sha) {
-                        body.sha = this.sha;
-                    }
+                    const body = { message: `update: 文档数据 ${new Date().toLocaleString('zh-CN')}`, content: base64Content };
+                    if (this.sha) body.sha = this.sha;
 
                     const response = await fetch(url, {
                         method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${this.TOKEN}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Authorization': `token ${this.TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
                         body: JSON.stringify(body)
                     });
-
-                    if (!response.ok) {
-                        const errText = await response.text();
-                        throw new Error(`HTTP ${response.status}: ${errText}`);
-                    }
-
+                    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
                     const result = await response.json();
                     this.sha = result.content.sha;
                     return true;
@@ -1330,24 +1299,19 @@
                 }
             },
 
-            // 原子操作：重新加载最新数据后执行变更，确保SHA一致
+            // 原子操作：重新加载最新数据后执行变更
             async _reloadAndApply(applyFn) {
                 const maxRetries = 3;
                 for (let attempt = 0; attempt < maxRetries; attempt++) {
                     try {
-                        // 每次都先加载最新数据
                         await this.load();
-                        // 在最新数据上应用变更
                         applyFn();
-                        // 保存
                         await this.save();
                         return true;
                     } catch (error) {
                         if (error.message && (error.message.includes('422') || error.message.includes('409'))) {
                             console.log(`SHA冲突，第 ${attempt+1} 次重试...`);
-                            if (attempt === maxRetries - 1) {
-                                throw new Error('保存失败：多次重试后仍有冲突，请刷新页面重试');
-                            }
+                            if (attempt === maxRetries - 1) throw new Error('保存失败：多次重试后仍有冲突，请刷新页面重试');
                             continue;
                         }
                         throw error;
@@ -1355,28 +1319,104 @@
                 }
             },
 
-            // 获取所有文档
-            getDocuments() {
-                if (!this.data) return [];
-                return this.data.documents || [];
+            // 上传单个文件到GitHub独立存储
+            async uploadFile(fileId, fileName, arrayBuffer) {
+                const ext = fileName.includes('.') ? fileName.split('.').pop() : 'bin';
+                const filePath = `${this.FILES_PATH}${fileId}.${ext}`;
+                const uint8 = new Uint8Array(arrayBuffer);
+                let binary = '';
+                for (let i = 0; i < uint8.length; i++) binary += String.fromCharCode(uint8[i]);
+                const b64 = btoa(binary);
+
+                const url = `${this.API_BASE}/repos/${this.REPO}/contents/${filePath}`;
+                const body = { message: `upload: file ${fileId}`, content: b64 };
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${this.TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (!response.ok) throw new Error(`文件上传失败: HTTP ${response.status}`);
+                return filePath;
             },
 
-            // 添加文档（原子操作，防止并发冲突丢数据）
+            // 删除GitHub上的独立文件
+            async deleteFile(filePath, fileSha) {
+                const url = `${this.API_BASE}/repos/${this.REPO}/contents/${filePath}`;
+                // 先获取文件的SHA
+                if (!fileSha) {
+                    const metaResp = await fetch(url, {
+                        headers: { 'Authorization': `token ${this.TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
+                    });
+                    if (metaResp.ok) {
+                        const meta = await metaResp.json();
+                        fileSha = meta.sha;
+                    }
+                }
+                if (!fileSha) return; // 文件不存在，跳过
+
+                const body = { message: `delete: ${filePath}`, sha: fileSha };
+                await fetch(url, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `token ${this.TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+            },
+
+            // 获取文件的下载URL
+            getFileUrl(doc) {
+                if (doc.filePath) {
+                    return `https://api.github.com/repos/${this.REPO}/contents/${doc.filePath}?raw=true`;
+                }
+                return null;
+            },
+
+            // 下载文件内容为Blob
+            async downloadFileAsBlob(doc) {
+                const url = this.getFileUrl(doc);
+                if (!url) return null;
+                const resp = await fetch(url, {
+                    headers: { 'Authorization': `token ${this.TOKEN}` }
+                });
+                if (!resp.ok) throw new Error(`下载失败: HTTP ${resp.status}`);
+                return await resp.blob();
+            },
+
+            getDocuments() { return this.data?.documents || []; },
+
+            // 添加文档：先上传文件，再更新元数据
             async addDocument(doc) {
+                const fileBuffer = doc._fileBuffer; // ArrayBuffer of file content
+                const fileName = doc.name;
+                delete doc._fileBuffer;
+                delete doc.fileContent;
+                delete doc.blob;
+
                 const uploadTime = new Date().toISOString();
+                let newId;
+
+                // Step 1: 先确定ID（需要加载最新数据）
+                await this.load();
+                newId = this.generateId();
+                doc.id = newId;
+                doc.uploadTime = uploadTime;
+
+                // Step 2: 上传文件到独立存储
+                const filePath = await this.uploadFile(newId, fileName, fileBuffer);
+                doc.filePath = filePath;
+
+                // Step 3: 更新元数据到data.json
                 await this._reloadAndApply(() => {
-                    if (!this.data) this.data = { version: 2, documents: [], lastUpdated: '' };
+                    if (!this.data) this.data = { version: 3, storageMode: 'separate', documents: [], lastUpdated: '' };
                     if (!this.data.documents) this.data.documents = [];
-                    
-                    doc.id = this.generateId();
-                    doc.uploadTime = uploadTime;
                     this.data.documents.push(doc);
                     this.data.lastUpdated = new Date().toLocaleString('zh-CN');
                 });
+
                 return doc;
             },
 
-            // 更新文档（原子操作）
+            // 更新文档元数据
             async updateDocument(id, updates) {
                 await this._reloadAndApply(() => {
                     if (!this.data) return;
@@ -1388,8 +1428,19 @@
                 });
             },
 
-            // 删除文档（原子操作）
+            // 删除文档：先删文件，再删元数据
             async deleteDocument(id) {
+                // 先找到文件路径
+                await this.load();
+                const doc = this.data.documents.find(d => d.id === id);
+                const filePath = doc?.filePath;
+
+                // 删除独立文件
+                if (filePath) {
+                    try { await this.deleteFile(filePath); } catch(e) { console.warn('删除文件失败:', e); }
+                }
+
+                // 删除元数据
                 await this._reloadAndApply(() => {
                     if (!this.data) return;
                     this.data.documents = this.data.documents.filter(d => d.id !== id);
@@ -1397,8 +1448,16 @@
                 });
             },
 
-            // 清空所有文档（原子操作）
+            // 清空所有文档
             async clearDocuments() {
+                // 删除所有独立文件
+                await this.load();
+                for (const doc of (this.data.documents || [])) {
+                    if (doc.filePath) {
+                        try { await this.deleteFile(doc.filePath); } catch(e) { console.warn(e); }
+                    }
+                }
+                // 清空元数据
                 await this._reloadAndApply(() => {
                     if (!this.data) return;
                     this.data.documents = [];
@@ -1406,14 +1465,13 @@
                 });
             },
 
-            // 生成新的ID
             generateId() {
-                if (!this.data || !this.data.documents) return Date.now();
+                if (!this.data || !this.data.documents) return 1;
                 const maxId = this.data.documents.reduce((max, d) => Math.max(max, d.id || 0), 0);
                 return maxId + 1;
             },
 
-            // Base64转Blob
+            // Base64转Blob (兼容旧数据)
             base64ToBlob(base64, type) {
                 if (!base64) return null;
                 if (typeof base64 === 'object') return base64;
@@ -1421,17 +1479,11 @@
                     const byteString = atob(base64.split(',')[1] || base64);
                     const ab = new ArrayBuffer(byteString.length);
                     const ia = new Uint8Array(ab);
-                    for (let i = 0; i < byteString.length; i++) {
-                        ia[i] = byteString.charCodeAt(i);
-                    }
+                    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
                     return new Blob([ab], { type: type || 'application/octet-stream' });
-                } catch (e) {
-                    console.error('Base64转Blob失败:', e);
-                    return null;
-                }
+                } catch (e) { return null; }
             },
 
-            // Blob转Base64
             blobToBase64(blob) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -1586,12 +1638,12 @@
                 if (overlay) overlay.classList.remove('hidden');
             }
 
-            // 从GitHub数据加载文件
+            // 从GitHub数据加载文件（v3: 文件按需下载，不预加载blob）
             loadFilesFromGitHub() {
                 const docs = GitHubDataManager.getDocuments();
                 this.files = docs.map(d => ({
                     ...d,
-                    blob: d.fileContent ? GitHubDataManager.base64ToBlob(d.fileContent, d.type) : null
+                    blob: null // v3: 文件按需下载，不预加载
                 }));
             }
 
@@ -1710,19 +1762,22 @@
                         const fileInfo = await this.processFile(file);
                         fileInfo.uploader = uploaderName || '未知';
                         
-                        // 添加到GitHub
+                        // 添加到GitHub（v3: 传_fileBuffer，不传base64）
                         const docToSave = {
                             ...fileInfo,
-                            fileContent: fileInfo.fileContent
+                            _fileBuffer: fileInfo._fileBuffer
                         };
                         delete docToSave.blob;
+                        delete docToSave.fileContent;
                         
                         await GitHubDataManager.addDocument(docToSave);
                         
                         // 更新本地文件列表
                         delete fileInfo.fileContent;
+                        delete fileInfo._fileBuffer;
                         fileInfo.id = docToSave.id;
                         fileInfo.uploadTime = docToSave.uploadTime;
+                        fileInfo.filePath = docToSave.filePath;
                         this.files.push(fileInfo);
                         
                         // 高亮动画
@@ -1756,15 +1811,6 @@
                     reader.readAsArrayBuffer(file);
                 });
                 
-                // 转换为 base64
-                const uint8Array = new Uint8Array(arrayBuffer);
-                let binary = '';
-                for (let i = 0; i < uint8Array.length; i++) {
-                    binary += String.fromCharCode(uint8Array[i]);
-                }
-                const base64 = btoa(binary);
-                const fileContent = `data:${mimeType};base64,${base64}`;
-                
                 // 生成摘要（文本类文件）
                 let summary = '';
                 if (['text/plain', 'text/markdown', 'application/json', 'text/csv'].includes(mimeType)) {
@@ -1789,8 +1835,8 @@
                     category: category,
                     tags: [],
                     summary: summary,
-                    fileContent: fileContent,
-                    blob: arrayBuffer
+                    _fileBuffer: arrayBuffer,  // v3: 传原始ArrayBuffer，不再base64
+                    blob: null
                 };
             }
 
@@ -2205,35 +2251,43 @@
             }
 
             // 下载文件
-            downloadFile() {
+            async downloadFile() {
                 if (!this.currentFile) return;
                 
-                const blob = this.currentFile.blob;
-                if (blob) {
-                    const url = URL.createObjectURL(new Blob([blob], { type: this.currentFile.type }));
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = this.currentFile.name;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                } else if (this.currentFile.fileContent) {
-                    const byteString = atob(this.currentFile.fileContent.split(',')[1]);
+                const file = this.currentFile;
+                let blob = file.blob;
+                
+                // v3: 按需从GitHub下载文件
+                if (!blob && file.filePath) {
+                    try {
+                        this.showToast('正在下载文件...', 'loading');
+                        blob = await GitHubDataManager.downloadFileAsBlob(file);
+                    } catch (e) {
+                        this.showToast('下载失败: ' + e.message, 'error');
+                        return;
+                    }
+                }
+                
+                // 兼容旧数据（base64内嵌）
+                if (!blob && file.fileContent) {
+                    const byteString = atob(file.fileContent.split(',')[1]);
                     const ab = new ArrayBuffer(byteString.length);
                     const ia = new Uint8Array(ab);
-                    for (let i = 0; i < byteString.length; i++) {
-                        ia[i] = byteString.charCodeAt(i);
-                    }
-                    const blobDownload = new Blob([ab], { type: this.currentFile.type });
-                    const url = URL.createObjectURL(blobDownload);
+                    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+                    blob = new Blob([ab], { type: file.type });
+                }
+                
+                if (blob) {
+                    const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = this.currentFile.name;
+                    a.download = file.name;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
+                } else {
+                    this.showToast('文件数据不可用', 'error');
                 }
             }
 
@@ -2279,33 +2333,17 @@
                 document.getElementById('settingsPanel').classList.remove('open');
             }
 
-            // 导出数据
+            // 导出数据（v3: 仅导出元数据，不含文件内容）
             async exportData() {
                 try {
-                    const exportDocs = await Promise.all(this.files.map(async f => {
-                        let fileContent = '';
-                        if (f.blob && f.blob instanceof ArrayBuffer) {
-                            const uint8Array = new Uint8Array(f.blob);
-                            let binary = '';
-                            for (let i = 0; i < uint8Array.length; i++) {
-                                binary += String.fromCharCode(uint8Array[i]);
-                            }
-                            fileContent = btoa(binary);
-                            if (f.type) {
-                                fileContent = `data:${f.type};base64,${fileContent}`;
-                            }
-                        } else if (f.fileContent) {
-                            fileContent = f.fileContent;
-                        }
-                        return {
-                            ...f,
-                            blob: undefined,
-                            fileContent: fileContent
-                        };
-                    }));
+                    const exportDocs = this.files.map(f => {
+                        const { blob, _fileBuffer, ...rest } = f;
+                        return rest;
+                    });
                     
                     const exportData = {
-                        version: 2,
+                        version: 3,
+                        storageMode: 'separate',
                         exportTime: new Date().toISOString(),
                         documents: exportDocs,
                         lastUpdated: new Date().toLocaleString('zh-CN')
@@ -2322,14 +2360,14 @@
                     URL.revokeObjectURL(url);
                     
                     this.closeSettings();
-                    this.showToast('数据导出成功', 'success');
+                    this.showToast('元数据导出成功（文件存储在云端，不受影响）', 'success');
                 } catch (error) {
                     console.error('导出失败:', error);
                     this.showToast('导出失败', 'error');
                 }
             }
 
-            // 导入数据
+            // 导入数据（v3: 仅导入元数据，兼容旧版带文件内容的备份）
             async importData(event) {
                 const file = event.target.files[0];
                 if (!file) return;
@@ -2342,35 +2380,38 @@
                         throw new Error('无效的备份文件格式');
                     }
                     
-                    // 清空现有数据
-                    await GitHubDataManager.clearDocuments();
-                    this.files = [];
+                    this.showToast(`正在导入 ${importData.documents.length} 条记录...`, 'loading');
                     
-                    // 导入文件
-                    for (const f of importData.documents) {
-                        const docToAdd = {
-                            name: f.name,
-                            size: f.size,
-                            type: f.type,
-                            typeName: f.typeName,
-                            icon: f.icon,
-                            color: f.color,
-                            category: f.category || 'other',
-                            tags: f.tags || [],
-                            summary: f.summary || '',
-                            uploader: f.uploader || '未知',
-                            fileContent: f.fileContent || ''
-                        };
-                        
-                        const added = await GitHubDataManager.addDocument(docToAdd);
-                        
-                        this.files.push({
-                            ...docToAdd,
-                            id: added.id,
-                            uploadTime: added.uploadTime,
-                            blob: docToAdd.fileContent ? GitHubDataManager.base64ToBlob(docToAdd.fileContent, docToAdd.type) : null
-                        });
-                    }
+                    // 导入元数据（文件内容已在云端的不用重新上传）
+                    await GitHubDataManager._reloadAndApply(() => {
+                        for (const f of importData.documents) {
+                            const existing = this.data.documents?.find(d => d.name === f.name);
+                            if (!existing) {
+                                if (!this.data.documents) this.data.documents = [];
+                                const newId = this.generateId();
+                                this.data.documents.push({
+                                    id: newId,
+                                    name: f.name,
+                                    size: f.size,
+                                    type: f.type,
+                                    typeName: f.typeName,
+                                    icon: f.icon,
+                                    color: f.color,
+                                    category: f.category || 'other',
+                                    tags: f.tags || [],
+                                    summary: f.summary || '',
+                                    uploader: f.uploader || '未知',
+                                    uploadTime: f.uploadTime || new Date().toISOString(),
+                                    filePath: f.filePath || null
+                                });
+                            }
+                        }
+                        this.data.lastUpdated = new Date().toLocaleString('zh-CN');
+                    });
+                    
+                    // 重新加载显示
+                    await GitHubDataManager.load();
+                    this.loadFilesFromGitHub();
                     
                     event.target.value = '';
                     this.closeSettings();
