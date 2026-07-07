@@ -704,11 +704,13 @@
   "venuePartners": [
     {
       "name": "居然之家",
-      "content": "目前正在和小鹏和华为合作，我这边提供了咱们展厅的图片等等，他们会内部过一下，然后需要咱们确认门头是否可以挂他们的logo，另外看看目前北京6个居然，全国80多家居然咱们能提供什么服务"
+      "content": "目前正在和小鹏和华为合作，我这边提供了咱们展厅的图片等等，他们会内部过一下，然后需要咱们确认门头是否可以挂他们的logo，另外看看目前北京6个居然，全国80多家居然咱们能提供什么服务",
+      "contact": []
     },
     {
       "name": "汽车博物馆",
-      "content": "3层把老车那部分区域改造成新能源汽车，电池展示等"
+      "content": "3层把老车那部分区域改造成新能源汽车，电池展示等",
+      "contact": []
     }
   ],
   "industryPartners": [
@@ -717,77 +719,88 @@
       "company": "蔚来",
       "direction": "售前",
       "status": "本周到访",
-      "issue": ""
+      "issue": "",
+      "contact": []
     },
     {
       "industry": "",
       "company": "长城",
       "direction": "售前",
       "status": "",
-      "issue": "后期蜂巢电池为主"
+      "issue": "后期蜂巢电池为主",
+      "contact": []
     },
     {
       "industry": "",
       "company": "鸿蒙智行",
       "direction": "售前",
       "status": "方案提交对方需过会",
-      "issue": ""
+      "issue": "",
+      "contact": []
     },
     {
       "industry": "二手车",
       "company": "瓜子",
       "direction": "展厅+售后",
       "status": "展厅+检测点+延保服务，等待回复",
-      "issue": ""
+      "issue": "",
+      "contact": []
     },
     {
       "industry": "",
       "company": "中盛",
       "direction": "销售",
       "status": "下周到访",
-      "issue": ""
+      "issue": "",
+      "contact": []
     },
     {
       "industry": "机器人",
       "company": "埃斯顿",
       "direction": "",
       "status": "工业机械臂、光伏 / 锂电自动化设备展示，新能源工厂产线方案",
-      "issue": "渠道建联中"
+      "issue": "渠道建联中",
+      "contact": []
     },
     {
       "industry": "",
       "company": "宇树科技",
       "direction": "",
       "status": "四足巡检机器人、人形机器人、新能源智能安防设备",
-      "issue": "渠道建联中"
+      "issue": "渠道建联中",
+      "contact": []
     },
     {
       "industry": "",
       "company": "优必选",
       "direction": "",
       "status": "人形机器人体验区、商用服务机器人",
-      "issue": "渠道建联中"
+      "issue": "渠道建联中",
+      "contact": []
     },
     {
       "industry": "",
       "company": "新松机器人",
       "direction": "",
       "status": "移动机器人、巡检机器人、储能配套自动化设备展示",
-      "issue": "渠道建联中"
+      "issue": "渠道建联中",
+      "contact": []
     },
     {
       "industry": "",
       "company": "博清科技",
       "direction": "",
       "status": "产业链工业机器人",
-      "issue": "匹配度不高"
+      "issue": "匹配度不高",
+      "contact": []
     },
     {
       "industry": "摩托车",
       "company": "张雪",
       "direction": "",
       "status": "",
-      "issue": "销售渠道联系总部尝试建联"
+      "issue": "销售渠道联系总部尝试建联",
+      "contact": []
     }
   ],
   "businessPartners": [
@@ -797,7 +810,8 @@
       "direction": "注资直营站，拆解中心，备件/梯次/再利用",
       "status": "邀约来京确认合作",
       "relatedProject": "天津滨环再生资源",
-      "issue": "需中资环背书"
+      "issue": "需中资环背书",
+      "contact": []
     },
     {
       "name": "中国铁塔",
@@ -805,7 +819,8 @@
       "direction": "换电柜、零碳方案、电池银行",
       "status": "推进房山项目",
       "relatedProject": "中国铁塔",
-      "issue": "欠零碳方案"
+      "issue": "欠零碳方案",
+      "contact": []
     },
     {
       "name": "首钢基金",
@@ -813,7 +828,8 @@
       "direction": "光储充投资合作",
       "status": "约见投资事宜",
       "relatedProject": "首钢基金",
-      "issue": "需确认利益比例"
+      "issue": "需确认利益比例",
+      "contact": []
     },
     {
       "name": "京能集团",
@@ -821,7 +837,8 @@
       "direction": "零碳合作",
       "status": "已约时间",
       "relatedProject": "投资合作",
-      "issue": ""
+      "issue": "",
+      "contact": []
     },
     {
       "name": "蔚来",
@@ -829,7 +846,8 @@
       "direction": "场地合作/售前",
       "status": "确认到访",
       "relatedProject": "场地合作",
-      "issue": "需过会"
+      "issue": "需过会",
+      "contact": []
     },
     {
       "name": "榆垡镇政府",
@@ -837,7 +855,8 @@
       "direction": "招商引资、储能政策",
       "status": "推进中",
       "relatedProject": "榆垡镇政府",
-      "issue": "危化证完成后深入"
+      "issue": "危化证完成后深入",
+      "contact": []
     },
     {
       "name": "贸促会",
@@ -845,7 +864,8 @@
       "direction": "战略合作背书",
       "status": "跟进中",
       "relatedProject": "投资合作",
-      "issue": ""
+      "issue": "",
+      "contact": []
     },
     {
       "name": "四川远海",
@@ -853,7 +873,8 @@
       "direction": "设备出海/匈牙利项目",
       "status": "待面谈",
       "relatedProject": "设备、人才出海",
-      "issue": "需两位张总配合"
+      "issue": "需两位张总配合",
+      "contact": []
     },
     {
       "name": "吉漾中国",
@@ -861,7 +882,8 @@
       "direction": "展厅租用+教培",
       "status": "初步接触",
       "relatedProject": "场地合作",
-      "issue": ""
+      "issue": "",
+      "contact": []
     },
     {
       "name": "瓜子",
@@ -869,7 +891,8 @@
       "direction": "展厅+检测+延保",
       "status": "等待回复",
       "relatedProject": "场地合作",
-      "issue": ""
+      "issue": "",
+      "contact": []
     },
     {
       "name": "中盛",
@@ -877,7 +900,8 @@
       "direction": "销售",
       "status": "下周到访",
       "relatedProject": "场地合作",
-      "issue": ""
+      "issue": "",
+      "contact": []
     }
   ],
   "lastUpdated": "2026-07-07"
