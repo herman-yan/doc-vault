@@ -466,6 +466,82 @@ body {
   color: var(--purple);
 }
 
+/* Latest Updates Section */
+.latest-updates {
+  margin-bottom: 24px;
+}
+
+.latest-updates-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.latest-updates-header .icon {
+  font-size: 18px;
+}
+
+.latest-updates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.latest-update-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.latest-update-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  transform: translateX(4px);
+}
+
+.latest-project-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.latest-update-right {
+  flex: 1;
+  min-width: 0;
+}
+
+.latest-update-date {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+
+.latest-update-content {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 /* Section Title */
 .section-title {
   font-size: 16px;
@@ -510,6 +586,20 @@ body {
   }
   
   .container { padding: 12px; }
+  
+  .latest-update-item {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  
+  .latest-project-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+  
+  .latest-update-content {
+    font-size: 12px;
+  }
   
   .data-table {
     display: block;
@@ -589,6 +679,7 @@ body {
   <div class="db-view" id="trackingView">
     <div id="projectListView">
       <div class="stats-grid" id="statsGrid"></div>
+      <div class="latest-updates" id="latestUpdates"></div>
       <div class="project-list" id="projectList"></div>
     </div>
     <div class="detail-view" id="detailView"></div>
@@ -649,6 +740,7 @@ function switchView(view) {
 // Render tracking view
 function renderTrackingView() {
   renderStats();
+  renderLatestUpdates();
   renderProjectList();
 }
 
@@ -689,6 +781,70 @@ function renderStats() {
       <div class="stat-label">跟进记录</div>
       <div class="stat-value">${totalUpdates}</div>
       <div class="stat-sub">条总记录</div>
+    </div>
+  `;
+}
+
+function renderLatestUpdates() {
+  const projects = appData.projects;
+  // Project color map for tag styling
+  const projectColors = {};
+  const colorPalette = [
+    { bg: 'rgba(29, 155, 240, 0.15)', color: '#1d9bf0' },
+    { bg: 'rgba(0, 186, 124, 0.15)', color: '#00ba7c' },
+    { bg: 'rgba(255, 122, 0, 0.15)', color: '#ff7a00' },
+    { bg: 'rgba(120, 86, 255, 0.15)', color: '#7856ff' },
+    { bg: 'rgba(255, 212, 0, 0.15)', color: '#ffd400' },
+    { bg: 'rgba(244, 33, 46, 0.15)', color: '#f4212e' },
+    { bg: 'rgba(0, 186, 124, 0.15)', color: '#00ba7c' },
+    { bg: 'rgba(29, 155, 240, 0.15)', color: '#1d9bf0' },
+    { bg: 'rgba(255, 122, 0, 0.15)', color: '#ff7a00' },
+    { bg: 'rgba(120, 86, 255, 0.15)', color: '#7856ff' },
+    { bg: 'rgba(255, 212, 0, 0.15)', color: '#ffd400' },
+    { bg: 'rgba(244, 33, 46, 0.15)', color: '#f4212e' },
+  ];
+  projects.forEach((p, i) => {
+    projectColors[p.id] = colorPalette[i % colorPalette.length];
+  });
+
+  // Collect all timeline entries with project info
+  const allEntries = [];
+  projects.forEach(p => {
+    p.timeline.forEach(t => {
+      allEntries.push({
+        projectId: p.id,
+        projectName: p.name,
+        date: t.date,
+        content: t.content,
+        color: projectColors[p.id]
+      });
+    });
+  });
+
+  // Sort by date descending, take top 10
+  allEntries.sort((a, b) => b.date.localeCompare(a.date));
+  const topEntries = allEntries.slice(0, 10);
+
+  const html = topEntries.map(entry => {
+    const summary = entry.content.length > 60 ? entry.content.substring(0, 60) + '...' : entry.content;
+    const dateFormatted = entry.date.substring(5).replace('-', '/');
+    return `
+      <div class="latest-update-item" onclick="showDetail(${entry.projectId})">
+        <span class="latest-project-tag" style="background:${entry.color.bg};color:${entry.color.color}">${entry.projectName}</span>
+        <div class="latest-update-right">
+          <div class="latest-update-date">${dateFormatted}</div>
+          <div class="latest-update-content">${summary}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('latestUpdates').innerHTML = `
+    <div class="latest-updates-header">
+      <span class="icon">📡</span> 最新动态
+    </div>
+    <div class="latest-updates-list">
+      ${html}
     </div>
   `;
 }
