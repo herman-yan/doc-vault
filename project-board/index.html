@@ -182,10 +182,9 @@ body {
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px 20px;
-  cursor: pointer;
   transition: all 0.2s ease;
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: center;
   position: relative;
@@ -331,7 +330,74 @@ body {
 }
 
 .inline-edit-row .form-group.updater-field {
-  flex: 0 0 120px;
+  flex: 0 0 140px;
+}
+
+/* 填写人徽章 */
+.updater-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1d9bf0;
+  background: rgba(29, 157, 240, 0.12);
+  border: 1px solid rgba(29, 157, 240, 0.25);
+  border-radius: 10px;
+  padding: 1px 7px 1px 5px;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.updater-badge::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.updater-badge[data-initial]::before {
+  content: attr(data-initial);
+}
+
+/* 项目卡片可点击编辑区域 */
+.project-card .project-right {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  transition: background 0.15s;
+}
+.project-card .project-right:hover {
+  background: rgba(29, 157, 240, 0.08);
+}
+.project-card .project-name {
+  cursor: pointer;
+}
+
+/* 项目卡片中的最新进展行显示更新人和编辑提示 */
+.project-latest-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+.edit-hint {
+  font-size: 10px;
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.project-card .project-right:hover .edit-hint {
+  opacity: 1;
 }
 
 .inline-edit-actions {
@@ -1081,8 +1147,11 @@ body {
   .stat-value { font-size: 22px; }
   
   .project-card {
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: 1fr;
     gap: 8px;
+  }
+  .project-card .project-right {
+    margin-top: 4px;
   }
   
   .project-right {
@@ -1842,7 +1911,7 @@ function renderLatestUpdates() {
   const html = topEntries.map(entry => {
     const summary = entry.content.length > 60 ? entry.content.substring(0, 60) + '...' : entry.content;
     const dateFormatted = entry.date.substring(5).replace('-', '/');
-    const updaterHtml = entry.updater ? `<span class="latest-update-updater">· ${entry.updater}</span>` : '';
+    const updaterHtml = entry.updater ? `<span class="updater-badge" data-initial="${entry.updater.charAt(0)}">${entry.updater}</span>` : '';
     return `
       <div class="latest-update-item" onclick="showDetail(${entry.projectId})">
         <span class="latest-project-tag" style="background:${entry.color.bg};color:${entry.color.color}">${entry.projectName}</span>
@@ -1885,10 +1954,12 @@ function renderProjectList() {
     const latestUpdater = p.timeline[0] ? (p.timeline[0].updater || '') : '';
     const truncated = latestContent.length > 40 ? latestContent.substring(0, 40) + '...' : latestContent;
     
+    const updaterBadgeHtml = latestUpdater ? `<span class="updater-badge" data-initial="${latestUpdater.charAt(0)}">${latestUpdater}</span>` : '';
+    
     return `
       <div class="project-card-wrapper">
-        <div class="project-card" onclick="showDetail(${p.id})">
-          <div class="project-left">
+        <div class="project-card">
+          <div class="project-left" onclick="showDetail(${p.id})">
             <div class="project-name">
               ${p.name}
               <span class="priority-tag ${priorityClass}">${p.priority}</span>
@@ -1898,11 +1969,13 @@ function renderProjectList() {
             </div>
             <div class="progress-label">${isNaN(completionVal) ? '累计合作' : '完成度 ' + completionPct + '%'} · ${p.totalUpdates}次更新</div>
           </div>
-          <div class="project-right">
-            <div class="project-date">${p.latestUpdate}${latestUpdater ? '<span style="color:var(--text-secondary);font-size:11px;margin-left:6px">· ' + latestUpdater + '</span>' : ''}</div>
-            <div class="project-latest">${truncated}</div>
+          <div class="project-right" onclick="toggleInlineEdit(${p.id}, event)">
+            <div class="project-date">${p.latestUpdate}${updaterBadgeHtml}</div>
+            <div class="project-latest-row">
+              <span class="project-latest">${truncated}</span>
+              <span class="edit-hint">✏️ 点击编辑</span>
+            </div>
           </div>
-          <button class="btn-inline-edit" onclick="toggleInlineEdit(${p.id}, event)" title="编辑">✏️</button>
         </div>
         <div class="inline-edit-panel" id="inlineEdit-${p.id}">
           <div class="inline-edit-row">
@@ -1965,7 +2038,7 @@ function showDetail(projectId) {
     const nextStepFromContent = contentLines.find(l => l.startsWith('📌下一步：'));
     const displayNext = nextStepFromContent ? nextStepFromContent.replace('📌下一步：', '') : nextStep;
     const dateFormatted = item.date.substring(5).replace('-', '/');
-    const updaterHtml = item.updater ? `<span class="timeline-updater">· ${item.updater}</span>` : '';
+    const updaterHtml = item.updater ? `<span class="updater-badge" data-initial="${item.updater.charAt(0)}">${item.updater}</span>` : '';
     
     return `
       <div class="timeline-item" style="animation-delay:${i * 0.05}s">
