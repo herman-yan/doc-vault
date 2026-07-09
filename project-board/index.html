@@ -60,26 +60,30 @@ body {
   color: var(--text-primary);
 }
 
-.btn-edit {
-  display: inline-flex;
+.header-right {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  gap: 8px;
 }
 
-.btn-edit:hover {
-  background: #1a8cd8;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(29, 155, 240, 0.3);
+.btn-settings-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-settings-icon:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--accent);
 }
 
 .header-meta {
@@ -169,6 +173,10 @@ body {
   gap: 12px;
 }
 
+.project-card-wrapper {
+  position: relative;
+}
+
 .project-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -177,9 +185,10 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 12px;
   align-items: center;
+  position: relative;
 }
 
 .project-card:hover {
@@ -262,6 +271,133 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 300px;
+}
+
+/* Inline edit button on card */
+.btn-inline-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  z-index: 2;
+}
+.btn-inline-edit:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+/* Inline Edit Panel */
+.inline-edit-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.35s ease;
+  opacity: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  margin-top: -1px;
+}
+
+.inline-edit-panel.open {
+  max-height: 500px;
+  opacity: 1;
+  padding: 16px 20px;
+}
+
+.inline-edit-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: flex-end;
+}
+
+.inline-edit-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.inline-edit-row .form-group.narrow {
+  flex: 0 0 140px;
+}
+
+.inline-edit-row .form-group.updater-field {
+  flex: 0 0 120px;
+}
+
+.inline-edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-inline-submit {
+  padding: 8px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-inline-submit:hover:not(:disabled) {
+  background: #1a8cd8;
+}
+.btn-inline-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-inline-submit.success { background: var(--green); }
+.btn-inline-submit.error { background: var(--red); }
+
+.btn-inline-cancel {
+  padding: 8px 16px;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-inline-cancel:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.inline-status-msg {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: none;
+}
+.inline-status-msg.open { display: block; }
+.inline-status-msg.success {
+  background: rgba(0, 186, 124, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(0, 186, 124, 0.3);
+}
+.inline-status-msg.error {
+  background: rgba(244, 33, 46, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(244, 33, 46, 0.3);
 }
 
 /* Timeline Detail View */
@@ -372,6 +508,13 @@ body {
   font-weight: 600;
   color: var(--accent);
   margin-bottom: 6px;
+}
+
+.timeline-updater {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-left: 6px;
 }
 
 .timeline-content {
@@ -559,6 +702,13 @@ body {
   margin-bottom: 3px;
 }
 
+.latest-update-updater {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
 .latest-update-content {
   font-size: 13px;
   color: var(--text-secondary);
@@ -590,7 +740,7 @@ body {
   font-weight: 400;
 }
 
-/* ========== Edit Modal ========== */
+/* ========== Settings Modal ========== */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -612,7 +762,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: 16px;
   width: 100%;
-  max-width: 520px;
+  max-width: 440px;
   padding: 0;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   animation: modalIn 0.25s ease;
@@ -653,84 +803,11 @@ body {
   padding: 20px;
 }
 
-/* Tabs inside modal */
-.modal-tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--border-color);
+/* ========== Contact Modal ========== */
+.contact-modal-body {
+  padding: 20px;
 }
 
-.modal-tab {
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.modal-tab:hover { color: var(--text-primary); }
-
-.modal-tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-
-.modal-tab-content { display: none; }
-.modal-tab-content.active { display: block; }
-
-/* Form elements */
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.form-input,
-.form-textarea,
-.form-select {
-  width: 100%;
-  padding: 10px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-  font-family: inherit;
-}
-
-.form-input:focus,
-.form-textarea:focus,
-.form-select:focus {
-  border-color: var(--accent);
-}
-
-.form-input::placeholder,
-.form-textarea::placeholder {
-  color: var(--text-secondary);
-}
-
-.form-textarea {
-  min-height: 100px;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-/* Project search dropdown */
 .project-search-wrapper {
   position: relative;
 }
@@ -800,119 +877,54 @@ body {
   flex-shrink: 0;
 }
 
-/* Submit button */
-.btn-submit {
-  width: 100%;
-  padding: 12px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
+/* Form elements */
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-label {
+  display: block;
+  font-size: 11px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn-submit:hover:not(:disabled) {
-  background: #1a8cd8;
-}
-
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-submit.success {
-  background: var(--green);
-}
-
-.btn-submit.error {
-  background: var(--red);
-}
-
-/* Settings collapsible */
-.settings-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
   color: var(--text-secondary);
-  cursor: pointer;
-  padding: 8px 0;
-  border: none;
-  background: none;
-  transition: color 0.2s;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.settings-toggle:hover { color: var(--text-primary); }
-
-.settings-panel {
-  display: none;
-  padding: 16px;
-  background: var(--bg-primary);
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  margin-top: 8px;
-}
-
-.settings-panel.open { display: block; }
-
-.settings-panel .form-group:last-child { margin-bottom: 0; }
-
-.btn-save-settings {
-  padding: 8px 16px;
-  background: var(--bg-hover);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
 }
 
-.btn-save-settings:hover {
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
   border-color: var(--accent);
-  color: var(--accent);
 }
 
-/* Status message */
-.status-msg {
-  margin-top: 12px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  display: none;
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--text-secondary);
 }
 
-.status-msg.open { display: block; }
-
-.status-msg.success {
-  background: rgba(0, 186, 124, 0.15);
-  color: var(--green);
-  border: 1px solid rgba(0, 186, 124, 0.3);
+.form-textarea {
+  min-height: 80px;
+  resize: vertical;
+  line-height: 1.5;
 }
 
-.status-msg.error {
-  background: rgba(244, 33, 46, 0.15);
-  color: var(--red);
-  border: 1px solid rgba(244, 33, 46, 0.3);
-}
-
-.status-msg.info {
-  background: rgba(29, 155, 240, 0.15);
-  color: var(--accent);
-  border: 1px solid rgba(29, 155, 240, 0.3);
-}
-
-/* Contact section in modal */
+/* Contact section */
 .contact-section {
   margin-top: 16px;
   padding-top: 16px;
@@ -961,6 +973,78 @@ body {
 
 .btn-remove-contact:hover { color: var(--red); }
 
+.btn-save-settings {
+  padding: 8px 16px;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.btn-save-settings:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Submit button */
+.btn-submit {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #1a8cd8;
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-submit.success { background: var(--green); }
+.btn-submit.error { background: var(--red); }
+
+/* Status message */
+.status-msg {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  display: none;
+}
+
+.status-msg.open { display: block; }
+
+.status-msg.success {
+  background: rgba(0, 186, 124, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(0, 186, 124, 0.3);
+}
+
+.status-msg.error {
+  background: rgba(244, 33, 46, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(244, 33, 46, 0.3);
+}
+
 /* Contact display in tables */
 .contact-info {
   font-size: 12px;
@@ -997,7 +1081,8 @@ body {
   .stat-value { font-size: 22px; }
   
   .project-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
   }
   
   .project-right {
@@ -1052,17 +1137,20 @@ body {
     gap: 8px;
   }
 
-  .btn-edit {
-    font-size: 12px;
-    padding: 5px 10px;
-  }
-
   .contact-item {
     flex-wrap: wrap;
   }
 
   .contact-item .form-input {
     min-width: 80px;
+  }
+
+  .inline-edit-row {
+    flex-wrap: wrap;
+  }
+  .inline-edit-row .form-group.narrow,
+  .inline-edit-row .form-group.updater-field {
+    flex: 0 0 100%;
   }
 }
 
@@ -1115,9 +1203,11 @@ body {
   <div class="header-top">
     <div class="header-left">
       <h1>📋 项目管理看板</h1>
-      <button class="btn-edit" onclick="openEditModal()">✏️ 更新进展</button>
     </div>
-    <div class="header-meta" id="lastUpdated"></div>
+    <div class="header-right">
+      <div class="header-meta" id="lastUpdated"></div>
+      <button class="btn-settings-icon" onclick="openSettingsModal()" title="设置">⚙️</button>
+    </div>
   </div>
   <div class="tabs">
     <button class="tab active" data-view="tracking" onclick="switchView('tracking')">项目跟进</button>
@@ -1151,96 +1241,61 @@ body {
   </div>
 </div>
 
-<!-- ========== Edit Modal ========== -->
-<div class="modal-overlay" id="editModal">
+<!-- ========== Settings Modal ========== -->
+<div class="modal-overlay" id="settingsModal">
   <div class="modal-card">
     <div class="modal-header">
-      <div class="modal-title">✏️ 更新进展</div>
-      <button class="modal-close" onclick="closeEditModal()">&times;</button>
+      <div class="modal-title">⚙️ 设置</div>
+      <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <!-- Modal tabs: 项目进展 / 联系人管理 -->
-      <div class="modal-tabs">
-        <button class="modal-tab active" data-mtab="progress" onclick="switchModalTab('progress')">项目进展</button>
-        <button class="modal-tab" data-mtab="contact" onclick="switchModalTab('contact')">联系人管理</button>
+      <div class="form-group">
+        <label class="form-label">GitHub Token</label>
+        <input type="password" class="form-input" id="settingToken" placeholder="ghp_xxxx...">
       </div>
+      <div class="form-group">
+        <label class="form-label">仓库 (owner/repo)</label>
+        <input type="text" class="form-input" id="settingRepo" placeholder="herman-yan/doc-vault">
+      </div>
+      <div class="form-group">
+        <label class="form-label">分支</label>
+        <input type="text" class="form-input" id="settingBranch" placeholder="main">
+      </div>
+      <div class="form-group">
+        <label class="form-label">JSON 文件路径</label>
+        <input type="text" class="form-input" id="settingJsonPath" placeholder="project-board/project-data.json">
+      </div>
+      <button class="btn-save-settings" onclick="saveSettings()">保存设置</button>
+    </div>
+  </div>
+</div>
 
-      <!-- Tab 1: Progress Update -->
-      <div class="modal-tab-content active" id="mTabProgress">
-        <div class="form-group">
-          <label class="form-label">选择项目</label>
-          <div class="project-search-wrapper">
-            <input type="text" class="project-search-input" id="projectSearch" placeholder="输入项目名称搜索..." oninput="filterProjectDropdown(this.value)" onfocus="showProjectDropdown()" autocomplete="off">
-            <div class="project-dropdown" id="projectDropdown"></div>
-          </div>
-          <input type="hidden" id="selectedProjectId">
+<!-- ========== Contact Management Modal ========== -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">👥 联系人管理</div>
+      <button class="modal-close" onclick="closeContactModal()">&times;</button>
+    </div>
+    <div class="contact-modal-body">
+      <div class="form-group">
+        <label class="form-label">选择企业</label>
+        <div class="project-search-wrapper">
+          <input type="text" class="project-search-input" id="contactSearch" placeholder="输入企业名称搜索..." oninput="filterContactDropdown(this.value)" onfocus="showContactDropdown()" autocomplete="off">
+          <div class="project-dropdown" id="contactDropdown"></div>
         </div>
+        <input type="hidden" id="selectedContactPartner">
+      </div>
+      <div id="contactFields" style="display:none;">
         <div class="form-group">
-          <label class="form-label">日期</label>
-          <input type="date" class="form-input" id="updateDate">
+          <label class="form-label">联系人信息</label>
+          <div id="contactList"></div>
+          <button class="btn-add-contact" onclick="addContactRow()">+ 添加联系人</button>
         </div>
-        <div class="form-group">
-          <label class="form-label">进展内容</label>
-          <textarea class="form-textarea" id="updateContent" placeholder="填写今日进展..."></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">下一步计划（可选）</label>
-          <input type="text" class="form-input" id="updateNextStep" placeholder="例如：明天约见客户面谈">
-        </div>
-        <button class="btn-submit" id="btnSubmitUpdate" onclick="submitUpdate()">
-          <span id="btnSubmitText">提交更新</span>
+        <button class="btn-submit" id="btnSubmitContact" onclick="submitContact()">
+          <span id="btnSubmitContactText">保存联系人</span>
         </button>
-        <div class="status-msg" id="updateStatus"></div>
-      </div>
-
-      <!-- Tab 2: Contact Management -->
-      <div class="modal-tab-content" id="mTabContact">
-        <div class="form-group">
-          <label class="form-label">选择企业</label>
-          <div class="project-search-wrapper">
-            <input type="text" class="project-search-input" id="contactSearch" placeholder="输入企业名称搜索..." oninput="filterContactDropdown(this.value)" onfocus="showContactDropdown()" autocomplete="off">
-            <div class="project-dropdown" id="contactDropdown"></div>
-          </div>
-          <input type="hidden" id="selectedContactPartner">
-        </div>
-        <div id="contactFields" style="display:none;">
-          <div class="form-group">
-            <label class="form-label">联系人信息</label>
-            <div id="contactList"></div>
-            <button class="btn-add-contact" onclick="addContactRow()">+ 添加联系人</button>
-          </div>
-          <button class="btn-submit" id="btnSubmitContact" onclick="submitContact()">
-            <span id="btnSubmitContactText">保存联系人</span>
-          </button>
-          <div class="status-msg" id="contactStatus"></div>
-        </div>
-      </div>
-
-      <!-- Settings (shared) -->
-      <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-        <button class="settings-toggle" id="settingsToggle" onclick="toggleSettings()">
-          ⚙️ 设置
-          <span id="settingsArrow" style="transition:transform 0.2s">▼</span>
-        </button>
-        <div class="settings-panel" id="settingsPanel">
-          <div class="form-group">
-            <label class="form-label">GitHub Token</label>
-            <input type="password" class="form-input" id="settingToken" placeholder="ghp_xxxx...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">仓库 (owner/repo)</label>
-            <input type="text" class="form-input" id="settingRepo" placeholder="herman-yan/doc-vault">
-          </div>
-          <div class="form-group">
-            <label class="form-label">分支</label>
-            <input type="text" class="form-input" id="settingBranch" placeholder="main">
-          </div>
-          <div class="form-group">
-            <label class="form-label">JSON 文件路径</label>
-            <input type="text" class="form-input" id="settingJsonPath" placeholder="project-board/project-data.json">
-          </div>
-          <button class="btn-save-settings" onclick="saveSettings()">保存设置</button>
-        </div>
+        <div class="status-msg" id="contactStatus"></div>
       </div>
     </div>
   </div>
@@ -1250,6 +1305,7 @@ body {
 let appData = null;
 let currentView = 'tracking';
 let currentProjectId = null;
+let openEditProjectId = null;
 
 // ===================== Settings =====================
 function getSettings() {
@@ -1277,94 +1333,194 @@ function loadSettingsToForm() {
   document.getElementById('settingJsonPath').value = s.jsonPath;
 }
 
-function toggleSettings() {
-  const panel = document.getElementById('settingsPanel');
-  const arrow = document.getElementById('settingsArrow');
-  panel.classList.toggle('open');
-  arrow.style.transform = panel.classList.contains('open') ? 'rotate(180deg)' : '';
-}
-
-// ===================== Modal =====================
-function openEditModal() {
-  document.getElementById('editModal').classList.add('open');
+function openSettingsModal() {
+  document.getElementById('settingsModal').classList.add('open');
   document.body.style.overflow = 'hidden';
   loadSettingsToForm();
-  // Set default date to today
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  document.getElementById('updateDate').value = `${yyyy}-${mm}-${dd}`;
-  // Populate project dropdown
-  buildProjectDropdown();
+}
+
+function closeSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ===================== Inline Edit Panel =====================
+function toggleInlineEdit(projectId, event) {
+  if (event) event.stopPropagation();
+  
+  if (openEditProjectId !== null && openEditProjectId !== projectId) {
+    closeInlineEdit(openEditProjectId);
+  }
+  
+  const panel = document.getElementById(`inlineEdit-${projectId}`);
+  if (!panel) return;
+  
+  if (panel.classList.contains('open')) {
+    closeInlineEdit(projectId);
+  } else {
+    panel.classList.add('open');
+    openEditProjectId = projectId;
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const dateInput = panel.querySelector('.inline-date');
+    if (dateInput && !dateInput.value) dateInput.value = `${yyyy}-${mm}-${dd}`;
+    
+    const updaterInput = panel.querySelector('.inline-updater');
+    if (updaterInput && !updaterInput.value) {
+      const lastUpdater = localStorage.getItem('lastUpdater') || '';
+      updaterInput.value = lastUpdater;
+    }
+    
+    setTimeout(() => {
+      const contentInput = panel.querySelector('.inline-content');
+      if (contentInput) contentInput.focus();
+    }, 100);
+  }
+}
+
+function closeInlineEdit(projectId) {
+  const panel = document.getElementById(`inlineEdit-${projectId}`);
+  if (panel) {
+    panel.classList.remove('open');
+    const statusEl = panel.querySelector('.inline-status-msg');
+    if (statusEl) statusEl.className = 'inline-status-msg';
+  }
+  if (openEditProjectId === projectId) openEditProjectId = null;
+}
+
+function cancelInlineEdit(projectId, event) {
+  if (event) event.stopPropagation();
+  closeInlineEdit(projectId);
+}
+
+// ===================== Submit Inline Update =====================
+async function submitInlineUpdate(projectId, event) {
+  if (event) event.stopPropagation();
+  
+  const panel = document.getElementById(`inlineEdit-${projectId}`);
+  if (!panel) return;
+  
+  const date = panel.querySelector('.inline-date').value;
+  const content = panel.querySelector('.inline-content').value.trim();
+  const nextStep = panel.querySelector('.inline-nextstep').value.trim();
+  const updater = panel.querySelector('.inline-updater').value.trim();
+
+  if (!date) { showInlineStatus(panel, '请选择日期', 'error'); return; }
+  if (!content) { showInlineStatus(panel, '请填写进展内容', 'error'); return; }
+
+  const settings = getSettings();
+  if (!settings.token) { showInlineStatus(panel, '请先在 ⚙️ 设置中配置 GitHub Token', 'error'); return; }
+
+  const btn = panel.querySelector('.btn-inline-submit');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+  hideInlineStatus(panel);
+
+  try {
+    const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
+    const resp = await fetch(apiUrl, {
+      headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!resp.ok) throw new Error(`获取文件失败: ${resp.status} ${resp.statusText}`);
+    const fileData = await resp.json();
+    const sha = fileData.sha;
+
+    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
+    const data = JSON.parse(jsonStr);
+
+    const project = data.projects.find(p => p.id === projectId);
+    if (!project) throw new Error('项目未找到');
+
+    let fullContent = content;
+    if (nextStep) {
+      fullContent += `\n📌下一步：${nextStep}`;
+    }
+
+    const timelineEntry = { date, content: fullContent };
+    if (updater) timelineEntry.updater = updater;
+    
+    project.timeline.unshift(timelineEntry);
+    project.totalUpdates = (project.totalUpdates || 0) + 1;
+    project.latestUpdate = date;
+    data.lastUpdated = date;
+
+    const updatedJson = JSON.stringify(data, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
+
+    const pushResp = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${settings.token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `更新项目进展: ${project.name} (${date})`,
+        content: base64Content,
+        sha: sha,
+        branch: settings.branch
+      })
+    });
+
+    if (!pushResp.ok) {
+      const errData = await pushResp.json();
+      throw new Error(errData.message || `推送失败: ${pushResp.status}`);
+    }
+
+    if (updater) localStorage.setItem('lastUpdater', updater);
+    
+    showInlineStatus(panel, '✅ 更新成功！已推送到GitHub', 'success');
+    btn.classList.add('success');
+    btn.textContent = '✓ 成功';
+
+    await loadData();
+
+    setTimeout(() => {
+      closeInlineEdit(projectId);
+    }, 800);
+
+  } catch (err) {
+    showInlineStatus(panel, `❌ ${err.message}`, 'error');
+    btn.classList.add('error');
+    btn.textContent = '失败';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.classList.remove('error');
+      btn.textContent = '提交';
+    }, 2000);
+  }
+}
+
+function showInlineStatus(panel, msg, type) {
+  const el = panel.querySelector('.inline-status-msg');
+  if (el) {
+    el.textContent = msg;
+    el.className = `inline-status-msg open ${type}`;
+  }
+}
+
+function hideInlineStatus(panel) {
+  const el = panel.querySelector('.inline-status-msg');
+  if (el) el.className = 'inline-status-msg';
+}
+
+// ===================== Contact Modal =====================
+function openContactModal() {
+  document.getElementById('contactModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
   buildContactDropdown();
 }
 
-function closeEditModal() {
-  document.getElementById('editModal').classList.remove('open');
+function closeContactModal() {
+  document.getElementById('contactModal').classList.remove('open');
   document.body.style.overflow = '';
-  // Reset form
-  document.getElementById('projectSearch').value = '';
-  document.getElementById('selectedProjectId').value = '';
-  document.getElementById('updateContent').value = '';
-  document.getElementById('updateNextStep').value = '';
-  hideStatus('updateStatus');
+  document.getElementById('contactSearch').value = '';
+  document.getElementById('selectedContactPartner').value = '';
+  document.getElementById('contactFields').style.display = 'none';
   hideStatus('contactStatus');
 }
-
-function switchModalTab(tab) {
-  document.querySelectorAll('.modal-tab').forEach(t => t.classList.toggle('active', t.dataset.mtab === tab));
-  document.getElementById('mTabProgress').classList.toggle('active', tab === 'progress');
-  document.getElementById('mTabContact').classList.toggle('active', tab === 'contact');
-}
-
-// ===================== Project Dropdown =====================
-function buildProjectDropdown() {
-  if (!appData) return;
-  const dropdown = document.getElementById('projectDropdown');
-  dropdown.innerHTML = appData.projects.map(p =>
-    `<div class="project-dropdown-item" data-id="${p.id}" onclick="selectProject(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
-      <span class="dot"></span>${p.name}
-    </div>`
-  ).join('');
-}
-
-function filterProjectDropdown(query) {
-  const q = query.toLowerCase().trim();
-  const items = document.querySelectorAll('#projectDropdown .project-dropdown-item');
-  items.forEach(item => {
-    const text = item.textContent.toLowerCase();
-    item.style.display = text.includes(q) ? '' : 'none';
-  });
-  showProjectDropdown();
-}
-
-function showProjectDropdown() {
-  document.getElementById('projectDropdown').classList.add('open');
-}
-
-function hideProjectDropdown() {
-  setTimeout(() => {
-    document.getElementById('projectDropdown').classList.remove('open');
-  }, 200);
-}
-
-function selectProject(id, name) {
-  document.getElementById('selectedProjectId').value = id;
-  document.getElementById('projectSearch').value = name;
-  // Highlight selected
-  document.querySelectorAll('#projectDropdown .project-dropdown-item').forEach(item => {
-    item.classList.toggle('selected', parseInt(item.dataset.id) === id);
-  });
-  hideProjectDropdown();
-}
-
-// Close dropdown on outside click
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.project-search-wrapper')) {
-    document.querySelectorAll('.project-dropdown').forEach(d => d.classList.remove('open'));
-  }
-});
 
 // ===================== Contact Dropdown =====================
 function getAllPartners() {
@@ -1404,7 +1560,6 @@ function selectContactPartner(name, section) {
   document.getElementById('selectedContactPartner').value = name;
   document.getElementById('contactSearch').value = name;
   document.getElementById('contactDropdown').classList.remove('open');
-  // Show contact fields and populate existing contacts
   document.getElementById('contactFields').style.display = 'block';
   loadExistingContacts(name, section);
 }
@@ -1443,6 +1598,13 @@ function addContactRow(name, phone, role) {
   list.appendChild(row);
 }
 
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.project-search-wrapper')) {
+    document.querySelectorAll('.project-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
 // ===================== Status Messages =====================
 function showStatus(elementId, msg, type) {
   const el = document.getElementById(elementId);
@@ -1455,110 +1617,11 @@ function hideStatus(elementId) {
   el.className = 'status-msg';
 }
 
-// ===================== Submit Update =====================
-async function submitUpdate() {
-  const projectId = parseInt(document.getElementById('selectedProjectId').value);
-  const date = document.getElementById('updateDate').value;
-  const content = document.getElementById('updateContent').value.trim();
-  const nextStep = document.getElementById('updateNextStep').value.trim();
-
-  if (!projectId) { showStatus('updateStatus', '请先选择项目', 'error'); return; }
-  if (!date) { showStatus('updateStatus', '请选择日期', 'error'); return; }
-  if (!content) { showStatus('updateStatus', '请填写进展内容', 'error'); return; }
-
-  const settings = getSettings();
-  if (!settings.token) { showStatus('updateStatus', '请先在设置中配置 GitHub Token', 'error'); return; }
-
-  const btn = document.getElementById('btnSubmitUpdate');
-  const btnText = document.getElementById('btnSubmitText');
-  btn.disabled = true;
-  btnText.textContent = '提交中...';
-  hideStatus('updateStatus');
-
-  try {
-    // 1. Fetch current JSON from GitHub
-    const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
-    const resp = await fetch(apiUrl, {
-      headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
-    });
-    if (!resp.ok) throw new Error(`获取文件失败: ${resp.status} ${resp.statusText}`);
-    const fileData = await resp.json();
-    const sha = fileData.sha;
-
-    // 2. Decode and parse
-    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
-    const data = JSON.parse(jsonStr);
-
-    // 3. Find project and insert timeline entry
-    const project = data.projects.find(p => p.id === projectId);
-    if (!project) throw new Error('项目未找到');
-
-    let fullContent = content;
-    if (nextStep) {
-      fullContent += `\n📌下一步：${nextStep}`;
-    }
-
-    project.timeline.unshift({ date, content: fullContent });
-    project.totalUpdates = (project.totalUpdates || 0) + 1;
-    project.latestUpdate = date;
-    data.lastUpdated = date;
-
-    // 4. Encode and push
-    const updatedJson = JSON.stringify(data, null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
-
-    const pushResp = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${settings.token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `更新项目进展: ${project.name} (${date})`,
-        content: base64Content,
-        sha: sha,
-        branch: settings.branch
-      })
-    });
-
-    if (!pushResp.ok) {
-      const errData = await pushResp.json();
-      throw new Error(errData.message || `推送失败: ${pushResp.status}`);
-    }
-
-    // 5. Success - reload data and refresh UI
-    showStatus('updateStatus', '✅ 更新成功！已推送到GitHub', 'success');
-    btn.classList.add('success');
-    btnText.textContent = '✓ 成功';
-
-    // Reload data
-    await loadData();
-
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.classList.remove('success');
-      btnText.textContent = '提交更新';
-    }, 2000);
-
-  } catch (err) {
-    showStatus('updateStatus', `❌ ${err.message}`, 'error');
-    btn.classList.add('error');
-    btnText.textContent = '失败';
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.classList.remove('error');
-      btnText.textContent = '提交更新';
-    }, 2000);
-  }
-}
-
 // ===================== Submit Contact =====================
 async function submitContact() {
   const partnerName = document.getElementById('selectedContactPartner').value;
   if (!partnerName) { showStatus('contactStatus', '请先选择企业', 'error'); return; }
 
-  // Collect contact rows
   const rows = document.querySelectorAll('#contactList .contact-item');
   const contacts = [];
   rows.forEach(row => {
@@ -1581,7 +1644,6 @@ async function submitContact() {
   hideStatus('contactStatus');
 
   try {
-    // 1. Fetch current JSON from GitHub
     const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
     const resp = await fetch(apiUrl, {
       headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
@@ -1590,23 +1652,18 @@ async function submitContact() {
     const fileData = await resp.json();
     const sha = fileData.sha;
 
-    // 2. Decode and parse
     const jsonStr = atob(fileData.content.replace(/\n/g, ''));
     const data = JSON.parse(jsonStr);
 
-    // 3. Find partner and update contacts
     let found = false;
-    // Search in businessPartners
     for (const p of data.businessPartners) {
       if (p.name === partnerName) { p.contact = contacts; found = true; break; }
     }
-    // Search in venuePartners
     if (!found) {
       for (const p of data.venuePartners) {
         if (p.name === partnerName) { p.contact = contacts; found = true; break; }
       }
     }
-    // Search in industryPartners
     if (!found) {
       for (const p of data.industryPartners) {
         if (p.company === partnerName) { p.contact = contacts; found = true; break; }
@@ -1614,7 +1671,6 @@ async function submitContact() {
     }
     if (!found) throw new Error('企业未找到');
 
-    // 4. Encode and push
     const updatedJson = JSON.stringify(data, null, 2);
     const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
 
@@ -1672,7 +1728,6 @@ async function loadData() {
     document.getElementById('lastUpdated').textContent = '数据更新: ' + appData.lastUpdated;
     renderTrackingView();
     renderDatabaseView();
-    // Don't call switchView on reload - keep current view
   } catch (e) {
     document.getElementById('loadingState').innerHTML = '<div style="color:var(--red)">数据加载失败，请刷新页面重试</div>';
   }
@@ -1775,6 +1830,7 @@ function renderLatestUpdates() {
         projectName: p.name,
         date: t.date,
         content: t.content,
+        updater: t.updater || '',
         color: projectColors[p.id]
       });
     });
@@ -1786,11 +1842,12 @@ function renderLatestUpdates() {
   const html = topEntries.map(entry => {
     const summary = entry.content.length > 60 ? entry.content.substring(0, 60) + '...' : entry.content;
     const dateFormatted = entry.date.substring(5).replace('-', '/');
+    const updaterHtml = entry.updater ? `<span class="latest-update-updater">· ${entry.updater}</span>` : '';
     return `
       <div class="latest-update-item" onclick="showDetail(${entry.projectId})">
         <span class="latest-project-tag" style="background:${entry.color.bg};color:${entry.color.color}">${entry.projectName}</span>
         <div class="latest-update-right">
-          <div class="latest-update-date">${dateFormatted}</div>
+          <div class="latest-update-date">${dateFormatted}${updaterHtml}</div>
           <div class="latest-update-content">${summary}</div>
         </div>
       </div>
@@ -1815,6 +1872,10 @@ function renderProjectList() {
     return b.latestUpdate.localeCompare(a.latestUpdate);
   });
   
+  const lastUpdater = localStorage.getItem('lastUpdater') || '';
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
   document.getElementById('projectList').innerHTML = sorted.map(p => {
     const completionVal = parseFloat(p.completion);
     const completionPct = isNaN(completionVal) ? 0 : Math.round(completionVal * 100);
@@ -1824,20 +1885,48 @@ function renderProjectList() {
     const truncated = latestContent.length > 40 ? latestContent.substring(0, 40) + '...' : latestContent;
     
     return `
-      <div class="project-card" onclick="showDetail(${p.id})">
-        <div class="project-left">
-          <div class="project-name">
-            ${p.name}
-            <span class="priority-tag ${priorityClass}">${p.priority}</span>
+      <div class="project-card-wrapper">
+        <div class="project-card" onclick="showDetail(${p.id})">
+          <div class="project-left">
+            <div class="project-name">
+              ${p.name}
+              <span class="priority-tag ${priorityClass}">${p.priority}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill ${isComplete ? 'complete' : ''}" style="width:${completionPct}%"></div>
+            </div>
+            <div class="progress-label">${isNaN(completionVal) ? '累计合作' : '完成度 ' + completionPct + '%'} · ${p.totalUpdates}次更新</div>
           </div>
-          <div class="progress-bar">
-            <div class="progress-fill ${isComplete ? 'complete' : ''}" style="width:${completionPct}%"></div>
+          <div class="project-right">
+            <div class="project-date">${p.latestUpdate}</div>
+            <div class="project-latest">${truncated}</div>
           </div>
-          <div class="progress-label">${isNaN(completionVal) ? '累计合作' : '完成度 ' + completionPct + '%'} · ${p.totalUpdates}次更新</div>
+          <button class="btn-inline-edit" onclick="toggleInlineEdit(${p.id}, event)" title="编辑">✏️</button>
         </div>
-        <div class="project-right">
-          <div class="project-date">${p.latestUpdate}</div>
-          <div class="project-latest">${truncated}</div>
+        <div class="inline-edit-panel" id="inlineEdit-${p.id}">
+          <div class="inline-edit-row">
+            <div class="form-group narrow">
+              <label class="form-label">日期</label>
+              <input type="date" class="form-input inline-date" value="${todayStr}">
+            </div>
+            <div class="form-group updater-field">
+              <label class="form-label">更新人</label>
+              <input type="text" class="form-input inline-updater" placeholder="填写人" value="${lastUpdater}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">进展内容</label>
+            <textarea class="form-textarea inline-content" placeholder="填写今日进展..." rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">下一步计划（可选）</label>
+            <input type="text" class="form-input inline-nextstep" placeholder="例如：明天约见客户面谈">
+          </div>
+          <div class="inline-edit-actions">
+            <button class="btn-inline-submit" onclick="submitInlineUpdate(${p.id}, event)">提交</button>
+            <button class="btn-inline-cancel" onclick="cancelInlineEdit(${p.id}, event)">取消</button>
+          </div>
+          <div class="inline-status-msg"></div>
         </div>
       </div>
     `;
@@ -1870,16 +1959,17 @@ function showDetail(projectId) {
   
   const timelineHtml = p.timeline.map((item, i) => {
     const nextStep = extractNext(item.content);
-    // Handle 📌下一步 in content
     const contentLines = item.content.split('\n');
     const mainContent = contentLines[0];
     const nextStepFromContent = contentLines.find(l => l.startsWith('📌下一步：'));
     const displayNext = nextStepFromContent ? nextStepFromContent.replace('📌下一步：', '') : nextStep;
+    const dateFormatted = item.date.substring(5).replace('-', '/');
+    const updaterHtml = item.updater ? `<span class="timeline-updater">· ${item.updater}</span>` : '';
     
     return `
       <div class="timeline-item" style="animation-delay:${i * 0.05}s">
         <div class="timeline-dot"></div>
-        <div class="timeline-date">${item.date}</div>
+        <div class="timeline-date">${dateFormatted}${updaterHtml}</div>
         <div class="timeline-content">
           ${mainContent}
           ${displayNext ? `<div class="timeline-next">${displayNext}</div>` : ''}
@@ -1923,7 +2013,6 @@ function showProjectList() {
 function renderDatabaseView() {
   const allCustomers = [];
   
-  // Business partners
   appData.businessPartners.forEach(p => {
     allCustomers.push({
       name: p.name,
@@ -1937,7 +2026,6 @@ function renderDatabaseView() {
     });
   });
   
-  // Venue partners
   appData.venuePartners.forEach(p => {
     allCustomers.push({
       name: p.name,
@@ -1951,7 +2039,6 @@ function renderDatabaseView() {
     });
   });
   
-  // Industry partners
   appData.industryPartners.forEach(p => {
     const industry = p.industry || '待分类';
     allCustomers.push({
@@ -1966,7 +2053,6 @@ function renderDatabaseView() {
     });
   });
   
-  // Group by type
   const groups = {
     '业务合作方': allCustomers.filter(c => c.typeClass === 'business' || c.typeClass === 'government'),
     '场地合作方': allCustomers.filter(c => c.typeClass === 'venue'),
