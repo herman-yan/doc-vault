@@ -1882,6 +1882,7 @@ function renderProjectList() {
     const isComplete = completionPct >= 99;
     const priorityClass = p.priority === '高' ? 'high' : 'lost';
     const latestContent = p.timeline[0] ? p.timeline[0].content : '';
+    const latestUpdater = p.timeline[0] ? (p.timeline[0].updater || '') : '';
     const truncated = latestContent.length > 40 ? latestContent.substring(0, 40) + '...' : latestContent;
     
     return `
@@ -1898,7 +1899,7 @@ function renderProjectList() {
             <div class="progress-label">${isNaN(completionVal) ? '累计合作' : '完成度 ' + completionPct + '%'} · ${p.totalUpdates}次更新</div>
           </div>
           <div class="project-right">
-            <div class="project-date">${p.latestUpdate}</div>
+            <div class="project-date">${p.latestUpdate}${latestUpdater ? '<span style="color:var(--text-secondary);font-size:11px;margin-left:6px">· ' + latestUpdater + '</span>' : ''}</div>
             <div class="project-latest">${truncated}</div>
           </div>
           <button class="btn-inline-edit" onclick="toggleInlineEdit(${p.id}, event)" title="编辑">✏️</button>
