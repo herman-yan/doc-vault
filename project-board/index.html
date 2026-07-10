@@ -1844,7 +1844,7 @@ async function submitInlineUpdate(projectId, event) {
     const fileData = await resp.json();
     const sha = fileData.sha;
 
-    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
+    const jsonStr = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
     const data = JSON.parse(jsonStr);
 
     const project = data.projects.find(p => p.id === projectId);
@@ -2069,7 +2069,7 @@ async function submitContact() {
     const fileData = await resp.json();
     const sha = fileData.sha;
 
-    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
+    const jsonStr = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
     const data = JSON.parse(jsonStr);
 
     let found = false;
@@ -2641,7 +2641,7 @@ async function submitLatestQuickEdit(projectId, idx, event) {
     if (!resp.ok) throw new Error(`获取文件失败: ${resp.status}`);
     const fileData = await resp.json();
     const sha = fileData.sha;
-    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
+    const jsonStr = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
     const data = JSON.parse(jsonStr);
     
     const project = data.projects.find(p => p.id === projectId);
@@ -2723,7 +2723,7 @@ async function submitDetailQuickEdit(projectId, event) {
     if (!resp.ok) throw new Error(`获取文件失败: ${resp.status}`);
     const fileData = await resp.json();
     const sha = fileData.sha;
-    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
+    const jsonStr = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
     const data = JSON.parse(jsonStr);
     
     const project = data.projects.find(p => p.id === projectId);
@@ -2832,7 +2832,7 @@ async function submitNewProject() {
     if (!resp.ok) throw new Error(`获取数据失败: ${resp.status}`);
     const fileData = await resp.json();
     const sha = fileData.sha;
-    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
+    const jsonStr = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
     const data = JSON.parse(jsonStr);
     
     const today = new Date();
