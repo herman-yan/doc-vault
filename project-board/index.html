@@ -1264,9 +1264,357 @@ body {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ====== 悬浮添加按钮 (FAB) ====== */
+.fab-add {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 300;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(29, 155, 240, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  z-index: 100;
+}
+.fab-add:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 24px rgba(29, 155, 240, 0.55);
+}
+
+/* ====== 新增项目弹窗 ====== */
+.add-project-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.add-project-modal.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.add-project-modal .modal-content {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 28px;
+  width: 90%;
+  max-width: 460px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.add-project-modal h3 {
+  margin: 0 0 20px;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+.add-project-modal .form-group {
+  margin-bottom: 14px;
+}
+.add-project-modal .form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.add-project-modal .form-input,
+.add-project-modal .form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.add-project-modal .form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+.add-project-modal .modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.add-project-modal .btn-modal-submit {
+  flex: 1;
+  padding: 10px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.add-project-modal .btn-modal-cancel {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.add-project-modal .add-status {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  display: none;
+}
+.add-project-modal .add-status.show { display: block; }
+.add-project-modal .add-status.success { background: rgba(0,186,124,0.15); color: var(--green); }
+.add-project-modal .add-status.error { background: rgba(244,33,46,0.15); color: var(--red); }
+
+/* ====== 最新动态快捷编辑 ====== */
+.latest-update-item {
+  position: relative;
+}
+.latest-edit-btn {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(29,155,240,0.1);
+  border: 1px solid rgba(29,155,240,0.2);
+  color: #1d9bf0;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  z-index: 5;
+}
+.latest-update-item:hover .latest-edit-btn {
+  opacity: 1;
+}
+.latest-edit-btn:hover {
+  background: rgba(29,155,240,0.25);
+}
+.latest-quick-edit {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  background: rgba(29,155,240,0.05);
+  border-radius: 0 0 10px 10px;
+  margin: 0 -12px -8px;
+  padding: 0 12px;
+}
+.latest-quick-edit.open {
+  max-height: 300px;
+  padding: 12px;
+}
+.latest-quick-edit .lq-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.latest-quick-edit .lq-row .form-group {
+  flex: 1;
+  margin: 0;
+}
+.latest-quick-edit .lq-row .form-group.narrow {
+  flex: 0 0 120px;
+}
+.latest-quick-edit .form-input {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.latest-quick-edit .form-textarea {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  resize: none;
+  min-height: 60px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.latest-quick-edit .lq-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.latest-quick-edit .lq-submit {
+  padding: 6px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.latest-quick-edit .lq-cancel {
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.latest-quick-edit .lq-status {
+  font-size: 12px;
+  margin-left: auto;
+}
+
+/* ====== 详情页快捷编辑 ====== */
+.detail-quick-edit {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+.detail-quick-edit h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.detail-quick-edit .dq-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.detail-quick-edit .dq-row .form-group {
+  flex: 1;
+  margin: 0;
+}
+.detail-quick-edit .dq-row .form-group.narrow {
+  flex: 0 0 140px;
+}
+.detail-quick-edit .form-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.detail-quick-edit .form-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.detail-quick-edit .dq-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.detail-quick-edit .dq-submit {
+  padding: 9px 24px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.detail-quick-edit .dq-cancel {
+  padding: 9px 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.detail-quick-edit .dq-status {
+  font-size: 13px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
 </style>
 </head>
 <body>
+
+<!-- 悬浮添加按钮 -->
+<button class="fab-add" onclick="openAddProjectModal()" title="新增项目">+</button>
+
+<!-- 新增项目弹窗 -->
+<div class="add-project-modal" id="addProjectModal">
+  <div class="modal-content">
+    <h3>📌 新增项目</h3>
+    <div class="form-group">
+      <label class="form-label">项目名称 *</label>
+      <input type="text" class="form-input" id="newProjectName" placeholder="例如：XX合作洽谈">
+    </div>
+    <div class="form-group">
+      <label class="form-label">优先级</label>
+      <select class="form-input" id="newProjectPriority">
+        <option value="高">高</option>
+        <option value="中">中</option>
+        <option value="低">低</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">完成度（0~1之间的小数，如0.3表示30%）</label>
+      <input type="text" class="form-input" id="newProjectCompletion" placeholder="例如：0.1">
+    </div>
+    <div class="form-group">
+      <label class="form-label">今日进展 *</label>
+      <textarea class="form-textarea" id="newProjectContent" placeholder="填写初始进展内容..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">更新人</label>
+      <input type="text" class="form-input" id="newProjectUpdater" placeholder="填写人">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-submit" id="btnAddProject" onclick="submitNewProject()">创建项目</button>
+      <button class="btn-modal-cancel" onclick="closeAddProjectModal()">取消</button>
+    </div>
+    <div class="add-status" id="addProjectStatus"></div>
+  </div>
+</div>
 
 <div class="header">
   <div class="header-top">
@@ -1907,17 +2255,38 @@ function renderLatestUpdates() {
 
   allEntries.sort((a, b) => b.date.localeCompare(a.date));
   const topEntries = allEntries.slice(0, 10);
+  
+  const lastUpdater = localStorage.getItem('lastUpdater') || '';
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-  const html = topEntries.map(entry => {
+  const html = topEntries.map((entry, idx) => {
     const summary = entry.content.length > 60 ? entry.content.substring(0, 60) + '...' : entry.content;
     const dateFormatted = entry.date.substring(5).replace('-', '/');
     const updaterHtml = entry.updater ? `<span class="updater-badge" data-initial="${entry.updater.charAt(0)}">${entry.updater}</span>` : '';
     return `
       <div class="latest-update-item" onclick="showDetail(${entry.projectId})">
         <span class="latest-project-tag" style="background:${entry.color.bg};color:${entry.color.color}">${entry.projectName}</span>
+        <button class="latest-edit-btn" onclick="toggleLatestQuickEdit(${entry.projectId}, event)" title="快捷更新">✏️</button>
         <div class="latest-update-right">
           <div class="latest-update-date">${dateFormatted}${updaterHtml}</div>
           <div class="latest-update-content">${summary}</div>
+        </div>
+        <div class="latest-quick-edit" id="latestQuickEdit-${entry.projectId}-${idx}" onclick="event.stopPropagation()">
+          <div class="lq-row">
+            <div class="form-group narrow">
+              <input type="date" class="form-input lq-date" value="${todayStr}">
+            </div>
+            <div class="form-group">
+              <input type="text" class="form-input lq-updater" placeholder="更新人" value="${lastUpdater}">
+            </div>
+          </div>
+          <textarea class="form-textarea lq-content" placeholder="填写新进展..."></textarea>
+          <div class="lq-actions" style="margin-top:8px">
+            <button class="lq-submit" onclick="submitLatestQuickEdit(${entry.projectId}, ${idx}, event)">提交</button>
+            <button class="lq-cancel" onclick="closeLatestQuickEdit(${entry.projectId}, ${idx}, event)">取消</button>
+            <span class="lq-status"></span>
+          </div>
         </div>
       </div>
     `;
@@ -2052,6 +2421,10 @@ function showDetail(projectId) {
     `;
   }).join('');
   
+  const lastUpdater = localStorage.getItem('lastUpdater') || '';
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
   document.getElementById('detailView').innerHTML = `
     <div class="detail-header">
       <button class="back-btn" onclick="showProjectList()">← 返回项目列表</button>
@@ -2063,6 +2436,23 @@ function showDetail(projectId) {
         <div class="detail-meta-item">完成度: <span>${isNaN(completionVal) ? '累计合作' : completionPct + '%'}</span></div>
         <div class="detail-meta-item">最近更新: <span>${p.latestUpdate}</span></div>
         <div class="detail-meta-item">更新次数: <span>${p.totalUpdates}次</span></div>
+      </div>
+    </div>
+    <div class="detail-quick-edit">
+      <h4>✏️ 快捷更新进展</h4>
+      <div class="dq-row">
+        <div class="form-group narrow">
+          <input type="date" class="form-input dq-date" value="${todayStr}">
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-input dq-updater" placeholder="更新人" value="${lastUpdater}">
+        </div>
+      </div>
+      <textarea class="form-textarea dq-content" placeholder="填写今日进展..."></textarea>
+      <input type="text" class="form-input dq-nextstep" placeholder="下一步计划（可选）" style="margin-top:8px">
+      <div class="dq-actions">
+        <button class="dq-submit" onclick="submitDetailQuickEdit(${p.id}, event)">提交更新</button>
+        <span class="dq-status"></span>
       </div>
     </div>
     <div class="timeline">
@@ -2194,6 +2584,314 @@ function filterTable(query) {
       row.style.display = match ? '' : 'none';
     });
   });
+}
+
+// ===================== 最新动态快捷编辑 =====================
+function toggleLatestQuickEdit(projectId, event) {
+  event.stopPropagation();
+  // 找到所有匹配的快捷编辑面板（可能有多个相同projectId的）
+  const allPanels = document.querySelectorAll(`[id^="latestQuickEdit-${projectId}-"]`);
+  const wasOpen = allPanels.length > 0 && allPanels[0].classList.contains('open');
+  
+  // 关闭所有面板
+  document.querySelectorAll('.latest-quick-edit.open').forEach(p => p.classList.remove('open'));
+  
+  if (!wasOpen) {
+    // 展开该项目的第一个面板
+    allPanels.forEach(p => p.classList.add('open'));
+    setTimeout(() => {
+      const contentInput = allPanels[0]?.querySelector('.lq-content');
+      if (contentInput) contentInput.focus();
+    }, 100);
+  }
+}
+
+function closeLatestQuickEdit(projectId, idx, event) {
+  if (event) event.stopPropagation();
+  const panel = document.getElementById(`latestQuickEdit-${projectId}-${idx}`);
+  if (panel) panel.classList.remove('open');
+}
+
+async function submitLatestQuickEdit(projectId, idx, event) {
+  if (event) event.stopPropagation();
+  const panel = document.getElementById(`latestQuickEdit-${projectId}-${idx}`);
+  if (!panel) return;
+  
+  const date = panel.querySelector('.lq-date').value;
+  const content = panel.querySelector('.lq-content').value.trim();
+  const updater = panel.querySelector('.lq-updater').value.trim();
+  
+  if (!date) { panel.querySelector('.lq-status').textContent = '❌ 请选择日期'; return; }
+  if (!content) { panel.querySelector('.lq-status').textContent = '❌ 请填写进展内容'; return; }
+  
+  const settings = getSettings();
+  if (!settings.token) { panel.querySelector('.lq-status').textContent = '❌ 请先配置Token'; return; }
+  
+  const btn = panel.querySelector('.lq-submit');
+  const statusEl = panel.querySelector('.lq-status');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+  statusEl.textContent = '';
+  
+  try {
+    const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
+    const resp = await fetch(apiUrl, {
+      headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!resp.ok) throw new Error(`获取文件失败: ${resp.status}`);
+    const fileData = await resp.json();
+    const sha = fileData.sha;
+    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
+    const data = JSON.parse(jsonStr);
+    
+    const project = data.projects.find(p => p.id === projectId);
+    if (!project) throw new Error('项目未找到');
+    
+    const timelineEntry = { date, content };
+    if (updater) timelineEntry.updater = updater;
+    
+    project.timeline.unshift(timelineEntry);
+    project.totalUpdates = (project.totalUpdates || 0) + 1;
+    project.latestUpdate = date;
+    data.lastUpdated = date;
+    
+    const updatedJson = JSON.stringify(data, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
+    
+    const pushResp = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${settings.token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `更新项目进展: ${project.name} (${date})`,
+        content: base64Content,
+        sha: sha,
+        branch: settings.branch
+      })
+    });
+    if (!pushResp.ok) throw new Error('推送失败');
+    
+    if (updater) localStorage.setItem('lastUpdater', updater);
+    
+    statusEl.textContent = '✅ 成功';
+    statusEl.style.color = 'var(--green)';
+    btn.textContent = '✓ 成功';
+    
+    setTimeout(() => {
+      appData = data;
+      renderAll();
+    }, 1200);
+  } catch (err) {
+    statusEl.textContent = '❌ ' + err.message;
+    statusEl.style.color = 'var(--red)';
+    btn.disabled = false;
+    btn.textContent = '提交';
+  }
+}
+
+// ===================== 详情页快捷编辑 =====================
+async function submitDetailQuickEdit(projectId, event) {
+  if (event) event.stopPropagation();
+  const container = document.querySelector('.detail-quick-edit');
+  if (!container) return;
+  
+  const date = container.querySelector('.dq-date').value;
+  const content = container.querySelector('.dq-content').value.trim();
+  const nextStep = container.querySelector('.dq-nextstep').value.trim();
+  const updater = container.querySelector('.dq-updater').value.trim();
+  
+  if (!date) { container.querySelector('.dq-status').textContent = '❌ 请选择日期'; return; }
+  if (!content) { container.querySelector('.dq-status').textContent = '❌ 请填写进展'; return; }
+  
+  const settings = getSettings();
+  if (!settings.token) { container.querySelector('.dq-status').textContent = '❌ 请先配置Token'; return; }
+  
+  const btn = container.querySelector('.dq-submit');
+  const statusEl = container.querySelector('.dq-status');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+  statusEl.textContent = '';
+  
+  try {
+    const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
+    const resp = await fetch(apiUrl, {
+      headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!resp.ok) throw new Error(`获取文件失败: ${resp.status}`);
+    const fileData = await resp.json();
+    const sha = fileData.sha;
+    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
+    const data = JSON.parse(jsonStr);
+    
+    const project = data.projects.find(p => p.id === projectId);
+    if (!project) throw new Error('项目未找到');
+    
+    let fullContent = content;
+    if (nextStep) fullContent += `\n📌下一步：${nextStep}`;
+    
+    const timelineEntry = { date, content: fullContent };
+    if (updater) timelineEntry.updater = updater;
+    
+    project.timeline.unshift(timelineEntry);
+    project.totalUpdates = (project.totalUpdates || 0) + 1;
+    project.latestUpdate = date;
+    data.lastUpdated = date;
+    
+    const updatedJson = JSON.stringify(data, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
+    
+    const pushResp = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${settings.token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `更新项目进展: ${project.name} (${date})`,
+        content: base64Content,
+        sha: sha,
+        branch: settings.branch
+      })
+    });
+    if (!pushResp.ok) throw new Error('推送失败');
+    
+    if (updater) localStorage.setItem('lastUpdater', updater);
+    
+    statusEl.textContent = '✅ 更新成功';
+    statusEl.style.color = 'var(--green)';
+    btn.textContent = '✓ 成功';
+    
+    setTimeout(() => {
+      appData = data;
+      showDetail(projectId);
+      renderLatestUpdates();
+      renderProjectList();
+    }, 1200);
+  } catch (err) {
+    statusEl.textContent = '❌ ' + err.message;
+    statusEl.style.color = 'var(--red)';
+    btn.disabled = false;
+    btn.textContent = '提交更新';
+  }
+}
+
+// ===================== 新增项目 =====================
+function openAddProjectModal() {
+  const modal = document.getElementById('addProjectModal');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const lastUpdater = localStorage.getItem('lastUpdater') || '';
+  document.getElementById('newProjectUpdater').value = lastUpdater;
+  document.getElementById('newProjectName').focus();
+}
+
+function closeAddProjectModal() {
+  document.getElementById('addProjectModal').classList.remove('open');
+  document.body.style.overflow = '';
+  // 清空表单
+  document.getElementById('newProjectName').value = '';
+  document.getElementById('newProjectContent').value = '';
+  document.getElementById('newProjectCompletion').value = '';
+  document.getElementById('newProjectUpdater').value = '';
+  const status = document.getElementById('addProjectStatus');
+  status.className = 'add-status';
+  status.textContent = '';
+  const btn = document.getElementById('btnAddProject');
+  btn.disabled = false;
+  btn.textContent = '创建项目';
+}
+
+async function submitNewProject() {
+  const name = document.getElementById('newProjectName').value.trim();
+  const priority = document.getElementById('newProjectPriority').value;
+  const completion = document.getElementById('newProjectCompletion').value.trim() || '0';
+  const content = document.getElementById('newProjectContent').value.trim();
+  const updater = document.getElementById('newProjectUpdater').value.trim();
+  const status = document.getElementById('addProjectStatus');
+  const btn = document.getElementById('btnAddProject');
+  
+  if (!name) { status.textContent = '❌ 请填写项目名称'; status.className = 'add-status show error'; return; }
+  if (!content) { status.textContent = '❌ 请填写初始进展'; status.className = 'add-status show error'; return; }
+  
+  const settings = getSettings();
+  if (!settings.token) { status.textContent = '❌ 请先在设置中配置GitHub Token'; status.className = 'add-status show error'; return; }
+  
+  btn.disabled = true;
+  btn.textContent = '创建中...';
+  status.className = 'add-status';
+  
+  try {
+    const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
+    const resp = await fetch(apiUrl, {
+      headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!resp.ok) throw new Error(`获取数据失败: ${resp.status}`);
+    const fileData = await resp.json();
+    const sha = fileData.sha;
+    const jsonStr = atob(fileData.content.replace(/\n/g, ''));
+    const data = JSON.parse(jsonStr);
+    
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    const maxId = data.projects.reduce((max, p) => Math.max(max, p.id), 0);
+    const newProject = {
+      id: maxId + 1,
+      name: name,
+      priority: priority,
+      completion: completion,
+      latestUpdate: todayStr,
+      totalUpdates: 1,
+      timeline: [{
+        date: todayStr,
+        content: content,
+        updater: updater || undefined
+      }]
+    };
+    
+    data.projects.push(newProject);
+    data.lastUpdated = todayStr;
+    
+    const updatedJson = JSON.stringify(data, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
+    
+    const pushResp = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${settings.token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `新增项目: ${name}`,
+        content: base64Content,
+        sha: sha,
+        branch: settings.branch
+      })
+    });
+    if (!pushResp.ok) throw new Error('推送失败');
+    
+    if (updater) localStorage.setItem('lastUpdater', updater);
+    
+    status.textContent = '✅ 项目创建成功！';
+    status.className = 'add-status show success';
+    btn.textContent = '✓ 成功';
+    
+    setTimeout(() => {
+      appData = data;
+      renderAll();
+      closeAddProjectModal();
+    }, 1200);
+  } catch (err) {
+    status.textContent = '❌ ' + err.message;
+    status.className = 'add-status show error';
+    btn.disabled = false;
+    btn.textContent = '创建项目';
+  }
 }
 
 // ===================== Init =====================
