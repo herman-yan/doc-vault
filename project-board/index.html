@@ -2197,7 +2197,20 @@ function filterTable(query) {
 }
 
 // ===================== Init =====================
-loadData().then(() => switchView('tracking'));
+loadData().then(() => {
+  switchView('tracking');
+  // 首次使用时自动弹出设置引导
+  if (!getSettings().token) {
+    setTimeout(() => {
+      openSettingsModal();
+      document.getElementById('settingToken').focus();
+      const hint = document.createElement('div');
+      hint.style.cssText = 'color:#fbbf24;font-size:13px;margin-top:8px;';
+      hint.textContent = '💡 请粘贴 GitHub Token 后点击保存，之后即可在线编辑项目进展';
+      document.querySelector('#settingsModal .modal-content').appendChild(hint);
+    }, 500);
+  }
+});
 </script>
 </body>
 </html>
