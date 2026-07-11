@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>项目管理看板</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root {
   --bg-primary: #0f1419;
@@ -1573,6 +1574,244 @@ body {
   display: flex;
   align-items: center;
 }
+
+/* ====== 文件导入按钮 & 弹窗 ====== */
+.btn-import-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-import-icon:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.import-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.import-modal.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.import-modal .import-modal-content {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 28px;
+  width: 92%;
+  max-width: 700px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.import-modal h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.import-dropzone {
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: var(--bg-secondary);
+}
+.import-dropzone:hover,
+.import-dropzone.dragover {
+  border-color: var(--accent);
+  background: rgba(29,155,240,0.06);
+}
+.import-dropzone .drop-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+.import-dropzone .drop-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.import-dropzone .drop-text strong {
+  color: var(--accent);
+}
+.import-dropzone .drop-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  opacity: 0.7;
+}
+#importFileInput { display: none; }
+
+.import-preview {
+  margin-top: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.import-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+.import-preview-header .file-info {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.import-preview-header .file-info .fname {
+  color: var(--accent);
+  font-weight: 600;
+}
+.import-preview-header .file-info .fstats {
+  margin-left: 10px;
+  color: var(--green);
+}
+.import-preview-body {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0;
+}
+.import-preview-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.import-preview-body th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+.import-preview-body td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.import-preview-body tr:hover td {
+  background: var(--bg-hover);
+}
+
+.import-options {
+  display: flex;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+}
+.import-options label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.import-options input[type="radio"] {
+  accent-color: var(--accent);
+}
+.import-mapping {
+  margin-top: 14px;
+}
+.import-mapping .mapping-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.mapping-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.mapping-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mapping-item .mapping-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  min-width: 60px;
+  text-align: right;
+}
+.mapping-item select {
+  flex: 1;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+.import-status {
+  margin-top: 12px;
+  font-size: 13px;
+  min-height: 20px;
+}
+.import-status.success { color: var(--green); }
+.import-status.error { color: var(--red); }
+.import-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.import-actions .btn-import-submit {
+  padding: 10px 24px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.import-actions .btn-import-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.import-actions .btn-import-cancel {
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -1616,6 +1855,27 @@ body {
   </div>
 </div>
 
+<!-- 文件导入弹窗 -->
+<div class="import-modal" id="importModal">
+  <div class="import-modal-content">
+    <h3>📥 导入文件</h3>
+    <div class="import-dropzone" id="importDropzone" onclick="document.getElementById('importFileInput').click()">
+      <div class="drop-icon">📄</div>
+      <div class="drop-text">点击选择文件或拖拽到此处<br><strong>支持 JSON / Excel / CSV</strong></div>
+      <div class="drop-hint">JSON: 看板数据格式直接导入 · Excel/CSV: 自动识别列名映射为项目数据</div>
+    </div>
+    <input type="file" id="importFileInput" accept=".json,.xlsx,.xls,.csv" onchange="handleImportFile(this.files[0])">
+    
+    <div id="importPreviewArea"></div>
+    
+    <div class="import-actions" id="importActions" style="display:none">
+      <button class="btn-import-submit" id="btnImportSubmit" onclick="submitImport()">确认导入</button>
+      <button class="btn-import-cancel" onclick="closeImportModal()">取消</button>
+    </div>
+    <div class="import-status" id="importStatus"></div>
+  </div>
+</div>
+
 <div class="header">
   <div class="header-top">
     <div class="header-left">
@@ -1623,6 +1883,7 @@ body {
     </div>
     <div class="header-right">
       <div class="header-meta" id="lastUpdated"></div>
+      <button class="btn-import-icon" onclick="openImportModal()" title="导入文件">📥</button>
       <button class="btn-settings-icon" onclick="openSettingsModal()" title="设置">⚙️</button>
     </div>
   </div>
@@ -2892,6 +3153,432 @@ async function submitNewProject() {
     btn.disabled = false;
     btn.textContent = '创建项目';
   }
+}
+
+// ===================== 文件导入功能 =====================
+let importData = null; // 存储解析后的导入数据
+let importFileName = '';
+let importFileType = ''; // 'json' | 'excel' | 'csv'
+let importMapping = {}; // 列映射关系
+
+function openImportModal() {
+  const modal = document.getElementById('importModal');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  resetImportState();
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('open');
+  document.body.style.overflow = '';
+  resetImportState();
+}
+
+function resetImportState() {
+  importData = null;
+  importFileName = '';
+  importFileType = '';
+  importMapping = {};
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('importPreviewArea').innerHTML = '';
+  document.getElementById('importActions').style.display = 'none';
+  document.getElementById('importStatus').textContent = '';
+  document.getElementById('importStatus').className = 'import-status';
+  const btn = document.getElementById('btnImportSubmit');
+  btn.disabled = false;
+  btn.textContent = '确认导入';
+}
+
+// 拖拽支持
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('importDropzone');
+  if (!dz) return;
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) handleImportFile(e.dataTransfer.files[0]);
+  });
+});
+
+function handleImportFile(file) {
+  if (!file) return;
+  importFileName = file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const status = document.getElementById('importStatus');
+  
+  if (ext === 'json') {
+    importFileType = 'json';
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        processJsonImport(parsed);
+      } catch (err) {
+        status.textContent = '❌ JSON 解析失败: ' + err.message;
+        status.className = 'import-status error';
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  } else if (ext === 'xlsx' || ext === 'xls') {
+    importFileType = 'excel';
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        processTableImport(jsonData, sheetName);
+      } catch (err) {
+        status.textContent = '❌ Excel 解析失败: ' + err.message;
+        status.className = 'import-status error';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (ext === 'csv') {
+    importFileType = 'csv';
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target.result;
+        const parsed = parseCSV(text);
+        processTableImport(parsed, 'CSV');
+      } catch (err) {
+        status.textContent = '❌ CSV 解析失败: ' + err.message;
+        status.className = 'import-status error';
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  } else {
+    status.textContent = '❌ 不支持的文件格式，请上传 JSON / Excel / CSV 文件';
+    status.className = 'import-status error';
+  }
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) throw new Error('CSV 数据为空');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const result = [];
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+    const row = {};
+    headers.forEach((h, idx) => row[h] = values[idx] || '');
+    result.push(row);
+  }
+  return result;
+}
+
+// 处理 JSON 格式导入
+function processJsonImport(parsed) {
+  const previewArea = document.getElementById('importPreviewArea');
+  
+  // 检查是否是看板数据格式（有 projects 数组）
+  if (parsed.projects && Array.isArray(parsed.projects)) {
+    importData = { type: 'full', data: parsed };
+    const projCount = parsed.projects.length;
+    const totalEntries = parsed.projects.reduce((sum, p) => sum + (p.timeline ? p.timeline.length : 0), 0);
+    
+    let previewHtml = `
+      <div class="import-preview">
+        <div class="import-preview-header">
+          <div class="file-info">
+            <span class="fname">📄 ${importFileName}</span>
+            <span class="fstats">✅ ${projCount} 个项目 · ${totalEntries} 条进展记录</span>
+          </div>
+        </div>
+        <div class="import-preview-body">
+          <table><thead><tr>
+            <th>项目名称</th><th>优先级</th><th>完成度</th><th>最近更新</th><th>更新次数</th>
+          </tr></thead><tbody>`;
+    
+    parsed.projects.forEach(p => {
+      previewHtml += `<tr>
+        <td>${p.name || '-'}</td>
+        <td>${p.priority || '-'}</td>
+        <td>${p.completion ? (parseFloat(p.completion) * 100).toFixed(0) + '%' : '-'}</td>
+        <td>${p.latestUpdate || '-'}</td>
+        <td>${p.totalUpdates || (p.timeline ? p.timeline.length : 0)}</td>
+      </tr>`;
+    });
+    
+    previewHtml += '</tbody></table></div></div>';
+    previewHtml += `
+      <div class="import-options">
+        <label><input type="radio" name="importMode" value="merge" checked> 合并到现有数据（相同项目名追加记录）</label>
+        <label><input type="radio" name="importMode" value="replace"> 完全替换现有数据</label>
+      </div>`;
+    
+    previewArea.innerHTML = previewHtml;
+  } else if (Array.isArray(parsed)) {
+    // 纯数组格式，按表格处理
+    processTableImport(parsed, 'JSON 数组');
+    return;
+  } else {
+    document.getElementById('importStatus').textContent = '❌ 无法识别的数据格式。支持包含 projects 数组的看板数据或项目记录数组。';
+    document.getElementById('importStatus').className = 'import-status error';
+    return;
+  }
+  
+  document.getElementById('importActions').style.display = 'flex';
+}
+
+// 处理表格格式导入（Excel/CSV/JSON数组）
+function processTableImport(rows, sourceName) {
+  if (!rows || rows.length === 0) {
+    document.getElementById('importStatus').textContent = '❌ 文件内容为空';
+    document.getElementById('importStatus').className = 'import-status error';
+    return;
+  }
+  
+  const headers = Object.keys(rows[0]);
+  const previewArea = document.getElementById('importPreviewArea');
+  
+  // 自动检测列映射
+  const fieldMap = {
+    '项目': ['项目', '项目名称', 'project', 'name', '项目名', '客户名称', '客户'],
+    '日期': ['日期', 'date', '时间', '更新时间', '更新日期', '跟进日期'],
+    '内容': ['内容', '进展', 'content', '进展内容', '跟进内容', '描述', '备注', '说明', '详情'],
+    '更新人': ['更新人', 'updater', '负责人', '跟进人', '操作人', '填写人'],
+    '优先级': ['优先级', 'priority', '重要程度', '紧急程度'],
+    '完成度': ['完成度', 'completion', '进度', '完成率', '完成比例']
+  };
+  
+  importMapping = {};
+  Object.keys(fieldMap).forEach(field => {
+    const keywords = fieldMap[field];
+    for (const h of headers) {
+      if (keywords.some(k => h.toLowerCase().includes(k.toLowerCase()))) {
+        importMapping[field] = h;
+        break;
+      }
+    }
+  });
+  
+  // 构建映射选择器
+  const fieldLabels = {
+    '项目': '项目名称',
+    '日期': '日期',
+    '内容': '进展内容',
+    '更新人': '更新人',
+    '优先级': '优先级',
+    '完成度': '完成度'
+  };
+  
+  let mappingHtml = '<div class="import-mapping"><div class="mapping-title">📋 字段映射（自动检测，可手动调整）</div><div class="mapping-grid">';
+  Object.keys(fieldLabels).forEach(field => {
+    const current = importMapping[field] || '';
+    mappingHtml += `<div class="mapping-item">
+      <span class="mapping-label">${fieldLabels[field]}</span>
+      <select id="mapping-${field}" onchange="importMapping['${field}']=this.value">
+        <option value="">-- 不映射 --</option>
+        ${headers.map(h => `<option value="${h}" ${h === current ? 'selected' : ''}>${h}</option>`).join('')}
+      </select>
+    </div>`;
+  });
+  mappingHtml += '</div></div>';
+  
+  // 预览表格（最多显示20行）
+  const displayRows = rows.slice(0, 20);
+  let tableHtml = `
+    <div class="import-preview">
+      <div class="import-preview-header">
+        <div class="file-info">
+          <span class="fname">📄 ${importFileName}</span>
+          <span class="fstats">✅ ${rows.length} 条记录 (${sourceName})</span>
+        </div>
+      </div>
+      <div class="import-preview-body">
+        <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+  
+  displayRows.forEach(row => {
+    tableHtml += '<tr>' + headers.map(h => `<td>${String(row[h] || '').substring(0, 50)}</td>`).join('') + '</tr>';
+  });
+  
+  if (rows.length > 20) {
+    tableHtml += `<tr><td colspan="${headers.length}" style="text-align:center;color:var(--text-secondary)">... 还有 ${rows.length - 20} 条记录</td></tr>`;
+  }
+  
+  tableHtml += '</tbody></table></div></div>';
+  
+  previewArea.innerHTML = tableHtml + mappingHtml;
+  importData = { type: 'table', data: rows, source: sourceName };
+  document.getElementById('importActions').style.display = 'flex';
+}
+
+// 执行导入
+async function submitImport() {
+  if (!importData) return;
+  
+  const settings = getSettings();
+  if (!settings.token) {
+    showImportStatus('❌ 请先在 ⚙️ 设置中配置 GitHub Token', 'error');
+    return;
+  }
+  
+  const btn = document.getElementById('btnImportSubmit');
+  btn.disabled = true;
+  btn.textContent = '导入中...';
+  showImportStatus('正在获取远程数据...', '');
+  
+  try {
+    const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
+    const resp = await fetch(apiUrl, {
+      headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!resp.ok) throw new Error(`获取远程数据失败: ${resp.status}`);
+    const fileData = await resp.json();
+    const sha = fileData.sha;
+    const jsonStr = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
+    const currentData = JSON.parse(jsonStr);
+    
+    let newData;
+    let commitMessage;
+    
+    if (importData.type === 'full') {
+      // 完整看板数据格式
+      const mode = document.querySelector('input[name="importMode"]:checked')?.value || 'merge';
+      if (mode === 'replace') {
+        newData = importData.data;
+        commitMessage = `导入文件(替换): ${importFileName}`;
+      } else {
+        // 合并模式
+        newData = JSON.parse(JSON.stringify(currentData)); // deep copy
+        importData.data.projects.forEach(importedProject => {
+          const existing = newData.projects.find(p => p.name === importedProject.name);
+          if (existing) {
+            // 追加不重复的 timeline 条目
+            const existingDates = new Set(existing.timeline.map(t => t.date + '|' + t.content));
+            (importedProject.timeline || []).forEach(entry => {
+              const key = entry.date + '|' + entry.content;
+              if (!existingDates.has(key)) {
+                existing.timeline.unshift(entry);
+                existingDates.add(key);
+              }
+            });
+            existing.totalUpdates = existing.timeline.length;
+            if (importedProject.latestUpdate > existing.latestUpdate) {
+              existing.latestUpdate = importedProject.latestUpdate;
+            }
+          } else {
+            // 新项目
+            const maxId = newData.projects.reduce((max, p) => Math.max(max, p.id), 0);
+            importedProject.id = maxId + 1;
+            newData.projects.push(importedProject);
+          }
+        });
+        commitMessage = `导入文件(合并): ${importFileName}`;
+      }
+    } else if (importData.type === 'table') {
+      // 表格格式：根据映射关系生成数据
+      newData = JSON.parse(JSON.stringify(currentData));
+      const rows = importData.data;
+      const nameField = importMapping['项目'];
+      const dateField = importMapping['日期'];
+      const contentField = importMapping['内容'];
+      const updaterField = importMapping['更新人'];
+      const priorityField = importMapping['优先级'];
+      const completionField = importMapping['完成度'];
+      
+      if (!nameField && !contentField) {
+        throw new Error('至少需要映射「项目名称」或「进展内容」字段');
+      }
+      
+      let addedCount = 0;
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      rows.forEach(row => {
+        const projName = nameField ? String(row[nameField] || '').trim() : '';
+        const date = dateField ? String(row[dateField] || '').trim() : todayStr;
+        const content = contentField ? String(row[contentField] || '').trim() : '';
+        const updater = updaterField ? String(row[updaterField] || '').trim() : '';
+        const priority = priorityField ? String(row[priorityField] || '').trim() : '';
+        const completion = completionField ? String(row[completionField] || '').trim() : '';
+        
+        if (!projName && !content) return;
+        
+        // 查找或创建项目
+        let project = projName ? newData.projects.find(p => p.name === projName) : null;
+        
+        if (!project && projName) {
+          const maxId = newData.projects.reduce((max, p) => Math.max(max, p.id), 0);
+          project = {
+            id: maxId + 1,
+            name: projName,
+            priority: priority || '高',
+            completion: completion || '0',
+            latestUpdate: date,
+            totalUpdates: 0,
+            timeline: []
+          };
+          newData.projects.push(project);
+        }
+        
+        if (project && content) {
+          const entry = { date, content };
+          if (updater) entry.updater = updater;
+          project.timeline.unshift(entry);
+          project.totalUpdates = (project.totalUpdates || 0) + 1;
+          if (date > project.latestUpdate) project.latestUpdate = date;
+          if (priority) project.priority = priority;
+          if (completion) project.completion = completion;
+          addedCount++;
+        }
+      });
+      
+      newData.lastUpdated = todayStr;
+      commitMessage = `导入文件: ${importFileName} (${addedCount}条记录)`;
+    }
+    
+    // 推送到 GitHub
+    const updatedJson = JSON.stringify(newData, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
+    
+    const pushResp = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${settings.token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: commitMessage,
+        content: base64Content,
+        sha: sha,
+        branch: settings.branch
+      })
+    });
+    
+    if (!pushResp.ok) {
+      const errData = await pushResp.json();
+      throw new Error(errData.message || `推送失败: ${pushResp.status}`);
+    }
+    
+    showImportStatus('✅ 导入成功！页面即将刷新数据...', 'success');
+    
+    setTimeout(() => {
+      appData = newData;
+      renderTrackingView();
+      renderDatabaseView();
+      document.getElementById('lastUpdated').textContent = '数据更新: ' + newData.lastUpdated;
+      closeImportModal();
+    }, 1500);
+    
+  } catch (err) {
+    showImportStatus('❌ ' + err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '确认导入';
+  }
+}
+
+function showImportStatus(msg, type) {
+  const el = document.getElementById('importStatus');
+  el.textContent = msg;
+  el.className = 'import-status' + (type ? ' ' + type : '');
 }
 
 // ===================== Init =====================
