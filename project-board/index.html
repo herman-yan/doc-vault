@@ -2158,28 +2158,7 @@ async function submitInlineUpdate(projectId, event) {
     project.latestUpdate = date;
     data.lastUpdated = date;
 
-    const updatedJson = JSON.stringify(data, null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
-
-    const pushResp = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${settings.token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `更新项目进展: ${project.name} (${date})`,
-        content: base64Content,
-        sha: sha,
-        branch: settings.branch
-      })
-    });
-
-    if (!pushResp.ok) {
-      const errData = await pushResp.json();
-      throw new Error(errData.message || `推送失败: ${pushResp.status}`);
-    }
+    await safeGitHubPush(settings, data, sha, `更新项目进展: ${project.name} (${date})`);
 
     if (updater) localStorage.setItem('lastUpdater', updater);
     
@@ -2216,6 +2195,60 @@ function showInlineStatus(panel, msg, type) {
 function hideInlineStatus(panel) {
   const el = panel.querySelector('.inline-status-msg');
   if (el) el.className = 'inline-status-msg';
+}
+
+// ===================== Safe GitHub Push (with SHA retry) =====================
+async function safeGitHubPush(settings, data, sha, commitMessage) {
+  const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
+
+  async function tryPush(sha) {
+    const updatedJson = JSON.stringify(data, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
+    return fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${settings.token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: commitMessage,
+        content: base64Content,
+        sha: sha,
+        branch: settings.branch
+      })
+    });
+  }
+
+  async function extractError(resp) {
+    try { const e = await resp.json(); return e.message || `推送失败 (${resp.status})`; } catch(e) { return `推送失败 (${resp.status})`; }
+  }
+
+  let pushResp = await tryPush(sha);
+
+  // SHA conflict: re-fetch and retry once
+  if (!pushResp.ok && (pushResp.status === 409 || pushResp.status === 422)) {
+    let errBody = null;
+    try { errBody = await pushResp.json(); } catch(e) {}
+    const isShaConflict = errBody && errBody.message && (
+      /sha|expected|conflict|modified/i.test(errBody.message)
+    ) || pushResp.status === 409;
+
+    if (isShaConflict) {
+      const retryResp = await fetch(apiUrl, {
+        headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (retryResp.ok) {
+        const retryData = await retryResp.json();
+        pushResp = await tryPush(retryData.sha);
+      }
+    }
+  }
+
+  if (!pushResp.ok) {
+    throw new Error(await extractError(pushResp));
+  }
+  return pushResp;
 }
 
 // ===================== Contact Modal =====================
@@ -2383,28 +2416,7 @@ async function submitContact() {
     }
     if (!found) throw new Error('企业未找到');
 
-    const updatedJson = JSON.stringify(data, null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
-
-    const pushResp = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${settings.token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `更新联系人: ${partnerName}`,
-        content: base64Content,
-        sha: sha,
-        branch: settings.branch
-      })
-    });
-
-    if (!pushResp.ok) {
-      const errData = await pushResp.json();
-      throw new Error(errData.message || `推送失败: ${pushResp.status}`);
-    }
+    await safeGitHubPush(settings, data, sha, `更新联系人: ${partnerName}`);
 
     showStatus('contactStatus', '✅ 联系人已保存并推送到GitHub', 'success');
     btn.classList.add('success');
@@ -2956,24 +2968,7 @@ async function submitLatestQuickEdit(projectId, idx, event) {
     project.latestUpdate = date;
     data.lastUpdated = date;
     
-    const updatedJson = JSON.stringify(data, null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
-    
-    const pushResp = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${settings.token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `更新项目进展: ${project.name} (${date})`,
-        content: base64Content,
-        sha: sha,
-        branch: settings.branch
-      })
-    });
-    if (!pushResp.ok) throw new Error('推送失败');
+    await safeGitHubPush(settings, data, sha, `更新项目进展: ${project.name} (${date})`);
     
     if (updater) localStorage.setItem('lastUpdater', updater);
     
@@ -3041,24 +3036,7 @@ async function submitDetailQuickEdit(projectId, event) {
     project.latestUpdate = date;
     data.lastUpdated = date;
     
-    const updatedJson = JSON.stringify(data, null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
-    
-    const pushResp = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${settings.token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `更新项目进展: ${project.name} (${date})`,
-        content: base64Content,
-        sha: sha,
-        branch: settings.branch
-      })
-    });
-    if (!pushResp.ok) throw new Error('推送失败');
+    await safeGitHubPush(settings, data, sha, `更新项目进展: ${project.name} (${date})`);
     
     if (updater) localStorage.setItem('lastUpdater', updater);
     
@@ -3157,24 +3135,7 @@ async function submitNewProject() {
     data.projects.push(newProject);
     data.lastUpdated = todayStr;
     
-    const updatedJson = JSON.stringify(data, null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
-    
-    const pushResp = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${settings.token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `新增项目: ${name}`,
-        content: base64Content,
-        sha: sha,
-        branch: settings.branch
-      })
-    });
-    if (!pushResp.ok) throw new Error('推送失败');
+    await safeGitHubPush(settings, data, sha, `新增项目: ${name}`);
     
     if (updater) localStorage.setItem('lastUpdater', updater);
     
@@ -3575,28 +3536,7 @@ async function submitImport() {
     }
     
     // 推送到 GitHub
-    const updatedJson = JSON.stringify(newData, null, 2);
-    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
-    
-    const pushResp = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${settings.token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: commitMessage,
-        content: base64Content,
-        sha: sha,
-        branch: settings.branch
-      })
-    });
-    
-    if (!pushResp.ok) {
-      const errData = await pushResp.json();
-      throw new Error(errData.message || `推送失败: ${pushResp.status}`);
-    }
+    await safeGitHubPush(settings, newData, sha, commitMessage);
     
     showImportStatus('✅ 导入成功！页面即将刷新数据...', 'success');
     
