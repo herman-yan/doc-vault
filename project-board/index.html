@@ -1222,6 +1222,20 @@ body {
   .inline-edit-row .form-group.updater-field {
     flex: 0 0 100%;
   }
+  .latest-quick-edit .lq-row {
+    flex-wrap: wrap;
+  }
+  .latest-quick-edit .lq-row .form-group.narrow,
+  .latest-quick-edit .lq-row .form-group.updater-field {
+    flex: 0 0 100%;
+  }
+  .detail-quick-edit .dq-row {
+    flex-wrap: wrap;
+  }
+  .detail-quick-edit .dq-row .form-group.narrow,
+  .detail-quick-edit .dq-row .form-group.updater-field {
+    flex: 0 0 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1439,7 +1453,17 @@ body {
   margin: 0;
 }
 .latest-quick-edit .lq-row .form-group.narrow {
-  flex: 0 0 120px;
+  flex: 0 0 140px;
+}
+.latest-quick-edit .lq-row .form-group.updater-field {
+  flex: 1;
+}
+.latest-quick-edit .form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
 }
 .latest-quick-edit .form-input {
   width: 100%;
@@ -1520,6 +1544,16 @@ body {
 }
 .detail-quick-edit .dq-row .form-group.narrow {
   flex: 0 0 140px;
+}
+.detail-quick-edit .dq-row .form-group.updater-field {
+  flex: 1;
+}
+.detail-quick-edit .form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
 }
 .detail-quick-edit .form-input {
   width: 100%;
@@ -2500,22 +2534,24 @@ function renderLatestUpdates() {
     projectColors[p.id] = colorPalette[i % colorPalette.length];
   });
 
+  // 每个项目只取最新一条 timeline 记录
   const allEntries = [];
   projects.forEach(p => {
-    p.timeline.forEach(t => {
+    if (p.timeline && p.timeline.length > 0) {
+      const latest = p.timeline[0];
       allEntries.push({
         projectId: p.id,
         projectName: p.name,
-        date: t.date,
-        content: t.content,
-        updater: t.updater || '',
+        date: latest.date,
+        content: latest.content,
+        updater: latest.updater || '',
         color: projectColors[p.id]
       });
-    });
+    }
   });
 
   allEntries.sort((a, b) => b.date.localeCompare(a.date));
-  const topEntries = allEntries.slice(0, 10);
+  const topEntries = allEntries;
   
   const lastUpdater = localStorage.getItem('lastUpdater') || '';
   const today = new Date();
@@ -2536,10 +2572,12 @@ function renderLatestUpdates() {
         <div class="latest-quick-edit" id="latestQuickEdit-${entry.projectId}-${idx}" onclick="event.stopPropagation()">
           <div class="lq-row">
             <div class="form-group narrow">
+              <label class="form-label">日期</label>
               <input type="date" class="form-input lq-date" value="${todayStr}">
             </div>
-            <div class="form-group">
-              <input type="text" class="form-input lq-updater" placeholder="更新人" value="${lastUpdater}">
+            <div class="form-group updater-field">
+              <label class="form-label">填写人</label>
+              <input type="text" class="form-input lq-updater" placeholder="填写人" value="${lastUpdater}">
             </div>
           </div>
           <textarea class="form-textarea lq-content" placeholder="填写新进展..."></textarea>
@@ -2703,10 +2741,12 @@ function showDetail(projectId) {
       <h4>✏️ 快捷更新进展</h4>
       <div class="dq-row">
         <div class="form-group narrow">
+          <label class="form-label">日期</label>
           <input type="date" class="form-input dq-date" value="${todayStr}">
         </div>
-        <div class="form-group">
-          <input type="text" class="form-input dq-updater" placeholder="更新人" value="${lastUpdater}">
+        <div class="form-group updater-field">
+          <label class="form-label">填写人</label>
+          <input type="text" class="form-input dq-updater" placeholder="填写人" value="${lastUpdater}">
         </div>
       </div>
       <textarea class="form-textarea dq-content" placeholder="填写今日进展..."></textarea>
