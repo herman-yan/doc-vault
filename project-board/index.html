@@ -831,6 +831,92 @@ body {
   margin-top: 2px;
 }
 
+/* View detail button */
+.project-row-detail-btn {
+  font-size: 11px;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(29,155,240,0.1);
+  border: 1px solid rgba(29,155,240,0.2);
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.project-row-detail-btn:hover {
+  background: rgba(29,155,240,0.2);
+  border-color: var(--accent);
+}
+
+/* Timeline entries in expanded project */
+.project-timeline-section {
+  padding: 8px 18px 8px 66px;
+  border-top: 1px solid var(--border-color);
+  background: rgba(0,0,0,0.05);
+}
+.project-timeline-title {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.timeline-entry {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.timeline-entry:last-child { border-bottom: none; }
+.timeline-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.timeline-entry-date {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.timeline-entry-updater {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.timeline-entry-content {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-line;
+  word-break: break-all;
+}
+
+/* Group section header */
+.customer-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 10px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+.customer-group-header:first-child { margin-top: 0; }
+.customer-group-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.customer-group-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.customer-group-count {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .customer-header { padding: 12px 14px; gap: 10px; }
@@ -2956,7 +3042,8 @@ function renderDatabaseView() {
       latestEntry: proj && proj.timeline && proj.timeline.length > 0 ? proj.timeline[0] : null,
       latestUpdate: proj ? proj.latestUpdate : '',
       totalUpdates: proj ? proj.totalUpdates : 0,
-      completion: proj ? proj.completion : ''
+      completion: proj ? proj.completion : '',
+      timeline: proj ? (proj.timeline || []).slice(0, 5) : []
     });
   }
   
@@ -2984,7 +3071,8 @@ function renderDatabaseView() {
         projectId: null, projectName: relatedName,
         direction: p.direction || '', status: p.status || '',
         issue: p.issue || '', priority: '',
-        latestEntry: null, latestUpdate: '', totalUpdates: 0, completion: ''
+        latestEntry: null, latestUpdate: '', totalUpdates: 0, completion: '',
+        timeline: []
       });
     }
   });
@@ -3026,107 +3114,172 @@ function renderDatabaseView() {
         projectId: null, projectName: p.industry || '待分类',
         direction: p.direction || '', status: p.status || '待跟进',
         issue: p.issue || '', priority: '',
-        latestEntry: null, latestUpdate: '', totalUpdates: 0, completion: ''
+        latestEntry: null, latestUpdate: '', totalUpdates: 0, completion: '',
+        timeline: []
       });
     }
   });
   
-  // ========== 2. 排序：按关联项目数降序，再按名称 ==========
-  const customers = Object.values(customerMap).sort((a, b) => {
-    if (b.projects.length !== a.projects.length) return b.projects.length - a.projects.length;
-    return a.name.localeCompare(b.name, 'zh');
+  // ========== 2. 分组 ==========
+  const groupOrder = ['政府合作方', '业务合作方', '场地合作方', '潜在客户', '待分类'];
+  const groups = {};
+  groupOrder.forEach(g => { groups[g] = []; });
+  
+  Object.values(customerMap).forEach(c => {
+    const g = groups[c.industry] || groups['待分类'];
+    g.push(c);
   });
   
+  // Sort within groups by project count desc, then name
+  Object.values(groups).forEach(g => {
+    g.sort((a, b) => {
+      if (b.projects.length !== a.projects.length) return b.projects.length - a.projects.length;
+      return a.name.localeCompare(b.name, 'zh');
+    });
+  });
+  
+  const groupIcons = {
+    '政府合作方': { bg: 'rgba(120,86,255,0.15)', color: '#7856ff', icon: '🏛' },
+    '业务合作方': { bg: 'rgba(29,155,240,0.15)', color: '#1d9bf0', icon: '🤝' },
+    '场地合作方': { bg: 'rgba(0,186,124,0.15)', color: '#00ba7c', icon: '📍' },
+    '潜在客户':   { bg: 'rgba(255,122,0,0.15)', color: '#ff7a00', icon: '🔍' },
+    '待分类':     { bg: 'rgba(136,153,166,0.15)', color: '#8899a6', icon: '📁' }
+  };
+  
   // ========== 3. 渲染 ==========
-  const html = customers.map((c, idx) => {
-    const colorIdx = idx % avatarColors.length;
-    const initial = c.name.charAt(0);
-    const industryColors = {
-      '政府合作方': 'background:rgba(120,86,255,0.15);color:#7856ff',
-      '业务合作方': 'background:rgba(29,155,240,0.15);color:#1d9bf0',
-      '场地合作方': 'background:rgba(0,186,124,0.15);color:#00ba7c',
-      '潜在客户': 'background:rgba(255,122,0,0.15);color:#ff7a00',
-      '待分类': 'background:rgba(136,153,166,0.15);color:#8899a6'
-    };
-    const industryStyle = industryColors[c.industry] || 'background:rgba(136,153,166,0.15);color:#8899a6';
-    const projectCount = c.projects.length;
+  const allCustomers = Object.values(customerMap);
+  let globalIdx = 0;
+  let html = `<div style="margin-bottom:14px;font-size:13px;color:var(--text-secondary)">共 ${allCustomers.length} 个客户 · 点击展开查看各项目进展</div>`;
+  
+  for (const [groupName, members] of Object.entries(groups)) {
+    if (members.length === 0) continue;
+    const gi = groupIcons[groupName] || groupIcons['待分类'];
     
-    // Project rows
-    const projectRowsHtml = c.projects.map(p => {
-      const latestContent = p.latestEntry ? p.latestEntry.content.split('\n')[0] : '暂无进展记录';
-      const latestDate = p.latestUpdate || '';
-      const updaterHtml = p.latestEntry && p.latestEntry.updater ? ` · ${p.latestEntry.updater}` : '';
-      const issueHtml = p.issue ? `<div class="project-row-issue">⚠ ${p.issue}</div>` : '';
-      const priorityClass = p.priority === '战败' ? 'lost' : 'high';
-      const projClick = p.projectId ? `onclick="showDetail(${p.projectId})"` : '';
+    html += `
+      <div class="customer-group-header">
+        <div class="customer-group-icon" style="background:${gi.bg}">${gi.icon}</div>
+        <span class="customer-group-name">${groupName}</span>
+        <span class="customer-group-count">(${members.length})</span>
+      </div>
+    `;
+    
+    html += members.map(c => {
+      const colorIdx = globalIdx % avatarColors.length;
+      globalIdx++;
+      const initial = c.name.charAt(0);
+      const industryColors = {
+        '政府合作方': 'background:rgba(120,86,255,0.15);color:#7856ff',
+        '业务合作方': 'background:rgba(29,155,240,0.15);color:#1d9bf0',
+        '场地合作方': 'background:rgba(0,186,124,0.15);color:#00ba7c',
+        '潜在客户': 'background:rgba(255,122,0,0.15);color:#ff7a00',
+        '待分类': 'background:rgba(136,153,166,0.15);color:#8899a6'
+      };
+      const industryStyle = industryColors[c.industry] || 'background:rgba(136,153,166,0.15);color:#8899a6';
+      const projectCount = c.projects.length;
+      
+      // Project rows with timeline
+      const projectRowsHtml = c.projects.map(p => {
+        const latestContent = p.latestEntry ? p.latestEntry.content.split('\n')[0] : '暂无进展记录';
+        const latestDate = p.latestUpdate || '';
+        const updaterHtml = p.latestEntry && p.latestEntry.updater ? ` · ${p.latestEntry.updater}` : '';
+        const issueHtml = p.issue ? `<div class="project-row-issue">⚠ ${p.issue}</div>` : '';
+        const priorityClass = p.priority === '战败' ? 'lost' : 'high';
+        const detailBtn = p.projectId ? `<span class="project-row-detail-btn" onclick="event.stopPropagation();showDetail(${p.projectId})">📄 查看详情</span>` : '';
+        
+        // Build timeline entries (skip first since it's already shown as latest)
+        let timelineHtml = '';
+        if (p.timeline && p.timeline.length > 1) {
+          const entries = p.timeline.slice(1).map(entry => {
+            const entryContent = entry.content ? entry.content.split('\n')[0] : '';
+            const entryDate = entry.date || '';
+            const entryUpdater = entry.updater || '';
+            return `
+              <div class="timeline-entry">
+                <div class="timeline-entry-header">
+                  <span class="timeline-entry-date">${entryDate.substring(5).replace('-', '/') || entryDate}</span>
+                  ${entryUpdater ? `<span class="timeline-entry-updater">${entryUpdater}</span>` : ''}
+                </div>
+                <div class="timeline-entry-content">${entryContent}</div>
+              </div>
+            `;
+          }).join('');
+          timelineHtml = `
+            <div class="project-timeline-section">
+              <div class="project-timeline-title">历史进展</div>
+              ${entries}
+            </div>
+          `;
+        }
+        
+        return `
+          <div style="border-bottom: 1px solid var(--border-color);">
+            <div class="customer-project-row">
+              <div class="project-row-left">
+                <span class="project-row-name">${p.projectName}</span>
+                ${p.direction ? `<span class="project-row-direction">${p.direction}</span>` : ''}
+              </div>
+              <div class="project-row-center">
+                <div class="project-row-status">${p.status || '待跟进'}</div>
+                <div class="project-row-latest">${latestContent}</div>
+                ${issueHtml}
+              </div>
+              <div class="project-row-right">
+                ${latestDate ? `<span class="project-row-date">${latestDate.substring(5).replace('-', '/')}${updaterHtml}</span>` : ''}
+                ${p.priority ? `<span class="project-row-priority ${priorityClass}">${p.priority}</span>` : ''}
+                ${p.totalUpdates ? `<span style="font-size:10px;color:var(--text-secondary)">${p.totalUpdates}次更新</span>` : ''}
+                ${detailBtn}
+              </div>
+            </div>
+            ${timelineHtml}
+          </div>
+        `;
+      }).join('');
+      
+      // Contact section
+      let contactHtml = '';
+      if (c.contacts.length > 0) {
+        const contactItems = c.contacts.map(ct => {
+          const parts = [];
+          if (ct.name) parts.push(`<span class="c-name">${ct.name}</span>`);
+          if (ct.phone) parts.push(`<span class="c-phone">${ct.phone}</span>`);
+          if (ct.role) parts.push(`<span class="c-role">${ct.role}</span>`);
+          return parts.length > 0 ? `<span class="customer-contact-item">${parts.join(' ')}</span>` : '';
+        }).filter(Boolean).join('');
+        contactHtml = `
+          <div class="customer-contact-section">
+            <div class="customer-contact-title">联系人</div>
+            <div class="customer-contact-list">${contactItems}</div>
+          </div>
+        `;
+      }
       
       return `
-        <div class="customer-project-row">
-          <div class="project-row-left">
-            <span class="project-row-name" ${projClick}>${p.projectName}</span>
-            ${p.direction ? `<span class="project-row-direction">${p.direction}</span>` : ''}
+        <div class="customer-card" data-name="${c.name}" data-search="${(c.name + ' ' + c.industry + ' ' + c.projects.map(p => p.projectName + ' ' + p.direction + ' ' + p.status).join(' ')).toLowerCase()}">
+          <div class="customer-header" onclick="toggleCustomerCard(this)">
+            <div class="customer-avatar" style="background:${avatarColors[colorIdx]}">${initial}</div>
+            <div class="customer-info">
+              <div class="customer-name-row">
+                <span class="customer-name">${c.name}</span>
+                <span class="customer-industry" style="${industryStyle}">${c.industry}</span>
+              </div>
+              <div class="customer-meta">
+                <span class="customer-project-count">📋 ${projectCount}个项目</span>
+                ${c.projects.some(p => p.issue) ? `<span style="color:var(--orange)">⚠ ${c.projects.filter(p => p.issue).length}个问题</span>` : ''}
+                ${c.projects.some(p => p.latestUpdate && p.latestUpdate >= new Date().toISOString().substring(0,10).replace(/-/g,'-')) ? `<span style="color:var(--green)">● 活跃</span>` : ''}
+              </div>
+            </div>
+            <span class="customer-expand-icon">▶</span>
           </div>
-          <div class="project-row-center">
-            <div class="project-row-status">${p.status || '待跟进'}</div>
-            <div class="project-row-latest">${latestContent}</div>
-            ${issueHtml}
+          <div class="customer-projects-panel">
+            ${projectRowsHtml}
           </div>
-          <div class="project-row-right">
-            ${latestDate ? `<span class="project-row-date">${latestDate.substring(5).replace('-', '/')}${updaterHtml}</span>` : ''}
-            ${p.priority ? `<span class="project-row-priority ${priorityClass}">${p.priority}</span>` : ''}
-            ${p.totalUpdates ? `<span style="font-size:10px;color:var(--text-secondary)">${p.totalUpdates}次更新</span>` : ''}
-          </div>
+          ${contactHtml}
         </div>
       `;
     }).join('');
-    
-    // Contact section
-    let contactHtml = '';
-    if (c.contacts.length > 0) {
-      const contactItems = c.contacts.map(ct => {
-        const parts = [];
-        if (ct.name) parts.push(`<span class="c-name">${ct.name}</span>`);
-        if (ct.phone) parts.push(`<span class="c-phone">${ct.phone}</span>`);
-        if (ct.role) parts.push(`<span class="c-role">${ct.role}</span>`);
-        return parts.length > 0 ? `<span class="customer-contact-item">${parts.join(' ')}</span>` : '';
-      }).filter(Boolean).join('');
-      contactHtml = `
-        <div class="customer-contact-section">
-          <div class="customer-contact-title">联系人</div>
-          <div class="customer-contact-list">${contactItems}</div>
-        </div>
-      `;
-    }
-    
-    return `
-      <div class="customer-card" data-name="${c.name}" data-search="${(c.name + ' ' + c.industry + ' ' + c.projects.map(p => p.projectName + ' ' + p.direction + ' ' + p.status).join(' ')).toLowerCase()}">
-        <div class="customer-header" onclick="toggleCustomerCard(this)">
-          <div class="customer-avatar" style="background:${avatarColors[colorIdx]}">${initial}</div>
-          <div class="customer-info">
-            <div class="customer-name-row">
-              <span class="customer-name">${c.name}</span>
-              <span class="customer-industry" style="${industryStyle}">${c.industry}</span>
-            </div>
-            <div class="customer-meta">
-              <span class="customer-project-count">📋 ${projectCount}个项目</span>
-              ${c.projects.some(p => p.issue) ? `<span style="color:var(--orange)">⚠ ${c.projects.filter(p => p.issue).length}个问题</span>` : ''}
-              ${c.projects.some(p => p.latestUpdate && p.latestUpdate >= new Date().toISOString().substring(0,10).replace(/-/g,'-')) ? `<span style="color:var(--green)">● 活跃</span>` : ''}
-            </div>
-          </div>
-          <span class="customer-expand-icon">▶</span>
-        </div>
-        <div class="customer-projects-panel">
-          ${projectRowsHtml}
-        </div>
-        ${contactHtml}
-      </div>
-    `;
-  }).join('');
+  }
   
-  document.getElementById('customerTables').innerHTML = `
-    <div style="margin-bottom:12px;font-size:13px;color:var(--text-secondary)">共 ${customers.length} 个客户 · 点击展开查看各项目进展</div>
-    ${html}
-  `;
+  document.getElementById('customerTables').innerHTML = html;
 }
 
 function toggleCustomerCard(headerEl) {
