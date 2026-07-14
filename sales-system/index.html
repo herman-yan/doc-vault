@@ -305,7 +305,7 @@ function switchPage(page) {
 
 function renderPage() {
   const main = document.getElementById('mainContent');
-  const statusBar = '<input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelUpload(this)><div class="upload-status-bar" id="uploadStatusBar"></div>';
+  const statusBar = '<input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelUpload(this)"><div class="upload-status-bar" id="uploadStatusBar"></div>';
   switch(currentPage) {
     case 'dashboard': main.innerHTML = statusBar + renderDashboard(); break;
     case 'repair': main.innerHTML = statusBar + renderRepairList(); break;
@@ -810,6 +810,8 @@ let crmViewMode = 'table';
 let crmSearchText = '';
 let crmFilterTag = '';
 let crmFilterType = '';
+let crmFilterBrand = '';
+let crmFilterCustomerType = '';
 
 function renderCRM() {
   const customers = getFilteredCustomers();
@@ -826,7 +828,7 @@ function renderCRM() {
       </div>
     </div>
     <div class="filter-bar">
-      <input class="form-input search-input" placeholder="搜索客户名称/联系人/电话/地址..." oninput="searchCRM(this.value)" id="crmSearch" value="${crmSearchText}">
+      <input class="form-input search-input" placeholder="搜索公司/联系人/电话/品牌/车型..." oninput="searchCRM(this.value)" id="crmSearch" value="${crmSearchText}">
       <select class="form-select" onchange="filterCRMTag(this.value)">
         <option value="">全部标签</option>
         <option value="新客" ${crmFilterTag==='新客'?'selected':''}>新客</option>
@@ -840,6 +842,16 @@ function renderCRM() {
         <option value="">全部区域</option>
         ${getUniqueRegions().map(r => `<option value="${r}" ${crmFilterType===r?'selected':''}>${r}</option>`).join('')}
       </select>
+      <select class="form-select" onchange="filterCRMBrand(this.value)">
+        <option value="">全部品牌/车型</option>
+        ${getUniqueBrands().map(b => `<option value="${b}" ${crmFilterBrand===b?'selected':''}>${b}</option>`).join('')}
+      </select>
+      <select class="form-select" onchange="filterCRMCustomerType(this.value)">
+        <option value="">全部客户类型</option>
+        <option value="战略客户" ${crmFilterCustomerType==='战略客户'?'selected':''}>战略客户</option>
+        <option value="大客户" ${crmFilterCustomerType==='大客户'?'selected':''}>大客户</option>
+        <option value="中小客户" ${crmFilterCustomerType==='中小客户'?'selected':''}>中小客户</option>
+      </select>
     </div>
     ${crmViewMode === 'table' ? renderCRMTable(customers) : renderCRMCards(customers)}
   `;
@@ -850,17 +862,32 @@ function getFilteredCustomers() {
   if (crmSearchText) {
     const t = crmSearchText.toLowerCase();
     filtered = filtered.filter(c => (
-      (c.name||'') + (c.contact||'') + (c.phone||'') + (c.address||'')
+      (c.name||'') + '|' + (c.contact||'') + '|' + (c.phone||'') + '|' + (c.mobile||'') + '|' + (c.address||'') + '|' + (c.vehicleBrand||'') + '|' + (c.batteryModel||'') + '|' + (c.customerType||'')
     ).toLowerCase().includes(t));
   }
   if (crmFilterTag) filtered = filtered.filter(c => (c.tags||[]).includes(crmFilterTag));
   if (crmFilterType) filtered = filtered.filter(c => c.region === crmFilterType);
+  if (crmFilterBrand) filtered = filtered.filter(c => (c.vehicleBrand||'').includes(crmFilterBrand));
+  if (crmFilterCustomerType) filtered = filtered.filter(c => c.customerType === crmFilterCustomerType);
   return filtered;
 }
 
 function getUniqueRegions() {
   const regions = new Set(APP.customers.map(c => c.region).filter(Boolean));
   return [...regions].sort();
+}
+
+function getUniqueBrands() {
+  const brands = new Set();
+  APP.customers.forEach(c => {
+    if (c.vehicleBrand) {
+      c.vehicleBrand.split(/[,，/、\s]+/).forEach(b => {
+        const bb = b.trim();
+        if (bb) brands.add(bb);
+      });
+    }
+  });
+  return [...brands].sort();
 }
 
 function renderCRMTable(customers) {
@@ -940,18 +967,11 @@ function getLastFollowDate(customer) {
 }
 
 function setCRMView(mode) { crmViewMode = mode; renderPage(); }
-function searchCRM(text) { crmSearchText = text; applyCRMFilter(); }
+function searchCRM(text) { crmSearchText = text; renderPage(); }
 function filterCRMTag(tag) { crmFilterTag = tag; renderPage(); }
 function filterCRMType(type) { crmFilterType = type; renderPage(); }
-
-function applyCRMFilter() {
-  if(crmViewMode === 'table') {
-    // Re-render for table mode
-    renderPage();
-  } else {
-    renderPage();
-  }
-}
+function filterCRMBrand(brand) { crmFilterBrand = brand; renderPage(); }
+function filterCRMCustomerType(type) { crmFilterCustomerType = type; renderPage(); }
 
 // Customer Form
 function openCustomerForm(id) {
