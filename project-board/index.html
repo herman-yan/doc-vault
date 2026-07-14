@@ -888,6 +888,127 @@ body {
   word-break: break-all;
 }
 
+/* Add project relation button */
+.add-project-relation-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(29,155,240,0.08);
+  border: 1px dashed rgba(29,155,240,0.3);
+  margin: 8px 18px 8px 66px;
+  transition: all 0.15s;
+}
+.add-project-relation-btn:hover {
+  background: rgba(29,155,240,0.15);
+  border-color: var(--accent);
+}
+
+/* Add project relation modal */
+.add-relation-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+}
+.add-relation-modal.open { display: flex; }
+
+.add-relation-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.add-relation-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.add-relation-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.add-relation-field {
+  margin-bottom: 12px;
+}
+
+.add-relation-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.add-relation-field input,
+.add-relation-field select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+
+.add-relation-field input:focus,
+.add-relation-field select:focus {
+  border-color: var(--accent);
+}
+
+.add-relation-field select {
+  cursor: pointer;
+}
+
+.add-relation-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.add-relation-actions button {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+
+.add-relation-actions .btn-cancel {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.add-relation-actions .btn-confirm {
+  background: var(--accent);
+  color: #fff;
+}
+
+.add-relation-actions .btn-confirm:hover {
+  opacity: 0.9;
+}
+
 /* Group section header */
 .customer-group-header {
   display: flex;
@@ -2206,6 +2327,35 @@ body {
   </div>
 </div>
 
+<!-- ========== Add Project Relation Modal ========== -->
+<div class="add-relation-modal" id="addRelationModal">
+  <div class="add-relation-content">
+    <div class="add-relation-title">添加项目关联</div>
+    <div class="add-relation-subtitle" id="addRelationSubtitle">为客户关联新项目</div>
+    <div class="add-relation-field">
+      <label>选择项目</label>
+      <select id="relationProjectSelect"></select>
+    </div>
+    <div class="add-relation-field">
+      <label>合作方向</label>
+      <input type="text" id="relationDirection" placeholder="例如：换电柜合作、储能方案等">
+    </div>
+    <div class="add-relation-field">
+      <label>跟进状态</label>
+      <input type="text" id="relationStatus" placeholder="例如：推进中、待确认等">
+    </div>
+    <div class="add-relation-field">
+      <label>存在问题（可选）</label>
+      <input type="text" id="relationIssue" placeholder="例如：需过会、待报价等">
+    </div>
+    <div class="add-relation-actions">
+      <button class="btn-cancel" onclick="closeAddRelationModal()">取消</button>
+      <button class="btn-confirm" id="btnSubmitRelation" onclick="submitAddRelation()">确认关联</button>
+    </div>
+    <div id="addRelationStatus" style="margin-top:8px;font-size:12px;"></div>
+  </div>
+</div>
+
 <!-- ========== Contact Management Modal ========== -->
 <div class="modal-overlay" id="contactModal">
   <div class="modal-card">
@@ -3120,6 +3270,29 @@ function renderDatabaseView() {
     }
   });
   
+  // Merge extraProjectRelations (additional customer→project links)
+  if (appData.extraProjectRelations) {
+    appData.extraProjectRelations.forEach(r => {
+      const c = ensureCustomer(r.customerName);
+      const proj = findProjectByName(r.projectName);
+      if (c.projects.find(p => p.projectName === r.projectName)) return; // Already linked
+      c.projects.push({
+        projectId: r.projectId || (proj ? proj.id : null),
+        projectName: r.projectName,
+        direction: r.direction || '',
+        status: r.status || '',
+        issue: r.issue || '',
+        priority: proj ? proj.priority : '',
+        latestEntry: proj && proj.timeline && proj.timeline.length > 0 ? proj.timeline[0] : null,
+        latestUpdate: proj ? proj.latestUpdate : '',
+        totalUpdates: proj ? proj.totalUpdates : 0,
+        completion: proj ? proj.completion : '',
+        timeline: proj ? (proj.timeline || []).slice(0, 5) : [],
+        isExtraRelation: true
+      });
+    });
+  }
+  
   // ========== 2. 分组 ==========
   const groupOrder = ['政府合作方', '业务合作方', '场地合作方', '潜在客户', '待分类'];
   const groups = {};
@@ -3272,6 +3445,7 @@ function renderDatabaseView() {
           </div>
           <div class="customer-projects-panel">
             ${projectRowsHtml}
+            <div class="add-project-relation-btn" onclick="event.stopPropagation();openAddRelationModal('${c.name.replace(/'/g, "\\'")}')">+ 添加项目关联</div>
           </div>
           ${contactHtml}
         </div>
@@ -3285,6 +3459,111 @@ function renderDatabaseView() {
 function toggleCustomerCard(headerEl) {
   const card = headerEl.closest('.customer-card');
   card.classList.toggle('expanded');
+}
+
+// ===================== Add Project Relation =====================
+let currentRelationCustomer = '';
+
+function openAddRelationModal(customerName) {
+  currentRelationCustomer = customerName;
+  document.getElementById('addRelationSubtitle').textContent = `为「${customerName}」关联新项目`;
+  
+  // Populate project dropdown
+  const select = document.getElementById('relationProjectSelect');
+  const existingRelations = (appData.extraProjectRelations || []).filter(r => r.customerName === customerName);
+  const existingProjectNames = existingRelations.map(r => r.projectName);
+  
+  // Also get primary related projects from businessPartners
+  const bp = appData.businessPartners.find(p => p.name === customerName);
+  if (bp && bp.relatedProject) existingProjectNames.push(bp.relatedProject);
+  
+  // Get venue partner's project
+  const vp = appData.venuePartners.find(p => p.name === customerName);
+  if (vp) existingProjectNames.push('场地合作');
+  
+  const options = appData.projects
+    .filter(p => !existingProjectNames.includes(p.name))
+    .map(p => `<option value="${p.id}">${p.name}</option>`)
+    .join('');
+  
+  select.innerHTML = options || '<option value="">无可用项目</option>';
+  
+  // Clear fields
+  document.getElementById('relationDirection').value = '';
+  document.getElementById('relationStatus').value = '';
+  document.getElementById('relationIssue').value = '';
+  document.getElementById('addRelationStatus').textContent = '';
+  
+  document.getElementById('addRelationModal').classList.add('open');
+}
+
+function closeAddRelationModal() {
+  document.getElementById('addRelationModal').classList.remove('open');
+  currentRelationCustomer = '';
+}
+
+async function submitAddRelation() {
+  const projectId = parseInt(document.getElementById('relationProjectSelect').value);
+  const direction = document.getElementById('relationDirection').value.trim();
+  const status = document.getElementById('relationStatus').value.trim();
+  const issue = document.getElementById('relationIssue').value.trim();
+  
+  if (!projectId) { showStatus('addRelationStatus', '请选择项目', 'error'); return; }
+  
+  const project = appData.projects.find(p => p.id === projectId);
+  if (!project) { showStatus('addRelationStatus', '项目不存在', 'error'); return; }
+  
+  const settings = getSettings();
+  if (!settings.token) { showStatus('addRelationStatus', '请先在设置中配置 GitHub Token', 'error'); return; }
+  
+  const btn = document.getElementById('btnSubmitRelation');
+  btn.disabled = true;
+  btn.textContent = '保存中...';
+  
+  try {
+    const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
+    const resp = await fetch(apiUrl, { headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' } });
+    if (!resp.ok) throw new Error(`获取文件失败: ${resp.status}`);
+    const fileData = await resp.json();
+    const sha = fileData.sha;
+    
+    const jsonStr = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
+    const data = JSON.parse(jsonStr);
+    
+    // Initialize extraProjectRelations if not exists
+    if (!data.extraProjectRelations) data.extraProjectRelations = [];
+    
+    // Check if this relation already exists
+    const exists = data.extraProjectRelations.find(r => r.customerName === currentRelationCustomer && r.projectId === projectId);
+    if (exists) throw new Error('该项目关联已存在');
+    
+    // Add new relation
+    data.extraProjectRelations.push({
+      customerName: currentRelationCustomer,
+      projectId: projectId,
+      projectName: project.name,
+      direction: direction,
+      status: status,
+      issue: issue
+    });
+    
+    await safeGitHubPush(settings, data, sha, `新增项目关联: ${currentRelationCustomer} → ${project.name}`);
+    
+    showStatus('addRelationStatus', '✅ 关联成功', 'success');
+    btn.textContent = '✓ 成功';
+    
+    await loadData();
+    renderDatabaseView();
+    
+    setTimeout(() => {
+      closeAddRelationModal();
+    }, 1000);
+    
+  } catch (err) {
+    showStatus('addRelationStatus', `❌ ${err.message}`, 'error');
+    btn.disabled = false;
+    btn.textContent = '确认关联';
+  }
 }
 
 // Search / filter
