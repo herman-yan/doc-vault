@@ -853,8 +853,16 @@ function renderCRM() {
         <option value="中小客户" ${crmFilterCustomerType==='中小客户'?'selected':''}>中小客户</option>
       </select>
     </div>
-    ${crmViewMode === 'table' ? renderCRMTable(customers) : renderCRMCards(customers)}
+    <div id="crmResults">${crmViewMode === 'table' ? renderCRMTable(customers) : renderCRMCards(customers)}</div>
   `;
+}
+
+function renderCRMResults() {
+  const customers = getFilteredCustomers();
+  const container = document.getElementById('crmResults');
+  if (container) {
+    container.innerHTML = crmViewMode === 'table' ? renderCRMTable(customers) : renderCRMCards(customers);
+  }
 }
 
 function getFilteredCustomers() {
@@ -967,11 +975,11 @@ function getLastFollowDate(customer) {
 }
 
 function setCRMView(mode) { crmViewMode = mode; renderPage(); }
-function searchCRM(text) { crmSearchText = text; renderPage(); }
-function filterCRMTag(tag) { crmFilterTag = tag; renderPage(); }
-function filterCRMType(type) { crmFilterType = type; renderPage(); }
-function filterCRMBrand(brand) { crmFilterBrand = brand; renderPage(); }
-function filterCRMCustomerType(type) { crmFilterCustomerType = type; renderPage(); }
+function searchCRM(text) { crmSearchText = text; renderCRMResults(); }
+function filterCRMTag(tag) { crmFilterTag = tag; renderCRMResults(); }
+function filterCRMType(type) { crmFilterType = type; renderCRMResults(); }
+function filterCRMBrand(brand) { crmFilterBrand = brand; renderCRMResults(); }
+function filterCRMCustomerType(type) { crmFilterCustomerType = type; renderCRMResults(); }
 
 // Customer Form
 function openCustomerForm(id) {
