@@ -179,6 +179,30 @@ tbody tr { cursor: pointer; }
 .tag-new { background: #dcfce7; color: #166534; }
 .tag-catl { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
 
+/* 关联图谱（鱼骨图）：对接人 → 门店 → 电池 */
+.rel-wrap { display: flex; flex-direction: column; gap: 18px; }
+.rel-intro { background: linear-gradient(135deg,#eff6ff,#f0fdfa); border: 1px solid #bfdbfe; border-radius: 12px; padding: 14px 16px; }
+.rel-intro-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.rel-intro-text { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+.rel-row { display: flex; align-items: stretch; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; position: relative; }
+.rel-head { flex: 0 0 150px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-right: 2px dashed #cbd5e1; padding-right: 10px; }
+.rel-brand { font-weight: 700; font-size: 14px; text-align: center; }
+.rel-count { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+.rel-spine { flex: 0 0 24px; position: relative; }
+.rel-spine::before { content: ''; position: absolute; left: 50%; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: linear-gradient(180deg,#3b82f6,#10b981); transform: translateX(-50%); }
+.rel-branches { flex: 1; display: flex; flex-wrap: wrap; gap: 10px; padding: 0 14px; align-items: center; }
+.rel-node { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; min-width: 180px; max-width: 230px; }
+.rel-store { font-weight: 600; font-size: 13px; }
+.rel-meta { margin: 6px 0 4px; font-size: 12px; }
+.rel-contact.ok { color: #166534; }
+.rel-contact.miss { color: #b45309; }
+.rel-contact.miss a { color: var(--primary); text-decoration: underline; cursor: pointer; margin-left: 4px; }
+.rel-addr { font-size: 11px; color: var(--text-secondary); }
+.rel-tail { flex: 0 0 140px; display: flex; align-items: center; justify-content: center; border-left: 2px dashed #cbd5e1; padding-left: 10px; text-align: center; }
+.rel-nobat { font-size: 11px; color: var(--text-secondary); }
+.miss-field { color: #b45309; font-size: 13px; }
+.miss-field a { color: var(--primary); text-decoration: underline; cursor: pointer; }
+
 /* ===== 车型/电池总览条 ===== */
 .store-overview { background: linear-gradient(135deg,#eff6ff,#f0fdfa); border: 1px solid #bfdbfe; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
 .so-title { font-size: 13px; font-weight: 600; color: #1e3a8a; margin-bottom: 10px; }
@@ -2482,6 +2506,7 @@ function renderCRM() {
           <button class="view-toggle-btn ${crmViewMode==='table'?'active':''}" onclick="setCRMView('table')">📋 表格</button>
           <button class="view-toggle-btn ${crmViewMode==='card'?'active':''}" onclick="setCRMView('card')">🃏 卡片</button>
           <button class="view-toggle-btn ${crmViewMode==='group'?'active':''}" onclick="setCRMView('group')">🚗 按车型</button>
+          <button class="view-toggle-btn ${crmViewMode==='rel'?'active':''}" onclick="setCRMView('rel')">🔗 关联</button>
         </div>
         <button class="btn btn-primary" onclick="openCustomerForm()">+ 新增客户</button>
       </div>
@@ -2521,6 +2546,8 @@ function renderCRM() {
     <div id="crmResults">${
       crmViewMode === 'group'
         ? renderCRMByBrand(customers)
+        : crmViewMode === 'rel'
+        ? renderCRMRelation(customers)
         : (crmViewMode === 'table' ? renderCRMTable(customers) : renderCRMCards(customers))
     }</div>
   `;
@@ -2586,6 +2613,57 @@ function renderCRMByBrand(customers) {
   `;
 }
 
+// 关联关系视图（鱼骨图风格）：按品牌/车型串联 对接人 → 承接客户的门店 → 配备的电池
+function renderCRMRelation(customers) {
+  const esc = s => (s==null ? '' : String(s)).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const stores = customers.filter(c => c.isStore);
+  const list = stores.length ? stores : customers;
+  if (!list.length) return '<div class="card" style="text-align:center;color:var(--text-secondary);padding:40px">暂无客户数据</div>';
+  const map = new Map();
+  list.forEach(c => {
+    const b = c.vehicleBrand || '未分类车型';
+    if (!map.has(b)) map.set(b, []);
+    map.get(b).push(c);
+  });
+  const arr = [...map.entries()].sort((a,b)=>b[1].length-a[1].length);
+  const totalContact = list.filter(c=>c.contact).length;
+  return `
+    <div class="rel-wrap">
+      <div class="rel-intro">
+        <div class="rel-intro-title">🔗 客户资源关联图谱（鱼骨图）</div>
+        <div class="rel-intro-text">按 <strong>品牌 / 车型</strong> 串联 <strong>对接人 → 承接客户的门店 → 配备电池</strong> 的链路。当前 ${list.length} 家门店中已填对接人 <strong>${totalContact}</strong> 家；门店明细表未提供对接人字段，可在门店卡上「＋补充」或编辑客户补录（数据存于本地）。</div>
+      </div>
+      ${arr.map(([brand, items]) => {
+        const battery = (items.find(c=>c.batteryModel)||{}).batteryModel || '';
+        return `
+        <div class="rel-row">
+          <div class="rel-head">
+            <div class="rel-brand">🚗 ${esc(brand)}</div>
+            <div class="rel-count">${items.length} 家门店</div>
+          </div>
+          <div class="rel-spine"></div>
+          <div class="rel-branches">
+            ${items.map(c => `
+              <div class="rel-node">
+                <div class="rel-store">${esc(c.name||'-')}</div>
+                <div class="rel-meta">
+                  ${c.contact
+                    ? `<span class="rel-contact ok">👤 ${esc(c.contact)}</span>`
+                    : `<span class="rel-contact miss">👤 对接人待补充 <a href="javascript:void(0)" onclick="editCustomer('${c.id}')">＋补充</a></span>`}
+                </div>
+                <div class="rel-addr">📍 ${esc(c.address||'-')}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="rel-tail">
+            ${battery ? `<span class="battery-pill">🔋 ${esc(battery)}</span>` : '<span class="rel-nobat">无电池配置</span>'}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
 // 客户卡片（突出显示 客户 / 车型 / 电池配置）
 function renderStoreCard(c) {
   return `
@@ -2624,7 +2702,10 @@ function renderCRMResults() {
   const customers = getFilteredCustomers();
   const container = document.getElementById('crmResults');
   if (container) {
-    container.innerHTML = crmViewMode === 'table' ? renderCRMTable(customers) : renderCRMCards(customers);
+    if (crmViewMode === 'group') container.innerHTML = renderCRMByBrand(customers);
+    else if (crmViewMode === 'rel') container.innerHTML = renderCRMRelation(customers);
+    else if (crmViewMode === 'table') container.innerHTML = renderCRMTable(customers);
+    else container.innerHTML = renderCRMCards(customers);
   }
 }
 
@@ -2951,8 +3032,8 @@ function viewCustomer(id) {
           <div class="detail-section">
             <div class="detail-section-title">📋 基本信息</div>
             <div class="detail-grid">
-              <div class="detail-field"><div class="detail-field-label">联系人</div><div class="detail-field-value">${c.contact||'-'}</div></div>
-              <div class="detail-field"><div class="detail-field-label">电话</div><div class="detail-field-value">${c.phone||'-'}</div></div>
+              <div class="detail-field"><div class="detail-field-label">联系人</div><div class="detail-field-value">${c.contact ? esc(c.contact) : `<span class="miss-field">门店明细表未提供 <a href="javascript:void(0)" onclick="closeModal();editCustomer('${c.id}')">＋补录</a></span>`}</div></div>
+              <div class="detail-field"><div class="detail-field-label">电话</div><div class="detail-field-value">${c.phone ? esc(c.phone) : '<span class="miss-field">未提供</span>'}</div></div>
               <div class="detail-field"><div class="detail-field-label">地址</div><div class="detail-field-value">${c.address||'-'}</div></div>
               <div class="detail-field"><div class="detail-field-label">区域</div><div class="detail-field-value">${c.region||'-'}</div></div>
               <div class="detail-field"><div class="detail-field-label">创建时间</div><div class="detail-field-value">${c.createDate||'-'}</div></div>
