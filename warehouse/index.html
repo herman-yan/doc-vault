@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>库房管理系统 - 宁家服务数字化运营系统</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-primary:#1a1a2e;--bg-secondary:#16213e;--bg-card:rgba(255,255,255,.05);--bg-card-hover:rgba(255,255,255,.08);
+  --border-color:rgba(255,255,255,.1);--text-primary:#fff;--text-secondary:rgba(255,255,255,.7);--text-muted:rgba(255,255,255,.45);
+  --gradient-primary:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
+  --gradient-accent:linear-gradient(135deg,#fa709a 0%,#fee140 100%);
+  --amber:#ffa502;--amber-bg:rgba(255,165,2,.18);--amber-bd:rgba(255,165,2,.4);
+  --red:#e74c3c;--red-bg:rgba(231,76,60,.15);--red-bd:rgba(231,76,60,.4);
+  --green:#2ecc71;--green-bg:rgba(46,204,113,.15);--green-bd:rgba(46,204,113,.4);
+  --blue:#3498db;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;padding:26px 20px 60px}
+.container{max-width:1180px;margin:0 auto}
+.back-link{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text-secondary);text-decoration:none;margin-bottom:14px}
+.back-link:hover{color:#4facfe}
+.page-header{display:flex;align-items:center;gap:16px;margin-bottom:6px}
+.page-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#fa709a 0%,#fee140 100%);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 6px 20px rgba(250,112,154,.35)}
+.page-title{font-size:24px;font-weight:700}
+.page-subtitle{font-size:13px;color:var(--text-secondary);margin-top:3px}
+.stats-bar{display:flex;gap:12px;margin:20px 0 18px;flex-wrap:wrap}
+.stat-box{flex:1;min-width:130px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:14px 16px}
+.stat-value{font-size:22px;font-weight:700}
+.stat-label{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;border-bottom:1px solid var(--border-color);padding-bottom:10px}
+.tab{padding:9px 20px;border-radius:10px;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-secondary);font-size:14px;cursor:pointer;transition:all .15s;font-weight:500}
+.tab:hover{border-color:#4facfe}
+.tab.active{background:var(--gradient-primary);color:#06283d;border-color:transparent;font-weight:600}
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.search-input{padding:9px 14px;border-radius:10px;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary);font-size:14px;min-width:220px;outline:none}
+.search-input:focus{border-color:#4facfe}
+.filter-chip{padding:6px 14px;border-radius:20px;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .15s}
+.filter-chip:hover{border-color:#4facfe}
+.filter-chip.active{background:var(--gradient-primary);color:#06283d;font-weight:600;border-color:transparent}
+.btn{padding:9px 18px;border-radius:10px;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary);font-size:14px;cursor:pointer;transition:all .15s;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--bg-card-hover);border-color:#4facfe}
+.btn.primary{background:var(--gradient-primary);border:none;color:#06283d}
+.btn.primary:hover{box-shadow:0 6px 18px rgba(79,172,254,.4)}
+.btn.amber{background:linear-gradient(135deg,#ffa502,#ff6342);border:none;color:#3a1d00}
+.btn.sm{padding:5px 12px;font-size:12px}
+.btn.danger{color:#ff6b5b;border-color:var(--red-bd)}
+.table-wrap{background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}
+th{background:rgba(255,255,255,.04);color:var(--text-secondary);font-weight:600;font-size:12px;position:sticky;top:0}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+.row-warn{background:rgba(255,165,2,.07)}
+.row-danger{background:rgba(231,76,60,.08)}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-normal{background:var(--green-bg);color:#5fe39b;border:1px solid var(--green-bd)}
+.b-warn{background:var(--amber-bg);color:#ffbe4d;border:1px solid var(--amber-bd)}
+.b-danger{background:var(--red-bg);color:#ff6b5b;border:1px solid var(--red-bd)}
+.b-info{background:rgba(79,172,254,.15);color:#6fc0ff;border:1px solid rgba(79,172,254,.4)}
+.b-gray{background:rgba(255,255,255,.08);color:var(--text-secondary);border:1px solid var(--border-color)}
+.cat-tag{font-size:11px;color:var(--text-muted)}
+.op-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.op-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.op-title{font-size:15px;font-weight:600}
+.op-meta{font-size:12px;color:var(--text-muted);margin-top:3px}
+.op-items{margin-top:10px;font-size:13px;color:var(--text-secondary);line-height:1.7}
+.op-items b{color:var(--text-primary)}
+.op-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.flow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.flow-step{font-size:11px;padding:3px 9px;border-radius:6px;background:rgba(255,255,255,.06);color:var(--text-muted)}
+.flow-step.done{background:rgba(46,204,113,.15);color:#5fe39b}
+.flow-step.cur{background:var(--amber-bg);color:#ffbe4d;border:1px solid var(--amber-bd)}
+.flow-arrow{color:var(--text-muted);font-size:11px}
+.empty-state{text-align:center;padding:50px 20px;color:var(--text-muted)}
+.empty-state .emoji{font-size:40px;margin-bottom:10px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:all .25s}
+.modal-overlay.active{opacity:1;visibility:visible}
+.modal{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:18px;padding:26px;width:92%;max-width:520px;max-height:88vh;overflow-y:auto;transform:scale(.94);transition:transform .25s}
+.modal-overlay.active .modal{transform:scale(1)}
+.modal h3{font-size:18px;margin-bottom:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--text-secondary);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border-radius:9px;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary);font-size:14px;outline:none;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#4facfe}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+.line-items{border:1px dashed var(--border-color);border-radius:10px;padding:10px;margin-bottom:10px}
+.line-item{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.line-item select,.line-item input{flex:1;padding:7px 10px;border-radius:8px;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary);font-size:13px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg-secondary);border:1px solid var(--border-color);padding:12px 22px;border-radius:12px;font-size:14px;opacity:0;transition:all .3s;z-index:2000;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--green-bd)}
+.toast.err{border-color:var(--red-bd);color:#ff6b5b}
+.hint{font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.6}
+@media(max-width:768px){.page-title{font-size:20px}.stat-box{min-width:calc(50% - 6px)}.field-row{flex-direction:column;gap:0}}
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="https://herman-yan.github.io/doc-vault/">← 返回宁家服务数字化运营系统</a>
+  <div class="page-header">
+    <div class="page-icon">📦</div>
+    <div>
+      <div class="page-title">库房管理系统</div>
+      <div class="page-subtitle">工程师订货 · 库房出入库 · 旧件回收 ｜ 物料目录由保外业务台帐与指标清单提炼</div>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-box"><div class="stat-value" id="stItems">—</div><div class="stat-label">物料种类</div></div>
+    <div class="stat-box"><div class="stat-value" id="stWarn" style="color:#ffbe4d">—</div><div class="stat-label">库存预警</div></div>
+    <div class="stat-box"><div class="stat-value" id="stOrders">—</div><div class="stat-label">待处理订货</div></div>
+    <div class="stat-box"><div class="stat-value" id="stTxn">—</div><div class="stat-label">本月出入库</div></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-view="inventory">📋 库存台账</div>
+    <div class="tab" data-view="orders">🛒 订货申请</div>
+    <div class="tab" data-view="txns">🔄 出入库流水</div>
+    <div class="tab" data-view="oldparts">♻️ 旧件管理</div>
+  </div>
+
+  <!-- 视图：库存台账 -->
+  <div id="view-inventory">
+    <div class="toolbar">
+      <input class="search-input" id="invSearch" placeholder="搜索 PN / 名称 / 分类">
+      <div id="invCats" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <span style="flex:1"></span>
+      <button class="btn primary" onclick="openItemModal()">＋ 新增物料</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>状态</th><th>PN / 产品编码</th><th>名称</th><th>分类</th><th>单位</th>
+          <th>当前库存</th><th>安全库存</th><th>进购价</th><th>操作</th>
+        </tr></thead>
+        <tbody id="invBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 视图：订货申请 -->
+  <div id="view-orders" style="display:none">
+    <div class="toolbar">
+      <button class="btn primary" onclick="openOrderModal()">＋ 新建订货申请</button>
+      <span style="flex:1"></span>
+      <span class="hint">工作流：待订货 → 已订货 → 已齐套 → 已领料 → 完成（领料时自动扣减库存并记录流水）</span>
+    </div>
+    <div id="orderList"></div>
+  </div>
+
+  <!-- 视图：出入库流水 -->
+  <div id="view-txns" style="display:none">
+    <div class="toolbar">
+      <button class="btn" onclick="openInboundModal()">📥 手动入库</button>
+      <button class="btn" onclick="openAdjustModal()">⚖️ 盘点调整</button>
+      <input class="search-input" id="txnSearch" placeholder="搜索 PN / 操作人" style="margin-left:auto">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>日期</th><th>类型</th><th>PN</th><th>名称</th><th>数量</th><th>操作人</th><th>关联单</th><th>备注</th></tr></thead>
+        <tbody id="txnBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 视图：旧件管理 -->
+  <div id="view-oldparts" style="display:none">
+    <div class="hint" style="margin-bottom:12px">旧件回收流程：领料更换后 → <b>旧件接收</b>（入库暂存）→ <b>旧件返厂</b>。以下为含旧件回收的订货单。</div>
+    <div id="oldList"></div>
+  </div>
+</div>
+
+<!-- 通用弹窗 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== 存储层（Supabase 匿名 + 本地兜底 + 静态种子） =====================
+const WH_SB_URL='https://bbiddukkkxthtairizlk.supabase.co';
+const WH_SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJiaWRkdWtra3h0aHRhaXJpemxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNzM4NjIsImV4cCI6MjA5ODk0OTg2Mn0.VBt4kQI-YXJKSw5TRWjH8uNXCljYxO6IW8ACi89wgXo';
+const WH_SB=(typeof supabase!=='undefined')?supabase.createClient(WH_SB_URL,WH_SB_KEY):null;
+const WH_TABLE='warehouse_data';const WH_KEY='main';const WH_CACHE='wh_cache';
+let DB=null;let curView='inventory';
+
+async function loadData(){
+  if(WH_SB){try{const{data,error}=await WH_SB.from(WH_TABLE).select('value').eq('key',WH_KEY).single();if(data&&data.value){localStorage.setItem(WH_CACHE,JSON.stringify(data.value));return data.value;}}catch(e){}}
+  const c=localStorage.getItem(WH_CACHE);if(c){try{return JSON.parse(c);}catch(e){}}
+  try{const r=await fetch('warehouse-data.json?t='+Date.now());if(r.ok){const d=await r.json();localStorage.setItem(WH_CACHE,JSON.stringify(d));return d;}}catch(e){}
+  return {items:[],orders:[],txns:[]};
+}
+async function saveData(msg){
+  DB.updated_at=new Date().toISOString().slice(0,10);
+  localStorage.setItem(WH_CACHE,JSON.stringify(DB));
+  if(WH_SB){try{const{error}=await WH_SB.from(WH_TABLE).upsert({key:WH_KEY,value:DB,updated_at:DB.updated_at});if(error)console.warn('Supabase写入失败(已存本地):',error.message);}catch(e){console.warn('Supabase不可达:',e.message);}}
+  return true;
+}
+const today=()=>new Date().toISOString().slice(0,10);
+const NOW=new Date().toISOString();
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(type||'');setTimeout(()=>t.className='toast',2200);}
+
+// ===================== 工具 =====================
+function itemByPn(pn){return DB.items.find(i=>i.pn===pn);}
+function stockStatus(i){if(!i.stock||i.stock<=0)return'danger';if(i.stock<i.safe_stock)return'warn';return'normal';}
+function statusBadge(s){
+  const m={normal:['b-normal','正常'],warn:['b-warn','预警'],danger:['b-danger','缺货']};
+  const[v,c]=m[s]||m.normal;return `<span class="badge ${v}">${c}</span>`;
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+// ===================== 渲染 =====================
+function render(){
+  renderStats();
+  if(curView==='inventory')renderInventory();
+  else if(curView==='orders')renderOrders();
+  else if(curView==='txns')renderTxns();
+  else if(curView==='oldparts')renderOld();
+}
+function renderStats(){
+  const items=DB.items||[];const orders=DB.orders||[];const txns=DB.txns||[];
+  document.getElementById('stItems').textContent=items.length;
+  document.getElementById('stWarn').textContent=items.filter(i=>stockStatus(i)!=='normal').length;
+  document.getElementById('stOrders').textContent=orders.filter(o=>o.status!=='完成').length;
+  const ym=today().slice(0,7);
+  document.getElementById('stTxn').textContent=txns.filter(t=>(t.date||'').slice(0,7)===ym).length;
+}
+
+function renderInventory(){
+  const q=(document.getElementById('invSearch').value||'').trim().toLowerCase();
+  const cat=document.getElementById('invCats').dataset.cat||'';
+  let list=(DB.items||[]).filter(i=>{
+    if(cat&&i.category!==cat)return false;
+    if(q&&!(i.pn.toLowerCase().includes(q)||(i.name||'').toLowerCase().includes(q)||(i.category||'').toLowerCase().includes(q)))return false;
+    return true;
+  });
+  list.sort((a,b)=>a.pn.localeCompare(b.pn));
+  const body=document.getElementById('invBody');
+  if(!list.length){body.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="emoji">📭</div>暂无匹配物料</div></td></tr>`;return;}
+  body.innerHTML=list.map(i=>{
+    const st=stockStatus(i);const rowCls=st==='danger'?'row-danger':st==='warn'?'row-warn':'';
+    return `<tr class="${rowCls}">
+      <td>${statusBadge(st)}</td>
+      <td><b>${esc(i.pn)}</b></td>
+      <td>${esc(i.name||'—')}<div class="cat-tag">${esc(i.apply_to?i.apply_to.join('/'):'')}</div></td>
+      <td>${esc(i.category||'—')}</td>
+      <td>${esc(i.unit||'个')}</td>
+      <td><b style="font-size:15px">${i.stock}</b></td>
+      <td>${i.safe_stock}</td>
+      <td>¥${i.purchase_price||0}</td>
+      <td>
+        <button class="btn sm primary" onclick="openInboundModal('${esc(i.pn)}')">入库</button>
+        <button class="btn sm" onclick="openOutboundModal('${esc(i.pn)}')">出库</button>
+        <button class="btn sm amber" onclick="openOrderModal('${esc(i.pn)}')">订货</button>
+        <button class="btn sm" onclick="openItemModal('${esc(i.pn)}')">编辑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+const ORDER_FLOW=['待订货','已订货','已齐套','已领料','完成'];
+const FLOW_DATE={ '已订货':'order_date','已齐套':'kit_date','已领料':'pick_date' };
+function renderOrders(){
+  const list=[...(DB.orders||[])].sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+  const box=document.getElementById('orderList');
+  if(!list.length){box.innerHTML=`<div class="empty-state"><div class="emoji">🛒</div>暂无订货申请，点击「新建订货申请」开始</div>`;return;}
+  box.innerHTML=list.map(o=>{
+    const idx=ORDER_FLOW.indexOf(o.status);
+    const flow=ORDER_FLOW.map((s,k)=>{
+      const cls=k<idx?'flow-step done':k===idx?'flow-step cur':'flow-step';
+      const d=s==='已订货'?(o.order_date||''):s==='已齐套'?(o.kit_date||''):s==='已领料'?(o.pick_date||''):'';
+      return `<span class="${cls}">${s}${d?' '+d:''}</span>`+(k<ORDER_FLOW.length-1?'<span class="flow-arrow">→</span>':'');
+    }).join('');
+    const itemsHtml=(o.items||[]).map(it=>`<b>${esc(it.name||it.pn)}</b> ×${it.qty} <span class="cat-tag">(${esc(it.pn)})</span>`).join('，');
+    const canAdv=idx<ORDER_FLOW.length-1;
+    const next=canAdv?ORDER_FLOW[idx+1]:'';
+    return `<div class="op-card">
+      <div class="op-top">
+        <div><div class="op-title">订货单 ${esc(o.id)}</div>
+          <div class="op-meta">申领 ${esc(o.apply_date)} ｜ 工程师 ${esc(o.engineer||'—')} ｜ 项目 ${esc(o.project||'—')}</div></div>
+        <span class="badge b-info">${esc(o.status)}</span>
+      </div>
+      <div class="op-items">物料：${itemsHtml||'—'}</div>
+      ${o.remark?`<div class="op-meta" style="margin-top:6px">备注：${esc(o.remark)}</div>`:''}
+      <div class="flow">${flow}</div>
+      <div class="op-actions">
+        ${canAdv?`<button class="btn primary sm" onclick="advanceOrder('${o.id}')">▶ 推进至「${next}」</button>`:`<span class="badge b-normal">✓ 已完成</span>`}
+        <button class="btn sm" onclick="openOldModal('${o.id}')">旧件回收</button>
+        <button class="btn sm danger" onclick="delOrder('${o.id}')">删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTxns(){
+  const q=(document.getElementById('txnSearch').value||'').trim().toLowerCase();
+  let list=[...(DB.txns||[])].sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+  if(q)list=list.filter(t=>(t.pn||'').toLowerCase().includes(q)||(t.operator||'').toLowerCase().includes(q));
+  const body=document.getElementById('txnBody');
+  if(!list.length){body.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="emoji">📜</div>暂无出入库记录</div></td></tr>`;return;}
+  const typeMap={入库:['b-normal','📥 入库'],出库:['b-warn','📤 出库'],领料:['b-info','🔧 领料'],盘点:['b-gray','⚖️ 盘点'],旧件入库:['b-gray','♻️ 旧件入库'],旧件出库:['b-gray','♻️ 旧件出库']};
+  body.innerHTML=list.slice(0,300).map(t=>{const[v,c]=typeMap[t.type]||['b-gray',t.type];
+    return `<tr><td>${esc(t.date)}</td><td><span class="badge ${v}">${c}</span></td><td>${esc(t.pn)}</td><td>${esc(t.name||'—')}</td>
+      <td style="color:${t.qty>=0?'#5fe39b':'#ff6b5b'}">${t.qty>=0?'+':''}${t.qty}</td><td>${esc(t.operator||'—')}</td>
+      <td>${esc(t.order_id||'—')}</td><td>${esc(t.remark||'')}</td></tr>`;
+  }).join('');
+}
+
+function renderOld(){
+  const list=(DB.orders||[]).filter(o=>(o.items||[]).length&&o.status!=='待订货');
+  const box=document.getElementById('oldList');
+  if(!list.length){box.innerHTML=`<div class="empty-state"><div class="emoji">♻️</div>暂无含旧件回收的订货单</div>`;return;}
+  box.innerHTML=list.map(o=>{
+    const recv=o.old_receive_date?`<span class="badge b-normal">✓ 已接收 ${o.old_receive_date}</span>`:`<button class="btn sm" onclick="setOld('${o.id}','receive')">标记接收</button>`;
+    const ret=o.old_return_date?`<span class="badge b-normal">✓ 已返厂 ${o.old_return_date}</span>`:`<button class="btn sm amber" onclick="setOld('${o.id}','return')">标记返厂</button>`;
+    return `<div class="op-card"><div class="op-top"><div><div class="op-title">订货单 ${esc(o.id)}</div>
+      <div class="op-meta">工程师 ${esc(o.engineer||'—')} ｜ 物料 ${(o.items||[]).map(it=>esc(it.name||it.pn)).join('、')}</div></div></div>
+      <div class="op-actions">${recv}${ret}</div></div>`;
+  }).join('');
+}
+
+// ===================== 业务操作 =====================
+function addTxn(type,pn,qty,operator,remark,order_id){
+  DB.txns.push({id:uid(),date:today(),type,pn,name:itemByPn(pn)?itemByPn(pn).name:'',qty,operator,remark:remark||'',order_id:order_id||'',ts:NOW});
+}
+async function openInboundModal(pn){
+  const it=pn?itemByPn(pn):null;
+  openModal(`<h3>📥 入库</h3>
+    <div class="field"><label>物料（PN）</label><input id="ibPn" value="${esc(pn||'')}" list="pnList" placeholder="输入或选择产品PN"><datalist id="pnList">${DB.items.map(i=>`<option value="${esc(i.pn)}">${esc(i.name||'')}</option>`).join('')}</datalist></div>
+    <div class="field-row"><div class="field"><label>数量</label><input id="ibQty" type="number" min="1" value="1"></div>
+    <div class="field"><label>操作人</label><input id="ibOp" placeholder="库房管理员"></div></div>
+    <div class="field"><label>备注</label><input id="ibRemark" placeholder="如：采购到货 / 旧件返厂入库"></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="doInbound()">确认入库</button></div>`);
+}
+async function doInbound(){
+  const pn=document.getElementById('ibPn').value.trim();const qty=parseInt(document.getElementById('ibQty').value)||0;
+  const op=document.getElementById('ibOp').value.trim()||'库房';const remark=document.getElementById('ibRemark').value.trim();
+  if(!pn){toast('请填写PN','err');return;}if(qty<=0){toast('数量无效','err');return;}
+  let it=itemByPn(pn);
+  if(!it){DB.items.push({pn,name:'',category:'未分类',spec:'',unit:'个',stock:0,safe_stock:2,purchase_price:0,sale_price:0,apply_to:[],note:''});it=itemByPn(pn);}
+  it.stock=(it.stock||0)+qty;
+  addTxn('入库',pn,qty,op,remark,'');
+  await saveData();render();closeModal();toast('✅ 已入库 +'+qty,'ok');
+}
+async function openOutboundModal(pn){
+  openModal(`<h3>📤 出库</h3>
+    <div class="field"><label>物料（PN）</label><input id="obPn" value="${esc(pn||'')}" list="pnList2" placeholder="输入或选择产品PN"><datalist id="pnList2">${DB.items.map(i=>`<option value="${esc(i.pn)}">${esc(i.name||'')}</option>`).join('')}</datalist></div>
+    <div class="field-row"><div class="field"><label>数量</label><input id="obQty" type="number" min="1" value="1"></div>
+    <div class="field"><label>操作人</label><input id="obOp" placeholder="领用人"></div></div>
+    <div class="field"><label>备注</label><input id="obRemark" placeholder="如：维修领用"></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn amber" onclick="doOutbound()">确认出库</button></div>`);
+}
+async function doOutbound(){
+  const pn=document.getElementById('obPn').value.trim();const qty=parseInt(document.getElementById('obQty').value)||0;
+  const op=document.getElementById('obOp').value.trim()||'领用人';const remark=document.getElementById('obRemark').value.trim();
+  if(!pn){toast('请填写PN','err');return;}if(qty<=0){toast('数量无效','err');return;}
+  const it=itemByPn(pn);if(!it){toast('物料不存在','err');return;}
+  if((it.stock||0)<qty){if(!confirm(`当前库存 ${it.stock}，出库 ${qty} 将导致负库存，确认继续？`))return;}
+  it.stock=(it.stock||0)-qty;
+  addTxn('出库',pn,-qty,op,remark,'');
+  await saveData();render();closeModal();toast('✅ 已出库 -'+qty,'ok');
+}
+async function openAdjustModal(){
+  openModal(`<h3>⚖️ 盘点调整</h3>
+    <div class="field"><label>物料（PN）</label><input id="adPn" list="pnList3" placeholder="输入或选择产品PN"><datalist id="pnList3">${DB.items.map(i=>`<option value="${esc(i.pn)}">${esc(i.name||'')}（现存${i.stock}）</option>`).join('')}</datalist></div>
+    <div class="field"><label>实际库存数量</label><input id="adStock" type="number" min="0" value="0"></div>
+    <div class="field"><label>操作人</label><input id="adOp" placeholder="盘点人"></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="doAdjust()">确认盘点</button></div>`);
+}
+async function doAdjust(){
+  const pn=document.getElementById('adPn').value.trim();const stock=parseInt(document.getElementById('adStock').value)||0;
+  const op=document.getElementById('adOp').value.trim()||'盘点人';
+  const it=itemByPn(pn);if(!it){toast('物料不存在','err');return;}
+  const diff=stock-(it.stock||0);it.stock=stock;
+  addTxn('盘点',pn,diff,op,'盘点调整','');
+  await saveData();render();closeModal();toast('✅ 盘点已更新','ok');
+}
+async function openItemModal(pn){
+  const it=pn?itemByPn(pn):null;
+  openModal(`<h3>${it?'✏️ 编辑物料':'＋ 新增物料'}</h3>
+    <div class="field"><label>产品PN（唯一编码）</label><input id="itPn" value="${esc(it?it.pn:'')}" ${it?'readonly':''} placeholder="如 PCAR01-00031"></div>
+    <div class="field-row"><div class="field"><label>名称</label><input id="itName" value="${esc(it?it.name:'')}" placeholder="如 电流传感器"></div>
+    <div class="field"><label>分类</label><input id="itCat" value="${esc(it?it.category:'')}" placeholder="如 传感器类"></div></div>
+    <div class="field-row"><div class="field"><label>单位</label><input id="itUnit" value="${esc(it?it.unit:'个')}"></div>
+    <div class="field"><label>当前库存</label><input id="itStock" type="number" value="${it?it.stock:0}"></div>
+    <div class="field"><label>安全库存</label><input id="itSafe" type="number" value="${it?it.safe_stock:2}"></div></div>
+    <div class="field-row"><div class="field"><label>进购价(元)</label><input id="itBuy" type="number" value="${it?it.purchase_price:0}"></div>
+    <div class="field"><label>销售价(元)</label><input id="itSale" type="number" value="${it?it.sale_price:0}"></div></div>
+    <div class="field"><label>适用项目/备注</label><input id="itNote" value="${esc(it?it.apply_to?it.apply_to.join('/'):'':it?it.note:'')}" placeholder="如 CTP-R2/更换电流传感器"></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveItem()">保存</button></div>`);
+}
+async function saveItem(){
+  const pn=document.getElementById('itPn').value.trim();
+  if(!pn){toast('请填写PN','err');return;}
+  const it=itemByPn(pn);
+  const data={name:document.getElementById('itName').value.trim(),category:document.getElementById('itCat').value.trim()||'未分类',
+    unit:document.getElementById('itUnit').value.trim()||'个',stock:parseInt(document.getElementById('itStock').value)||0,
+    safe_stock:parseInt(document.getElementById('itSafe').value)||0,purchase_price:parseFloat(document.getElementById('itBuy').value)||0,
+    sale_price:parseFloat(document.getElementById('itSale').value)||0,apply_to:document.getElementById('itNote').value.split('/').map(s=>s.trim()).filter(Boolean)};
+  if(it){Object.assign(it,data);}else{DB.items.push(Object.assign({pn,spec:'',note:''},data));}
+  await saveData();render();closeModal();toast('✅ 物料已保存','ok');
+}
+let orderLines=[];
+async function openOrderModal(presetPn){
+  orderLines=presetPn?[{pn:presetPn,name:itemByPn(presetPn)?itemByPn(presetPn).name:'',qty:1}]:[];
+  openModal(`<h3>🛒 新建订货申请</h3>
+    <div class="field-row"><div class="field"><label>工程师</label><input id="odEng" placeholder="如 李恩浩"></div>
+    <div class="field"><label>项目类型</label><input id="odProj" placeholder="如 CTP-R2 / 更换电流传感器"></div></div>
+    <div class="field"><label>物料明细</label>
+      <div class="line-items" id="odLines"></div>
+      <button class="btn sm" onclick="addOrderLine()">＋ 添加物料</button>
+    </div>
+    <div class="field"><label>备注</label><input id="odRemark" placeholder="如 紧急维修"></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="createOrder()">提交订货</button></div>`);
+  renderOrderLines();
+}
+function renderOrderLines(){
+  const box=document.getElementById('odLines');if(!box)return;
+  box.innerHTML=orderLines.map((l,k)=>`<div class="line-item">
+    <select onchange="orderLines[${k}].pn=this.value;orderLines[${k}].name=(itemByPn(this.value)||{}).name||''">${DB.items.map(i=>`<option value="${esc(i.pn)}" ${i.pn===l.pn?'selected':''}>${esc(i.pn)} ${esc(i.name||'')}</option>`).join('')}</select>
+    <input type="number" min="1" value="${l.qty}" onchange="orderLines[${k}].qty=parseInt(this.value)||1" style="max-width:80px">
+    <button class="btn sm danger" onclick="orderLines.splice(${k},1);renderOrderLines()">✕</button></div>`).join('');
+}
+function addOrderLine(){orderLines.push({pn:DB.items[0]?DB.items[0].pn:'',name:'',qty:1});renderOrderLines();}
+async function createOrder(){
+  const eng=document.getElementById('odEng').value.trim();const proj=document.getElementById('odProj').value.trim();
+  const remark=document.getElementById('odRemark').value.trim();
+  if(!orderLines.length||!orderLines[0].pn){toast('请至少添加一项物料','err');return;}
+  const items=orderLines.map(l=>({pn:l.pn,name:itemByPn(l.pn)?itemByPn(l.pn).name:'',qty:parseInt(l.qty)||1}));
+  DB.orders.push({id:'PO'+today().replace(/-/g,'')+Math.floor(Math.random()*900+100),apply_date:today(),engineer:eng,project:proj,items,status:'待订货',order_date:'',kit_date:'',pick_date:'',old_receive_date:'',old_return_date:'',remark,created_at:NOW});
+  await saveData();render();closeModal();toast('✅ 订货申请已提交','ok');
+}
+async function advanceOrder(id){
+  const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  const idx=ORDER_FLOW.indexOf(o.status);if(idx>=ORDER_FLOW.length-1)return;
+  const next=ORDER_FLOW[idx+1];
+  if(FLOW_DATE[next])o[FLOW_DATE[next]]=today();
+  if(next==='已领料'){
+    for(const it of (o.items||[])){
+      const m=itemByPn(it.pn);if(!m){toast('物料 '+it.pn+' 不存在','err');continue;}
+      if((m.stock||0)<it.qty){if(!confirm(`物料 ${it.pn} 当前库存 ${m.stock}，领料 ${it.qty} 将负库存，继续？`)){o.status=ORDER_FLOW[idx];continue;}}
+      m.stock=(m.stock||0)-it.qty;
+      addTxn('领料',it.pn,-it.qty,o.engineer||'工程师','订货领料 #'+o.id,o.id);
+    }
+  }
+  o.status=next;
+  await saveData();render();toast('✅ 已推进至「'+next+'」','ok');
+}
+async function setOld(id,act){
+  const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  if(act==='receive'){o.old_receive_date=today();addTxn('旧件入库',o.items[0].pn,0,o.engineer||'库房','旧件接收 #'+o.id,o.id);}
+  else{o.old_return_date=today();addTxn('旧件出库',o.items[0].pn,0,o.engineer||'库房','旧件返厂 #'+o.id,o.id);}
+  await saveData();render();toast('✅ 已更新旧件状态','ok');
+}
+async function delOrder(id){
+  if(!confirm('确认删除该订货单？'))return;
+  DB.orders=DB.orders.filter(x=>x.id!==id);await saveData();render();toast('已删除','ok');
+}
+
+// ===================== 弹窗/标签 =====================
+function openModal(html){document.getElementById('modalBox').innerHTML=html;document.getElementById('modalOverlay').classList.add('active');}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('active');}
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('modalOverlay'))closeModal();});
+
+function buildCatChips(){
+  const cats=[...new Set((DB.items||[]).map(i=>i.category))].sort();
+  document.getElementById('invCats').innerHTML='<span class="filter-chip '+(!document.getElementById('invCats').dataset.cat?'active':'')+'" onclick="setCat(\'\')">全部</span>'+
+    cats.map(c=>`<span class="filter-chip ${document.getElementById('invCats').dataset.cat===c?'active':''}" onclick="setCat('${esc(c)}')">${esc(c)}</span>`).join('');
+}
+function setCat(c){document.getElementById('invCats').dataset.cat=c;buildCatChips();renderInventory();}
+
+document.getElementById('tabs').addEventListener('click',e=>{
+  const t=e.target.closest('.tab');if(!t)return;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  curView=t.dataset.view;
+  ['inventory','orders','txns','oldparts'].forEach(v=>document.getElementById('view-'+v).style.display=v===curView?'block':'none');
+  render();
+});
+document.getElementById('invSearch').addEventListener('input',renderInventory);
+document.getElementById('txnSearch').addEventListener('input',renderTxns);
+
+(async()=>{DB=await loadData();DB.items=DB.items||[];DB.orders=DB.orders||[];DB.txns=DB.txns||[];buildCatChips();render();})();
+</script>
+</body>
+</html>
