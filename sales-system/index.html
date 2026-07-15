@@ -74,8 +74,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 /* Table */
 .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.03); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead th { background: linear-gradient(180deg,#f8fafc,#f1f5f9); padding: 12px 14px; text-align: left; font-weight: 700; color: var(--text-secondary); border-bottom: 2px solid #e2e8f0; white-space: nowrap; position: sticky; top: 0; letter-spacing: .2px; }
-tbody td { padding: 11px 14px; border-bottom: 1px solid #f1f5f9; }
+thead th { background: linear-gradient(180deg,#f8fafc,#f1f5f9); padding: 8px 10px; text-align: left; font-weight: 700; color: var(--text-secondary); border-bottom: 2px solid #e2e8f0; white-space: nowrap; position: sticky; top: 0; letter-spacing: .2px; font-size: 12.5px; }
+tbody td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; font-size: 12.5px; }
 tbody tr:hover { background: rgba(99,102,241,.04); }
 tbody tr { cursor: pointer; transition: background .15s; }
 tbody tr:nth-child(even) { background: #fbfcfd; }
@@ -2771,6 +2771,8 @@ function renderCRMTable(customers) {
           <th>车型（品牌）</th>
           <th>配置电池</th>
           <th>地址</th>
+          <th>联系人</th>
+          <th>联系电话</th>
           <th>区域</th>
           <th>客户类型</th>
           <th>标签</th>
@@ -2783,7 +2785,9 @@ function renderCRMTable(customers) {
               <td style="font-weight:600">${c.name||'-'}</td>
               <td><span class="brand-badge">🚗 ${c.vehicleBrand||'-'}</span></td>
               <td>${c.batteryModel ? `<span class="battery-pill sm">🔋 ${c.batteryModel}</span>` : '-'}</td>
-              <td>${c.address||'-'}</td>
+              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(c.address||'').replace(/"/g,'&quot;')}">${c.address||'-'}</td>
+              <td style="color:var(--primary);font-weight:500">${c.contact||'-'}</td>
+              <td>${c.phone||'-'}</td>
               <td>${c.region||'-'}</td>
               <td><span class="badge ${c.customerType==='大客户'?'badge-purple':c.customerType==='战略客户'?'badge-blue':'badge-gray'}">${c.customerType||'中小客户'}</span></td>
               <td>${(c.tags||[]).map(t => `<span class="crm-tag ${t==='VIP'?'tag-vip':t==='重点客户'?'tag-key':(t==='宁德时代'||t==='宁德时代门店')?'tag-catl':'tag-new'}">${t}</span>`).join(' ')}</td>
