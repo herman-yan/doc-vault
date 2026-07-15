@@ -195,6 +195,7 @@
 
     async function loadLogs() {
         let data = null;
+        // 1) Supabase（若已建表并配置 RLS）
         if (SL_SB) {
             try {
                 const { data: d, error } = await SL_SB.from(SL_TABLE).select('*').order('log_date', { ascending: false });
@@ -204,6 +205,22 @@
                 }
             } catch (e) { /* 走兜底 */ }
         }
+        // 2) 静态 JSON 兜底（由自动化任务持续写入，无需建表即可展示）
+        if (!data) {
+            try {
+                const resp = await fetch('sentiment-data.json?t=' + Date.now());
+                if (resp.ok) {
+                    const j = await resp.json();
+                    const arr = Array.isArray(j) ? j : (j.logs || []);
+                    if (arr.length) {
+                        arr.sort((a, b) => (b.log_date || '').localeCompare(a.log_date || ''));
+                        data = arr;
+                        localStorage.setItem(SL_CACHE_KEY, JSON.stringify(arr));
+                    }
+                }
+            } catch (e) { /* 走本地缓存 */ }
+        }
+        // 3) 本地缓存兜底
         if (!data) {
             const cache = localStorage.getItem(SL_CACHE_KEY);
             if (cache) { try { data = JSON.parse(cache); } catch (e) {} }
