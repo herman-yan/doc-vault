@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>舆情监控日志 - 宁家服务数字化运营系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-card-hover: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.45);
+            --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --red: #e74c3c;
+            --orange: #ffa502;
+            --green: #2ecc71;
+            --blue: #3498db;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 28px 20px 60px;
+        }
+        .container { max-width: 920px; margin: 0 auto; }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+        .page-icon {
+            width: 52px; height: 52px; border-radius: 14px;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; flex-shrink: 0;
+            box-shadow: 0 6px 20px rgba(250,112,154,0.35);
+        }
+        .page-title { font-size: 24px; font-weight: 700; }
+        .page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+        .page-subtitle a { color: #4facfe; text-decoration: none; }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 13px; color: var(--text-secondary);
+            text-decoration: none; margin-bottom: 18px;
+        }
+        .back-link:hover { color: #4facfe; }
+
+        /* 统计条 */
+        .stats-bar {
+            display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap;
+        }
+        .stat-box {
+            flex: 1; min-width: 130px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 14px 16px;
+        }
+        .stat-value { font-size: 22px; font-weight: 700; }
+        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+        /* 风险筛选 */
+        .filter-bar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+        .filter-chip {
+            padding: 6px 16px; border-radius: 20px;
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            color: var(--text-secondary); font-size: 13px; cursor: pointer;
+            transition: all .15s;
+        }
+        .filter-chip:hover { border-color: #4facfe; }
+        .filter-chip.active {
+            background: var(--gradient-primary); color: #06283d; font-weight: 600; border-color: transparent;
+        }
+
+        /* 日志卡片 */
+        .log-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 18px 20px; margin-bottom: 14px;
+            transition: border-color .2s, transform .15s;
+        }
+        .log-card:hover { border-color: rgba(79,172,254,0.5); transform: translateY(-1px); }
+
+        .log-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+        .log-date { font-size: 18px; font-weight: 700; }
+        .log-weekday { font-size: 12px; color: var(--text-muted); margin-left: 6px; font-weight: 400; }
+        .log-title { font-size: 14px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+
+        .risk-badge {
+            flex-shrink: 0; padding: 4px 12px; border-radius: 20px;
+            font-size: 12px; font-weight: 600; white-space: nowrap;
+        }
+        .risk-high { background: rgba(231,76,60,0.18); color: #ff6b5b; border: 1px solid rgba(231,76,60,0.4); }
+        .risk-mid  { background: rgba(255,165,2,0.18); color: #ffbe4d; border: 1px solid rgba(255,165,2,0.4); }
+        .risk-low  { background: rgba(46,204,113,0.18); color: #5fe39b; border: 1px solid rgba(46,204,113,0.4); }
+
+        .log-summary {
+            font-size: 14px; line-height: 1.7; color: var(--text-primary);
+            margin-top: 12px; white-space: pre-wrap;
+        }
+
+        .log-items { margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; }
+        .log-item {
+            display: flex; gap: 10px; padding: 7px 0; font-size: 13px; line-height: 1.6;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .log-item:last-child { border-bottom: none; }
+        .item-cat {
+            flex-shrink: 0; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px;
+            background: rgba(79,172,254,0.15); color: #6fc0ff; height: fit-content; white-space: nowrap;
+        }
+        .item-cat.risk { background: rgba(231,76,60,0.15); color: #ff6b5b; }
+        .item-text { color: var(--text-secondary); }
+
+        .log-meta { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--text-muted); }
+        .log-meta span { display: inline-flex; align-items: center; gap: 4px; }
+
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: var(--text-muted);
+        }
+        .empty-state .emoji { font-size: 44px; margin-bottom: 12px; }
+
+        .loading { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+
+        @media (max-width: 768px) {
+            .page-title { font-size: 20px; }
+            .page-icon { width: 44px; height: 44px; font-size: 22px; }
+            .stat-box { min-width: calc(50% - 6px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="back-link" href="https://herman-yan.github.io/doc-vault/">← 返回宁家服务数字化运营系统</a>
+
+        <div class="page-header">
+            <div class="page-icon">📡</div>
+            <div>
+                <div class="page-title">舆情监控日志</div>
+                <div class="page-subtitle">每日行业舆情自动汇总 · 数据来源：<a href="https://herman-yan.github.io/doc-vault/" target="_blank">每日 AI 新闻推送自动化任务</a></div>
+            </div>
+        </div>
+
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-box">
+                <div class="stat-value" id="statDays">—</div>
+                <div class="stat-label">累计监控天数</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="statLatest">—</div>
+                <div class="stat-label">最近风险等级</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="statLastDate">—</div>
+                <div class="stat-label">最近更新日期</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="statRiskDays">—</div>
+                <div class="stat-label">命中风险天数</div>
+            </div>
+        </div>
+
+        <div class="filter-bar" id="filterBar">
+            <div class="filter-chip active" data-filter="all">全部</div>
+            <div class="filter-chip" data-filter="high">🔴 高风险</div>
+            <div class="filter-chip" data-filter="mid">🟠 中风险</div>
+            <div class="filter-chip" data-filter="low">🟢 低风险/正常</div>
+        </div>
+
+        <div id="logList">
+            <div class="loading">⏳ 正在加载舆情日志…</div>
+        </div>
+    </div>
+
+    <script>
+    // ===================== 存储层（Supabase，与项目看板同一项目，免 Token） =====================
+    const SL_SB_URL = 'https://bbiddukkkxthtairizlk.supabase.co';
+    const SL_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJiaWRkdWtra3h0aHRhaXJpemxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNzM4NjIsImV4cCI6MjA5ODk0OTg2Mn0.VBt4kQI-YXJKSw5TRWjH8uNXCljYxO6IW8ACi89wgXo';
+    const SL_SB = (typeof supabase !== 'undefined') ? supabase.createClient(SL_SB_URL, SL_SB_KEY) : null;
+    const SL_TABLE = 'sentiment_log';
+    const SL_CACHE_KEY = 'sl_cache';
+
+    let allLogs = [];
+    let currentFilter = 'all';
+
+    async function loadLogs() {
+        let data = null;
+        if (SL_SB) {
+            try {
+                const { data: d, error } = await SL_SB.from(SL_TABLE).select('*').order('log_date', { ascending: false });
+                if (!error && d && d.length) {
+                    data = d;
+                    localStorage.setItem(SL_CACHE_KEY, JSON.stringify(d));
+                }
+            } catch (e) { /* 走兜底 */ }
+        }
+        if (!data) {
+            const cache = localStorage.getItem(SL_CACHE_KEY);
+            if (cache) { try { data = JSON.parse(cache); } catch (e) {} }
+        }
+        allLogs = data || [];
+        render();
+    }
+
+    function riskClass(level) {
+        if (level === '高') return 'risk-high';
+        if (level === '中') return 'risk-mid';
+        return 'risk-low';
+    }
+
+    function weekday(dateStr) {
+        const names = ['日','一','二','三','四','五','六'];
+        const d = new Date(dateStr + 'T00:00:00');
+        return '周' + names[d.getDay()];
+    }
+
+    function render() {
+        // 统计
+        document.getElementById('statDays').textContent = allLogs.length;
+        if (allLogs.length) {
+            document.getElementById('statLatest').textContent = allLogs[0].risk_level || '低';
+            document.getElementById('statLastDate').textContent = allLogs[0].log_date || '—';
+            const riskDays = allLogs.filter(l => l.risk_level === '高' || l.risk_level === '中').length;
+            document.getElementById('statRiskDays').textContent = riskDays;
+        } else {
+            document.getElementById('statLatest').textContent = '—';
+            document.getElementById('statLastDate').textContent = '—';
+            document.getElementById('statRiskDays').textContent = '0';
+        }
+
+        // 过滤
+        let list = allLogs;
+        if (currentFilter === 'high') list = allLogs.filter(l => l.risk_level === '高');
+        else if (currentFilter === 'mid') list = allLogs.filter(l => l.risk_level === '中');
+        else if (currentFilter === 'low') list = allLogs.filter(l => l.risk_level === '低' || !l.risk_level);
+
+        const container = document.getElementById('logList');
+        if (allLogs.length === 0) {
+            container.innerHTML = `<div class="empty-state"><div class="emoji">📭</div><div>暂无舆情日志</div><div style="font-size:13px;margin-top:8px">自动化任务「每日 AI 新闻推送」运行后，结果会自动汇总到这里。<br>若长期为空，请确认 Supabase 表 <code>sentiment_log</code> 已创建（见部署说明）。</div></div>`;
+            return;
+        }
+        if (list.length === 0) {
+            container.innerHTML = `<div class="empty-state"><div class="emoji">🔍</div><div>当前筛选条件下没有匹配的日志</div></div>`;
+            return;
+        }
+
+        container.innerHTML = list.map(l => {
+            const itemsHtml = (l.items && l.items.length)
+                ? `<div class="log-items">${l.items.map(it => {
+                    const isRisk = /风险|起火|自燃|爆炸|召回|停产|亏损|超标|事故|涨价/.test(it.category || '');
+                    return `<div class="log-item"><span class="item-cat ${isRisk ? 'risk' : ''}">${it.category || '资讯'}</span><span class="item-text">${it.text || ''}</span></div>`;
+                  }).join('')}</div>`
+                : '';
+            return `
+                <div class="log-card">
+                    <div class="log-top">
+                        <div>
+                            <div class="log-date">${l.log_date}<span class="log-weekday">${weekday(l.log_date)}</span></div>
+                            ${l.title ? `<div class="log-title">${l.title}</div>` : ''}
+                        </div>
+                        <span class="risk-badge ${riskClass(l.risk_level)}">${l.risk_level === '高' ? '🔴 高风险' : l.risk_level === '中' ? '🟠 中风险' : '🟢 正常'}</span>
+                    </div>
+                    ${l.summary ? `<div class="log-summary">${l.summary}</div>` : ''}
+                    ${itemsHtml}
+                    <div class="log-meta">
+                        ${l.sources_count ? `<span>📰 来源 ${l.sources_count} 条</span>` : ''}
+                        ${l.risk_count ? `<span style="color:#ff6b5b">⚠ 风险命中 ${l.risk_count} 条</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 筛选交互
+    document.getElementById('filterBar').addEventListener('click', e => {
+        const chip = e.target.closest('.filter-chip');
+        if (!chip) return;
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentFilter = chip.dataset.filter;
+        render();
+    });
+
+    loadLogs();
+    </script>
+</body>
+</html>
