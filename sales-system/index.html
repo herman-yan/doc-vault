@@ -8,41 +8,53 @@
 :root {
   --primary: #2563eb;
   --primary-light: #3b82f6;
+  --primary-dark: #1d4ed8;
   --success: #16a34a;
   --warning: #d97706;
   --danger: #dc2626;
-  --bg: #f1f5f9;
+  --purple: #7c3aed;
+  --bg: #f0f4f8;
   --card: #ffffff;
   --border: #e2e8f0;
   --text: #1e293b;
   --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
   --sidebar-w: 220px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,.10);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
 /* Sidebar */
-.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); background: #1e293b; color: #fff; z-index: 100; display: flex; flex-direction: column; }
-.sidebar-brand { padding: 20px 16px; font-size: 16px; font-weight: 700; border-bottom: 1px solid #334155; }
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: #fff; z-index: 100; display: flex; flex-direction: column; box-shadow: 2px 0 12px rgba(0,0,0,.15); }
+.sidebar-brand { padding: 22px 18px; font-size: 16px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.08); background: linear-gradient(135deg, rgba(37,99,235,.15) 0%, rgba(124,58,237,.1) 100%); }
 .sidebar-brand small { display: block; font-size: 11px; font-weight: 400; color: #94a3b8; margin-top: 4px; }
 .sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
-.nav-section { padding: 8px 16px 4px; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
-.nav-item { display: flex; align-items: center; padding: 10px 16px; cursor: pointer; color: #cbd5e1; font-size: 14px; transition: all .15s; border-left: 3px solid transparent; }
-.nav-item:hover { background: #334155; color: #fff; }
-.nav-item.active { background: #334155; color: #60a5fa; border-left-color: var(--primary); }
-.nav-item .icon { width: 20px; margin-right: 10px; text-align: center; font-size: 15px; }
-.nav-badge { margin-left: auto; background: var(--primary); color: #fff; font-size: 11px; padding: 1px 7px; border-radius: 10px; }
+.nav-section { padding: 10px 18px 4px; font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+.nav-item { display: flex; align-items: center; padding: 11px 18px; cursor: pointer; color: #cbd5e1; font-size: 14px; transition: all .2s; border-left: 3px solid transparent; position: relative; }
+.nav-item:hover { background: rgba(255,255,255,.05); color: #fff; }
+.nav-item.active { background: rgba(37,99,235,.15); color: #60a5fa; border-left-color: var(--primary); }
+.nav-item .icon { width: 22px; margin-right: 10px; text-align: center; font-size: 16px; }
+.nav-badge { margin-left: auto; background: var(--primary); color: #fff; font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 600; }
 
 /* Main */
-.main { margin-left: var(--sidebar-w); padding: 24px; min-height: 100vh; }
+.main { margin-left: var(--sidebar-w); padding: 28px 32px; min-height: 100vh; }
 
 /* Header */
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-.page-title { font-size: 22px; font-weight: 700; }
-.page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.page-title { font-size: 24px; font-weight: 700; letter-spacing: -.5px; }
+.page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
 
 /* Cards */
-.card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
+.card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 22px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
 .card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
 .badge-blue { background: #dbeafe; color: var(--primary); }
@@ -50,31 +62,35 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 .badge-yellow { background: #fef3c7; color: var(--warning); }
 .badge-red { background: #fee2e2; color: var(--danger); }
 .badge-gray { background: #f1f5f9; color: var(--text-secondary); }
-.badge-purple { background: #ede9fe; color: #7c3aed; }
+.badge-purple { background: #ede9fe; color: var(--purple); }
 
 /* Stats */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 16px; text-align: center; }
-.stat-number { font-size: 28px; font-weight: 700; color: var(--primary); }
-.stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.stat-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 20px 16px; text-align: center; position: relative; overflow: hidden; transition: all .2s; box-shadow: var(--shadow-sm); }
+.stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent-color, var(--primary)); border-radius: 12px 0 0 12px; }
+.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.stat-icon { font-size: 22px; margin-bottom: 8px; opacity: .8; }
+.stat-number { font-size: 30px; font-weight: 800; color: var(--accent-color, var(--primary)); letter-spacing: -1px; }
+.stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; font-weight: 500; }
 
 /* Pipeline / Status Filter */
 .pipeline { display: flex; align-items: center; gap: 0; margin-bottom: 24px; overflow-x: auto; padding-bottom: 8px; }
-.pipeline-step { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; white-space: nowrap; cursor: pointer; transition: all .15s; }
-.pipeline-step:hover { border-color: var(--primary); }
+.pipeline-step { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; white-space: nowrap; cursor: pointer; transition: all .2s; box-shadow: var(--shadow-sm); }
+.pipeline-step:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
 .pipeline-step.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .pipeline-arrow { color: #cbd5e1; font-size: 18px; margin: 0 4px; flex-shrink: 0; }
 
 /* Table */
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead th { background: #f8fafc; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--border); white-space: nowrap; position: sticky; top: 0; }
-tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-tbody tr:hover { background: #f8fafc; }
-tbody tr { cursor: pointer; }
+thead th { background: #f8fafc; padding: 12px 14px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--border); white-space: nowrap; position: sticky; top: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .3px; }
+tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); }
+tbody tr:nth-child(even) { background: #fafbfc; }
+tbody tr:hover { background: #eff6ff; }
+tbody tr { cursor: pointer; transition: background .1s; }
 
 /* Status pills */
-.status-pill { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+.status-pill { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
 .status-待返厂 { background: #fef3c7; color: #92400e; }
 .status-返厂中 { background: #dbeafe; color: #1d4ed8; }
 .status-维修中 { background: #fef3c7; color: #92400e; }
@@ -85,24 +101,24 @@ tbody tr { cursor: pointer; }
 .status-已寄回 { background: #d1fae5; color: #065f46; }
 
 /* Type tabs */
-.type-tabs { display: flex; gap: 0; margin-bottom: 20px; background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
-.type-tab { padding: 10px 24px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; }
+.type-tabs { display: flex; gap: 0; margin-bottom: 20px; background: #fff; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); }
+.type-tab { padding: 10px 24px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .2s; border-bottom: 2px solid transparent; }
 .type-tab:hover { background: #f8fafc; }
 .type-tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #eff6ff; }
 
 /* Buttons */
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-light); }
-.btn-success { background: var(--success); color: #fff; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .2s; }
+.btn-primary { background: var(--primary); color: #fff; box-shadow: 0 2px 6px rgba(37,99,235,.25); }
+.btn-primary:hover { background: var(--primary-light); box-shadow: 0 4px 12px rgba(37,99,235,.3); }
+.btn-success { background: var(--success); color: #fff; box-shadow: 0 2px 6px rgba(22,163,74,.2); }
 .btn-success:hover { background: #15803d; }
 .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
-.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); background: #f8fafc; }
 .btn-danger { background: #fff; color: var(--danger); border: 1px solid #fecaca; }
 .btn-danger:hover { background: #fee2e2; }
 .btn-sm { padding: 5px 10px; font-size: 12px; }
-.btn-upload { background: #3b82f6; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .15s; }
-.btn-upload:hover { background: #2563eb; }
+.btn-upload { background: #3b82f6; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s; box-shadow: 0 2px 6px rgba(59,130,246,.25); }
+.btn-upload:hover { background: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,.3); }
 
 /* Form */
 .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
@@ -110,20 +126,21 @@ tbody tr { cursor: pointer; }
 .form-group.full { grid-column: 1 / -1; }
 .form-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
 .form-label .required { color: var(--danger); margin-left: 2px; }
-.form-input, .form-select, .form-textarea { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; transition: border-color .15s; }
+.form-input, .form-select, .form-textarea { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; transition: all .2s; background: #fff; }
 .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
 .form-textarea { min-height: 60px; resize: vertical; }
 .form-input[readonly] { background: #f8fafc; color: var(--text-secondary); }
 
 /* Modal */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.5); backdrop-filter: blur(4px); z-index: 1000; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
 .modal-overlay.show { display: flex; }
-.modal { background: #fff; border-radius: 12px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 1; border-radius: 12px 12px 0 0; }
-.modal-title { font-size: 16px; font-weight: 600; }
-.modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary); padding: 4px; }
+.modal { background: #fff; border-radius: 14px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 1; border-radius: 14px 14px 0 0; }
+.modal-title { font-size: 17px; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary); padding: 4px; transition: all .15s; border-radius: 6px; }
+.modal-close:hover { background: #f1f5f9; }
 .modal-body { padding: 24px; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: #fff; border-radius: 0 0 12px 12px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: #fff; border-radius: 0 0 14px 14px; }
 
 /* Detail view */
 .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
@@ -131,8 +148,8 @@ tbody tr { cursor: pointer; }
 .detail-section { margin-bottom: 20px; }
 .detail-section-title { font-size: 14px; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 12px; color: var(--text-secondary); }
 .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-.detail-field-label { font-size: 11px; color: var(--text-secondary); }
-.detail-field-value { font-size: 14px; font-weight: 500; margin-top: 2px; }
+.detail-field-label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .3px; }
+.detail-field-value { font-size: 14px; font-weight: 500; margin-top: 3px; }
 
 /* Timeline */
 .timeline { position: relative; padding-left: 24px; }
@@ -145,9 +162,11 @@ tbody tr { cursor: pointer; }
 .timeline-content { font-size: 13px; margin-top: 2px; }
 
 /* Filter bar */
-.filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
-.filter-bar .form-input, .filter-bar .form-select { padding: 7px 10px; font-size: 13px; }
-.search-input { min-width: 200px; }
+.filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; background: #fff; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.filter-bar .form-input, .filter-bar .form-select { padding: 8px 12px; font-size: 13px; border-radius: 8px; }
+.search-input { min-width: 220px; flex: 1; max-width: 320px; border: 1px solid var(--border); border-radius: 8px; padding-left: 36px; background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") no-repeat 10px center; transition: all .2s; }
+.search-input:focus { background-color: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.filter-select { cursor: pointer; min-width: 120px; }
 
 /* Upload status */
 .upload-status-bar { padding: 10px 24px; background: #fff; border-bottom: 1px solid var(--border); font-size: 13px; display: none; align-items: center; gap: 8px; border-radius: 0 0 10px 10px; margin-bottom: 12px; }
@@ -157,26 +176,28 @@ tbody tr { cursor: pointer; }
 .upload-status-bar.info { color: var(--primary); background: #eff6ff; border-color: #bfdbfe; }
 
 /* Year tabs */
-.year-tabs { display: flex; gap: 0; margin-bottom: 16px; background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; width: fit-content; }
-.year-tab { padding: 8px 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; }
+.year-tabs { display: flex; gap: 0; margin-bottom: 16px; background: #fff; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; width: fit-content; box-shadow: var(--shadow-sm); }
+.year-tab { padding: 8px 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .2s; border-bottom: 2px solid transparent; }
 .year-tab:hover { background: #f8fafc; }
 .year-tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #eff6ff; }
 
 /* CRM Card view */
-.crm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-.crm-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 16px; cursor: pointer; transition: all .15s; }
-.crm-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(37,99,235,.1); transform: translateY(-2px); }
-.crm-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.crm-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; }
+.crm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.crm-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 18px; cursor: pointer; transition: all .2s; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+.crm-card::before { content: ''; position: absolute; left: 0; top: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent-color, var(--primary)), var(--accent-color2, var(--primary-light))); }
+.crm-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.crm-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.crm-avatar { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-color, var(--primary)), var(--accent-color2, var(--primary-light))); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 8px rgba(37,99,235,.2); }
 .crm-card-name { font-size: 15px; font-weight: 600; }
-.crm-card-type { font-size: 11px; color: var(--text-secondary); }
-.crm-card-info { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.crm-card-type { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.crm-card-info { display: flex; flex-direction: column; gap: 7px; font-size: 12px; color: var(--text-secondary); }
 .crm-card-info span { display: flex; align-items: center; gap: 6px; }
-.crm-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-.crm-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+.crm-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.crm-tag { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
 .tag-vip { background: #fef3c7; color: #92400e; }
 .tag-key { background: #dbeafe; color: #1d4ed8; }
 .tag-new { background: #dcfce7; color: #166534; }
+.tag-brand { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
 
 /* Customer detail panel */
 .customer-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -186,25 +207,32 @@ tbody tr { cursor: pointer; }
 .follow-content { font-size: 13px; flex: 1; }
 
 /* View toggle */
-.view-toggle { display: flex; gap: 4px; background: #f1f5f9; border-radius: 6px; padding: 2px; }
-.view-toggle-btn { padding: 6px 12px; font-size: 12px; border: none; background: transparent; cursor: pointer; border-radius: 4px; transition: all .15s; }
-.view-toggle-btn.active { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); font-weight: 500; }
+.view-toggle { display: flex; gap: 4px; background: #f1f5f9; border-radius: 8px; padding: 3px; }
+.view-toggle-btn { padding: 7px 14px; font-size: 12px; border: none; background: transparent; cursor: pointer; border-radius: 6px; transition: all .2s; font-weight: 500; }
+.view-toggle-btn.active { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.08); font-weight: 600; }
+
+/* Empty state */
+.empty-state { text-align: center; color: var(--text-tertiary); padding: 60px 20px; }
+.empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: .4; }
+.empty-state-text { font-size: 14px; }
 
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar { width: 180px; font-size: 12px; }
-  .sidebar-brand { font-size: 13px; padding: 8px; }
+  .sidebar-brand { font-size: 13px; padding: 10px; }
   .sidebar-brand small { font-size: 9px; }
-  .nav-item { padding: 6px 8px; font-size: 11px; }
-  .nav-item .icon { font-size: 13px; }
-  .nav-section { font-size: 9px; padding: 5px 8px 2px; }
+  .nav-item { padding: 7px 10px; font-size: 11px; }
+  .nav-item .icon { font-size: 14px; }
+  .nav-section { font-size: 9px; padding: 6px 10px 2px; }
   .nav-badge { font-size: 9px; padding: 1px 4px; }
-  .main { margin-left: 180px; padding: 12px; }
+  .main { margin-left: 180px; padding: 16px; }
   .form-grid { grid-template-columns: 1fr; }
   .page-header { flex-direction: column; align-items: flex-start; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .customer-detail { grid-template-columns: 1fr; }
   .crm-cards { grid-template-columns: 1fr; }
+  .filter-bar { flex-direction: column; align-items: stretch; }
+  .search-input { max-width: none; }
 }
 
 /* Print */
@@ -220,7 +248,7 @@ tbody tr { cursor: pointer; }
 <div class="sidebar">
   <div class="sidebar-brand">
     💼 销售管理
-    <small>返修进度 & 客户资源</small>
+    <small>返修进度 · 客户资源</small>
   </div>
   <div class="sidebar-nav">
     <div class="nav-section">工作台</div>
@@ -352,11 +380,26 @@ function renderDashboard() {
       <div><div class="page-title">数据概览</div><div class="page-subtitle">${todayStr()} 销售管理系统实时数据</div></div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">返修订单总数</div></div>
-      <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${inProgress}</div><div class="stat-label">进行中</div></div>
-      <div class="stat-card"><div class="stat-number" style="color:var(--success)">${completed}</div><div class="stat-label">已完成</div></div>
-      <div class="stat-card"><div class="stat-number" style="color:var(--primary)">${thisMonth}</div><div class="stat-label">本月新增</div></div>
-      <div class="stat-card"><div class="stat-number" style="color:var(--primary)">${totalCustomers}</div><div class="stat-label">客户总数</div></div>
+      <div class="stat-card" style="--accent-color:#2563eb">
+        <div class="stat-icon">🔧</div>
+        <div class="stat-number">${total}</div><div class="stat-label">返修订单总数</div>
+      </div>
+      <div class="stat-card" style="--accent-color:#d97706">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-number">${inProgress}</div><div class="stat-label">进行中</div>
+      </div>
+      <div class="stat-card" style="--accent-color:#16a34a">
+        <div class="stat-icon">✅</div>
+        <div class="stat-number">${completed}</div><div class="stat-label">已完成</div>
+      </div>
+      <div class="stat-card" style="--accent-color:#3b82f6">
+        <div class="stat-icon">📅</div>
+        <div class="stat-number">${thisMonth}</div><div class="stat-label">本月新增</div>
+      </div>
+      <div class="stat-card" style="--accent-color:#7c3aed">
+        <div class="stat-icon">👥</div>
+        <div class="stat-number">${totalCustomers}</div><div class="stat-label">客户总数</div>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
       <div class="card">
@@ -829,7 +872,7 @@ function renderCRM() {
     </div>
     <div class="filter-bar">
       <input class="form-input search-input" placeholder="搜索公司/联系人/电话/品牌/车型..." oninput="searchCRM(this.value)" id="crmSearch" value="${crmSearchText}">
-      <select class="form-select" onchange="filterCRMTag(this.value)">
+      <select class="form-select filter-select" onchange="filterCRMTag(this.value)">
         <option value="">全部标签</option>
         <option value="新客" ${crmFilterTag==='新客'?'selected':''}>新客</option>
         <option value="老客" ${crmFilterTag==='老客'?'selected':''}>老客</option>
@@ -838,15 +881,15 @@ function renderCRM() {
         <option value="大客户" ${crmFilterTag==='大客户'?'selected':''}>大客户</option>
         <option value="中小客户" ${crmFilterTag==='中小客户'?'selected':''}>中小客户</option>
       </select>
-      <select class="form-select" onchange="filterCRMType(this.value)">
+      <select class="form-select filter-select" onchange="filterCRMType(this.value)">
         <option value="">全部区域</option>
         ${getUniqueRegions().map(r => `<option value="${r}" ${crmFilterType===r?'selected':''}>${r}</option>`).join('')}
       </select>
-      <select class="form-select" onchange="filterCRMBrand(this.value)">
+      <select class="form-select filter-select" onchange="filterCRMBrand(this.value)">
         <option value="">全部品牌/车型</option>
         ${getUniqueBrands().map(b => `<option value="${b}" ${crmFilterBrand===b?'selected':''}>${b}</option>`).join('')}
       </select>
-      <select class="form-select" onchange="filterCRMCustomerType(this.value)">
+      <select class="form-select filter-select" onchange="filterCRMCustomerType(this.value)">
         <option value="">全部客户类型</option>
         <option value="战略客户" ${crmFilterCustomerType==='战略客户'?'selected':''}>战略客户</option>
         <option value="大客户" ${crmFilterCustomerType==='大客户'?'selected':''}>大客户</option>
@@ -899,7 +942,7 @@ function getUniqueBrands() {
 }
 
 function renderCRMTable(customers) {
-  if(!customers.length) return '<div class="card" style="text-align:center;color:var(--text-secondary);padding:40px">暂无客户数据</div>';
+  if(!customers.length) return '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无客户数据</div></div>';
   return `
     <div class="card" style="padding:0">
       <div class="table-wrap"><table>
@@ -916,7 +959,7 @@ function renderCRMTable(customers) {
               <td>${c.phone||'-'}</td>
               <td>${c.mobile||'-'}</td>
               <td>${c.address||'-'}</td>
-              <td>${c.vehicleBrand||'-'}</td>
+              <td>${c.vehicleBrand ? `<span class="crm-tag tag-brand">${c.vehicleBrand}</span>` : '-'}</td>
               <td>${c.batteryModel||'-'}</td>
               <td><span class="badge ${c.warrantyStatus==='保外'?'badge-yellow':c.warrantyStatus==='混合'?'badge-purple':'badge-green'}">${c.warrantyStatus||'保内'}</span></td>
               <td><span class="badge ${c.customerType==='大客户'?'badge-purple':c.customerType==='战略客户'?'badge-blue':'badge-gray'}">${c.customerType||'中小客户'}</span></td>
@@ -935,14 +978,22 @@ function renderCRMTable(customers) {
 }
 
 function renderCRMCards(customers) {
-  if(!customers.length) return '<div class="card" style="text-align:center;color:var(--text-secondary);padding:40px">暂无客户数据</div>';
+  if(!customers.length) return '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无客户数据</div></div>';
+  const avatarColors = [
+    ['#2563eb','#3b82f6'],['#7c3aed','#a855f7'],['#d97706','#f59e0b'],
+    ['#059669','#10b981'],['#dc2626','#ef4444'],['#0891b2','#06b6d4'],
+    ['#4f46e5','#6366f1'],['#db2777','#ec4899'],['#65a30d','#84cc16'],
+  ];
   return `
     <div class="crm-cards">
-      ${customers.map(c => `
-        <div class="crm-card" onclick="viewCustomer('${c.id}')">
+      ${customers.map((c, i) => {
+        const colors = avatarColors[i % avatarColors.length];
+        const brandTag = c.vehicleBrand ? `<span class="crm-tag tag-brand">${c.vehicleBrand}</span>` : '';
+        return `
+        <div class="crm-card" style="--accent-color:${colors[0]};--accent-color2:${colors[1]}" onclick="viewCustomer('${c.id}')">
           <div class="crm-card-header">
-            <div class="crm-avatar">${(c.name||'?')[0]}</div>
-            <div>
+            <div class="crm-avatar" style="background:linear-gradient(135deg,${colors[0]},${colors[1]})">${(c.name||'?')[0]}</div>
+            <div style="flex:1;min-width:0">
               <div class="crm-card-name">${c.name||'-'}</div>
               <div class="crm-card-type">${c.customerType||'中小客户'} · ${c.region||'-'}</div>
             </div>
@@ -954,11 +1005,12 @@ function renderCRMCards(customers) {
             <span>📍 ${c.address||'-'}</span>
           </div>
           <div class="crm-tags">
+            ${brandTag}
             ${(c.tags||[]).map(t => `<span class="crm-tag ${t==='VIP'?'tag-vip':t==='重点客户'?'tag-key':'tag-new'}">${t}</span>`).join('')}
             <span class="crm-tag badge-gray">${getRelatedOrderCount(c.name)} 工单</span>
           </div>
         </div>
-      `).join('')}
+      `}).join('')}
     </div>
   `;
 }
@@ -1183,7 +1235,7 @@ function viewCustomer(id) {
     </div>
     <div class="modal-body">
       <div class="detail-header">
-        <div class="crm-avatar" style="width:48px;height:48px;font-size:20px">${c.name[0]}</div>
+        <div class="crm-avatar" style="width:52px;height:52px;font-size:22px;border-radius:14px">${c.name[0]}</div>
         <div>
           <div style="font-size:18px;font-weight:700">${c.name}</div>
           <div style="font-size:13px;color:var(--text-secondary)">${c.customerType||'中小客户'} · ${c.region||'-'}</div>
