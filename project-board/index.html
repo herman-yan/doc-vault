@@ -3,14 +3,3924 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRM 客户管理系统</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh}.loader{text-align:center}.spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,0.2);border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}@keyframes spin{to{transform:rotate(360deg)}}p{color:#94a3b8;font-size:14px}</style>
+<title>项目管理看板</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a2332;
+  --bg-card: #1e2a3a;
+  --bg-hover: #243447;
+  --border-color: #2d3f52;
+  --text-primary: #e7e9ea;
+  --text-secondary: #8899a6;
+  --accent: #1d9bf0;
+  --red: #f4212e;
+  --green: #00ba7c;
+  --orange: #ff7a00;
+  --yellow: #ffd400;
+  --purple: #7856ff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Header */
+.header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-settings-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-settings-icon:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.header-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+}
+
+.tab {
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* Main container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Stats Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Project Cards */
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.project-card-wrapper {
+  position: relative;
+}
+
+.project-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px;
+  transition: all 0.2s ease;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+}
+
+.project-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  transform: translateX(4px);
+}
+
+.project-left { min-width: 0; }
+
+.project-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priority-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.priority-tag.high {
+  background: rgba(244, 33, 46, 0.15);
+  color: var(--red);
+}
+
+.priority-tag.lost {
+  background: rgba(136, 153, 166, 0.15);
+  color: var(--text-secondary);
+}
+
+.progress-bar {
+  width: 100%;
+  max-width: 200px;
+  height: 4px;
+  background: var(--bg-primary);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.complete {
+  background: var(--green);
+}
+
+.progress-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.project-right {
+  text-align: right;
+  min-width: 180px;
+}
+
+.project-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.project-latest {
+  font-size: 13px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+/* Inline edit button on card */
+.btn-inline-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  z-index: 2;
+}
+.btn-inline-edit:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+/* Inline Edit Panel */
+.inline-edit-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.35s ease;
+  opacity: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  margin-top: -1px;
+}
+
+.inline-edit-panel.open {
+  max-height: 500px;
+  opacity: 1;
+  padding: 16px 20px;
+}
+
+.inline-edit-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: flex-end;
+}
+
+.inline-edit-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.inline-edit-row .form-group.narrow {
+  flex: 0 0 140px;
+}
+
+.inline-edit-row .form-group.updater-field {
+  flex: 0 0 140px;
+}
+
+/* 填写人徽章 */
+.updater-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1d9bf0;
+  background: rgba(29, 157, 240, 0.12);
+  border: 1px solid rgba(29, 157, 240, 0.25);
+  border-radius: 10px;
+  padding: 1px 7px 1px 5px;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.updater-badge::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.updater-badge[data-initial]::before {
+  content: attr(data-initial);
+}
+
+/* 项目卡片可点击编辑区域 */
+.project-card .project-right {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  transition: background 0.15s;
+}
+.project-card .project-right:hover {
+  background: rgba(29, 157, 240, 0.08);
+}
+.project-card .project-name {
+  cursor: pointer;
+}
+
+/* 项目卡片中的最新进展行显示更新人和编辑提示 */
+.project-latest-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+.edit-hint {
+  font-size: 10px;
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.project-card .project-right:hover .edit-hint {
+  opacity: 1;
+}
+
+.inline-edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-inline-submit {
+  padding: 8px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-inline-submit:hover:not(:disabled) {
+  background: #1a8cd8;
+}
+.btn-inline-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-inline-submit.success { background: var(--green); }
+.btn-inline-submit.error { background: var(--red); }
+
+.btn-inline-cancel {
+  padding: 8px 16px;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-inline-cancel:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.inline-status-msg {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: none;
+}
+.inline-status-msg.open { display: block; }
+.inline-status-msg.success {
+  background: rgba(0, 186, 124, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(0, 186, 124, 0.3);
+}
+.inline-status-msg.error {
+  background: rgba(244, 33, 46, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(244, 33, 46, 0.3);
+}
+
+/* Timeline Detail View */
+.detail-view {
+  display: none;
+}
+
+.detail-view.active {
+  display: block;
+}
+
+.detail-header {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 16px;
+  padding: 4px 0;
+  transition: opacity 0.2s;
+}
+
+.back-btn:hover { opacity: 0.8; }
+
+.detail-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.detail-meta-item {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.detail-meta-item span {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  padding-left: 28px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-color);
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 24px;
+  animation: fadeInUp 0.3s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -24px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-primary);
+  z-index: 1;
+}
+
+.timeline-item:first-child .timeline-dot {
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(0, 186, 124, 0.4);
+}
+
+.timeline-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.timeline-updater {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+.timeline-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.timeline-next {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+  color: var(--orange);
+}
+
+.timeline-next::before {
+  content: '→ 下一步: ';
+  font-weight: 600;
+}
+
+/* Customer Database View - Hierarchical Cards */
+.db-view { display: none; }
+.db-view.active { display: block; }
+
+.search-box { margin-bottom: 20px; }
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-secondary); }
+
+/* Customer Card */
+.customer-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.customer-card:hover { border-color: var(--accent); }
+.customer-card.expanded { border-color: var(--accent); }
+
+.customer-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  cursor: pointer;
+  gap: 12px;
+  user-select: none;
+}
+
+.customer-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.customer-info { flex: 1; min-width: 0; }
+
+.customer-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.customer-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.customer-industry {
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.customer-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 12px;
+}
+
+.customer-project-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.customer-expand-icon {
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.customer-card.expanded .customer-expand-icon { transform: rotate(90deg); }
+
+/* Customer Projects Panel */
+.customer-projects-panel {
+  display: none;
+  border-top: 1px solid var(--border-color);
+  padding: 0;
+}
+.customer-card.expanded .customer-projects-panel { display: block; }
+
+.customer-project-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 18px 12px 66px;
+  border-bottom: 1px solid var(--border-color);
+  gap: 12px;
+  transition: background 0.15s;
+}
+.customer-project-row:last-child { border-bottom: none; }
+.customer-project-row:hover { background: var(--bg-hover); }
+
+.project-row-left {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.project-row-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+.project-row-name:hover { text-decoration: underline; }
+
+.project-row-direction {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.project-row-center {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-row-status {
+  font-size: 12px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.project-row-latest {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.project-row-right {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.project-row-date {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.project-row-priority {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.project-row-priority.high { background: rgba(29,155,240,0.15); color: var(--accent); }
+.project-row-priority.lost { background: rgba(244,33,46,0.15); color: var(--red); }
+
+/* Contact section in expanded card */
+.customer-contact-section {
+  padding: 10px 18px 10px 66px;
+  border-top: 1px solid var(--border-color);
+  background: rgba(0,0,0,0.1);
+}
+
+.customer-contact-title {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.customer-contact-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.customer-contact-item {
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  padding: 3px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.customer-contact-item .c-name { font-weight: 600; }
+.customer-contact-item .c-phone { color: var(--text-secondary); }
+.customer-contact-item .c-role { color: var(--accent); font-size: 11px; }
+
+/* Issue badge */
+.project-row-issue {
+  font-size: 11px;
+  color: var(--orange);
+  margin-top: 2px;
+}
+
+/* View detail button */
+.project-row-detail-btn {
+  font-size: 11px;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(29,155,240,0.1);
+  border: 1px solid rgba(29,155,240,0.2);
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.project-row-detail-btn:hover {
+  background: rgba(29,155,240,0.2);
+  border-color: var(--accent);
+}
+
+/* Timeline entries in expanded project */
+.project-timeline-section {
+  padding: 8px 18px 8px 66px;
+  border-top: 1px solid var(--border-color);
+  background: rgba(0,0,0,0.05);
+}
+.project-timeline-title {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.timeline-entry {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.timeline-entry:last-child { border-bottom: none; }
+.timeline-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.timeline-entry-date {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.timeline-entry-updater {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.timeline-entry-content {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-line;
+  word-break: break-all;
+}
+
+/* Group section header */
+.customer-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 10px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+.customer-group-header:first-child { margin-top: 0; }
+.customer-group-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.customer-group-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.customer-group-count {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .customer-header { padding: 12px 14px; gap: 10px; }
+  .customer-avatar { width: 32px; height: 32px; font-size: 12px; }
+  .customer-name { font-size: 14px; }
+  .customer-project-row { padding: 10px 14px 10px 56px; flex-wrap: wrap; }
+  .project-row-left { min-width: 100px; }
+  .project-row-right { flex-direction: row; gap: 6px; }
+  .customer-contact-section { padding: 8px 14px 8px 56px; }
+}
+
+/* Latest Updates Section */
+.latest-updates {
+  margin-bottom: 24px;
+}
+
+.latest-updates-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.latest-updates-header .icon {
+  font-size: 18px;
+}
+
+.latest-updates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.latest-update-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.latest-update-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  transform: translateX(4px);
+}
+
+.latest-project-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.latest-update-right {
+  flex: 1;
+  min-width: 0;
+}
+
+.latest-update-date {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+
+.latest-update-updater {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.latest-update-content {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Section Title */
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title:first-child { margin-top: 0; }
+
+.section-title .count {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* ========== Settings Modal ========== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+  overflow-y: auto;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  padding: 0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: modalIn 0.25s ease;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.modal-close:hover { color: var(--text-primary); }
+
+.modal-body {
+  padding: 20px;
+}
+
+/* ========== Contact Modal ========== */
+.contact-modal-body {
+  padding: 20px;
+}
+
+.project-search-wrapper {
+  position: relative;
+}
+
+.project-search-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.project-search-input:focus {
+  border-color: var(--accent);
+}
+
+.project-search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.project-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-top: 4px;
+  z-index: 10;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.project-dropdown.open { display: block; }
+
+.project-dropdown-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-dropdown-item:hover {
+  background: var(--bg-hover);
+}
+
+.project-dropdown-item.selected {
+  background: rgba(29, 155, 240, 0.15);
+  color: var(--accent);
+}
+
+.project-dropdown-item .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* Form elements */
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  border-color: var(--accent);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.form-textarea {
+  min-height: 80px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Contact section */
+.contact-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.contact-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.contact-item .form-input {
+  flex: 1;
+}
+
+.btn-add-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add-contact:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-remove-contact {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.btn-remove-contact:hover { color: var(--red); }
+
+.btn-save-settings {
+  padding: 8px 16px;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.btn-save-settings:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Submit button */
+.btn-submit {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #1a8cd8;
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-submit.success { background: var(--green); }
+.btn-submit.error { background: var(--red); }
+
+/* Status message */
+.status-msg {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  display: none;
+}
+
+.status-msg.open { display: block; }
+
+.status-msg.success {
+  background: rgba(0, 186, 124, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(0, 186, 124, 0.3);
+}
+
+.status-msg.error {
+  background: rgba(244, 33, 46, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(244, 33, 46, 0.3);
+}
+
+/* Contact display in tables */
+.contact-info {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.contact-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.contact-phone {
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.contact-role {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.contact-dash {
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 22px; }
+  
+  .project-card {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .project-card .project-right {
+    margin-top: 4px;
+  }
+  
+  .project-right {
+    text-align: left;
+    min-width: auto;
+  }
+  
+  .project-latest {
+    max-width: 100%;
+  }
+  
+  .container { padding: 12px; }
+  
+  .latest-update-item {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  
+  .latest-project-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+  
+  .latest-update-content {
+    font-size: 12px;
+  }
+  
+  .data-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .detail-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modal-overlay {
+    padding: 20px 8px;
+  }
+
+  .modal-card {
+    max-width: 100%;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .header-top {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .contact-item {
+    flex-wrap: wrap;
+  }
+
+  .contact-item .form-input {
+    min-width: 80px;
+  }
+
+  .inline-edit-row {
+    flex-wrap: wrap;
+  }
+  .inline-edit-row .form-group.narrow,
+  .inline-edit-row .form-group.updater-field {
+    flex: 0 0 100%;
+  }
+  .latest-quick-edit .lq-row {
+    flex-wrap: wrap;
+  }
+  .latest-quick-edit .lq-row .form-group.narrow,
+  .latest-quick-edit .lq-row .form-group.updater-field {
+    flex: 0 0 100%;
+  }
+  .detail-quick-edit .dq-row {
+    flex-wrap: wrap;
+  }
+  .detail-quick-edit .dq-row .form-group.narrow,
+  .detail-quick-edit .dq-row .form-group.updater-field {
+    flex: 0 0 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .header { padding: 12px 16px; }
+  .header h1 { font-size: 17px; }
+  .tab { padding: 8px 14px; font-size: 13px; }
+}
+
+/* View transitions */
+.view { animation: fadeIn 0.25s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ====== 悬浮添加按钮 (FAB) ====== */
+.fab-add {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 300;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(29, 155, 240, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  z-index: 100;
+}
+.fab-add:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 24px rgba(29, 155, 240, 0.55);
+}
+
+/* ====== 新增项目弹窗 ====== */
+.add-project-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.add-project-modal.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.add-project-modal .modal-content {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 28px;
+  width: 90%;
+  max-width: 460px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.add-project-modal h3 {
+  margin: 0 0 20px;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+.add-project-modal .form-group {
+  margin-bottom: 14px;
+}
+.add-project-modal .form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.add-project-modal .form-input,
+.add-project-modal .form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.add-project-modal .form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+.add-project-modal .modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.add-project-modal .btn-modal-submit {
+  flex: 1;
+  padding: 10px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.add-project-modal .btn-modal-cancel {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.add-project-modal .add-status {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  display: none;
+}
+.add-project-modal .add-status.show { display: block; }
+.add-project-modal .add-status.success { background: rgba(0,186,124,0.15); color: var(--green); }
+.add-project-modal .add-status.error { background: rgba(244,33,46,0.15); color: var(--red); }
+
+/* ====== 最新动态快捷编辑 ====== */
+.latest-update-item {
+  position: relative;
+}
+.latest-edit-btn {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(29,155,240,0.1);
+  border: 1px solid rgba(29,155,240,0.2);
+  color: #1d9bf0;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  z-index: 5;
+}
+.latest-update-item:hover .latest-edit-btn {
+  opacity: 1;
+}
+.latest-edit-btn:hover {
+  background: rgba(29,155,240,0.25);
+}
+.latest-quick-edit {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  background: rgba(29,155,240,0.05);
+  border-radius: 0 0 10px 10px;
+  margin: 0 -12px -8px;
+  padding: 0 12px;
+}
+.latest-quick-edit.open {
+  max-height: 300px;
+  padding: 12px;
+}
+.latest-quick-edit .lq-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.latest-quick-edit .lq-row .form-group {
+  flex: 1;
+  margin: 0;
+}
+.latest-quick-edit .lq-row .form-group.narrow {
+  flex: 0 0 140px;
+}
+.latest-quick-edit .lq-row .form-group.updater-field {
+  flex: 1;
+}
+.latest-quick-edit .form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+.latest-quick-edit .form-input {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.latest-quick-edit .form-textarea {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  resize: none;
+  min-height: 60px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.latest-quick-edit .lq-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.latest-quick-edit .lq-submit {
+  padding: 6px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.latest-quick-edit .lq-cancel {
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.latest-quick-edit .lq-status {
+  font-size: 12px;
+  margin-left: auto;
+}
+
+/* ====== 详情页快捷编辑 ====== */
+.detail-quick-edit {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+.detail-quick-edit h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.detail-quick-edit .dq-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.detail-quick-edit .dq-row .form-group {
+  flex: 1;
+  margin: 0;
+}
+.detail-quick-edit .dq-row .form-group.narrow {
+  flex: 0 0 140px;
+}
+.detail-quick-edit .dq-row .form-group.updater-field {
+  flex: 1;
+}
+.detail-quick-edit .form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+.detail-quick-edit .form-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.detail-quick-edit .form-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.detail-quick-edit .dq-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.detail-quick-edit .dq-submit {
+  padding: 9px 24px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.detail-quick-edit .dq-cancel {
+  padding: 9px 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.detail-quick-edit .dq-status {
+  font-size: 13px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+/* ====== 文件导入按钮 & 弹窗 ====== */
+.btn-import-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-import-icon:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.import-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.import-modal.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.import-modal .import-modal-content {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 28px;
+  width: 92%;
+  max-width: 700px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.import-modal h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.import-dropzone {
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: var(--bg-secondary);
+}
+.import-dropzone:hover,
+.import-dropzone.dragover {
+  border-color: var(--accent);
+  background: rgba(29,155,240,0.06);
+}
+.import-dropzone .drop-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+.import-dropzone .drop-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.import-dropzone .drop-text strong {
+  color: var(--accent);
+}
+.import-dropzone .drop-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  opacity: 0.7;
+}
+#importFileInput { display: none; }
+
+.import-preview {
+  margin-top: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.import-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+.import-preview-header .file-info {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.import-preview-header .file-info .fname {
+  color: var(--accent);
+  font-weight: 600;
+}
+.import-preview-header .file-info .fstats {
+  margin-left: 10px;
+  color: var(--green);
+}
+.import-preview-body {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0;
+}
+.import-preview-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.import-preview-body th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+.import-preview-body td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.import-preview-body tr:hover td {
+  background: var(--bg-hover);
+}
+
+.import-options {
+  display: flex;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+}
+.import-options label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.import-options input[type="radio"] {
+  accent-color: var(--accent);
+}
+.import-mapping {
+  margin-top: 14px;
+}
+.import-mapping .mapping-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.mapping-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.mapping-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mapping-item .mapping-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  min-width: 60px;
+  text-align: right;
+}
+.mapping-item select {
+  flex: 1;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+.import-status {
+  margin-top: 12px;
+  font-size: 13px;
+  min-height: 20px;
+}
+.import-status.success { color: var(--green); }
+.import-status.error { color: var(--red); }
+.import-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.import-actions .btn-import-submit {
+  padding: 10px 24px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.import-actions .btn-import-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.import-actions .btn-import-cancel {
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+</style>
 </head>
 <body>
-<div class="loader">
-<div class="spinner"></div>
-<p>正在加载 CRM 系统...</p>
+
+<!-- 悬浮添加按钮 -->
+<button class="fab-add" onclick="openAddProjectModal()" title="新增项目">+</button>
+
+<!-- 新增项目弹窗 -->
+<div class="add-project-modal" id="addProjectModal">
+  <div class="modal-content">
+    <h3>📌 新增项目</h3>
+    <div class="form-group">
+      <label class="form-label">项目名称 *</label>
+      <input type="text" class="form-input" id="newProjectName" placeholder="例如：XX合作洽谈">
+    </div>
+    <div class="form-group">
+      <label class="form-label">优先级</label>
+      <select class="form-input" id="newProjectPriority">
+        <option value="高">高</option>
+        <option value="中">中</option>
+        <option value="低">低</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">完成度（0~1之间的小数，如0.3表示30%）</label>
+      <input type="text" class="form-input" id="newProjectCompletion" placeholder="例如：0.1">
+    </div>
+    <div class="form-group">
+      <label class="form-label">今日进展 *</label>
+      <textarea class="form-textarea" id="newProjectContent" placeholder="填写初始进展内容..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">更新人</label>
+      <input type="text" class="form-input" id="newProjectUpdater" placeholder="填写人">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-submit" id="btnAddProject" onclick="submitNewProject()">创建项目</button>
+      <button class="btn-modal-cancel" onclick="closeAddProjectModal()">取消</button>
+    </div>
+    <div class="add-status" id="addProjectStatus"></div>
+  </div>
 </div>
-<script>window.location.replace('crm_system.html');</script>
+
+<!-- 文件导入弹窗 -->
+<div class="import-modal" id="importModal">
+  <div class="import-modal-content">
+    <h3>📥 导入文件</h3>
+    <div class="import-dropzone" id="importDropzone" onclick="document.getElementById('importFileInput').click()">
+      <div class="drop-icon">📄</div>
+      <div class="drop-text">点击选择文件或拖拽到此处<br><strong>支持 JSON / Excel / CSV</strong></div>
+      <div class="drop-hint">JSON: 看板数据格式直接导入 · Excel/CSV: 自动识别列名映射为项目数据</div>
+    </div>
+    <input type="file" id="importFileInput" accept=".json,.xlsx,.xls,.csv" onchange="handleImportFile(this.files[0])">
+    
+    <div id="importPreviewArea"></div>
+    
+    <div class="import-actions" id="importActions" style="display:none">
+      <button class="btn-import-submit" id="btnImportSubmit" onclick="submitImport()">确认导入</button>
+      <button class="btn-import-cancel" onclick="closeImportModal()">取消</button>
+    </div>
+    <div class="import-status" id="importStatus"></div>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-left">
+      <h1>📋 项目管理看板</h1>
+    </div>
+    <div class="header-right">
+      <div class="header-meta" id="lastUpdated"></div>
+      <button class="btn-import-icon" onclick="openImportModal()" title="导入文件">📥</button>
+      <button class="btn-settings-icon" onclick="openSettingsModal()" title="设置">⚙️</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-view="tracking" onclick="switchView('tracking')">项目跟进</button>
+    <button class="tab" data-view="database" onclick="switchView('database')">客户资料库</button>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Loading state -->
+  <div class="loading" id="loadingState">
+    <div class="loading-spinner"></div>
+    <div>加载数据中...</div>
+  </div>
+
+  <!-- View 1: Project Tracking -->
+  <div class="db-view" id="trackingView">
+    <div id="projectListView">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="latest-updates" id="latestUpdates"></div>
+      <div class="project-list" id="projectList"></div>
+    </div>
+    <div class="detail-view" id="detailView"></div>
+  </div>
+
+  <!-- View 2: Customer Database -->
+  <div class="db-view" id="databaseView">
+    <div class="search-box">
+      <input type="text" class="search-input" placeholder="🔍 搜索客户名称、类型、合作方向..." oninput="filterTable(this.value)">
+    </div>
+    <div id="customerTables"></div>
+  </div>
+</div>
+
+<!-- ========== Settings Modal ========== -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ 设置</div>
+      <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">数据存储</label>
+        <div style="background:var(--bg-soft);border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.7;color:var(--text-soft)">
+          ✅ 已启用云端数据库（Supabase），填写更新、新增项目、导入数据均<b>无需配置 Token</b>，直接可用。<br>
+          数据会自动保存并在多设备同步；即使未配置数据库，也会<b>本地缓存</b>兜底，绝不丢失。
+        </div>
+      </div>
+      <button class="btn-save-settings" onclick="closeSettingsModal()">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== Contact Management Modal ========== -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">👥 联系人管理</div>
+      <button class="modal-close" onclick="closeContactModal()">&times;</button>
+    </div>
+    <div class="contact-modal-body">
+      <div class="form-group">
+        <label class="form-label">选择企业</label>
+        <div class="project-search-wrapper">
+          <input type="text" class="project-search-input" id="contactSearch" placeholder="输入企业名称搜索..." oninput="filterContactDropdown(this.value)" onfocus="showContactDropdown()" autocomplete="off">
+          <div class="project-dropdown" id="contactDropdown"></div>
+        </div>
+        <input type="hidden" id="selectedContactPartner">
+      </div>
+      <div id="contactFields" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">联系人信息</label>
+          <div id="contactList"></div>
+          <button class="btn-add-contact" onclick="addContactRow()">+ 添加联系人</button>
+        </div>
+        <button class="btn-submit" id="btnSubmitContact" onclick="submitContact()">
+          <span id="btnSubmitContactText">保存联系人</span>
+        </button>
+        <div class="status-msg" id="contactStatus"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== 存储层（Supabase，与 CRM 同一项目，免 Token） =====================
+const PB_SB_URL = 'https://bbiddukkkxthtairizlk.supabase.co';
+const PB_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJiaWRkdWtra3h0aHRhaXJpemxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNzM4NjIsImV4cCI6MjA5ODk0OTg2Mn0.VBt4kQI-YXJKSw5TRWjH8uNXCljYxO6IW8ACi89wgXo';
+// 防御：若 Supabase CDN 加载失败，PB_SB 为 null，自动走下方兜底，页面不崩
+const PB_SB = (typeof supabase !== 'undefined') ? supabase.createClient(PB_SB_URL, PB_SB_KEY) : null;
+const PB_TABLE = 'project_board';
+const PB_KEY_VAL = 'main';
+
+// 读取看板数据：优先 Supabase → 本地缓存 → 静态 project-data.json（公开可匿名访问）
+async function loadAppData() {
+  // 1. Supabase（若已建表并配置 RLS）
+  if (PB_SB) {
+    try {
+      const { data, error } = await PB_SB.from(PB_TABLE).select('value').eq('key', PB_KEY_VAL).single();
+      if (data && data.value) {
+        localStorage.setItem('pb_cache', JSON.stringify(data.value));
+        return data.value;
+      }
+    } catch (e) { /* 表未建或不可达，继续兜底 */ }
+  }
+  // 2. 本地缓存
+  const cache = localStorage.getItem('pb_cache');
+  if (cache) { try { return JSON.parse(cache); } catch (e) {} }
+  // 3. 静态文件初始化
+  try {
+    const resp = await fetch('project-data.json?t=' + Date.now());
+    if (resp.ok) {
+      const d = await resp.json();
+      localStorage.setItem('pb_cache', JSON.stringify(d));
+      return d;
+    }
+  } catch (e) {}
+  return null;
+}
+
+// 写入看板数据：写 Supabase（若已建表）+ 本地缓存兜底，确保任何情况下都不报错
+async function saveAppData(data, msg) {
+  localStorage.setItem('pb_cache', JSON.stringify(data));
+  if (PB_SB) {
+    try {
+      const { error } = await PB_SB.from(PB_TABLE).upsert({ key: PB_KEY_VAL, value: data, updated_at: new Date().toISOString() });
+      if (error) console.warn('Supabase 写入失败(已存本地兜底):', error.message);
+    } catch (e) {
+      console.warn('Supabase 不可达(已存本地兜底):', e.message);
+    }
+  }
+  return true;
+}
+
+let appData = null;
+let currentView = 'tracking';
+let currentProjectId = null;
+let openEditProjectId = null;
+
+// ===================== Settings =====================
+function getSettings() {
+  return {
+    token: localStorage.getItem('gh_token') || '',
+    repo: localStorage.getItem('gh_repo') || 'herman-yan/doc-vault',
+    branch: localStorage.getItem('gh_branch') || 'main',
+    jsonPath: localStorage.getItem('gh_jsonPath') || 'project-board/project-data.json'
+  };
+}
+
+function saveSettings() {
+  closeSettingsModal();
+}
+
+function loadSettingsToForm() {
+  return;
+}
+
+function openSettingsModal() {
+  document.getElementById('settingsModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ===================== Inline Edit Panel =====================
+function toggleInlineEdit(projectId, event) {
+  if (event) event.stopPropagation();
+  
+  if (openEditProjectId !== null && openEditProjectId !== projectId) {
+    closeInlineEdit(openEditProjectId);
+  }
+  
+  const panel = document.getElementById(`inlineEdit-${projectId}`);
+  if (!panel) return;
+  
+  if (panel.classList.contains('open')) {
+    closeInlineEdit(projectId);
+  } else {
+    panel.classList.add('open');
+    openEditProjectId = projectId;
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const dateInput = panel.querySelector('.inline-date');
+    if (dateInput && !dateInput.value) dateInput.value = `${yyyy}-${mm}-${dd}`;
+    
+    const updaterInput = panel.querySelector('.inline-updater');
+    if (updaterInput && !updaterInput.value) {
+      const lastUpdater = localStorage.getItem('lastUpdater') || '';
+      updaterInput.value = lastUpdater;
+    }
+    
+    setTimeout(() => {
+      const contentInput = panel.querySelector('.inline-content');
+      if (contentInput) contentInput.focus();
+    }, 100);
+  }
+}
+
+function closeInlineEdit(projectId) {
+  const panel = document.getElementById(`inlineEdit-${projectId}`);
+  if (panel) {
+    panel.classList.remove('open');
+    const statusEl = panel.querySelector('.inline-status-msg');
+    if (statusEl) statusEl.className = 'inline-status-msg';
+  }
+  if (openEditProjectId === projectId) openEditProjectId = null;
+}
+
+function cancelInlineEdit(projectId, event) {
+  if (event) event.stopPropagation();
+  closeInlineEdit(projectId);
+}
+
+// ===================== Submit Inline Update =====================
+async function submitInlineUpdate(projectId, event) {
+  if (event) event.stopPropagation();
+  
+  const panel = document.getElementById(`inlineEdit-${projectId}`);
+  if (!panel) return;
+  
+  const date = panel.querySelector('.inline-date').value;
+  const content = panel.querySelector('.inline-content').value.trim();
+  const nextStep = panel.querySelector('.inline-nextstep').value.trim();
+  const updater = panel.querySelector('.inline-updater').value.trim();
+
+  if (!date) { showInlineStatus(panel, '请选择日期', 'error'); return; }
+  if (!content) { showInlineStatus(panel, '请填写进展内容', 'error'); return; }
+
+  const btn = panel.querySelector('.btn-inline-submit');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+  hideInlineStatus(panel);
+
+  try {
+    const data = JSON.parse(JSON.stringify(appData));
+    const project = data.projects.find(p => p.id === projectId);
+    if (!project) throw new Error('项目未找到');
+
+    let fullContent = content;
+    if (nextStep) {
+      fullContent += `\n📌下一步：${nextStep}`;
+    }
+
+    const timelineEntry = { date, content: fullContent };
+    if (updater) timelineEntry.updater = updater;
+    
+    project.timeline.unshift(timelineEntry);
+    project.totalUpdates = (project.totalUpdates || 0) + 1;
+    project.latestUpdate = date;
+    data.lastUpdated = date;
+
+    await saveAppData(data, `更新项目进展: ${project.name} (${date})`);
+
+    if (updater) localStorage.setItem('lastUpdater', updater);
+    
+    showInlineStatus(panel, '✅ 更新成功！已保存', 'success');
+    btn.classList.add('success');
+    btn.textContent = '✓ 成功';
+
+    await loadData();
+
+    setTimeout(() => {
+      closeInlineEdit(projectId);
+    }, 800);
+
+  } catch (err) {
+    showInlineStatus(panel, `❌ ${err.message}`, 'error');
+    btn.classList.add('error');
+    btn.textContent = '失败';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.classList.remove('error');
+      btn.textContent = '提交';
+    }, 2000);
+  }
+}
+
+function showInlineStatus(panel, msg, type) {
+  const el = panel.querySelector('.inline-status-msg');
+  if (el) {
+    el.textContent = msg;
+    el.className = `inline-status-msg open ${type}`;
+  }
+}
+
+function hideInlineStatus(panel) {
+  const el = panel.querySelector('.inline-status-msg');
+  if (el) el.className = 'inline-status-msg';
+}
+
+// ===================== Safe GitHub Push (with SHA retry) =====================
+async function safeGitHubPush(settings, data, sha, commitMessage) {
+  const apiUrl = `https://api.github.com/repos/${settings.repo}/contents/${settings.jsonPath}?ref=${settings.branch}`;
+
+  async function tryPush(sha) {
+    const updatedJson = JSON.stringify(data, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(updatedJson)));
+    return fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${settings.token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: commitMessage,
+        content: base64Content,
+        sha: sha,
+        branch: settings.branch
+      })
+    });
+  }
+
+  async function extractError(resp) {
+    try { const e = await resp.json(); return e.message || `推送失败 (${resp.status})`; } catch(e) { return `推送失败 (${resp.status})`; }
+  }
+
+  let pushResp = await tryPush(sha);
+
+  // SHA conflict: re-fetch and retry once
+  if (!pushResp.ok && (pushResp.status === 409 || pushResp.status === 422)) {
+    let errBody = null;
+    try { errBody = await pushResp.json(); } catch(e) {}
+    const isShaConflict = errBody && errBody.message && (
+      /sha|expected|conflict|modified/i.test(errBody.message)
+    ) || pushResp.status === 409;
+
+    if (isShaConflict) {
+      const retryResp = await fetch(apiUrl, {
+        headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (retryResp.ok) {
+        const retryData = await retryResp.json();
+        pushResp = await tryPush(retryData.sha);
+      }
+    }
+  }
+
+  if (!pushResp.ok) {
+    throw new Error(await extractError(pushResp));
+  }
+  return pushResp;
+}
+
+// ===================== Contact Modal =====================
+function openContactModal() {
+  document.getElementById('contactModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  buildContactDropdown();
+}
+
+function closeContactModal() {
+  document.getElementById('contactModal').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('contactSearch').value = '';
+  document.getElementById('selectedContactPartner').value = '';
+  document.getElementById('contactFields').style.display = 'none';
+  hideStatus('contactStatus');
+}
+
+// ===================== Contact Dropdown =====================
+function getAllPartners() {
+  if (!appData) return [];
+  const partners = [];
+  appData.businessPartners.forEach(p => partners.push({ name: p.name, section: 'businessPartners' }));
+  appData.venuePartners.forEach(p => partners.push({ name: p.name, section: 'venuePartners' }));
+  appData.industryPartners.forEach(p => partners.push({ name: p.company, section: 'industryPartners', isCompany: true }));
+  return partners;
+}
+
+function buildContactDropdown() {
+  const partners = getAllPartners();
+  const dropdown = document.getElementById('contactDropdown');
+  dropdown.innerHTML = partners.map(p =>
+    `<div class="project-dropdown-item" data-name="${p.name}" data-section="${p.section}" onclick="selectContactPartner('${p.name.replace(/'/g, "\\'")}', '${p.section}')">
+      <span class="dot"></span>${p.name}
+    </div>`
+  ).join('');
+}
+
+function filterContactDropdown(query) {
+  const q = query.toLowerCase().trim();
+  const items = document.querySelectorAll('#contactDropdown .project-dropdown-item');
+  items.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(q) ? '' : 'none';
+  });
+  document.getElementById('contactDropdown').classList.add('open');
+}
+
+function showContactDropdown() {
+  document.getElementById('contactDropdown').classList.add('open');
+}
+
+function selectContactPartner(name, section) {
+  document.getElementById('selectedContactPartner').value = name;
+  document.getElementById('contactSearch').value = name;
+  document.getElementById('contactDropdown').classList.remove('open');
+  document.getElementById('contactFields').style.display = 'block';
+  loadExistingContacts(name, section);
+}
+
+function loadExistingContacts(name, section) {
+  const list = document.getElementById('contactList');
+  list.innerHTML = '';
+  let contacts = [];
+  if (section === 'businessPartners') {
+    const p = appData.businessPartners.find(x => x.name === name);
+    contacts = p && p.contact ? p.contact : [];
+  } else if (section === 'venuePartners') {
+    const p = appData.venuePartners.find(x => x.name === name);
+    contacts = p && p.contact ? p.contact : [];
+  } else if (section === 'industryPartners') {
+    const p = appData.industryPartners.find(x => x.company === name);
+    contacts = p && p.contact ? p.contact : [];
+  }
+  if (contacts.length === 0) {
+    addContactRow();
+  } else {
+    contacts.forEach(c => addContactRow(c.name, c.phone, c.role));
+  }
+}
+
+function addContactRow(name, phone, role) {
+  const list = document.getElementById('contactList');
+  const row = document.createElement('div');
+  row.className = 'contact-item';
+  row.innerHTML = `
+    <input type="text" class="form-input" placeholder="姓名" value="${name || ''}" style="flex:0.8;min-width:60px">
+    <input type="text" class="form-input" placeholder="电话" value="${phone || ''}" style="flex:1;min-width:80px">
+    <input type="text" class="form-input" placeholder="职位" value="${role || ''}" style="flex:0.8;min-width:60px">
+    <button class="btn-remove-contact" onclick="this.parentElement.remove()">&times;</button>
+  `;
+  list.appendChild(row);
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.project-search-wrapper')) {
+    document.querySelectorAll('.project-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
+// ===================== Status Messages =====================
+function showStatus(elementId, msg, type) {
+  const el = document.getElementById(elementId);
+  el.textContent = msg;
+  el.className = `status-msg open ${type}`;
+}
+
+function hideStatus(elementId) {
+  const el = document.getElementById(elementId);
+  el.className = 'status-msg';
+}
+
+// ===================== Submit Contact =====================
+async function submitContact() {
+  const partnerName = document.getElementById('selectedContactPartner').value;
+  if (!partnerName) { showStatus('contactStatus', '请先选择企业', 'error'); return; }
+
+  const rows = document.querySelectorAll('#contactList .contact-item');
+  const contacts = [];
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('.form-input');
+    const name = inputs[0].value.trim();
+    const phone = inputs[1].value.trim();
+    const role = inputs[2].value.trim();
+    if (name || phone) {
+      contacts.push({ name: name || '', phone: phone || '', role: role || '' });
+    }
+  });
+
+  const btn = document.getElementById('btnSubmitContact');
+  const btnText = document.getElementById('btnSubmitContactText');
+  btn.disabled = true;
+  btnText.textContent = '保存中...';
+  hideStatus('contactStatus');
+
+  try {
+    const data = JSON.parse(JSON.stringify(appData));
+    let found = false;
+    for (const p of data.businessPartners) {
+      if (p.name === partnerName) { p.contact = contacts; found = true; break; }
+    }
+    if (!found) {
+      for (const p of data.venuePartners) {
+        if (p.name === partnerName) { p.contact = contacts; found = true; break; }
+      }
+    }
+    if (!found) {
+      for (const p of data.industryPartners) {
+        if (p.company === partnerName) { p.contact = contacts; found = true; break; }
+      }
+    }
+    if (!found) throw new Error('企业未找到');
+
+    await saveAppData(data, `更新联系人: ${partnerName}`);
+
+    showStatus('contactStatus', '✅ 联系人已保存', 'success');
+    btn.classList.add('success');
+    btnText.textContent = '✓ 成功';
+
+    await loadData();
+
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.classList.remove('success');
+      btnText.textContent = '保存联系人';
+    }, 2000);
+
+  } catch (err) {
+    showStatus('contactStatus', `❌ ${err.message}`, 'error');
+    btn.classList.add('error');
+    btnText.textContent = '失败';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.classList.remove('error');
+      btnText.textContent = '保存联系人';
+    }, 2000);
+  }
+}
+
+// ===================== Data Loading =====================
+async function loadData() {
+  try {
+    const d = await loadAppData();
+    if (!d) throw new Error('数据为空');
+    appData = d;
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('lastUpdated').textContent = '数据更新: ' + (appData.lastUpdated || '');
+    renderTrackingView();
+    renderDatabaseView();
+  } catch (e) {
+    document.getElementById('loadingState').innerHTML = '<div style="color:var(--red)">数据加载失败，请刷新页面重试</div>';
+  }
+}
+
+// Switch top-level view
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  
+  const trackingView = document.getElementById('trackingView');
+  const databaseView = document.getElementById('databaseView');
+  
+  if (view === 'tracking') {
+    trackingView.style.display = 'block';
+    trackingView.classList.add('view');
+    databaseView.classList.remove('active');
+    databaseView.style.display = 'none';
+    showProjectList();
+  } else {
+    trackingView.style.display = 'none';
+    databaseView.style.display = 'block';
+    databaseView.classList.add('active', 'view');
+  }
+}
+
+// Render tracking view
+function renderTrackingView() {
+  renderStats();
+  renderLatestUpdates();
+  renderProjectList();
+}
+
+function renderStats() {
+  const projects = appData.projects;
+  const totalProjects = projects.length;
+  const highPriorityActive = projects.filter(p => p.priority === '高' && parseFloat(p.completion) < 1).length;
+  
+  let latestProject = '';
+  let latestDate = '';
+  projects.forEach(p => {
+    if (p.latestUpdate > latestDate) {
+      latestDate = p.latestUpdate;
+      latestProject = p.name;
+    }
+  });
+  
+  const totalUpdates = projects.reduce((sum, p) => sum + p.totalUpdates, 0);
+  
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">项目总数</div>
+      <div class="stat-value">${totalProjects}</div>
+      <div class="stat-sub">个在跟项目</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">高优先级进行中</div>
+      <div class="stat-value" style="color:var(--red)">${highPriorityActive}</div>
+      <div class="stat-sub">个高优先级项目推进中</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">最近更新</div>
+      <div class="stat-value" style="font-size:18px">${latestProject}</div>
+      <div class="stat-sub">${latestDate}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">跟进记录</div>
+      <div class="stat-value">${totalUpdates}</div>
+      <div class="stat-sub">条总记录</div>
+    </div>
+  `;
+}
+
+function renderLatestUpdates() {
+  const projects = appData.projects;
+  const projectColors = {};
+  const colorPalette = [
+    { bg: 'rgba(29, 155, 240, 0.15)', color: '#1d9bf0' },
+    { bg: 'rgba(0, 186, 124, 0.15)', color: '#00ba7c' },
+    { bg: 'rgba(255, 122, 0, 0.15)', color: '#ff7a00' },
+    { bg: 'rgba(120, 86, 255, 0.15)', color: '#7856ff' },
+    { bg: 'rgba(255, 212, 0, 0.15)', color: '#ffd400' },
+    { bg: 'rgba(244, 33, 46, 0.15)', color: '#f4212e' },
+    { bg: 'rgba(0, 186, 124, 0.15)', color: '#00ba7c' },
+    { bg: 'rgba(29, 155, 240, 0.15)', color: '#1d9bf0' },
+    { bg: 'rgba(255, 122, 0, 0.15)', color: '#ff7a00' },
+    { bg: 'rgba(120, 86, 255, 0.15)', color: '#7856ff' },
+    { bg: 'rgba(255, 212, 0, 0.15)', color: '#ffd400' },
+    { bg: 'rgba(244, 33, 46, 0.15)', color: '#f4212e' },
+  ];
+  projects.forEach((p, i) => {
+    projectColors[p.id] = colorPalette[i % colorPalette.length];
+  });
+
+  // 每个项目只取最新一条 timeline 记录
+  const allEntries = [];
+  projects.forEach(p => {
+    if (p.timeline && p.timeline.length > 0) {
+      const latest = p.timeline[0];
+      allEntries.push({
+        projectId: p.id,
+        projectName: p.name,
+        date: latest.date,
+        content: latest.content,
+        updater: latest.updater || '',
+        color: projectColors[p.id]
+      });
+    }
+  });
+
+  allEntries.sort((a, b) => b.date.localeCompare(a.date));
+  const topEntries = allEntries;
+  
+  const lastUpdater = localStorage.getItem('lastUpdater') || '';
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const html = topEntries.map((entry, idx) => {
+    const summary = entry.content.length > 60 ? entry.content.substring(0, 60) + '...' : entry.content;
+    const dateFormatted = entry.date.substring(5).replace('-', '/');
+    const updaterHtml = entry.updater ? `<span class="updater-badge" data-initial="${entry.updater.charAt(0)}">${entry.updater}</span>` : '';
+    return `
+      <div class="latest-update-item" onclick="showDetail(${entry.projectId})">
+        <span class="latest-project-tag" style="background:${entry.color.bg};color:${entry.color.color}">${entry.projectName}</span>
+        <button class="latest-edit-btn" onclick="toggleLatestQuickEdit(${entry.projectId}, event)" title="快捷更新">✏️</button>
+        <div class="latest-update-right">
+          <div class="latest-update-date">${dateFormatted}${updaterHtml}</div>
+          <div class="latest-update-content">${summary}</div>
+        </div>
+        <div class="latest-quick-edit" id="latestQuickEdit-${entry.projectId}-${idx}" onclick="event.stopPropagation()">
+          <div class="lq-row">
+            <div class="form-group narrow">
+              <label class="form-label">日期</label>
+              <input type="date" class="form-input lq-date" value="${todayStr}">
+            </div>
+            <div class="form-group updater-field">
+              <label class="form-label">填写人</label>
+              <input type="text" class="form-input lq-updater" placeholder="填写人" value="${lastUpdater}">
+            </div>
+          </div>
+          <textarea class="form-textarea lq-content" placeholder="填写新进展..."></textarea>
+          <div class="lq-actions" style="margin-top:8px">
+            <button class="lq-submit" onclick="submitLatestQuickEdit(${entry.projectId}, ${idx}, event)">提交</button>
+            <button class="lq-cancel" onclick="closeLatestQuickEdit(${entry.projectId}, ${idx}, event)">取消</button>
+            <span class="lq-status"></span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('latestUpdates').innerHTML = `
+    <div class="latest-updates-header">
+      <span class="icon">📡</span> 最新动态
+    </div>
+    <div class="latest-updates-list">
+      ${html}
+    </div>
+  `;
+}
+
+function renderProjectList() {
+  const projects = appData.projects;
+  const sorted = [...projects].sort((a, b) => {
+    if (a.priority === '战败' && b.priority !== '战败') return 1;
+    if (b.priority === '战败' && a.priority !== '战败') return -1;
+    return b.latestUpdate.localeCompare(a.latestUpdate);
+  });
+  
+  const lastUpdater = localStorage.getItem('lastUpdater') || '';
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
+  document.getElementById('projectList').innerHTML = sorted.map(p => {
+    const completionVal = parseFloat(p.completion);
+    const completionPct = isNaN(completionVal) ? 0 : Math.round(completionVal * 100);
+    const isComplete = completionPct >= 99;
+    const priorityClass = p.priority === '高' ? 'high' : 'lost';
+    const latestContent = p.timeline[0] ? p.timeline[0].content : '';
+    const latestUpdater = p.timeline[0] ? (p.timeline[0].updater || '') : '';
+    const truncated = latestContent.length > 40 ? latestContent.substring(0, 40) + '...' : latestContent;
+    
+    const updaterBadgeHtml = latestUpdater ? `<span class="updater-badge" data-initial="${latestUpdater.charAt(0)}">${latestUpdater}</span>` : '';
+    
+    return `
+      <div class="project-card-wrapper">
+        <div class="project-card">
+          <div class="project-left" onclick="showDetail(${p.id})">
+            <div class="project-name">
+              ${p.name}
+              <span class="priority-tag ${priorityClass}">${p.priority}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill ${isComplete ? 'complete' : ''}" style="width:${completionPct}%"></div>
+            </div>
+            <div class="progress-label">${isNaN(completionVal) ? '累计合作' : '完成度 ' + completionPct + '%'} · ${p.totalUpdates}次更新</div>
+          </div>
+          <div class="project-right" onclick="toggleInlineEdit(${p.id}, event)">
+            <div class="project-date">${p.latestUpdate}${updaterBadgeHtml}</div>
+            <div class="project-latest-row">
+              <span class="project-latest">${truncated}</span>
+              <span class="edit-hint">✏️ 点击编辑</span>
+            </div>
+          </div>
+        </div>
+        <div class="inline-edit-panel" id="inlineEdit-${p.id}">
+          <div class="inline-edit-row">
+            <div class="form-group narrow">
+              <label class="form-label">日期</label>
+              <input type="date" class="form-input inline-date" value="${todayStr}">
+            </div>
+            <div class="form-group updater-field">
+              <label class="form-label">更新人</label>
+              <input type="text" class="form-input inline-updater" placeholder="填写人" value="${lastUpdater}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">进展内容</label>
+            <textarea class="form-textarea inline-content" placeholder="填写今日进展..." rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">下一步计划（可选）</label>
+            <input type="text" class="form-input inline-nextstep" placeholder="例如：明天约见客户面谈">
+          </div>
+          <div class="inline-edit-actions">
+            <button class="btn-inline-submit" onclick="submitInlineUpdate(${p.id}, event)">提交</button>
+            <button class="btn-inline-cancel" onclick="cancelInlineEdit(${p.id}, event)">取消</button>
+          </div>
+          <div class="inline-status-msg"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Show project detail / timeline
+function showDetail(projectId) {
+  currentProjectId = projectId;
+  const p = appData.projects.find(x => x.id === projectId);
+  if (!p) return;
+  
+  const completionVal = parseFloat(p.completion);
+  const completionPct = isNaN(completionVal) ? 0 : Math.round(completionVal * 100);
+  const priorityClass = p.priority === '高' ? 'high' : 'lost';
+  
+  function extractNext(content) {
+    const patterns = [
+      /(?:明天|明日|下周|下周一|下周二|本周|周五|周四|今晚|晚上|后天|下周初|下周[一二三四五六日]).{0,30}/,
+      /(?:准备|催|追|约|沟通|面谈|实地|拜访|提交|提供).{2,30}/
+    ];
+    for (const pat of patterns) {
+      const match = content.match(pat);
+      if (match && match[0].length > 3) {
+        return match[0].replace(/[，。,.].*/, '');
+      }
+    }
+    return null;
+  }
+  
+  const timelineHtml = p.timeline.map((item, i) => {
+    const nextStep = extractNext(item.content);
+    const contentLines = item.content.split('\n');
+    const mainContent = contentLines[0];
+    const nextStepFromContent = contentLines.find(l => l.startsWith('📌下一步：'));
+    const displayNext = nextStepFromContent ? nextStepFromContent.replace('📌下一步：', '') : nextStep;
+    const dateFormatted = item.date.substring(5).replace('-', '/');
+    const updaterHtml = item.updater ? `<span class="updater-badge" data-initial="${item.updater.charAt(0)}">${item.updater}</span>` : '';
+    
+    return `
+      <div class="timeline-item" style="animation-delay:${i * 0.05}s">
+        <div class="timeline-dot"></div>
+        <div class="timeline-date">${dateFormatted}${updaterHtml}</div>
+        <div class="timeline-content">
+          ${mainContent}
+          ${displayNext ? `<div class="timeline-next">${displayNext}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  const lastUpdater = localStorage.getItem('lastUpdater') || '';
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
+  document.getElementById('detailView').innerHTML = `
+    <div class="detail-header">
+      <button class="back-btn" onclick="showProjectList()">← 返回项目列表</button>
+      <div class="detail-title">
+        ${p.name}
+        <span class="priority-tag ${priorityClass}">${p.priority}</span>
+      </div>
+      <div class="detail-meta">
+        <div class="detail-meta-item">完成度: <span>${isNaN(completionVal) ? '累计合作' : completionPct + '%'}</span></div>
+        <div class="detail-meta-item">最近更新: <span>${p.latestUpdate}</span></div>
+        <div class="detail-meta-item">更新次数: <span>${p.totalUpdates}次</span></div>
+      </div>
+    </div>
+    <div class="detail-quick-edit">
+      <h4>✏️ 快捷更新进展</h4>
+      <div class="dq-row">
+        <div class="form-group narrow">
+          <label class="form-label">日期</label>
+          <input type="date" class="form-input dq-date" value="${todayStr}">
+        </div>
+        <div class="form-group updater-field">
+          <label class="form-label">填写人</label>
+          <input type="text" class="form-input dq-updater" placeholder="填写人" value="${lastUpdater}">
+        </div>
+      </div>
+      <textarea class="form-textarea dq-content" placeholder="填写今日进展..."></textarea>
+      <input type="text" class="form-input dq-nextstep" placeholder="下一步计划（可选）" style="margin-top:8px">
+      <div class="dq-actions">
+        <button class="dq-submit" onclick="submitDetailQuickEdit(${p.id}, event)">提交更新</button>
+        <span class="dq-status"></span>
+      </div>
+    </div>
+    <div class="timeline">
+      ${timelineHtml}
+    </div>
+  `;
+  
+  document.getElementById('projectListView').style.display = 'none';
+  document.getElementById('detailView').style.display = 'block';
+  document.getElementById('detailView').classList.add('active');
+  document.getElementById('detailView').classList.add('view');
+}
+
+function showProjectList() {
+  document.getElementById('projectListView').style.display = 'block';
+  document.getElementById('detailView').style.display = 'none';
+  document.getElementById('detailView').classList.remove('active');
+  currentProjectId = null;
+}
+
+// ===================== Customer Database =====================
+function renderDatabaseView() {
+  // ========== 1. 构建统一客户数据 ==========
+  const customerMap = {};
+  const avatarColors = ['#1d9bf0','#00ba7c','#ff7a00','#7856ff','#f4212e','#ffd400'];
+  
+  function ensureCustomer(name) {
+    if (!customerMap[name]) {
+      customerMap[name] = { name, industry: '', contacts: [], projects: [], sources: new Set() };
+    }
+    return customerMap[name];
+  }
+  
+  function findProjectByName(name) {
+    return appData.projects.find(p => p.name === name);
+  }
+  
+  function addProjectToCustomer(customerName, projectName, direction, status, issue, priority) {
+    const c = ensureCustomer(customerName);
+    // Avoid duplicate project links
+    if (c.projects.find(p => p.projectName === projectName)) return;
+    const proj = findProjectByName(projectName);
+    c.projects.push({
+      projectId: proj ? proj.id : null,
+      projectName,
+      direction: direction || '',
+      status: status || '',
+      issue: issue || '',
+      priority: priority || (proj ? proj.priority : ''),
+      latestEntry: proj && proj.timeline && proj.timeline.length > 0 ? proj.timeline[0] : null,
+      latestUpdate: proj ? proj.latestUpdate : '',
+      totalUpdates: proj ? proj.totalUpdates : 0,
+      completion: proj ? proj.completion : '',
+      timeline: proj ? (proj.timeline || []).slice(0, 5) : []
+    });
+  }
+  
+  // Merge businessPartners
+  appData.businessPartners.forEach(p => {
+    const c = ensureCustomer(p.name);
+    c.sources.add('business');
+    if (p.type && p.type.includes('政府')) c.industry = c.industry || '政府合作方';
+    else if (p.type) c.industry = c.industry || p.type;
+    if (p.contact && p.contact.length > 0) {
+      p.contact.forEach(ct => {
+        if (!c.contacts.find(x => x.name === ct.name && x.phone === ct.phone)) {
+          c.contacts.push(ct);
+        }
+      });
+    }
+    // Link to related project
+    const relatedName = p.relatedProject || p.name;
+    const matchedProj = findProjectByName(relatedName) || findProjectByName(p.name);
+    if (matchedProj) {
+      addProjectToCustomer(p.name, matchedProj.name, p.direction, p.status, p.issue || '', matchedProj.priority);
+    } else {
+      // No matching project, still show as a standalone entry
+      c.projects.push({
+        projectId: null, projectName: relatedName,
+        direction: p.direction || '', status: p.status || '',
+        issue: p.issue || '', priority: '',
+        latestEntry: null, latestUpdate: '', totalUpdates: 0, completion: '',
+        timeline: []
+      });
+    }
+  });
+  
+  // Merge venuePartners
+  appData.venuePartners.forEach(p => {
+    const c = ensureCustomer(p.name);
+    c.sources.add('venue');
+    c.industry = c.industry || '场地合作方';
+    if (p.contact && p.contact.length > 0) {
+      p.contact.forEach(ct => {
+        if (!c.contacts.find(x => x.name === ct.name && x.phone === ct.phone)) c.contacts.push(ct);
+      });
+    }
+    addProjectToCustomer(p.name, '场地合作', p.content.substring(0, 50), '合作洽谈中', '', '高');
+  });
+  
+  // Merge industryPartners
+  appData.industryPartners.forEach(p => {
+    const c = ensureCustomer(p.company);
+    c.sources.add('industry');
+    c.industry = c.industry || p.industry || '待分类';
+    if (p.contact && p.contact.length > 0) {
+      p.contact.forEach(ct => {
+        if (!c.contacts.find(x => x.name === ct.name && x.phone === ct.phone)) c.contacts.push(ct);
+      });
+    }
+    // Try to match to a project by direction or status keywords
+    let matchedProject = null;
+    const text = (p.direction + ' ' + p.status).toLowerCase();
+    if (text.includes('售前') || text.includes('展厅') || text.includes('检测') || text.includes('延保') || text.includes('销售')) {
+      matchedProject = findProjectByName('场地合作');
+    }
+    if (matchedProject) {
+      addProjectToCustomer(p.company, '场地合作', p.industry ? p.industry + ' · ' + (p.direction || '') : (p.direction || ''), p.status || '待跟进', p.issue || '', '高');
+    } else {
+      // Add as standalone
+      c.projects.push({
+        projectId: null, projectName: p.industry || '待分类',
+        direction: p.direction || '', status: p.status || '待跟进',
+        issue: p.issue || '', priority: '',
+        latestEntry: null, latestUpdate: '', totalUpdates: 0, completion: '',
+        timeline: []
+      });
+    }
+  });
+  
+  // ========== 2. 分组 ==========
+  const groupOrder = ['政府合作方', '业务合作方', '场地合作方', '潜在客户', '待分类'];
+  const groups = {};
+  groupOrder.forEach(g => { groups[g] = []; });
+  
+  Object.values(customerMap).forEach(c => {
+    const g = groups[c.industry] || groups['待分类'];
+    g.push(c);
+  });
+  
+  // Sort within groups by project count desc, then name
+  Object.values(groups).forEach(g => {
+    g.sort((a, b) => {
+      if (b.projects.length !== a.projects.length) return b.projects.length - a.projects.length;
+      return a.name.localeCompare(b.name, 'zh');
+    });
+  });
+  
+  const groupIcons = {
+    '政府合作方': { bg: 'rgba(120,86,255,0.15)', color: '#7856ff', icon: '🏛' },
+    '业务合作方': { bg: 'rgba(29,155,240,0.15)', color: '#1d9bf0', icon: '🤝' },
+    '场地合作方': { bg: 'rgba(0,186,124,0.15)', color: '#00ba7c', icon: '📍' },
+    '潜在客户':   { bg: 'rgba(255,122,0,0.15)', color: '#ff7a00', icon: '🔍' },
+    '待分类':     { bg: 'rgba(136,153,166,0.15)', color: '#8899a6', icon: '📁' }
+  };
+  
+  // ========== 3. 渲染 ==========
+  const allCustomers = Object.values(customerMap);
+  let globalIdx = 0;
+  let html = `<div style="margin-bottom:14px;font-size:13px;color:var(--text-secondary)">共 ${allCustomers.length} 个客户 · 点击展开查看各项目进展</div>`;
+  
+  for (const [groupName, members] of Object.entries(groups)) {
+    if (members.length === 0) continue;
+    const gi = groupIcons[groupName] || groupIcons['待分类'];
+    
+    html += `
+      <div class="customer-group-header">
+        <div class="customer-group-icon" style="background:${gi.bg}">${gi.icon}</div>
+        <span class="customer-group-name">${groupName}</span>
+        <span class="customer-group-count">(${members.length})</span>
+      </div>
+    `;
+    
+    html += members.map(c => {
+      const colorIdx = globalIdx % avatarColors.length;
+      globalIdx++;
+      const initial = c.name.charAt(0);
+      const industryColors = {
+        '政府合作方': 'background:rgba(120,86,255,0.15);color:#7856ff',
+        '业务合作方': 'background:rgba(29,155,240,0.15);color:#1d9bf0',
+        '场地合作方': 'background:rgba(0,186,124,0.15);color:#00ba7c',
+        '潜在客户': 'background:rgba(255,122,0,0.15);color:#ff7a00',
+        '待分类': 'background:rgba(136,153,166,0.15);color:#8899a6'
+      };
+      const industryStyle = industryColors[c.industry] || 'background:rgba(136,153,166,0.15);color:#8899a6';
+      const projectCount = c.projects.length;
+      
+      // Project rows with timeline
+      const projectRowsHtml = c.projects.map(p => {
+        const latestContent = p.latestEntry ? p.latestEntry.content.split('\n')[0] : '暂无进展记录';
+        const latestDate = p.latestUpdate || '';
+        const updaterHtml = p.latestEntry && p.latestEntry.updater ? ` · ${p.latestEntry.updater}` : '';
+        const issueHtml = p.issue ? `<div class="project-row-issue">⚠ ${p.issue}</div>` : '';
+        const priorityClass = p.priority === '战败' ? 'lost' : 'high';
+        const detailBtn = p.projectId ? `<span class="project-row-detail-btn" onclick="event.stopPropagation();showDetail(${p.projectId})">📄 查看详情</span>` : '';
+        
+        // Build timeline entries (skip first since it's already shown as latest)
+        let timelineHtml = '';
+        if (p.timeline && p.timeline.length > 1) {
+          const entries = p.timeline.slice(1).map(entry => {
+            const entryContent = entry.content ? entry.content.split('\n')[0] : '';
+            const entryDate = entry.date || '';
+            const entryUpdater = entry.updater || '';
+            return `
+              <div class="timeline-entry">
+                <div class="timeline-entry-header">
+                  <span class="timeline-entry-date">${entryDate.substring(5).replace('-', '/') || entryDate}</span>
+                  ${entryUpdater ? `<span class="timeline-entry-updater">${entryUpdater}</span>` : ''}
+                </div>
+                <div class="timeline-entry-content">${entryContent}</div>
+              </div>
+            `;
+          }).join('');
+          timelineHtml = `
+            <div class="project-timeline-section">
+              <div class="project-timeline-title">历史进展</div>
+              ${entries}
+            </div>
+          `;
+        }
+        
+        return `
+          <div style="border-bottom: 1px solid var(--border-color);">
+            <div class="customer-project-row">
+              <div class="project-row-left">
+                <span class="project-row-name">${p.projectName}</span>
+                ${p.direction ? `<span class="project-row-direction">${p.direction}</span>` : ''}
+              </div>
+              <div class="project-row-center">
+                <div class="project-row-status">${p.status || '待跟进'}</div>
+                <div class="project-row-latest">${latestContent}</div>
+                ${issueHtml}
+              </div>
+              <div class="project-row-right">
+                ${latestDate ? `<span class="project-row-date">${latestDate.substring(5).replace('-', '/')}${updaterHtml}</span>` : ''}
+                ${p.priority ? `<span class="project-row-priority ${priorityClass}">${p.priority}</span>` : ''}
+                ${p.totalUpdates ? `<span style="font-size:10px;color:var(--text-secondary)">${p.totalUpdates}次更新</span>` : ''}
+                ${detailBtn}
+              </div>
+            </div>
+            ${timelineHtml}
+          </div>
+        `;
+      }).join('');
+      
+      // Contact section
+      let contactHtml = '';
+      if (c.contacts.length > 0) {
+        const contactItems = c.contacts.map(ct => {
+          const parts = [];
+          if (ct.name) parts.push(`<span class="c-name">${ct.name}</span>`);
+          if (ct.phone) parts.push(`<span class="c-phone">${ct.phone}</span>`);
+          if (ct.role) parts.push(`<span class="c-role">${ct.role}</span>`);
+          return parts.length > 0 ? `<span class="customer-contact-item">${parts.join(' ')}</span>` : '';
+        }).filter(Boolean).join('');
+        contactHtml = `
+          <div class="customer-contact-section">
+            <div class="customer-contact-title">联系人</div>
+            <div class="customer-contact-list">${contactItems}</div>
+          </div>
+        `;
+      }
+      
+      return `
+        <div class="customer-card" data-name="${c.name}" data-search="${(c.name + ' ' + c.industry + ' ' + c.projects.map(p => p.projectName + ' ' + p.direction + ' ' + p.status).join(' ')).toLowerCase()}">
+          <div class="customer-header" onclick="toggleCustomerCard(this)">
+            <div class="customer-avatar" style="background:${avatarColors[colorIdx]}">${initial}</div>
+            <div class="customer-info">
+              <div class="customer-name-row">
+                <span class="customer-name">${c.name}</span>
+                <span class="customer-industry" style="${industryStyle}">${c.industry}</span>
+              </div>
+              <div class="customer-meta">
+                <span class="customer-project-count">📋 ${projectCount}个项目</span>
+                ${c.projects.some(p => p.issue) ? `<span style="color:var(--orange)">⚠ ${c.projects.filter(p => p.issue).length}个问题</span>` : ''}
+                ${c.projects.some(p => p.latestUpdate && p.latestUpdate >= new Date().toISOString().substring(0,10).replace(/-/g,'-')) ? `<span style="color:var(--green)">● 活跃</span>` : ''}
+              </div>
+            </div>
+            <span class="customer-expand-icon">▶</span>
+          </div>
+          <div class="customer-projects-panel">
+            ${projectRowsHtml}
+          </div>
+          ${contactHtml}
+        </div>
+      `;
+    }).join('');
+  }
+  
+  document.getElementById('customerTables').innerHTML = html;
+}
+
+function toggleCustomerCard(headerEl) {
+  const card = headerEl.closest('.customer-card');
+  card.classList.toggle('expanded');
+}
+
+// Search / filter
+function filterTable(query) {
+  const q = query.toLowerCase().trim();
+  const cards = document.querySelectorAll('.customer-card');
+  cards.forEach(card => {
+    const searchText = card.getAttribute('data-search') || '';
+    const match = !q || searchText.includes(q);
+    card.style.display = match ? '' : 'none';
+  });
+}
+
+// ===================== 最新动态快捷编辑 =====================
+function toggleLatestQuickEdit(projectId, event) {
+  event.stopPropagation();
+  // 找到所有匹配的快捷编辑面板（可能有多个相同projectId的）
+  const allPanels = document.querySelectorAll(`[id^="latestQuickEdit-${projectId}-"]`);
+  const wasOpen = allPanels.length > 0 && allPanels[0].classList.contains('open');
+  
+  // 关闭所有面板
+  document.querySelectorAll('.latest-quick-edit.open').forEach(p => p.classList.remove('open'));
+  
+  if (!wasOpen) {
+    // 展开该项目的第一个面板
+    allPanels.forEach(p => p.classList.add('open'));
+    setTimeout(() => {
+      const contentInput = allPanels[0]?.querySelector('.lq-content');
+      if (contentInput) contentInput.focus();
+    }, 100);
+  }
+}
+
+function closeLatestQuickEdit(projectId, idx, event) {
+  if (event) event.stopPropagation();
+  const panel = document.getElementById(`latestQuickEdit-${projectId}-${idx}`);
+  if (panel) panel.classList.remove('open');
+}
+
+async function submitLatestQuickEdit(projectId, idx, event) {
+  if (event) event.stopPropagation();
+  const panel = document.getElementById(`latestQuickEdit-${projectId}-${idx}`);
+  if (!panel) return;
+  
+  const date = panel.querySelector('.lq-date').value;
+  const content = panel.querySelector('.lq-content').value.trim();
+  const updater = panel.querySelector('.lq-updater').value.trim();
+  
+  if (!date) { panel.querySelector('.lq-status').textContent = '❌ 请选择日期'; return; }
+  if (!content) { panel.querySelector('.lq-status').textContent = '❌ 请填写进展内容'; return; }
+  
+  const btn = panel.querySelector('.lq-submit');
+  const statusEl = panel.querySelector('.lq-status');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+  statusEl.textContent = '';
+  
+  try {
+    const data = JSON.parse(JSON.stringify(appData));
+    const project = data.projects.find(p => p.id === projectId);
+    if (!project) throw new Error('项目未找到');
+    
+    const timelineEntry = { date, content };
+    if (updater) timelineEntry.updater = updater;
+    
+    project.timeline.unshift(timelineEntry);
+    project.totalUpdates = (project.totalUpdates || 0) + 1;
+    project.latestUpdate = date;
+    data.lastUpdated = date;
+    
+    await saveAppData(data, `更新项目进展: ${project.name} (${date})`);
+    
+    if (updater) localStorage.setItem('lastUpdater', updater);
+    
+    statusEl.textContent = '✅ 成功';
+    statusEl.style.color = 'var(--green)';
+    btn.textContent = '✓ 成功';
+    
+    setTimeout(() => {
+      appData = data;
+      renderAll();
+    }, 1200);
+  } catch (err) {
+    statusEl.textContent = '❌ ' + err.message;
+    statusEl.style.color = 'var(--red)';
+    btn.disabled = false;
+    btn.textContent = '提交';
+  }
+}
+
+// ===================== 详情页快捷编辑 =====================
+async function submitDetailQuickEdit(projectId, event) {
+  if (event) event.stopPropagation();
+  const container = document.querySelector('.detail-quick-edit');
+  if (!container) return;
+  
+  const date = container.querySelector('.dq-date').value;
+  const content = container.querySelector('.dq-content').value.trim();
+  const nextStep = container.querySelector('.dq-nextstep').value.trim();
+  const updater = container.querySelector('.dq-updater').value.trim();
+  
+  if (!date) { container.querySelector('.dq-status').textContent = '❌ 请选择日期'; return; }
+  if (!content) { container.querySelector('.dq-status').textContent = '❌ 请填写进展'; return; }
+  
+  const btn = container.querySelector('.dq-submit');
+  const statusEl = container.querySelector('.dq-status');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+  statusEl.textContent = '';
+  
+  try {
+    const data = JSON.parse(JSON.stringify(appData));
+    const project = data.projects.find(p => p.id === projectId);
+    if (!project) throw new Error('项目未找到');
+    
+    let fullContent = content;
+    if (nextStep) fullContent += `\n📌下一步：${nextStep}`;
+    
+    const timelineEntry = { date, content: fullContent };
+    if (updater) timelineEntry.updater = updater;
+    
+    project.timeline.unshift(timelineEntry);
+    project.totalUpdates = (project.totalUpdates || 0) + 1;
+    project.latestUpdate = date;
+    data.lastUpdated = date;
+    
+    await saveAppData(data, `更新项目进展: ${project.name} (${date})`);
+    
+    if (updater) localStorage.setItem('lastUpdater', updater);
+    
+    statusEl.textContent = '✅ 更新成功';
+    statusEl.style.color = 'var(--green)';
+    btn.textContent = '✓ 成功';
+    
+    setTimeout(() => {
+      appData = data;
+      showDetail(projectId);
+      renderLatestUpdates();
+      renderProjectList();
+    }, 1200);
+  } catch (err) {
+    statusEl.textContent = '❌ ' + err.message;
+    statusEl.style.color = 'var(--red)';
+    btn.disabled = false;
+    btn.textContent = '提交更新';
+  }
+}
+
+// ===================== 新增项目 =====================
+function openAddProjectModal() {
+  const modal = document.getElementById('addProjectModal');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const lastUpdater = localStorage.getItem('lastUpdater') || '';
+  document.getElementById('newProjectUpdater').value = lastUpdater;
+  document.getElementById('newProjectName').focus();
+}
+
+function closeAddProjectModal() {
+  document.getElementById('addProjectModal').classList.remove('open');
+  document.body.style.overflow = '';
+  // 清空表单
+  document.getElementById('newProjectName').value = '';
+  document.getElementById('newProjectContent').value = '';
+  document.getElementById('newProjectCompletion').value = '';
+  document.getElementById('newProjectUpdater').value = '';
+  const status = document.getElementById('addProjectStatus');
+  status.className = 'add-status';
+  status.textContent = '';
+  const btn = document.getElementById('btnAddProject');
+  btn.disabled = false;
+  btn.textContent = '创建项目';
+}
+
+async function submitNewProject() {
+  const name = document.getElementById('newProjectName').value.trim();
+  const priority = document.getElementById('newProjectPriority').value;
+  const completion = document.getElementById('newProjectCompletion').value.trim() || '0';
+  const content = document.getElementById('newProjectContent').value.trim();
+  const updater = document.getElementById('newProjectUpdater').value.trim();
+  const status = document.getElementById('addProjectStatus');
+  const btn = document.getElementById('btnAddProject');
+  
+  if (!name) { status.textContent = '❌ 请填写项目名称'; status.className = 'add-status show error'; return; }
+  if (!content) { status.textContent = '❌ 请填写初始进展'; status.className = 'add-status show error'; return; }
+  
+  btn.disabled = true;
+  btn.textContent = '创建中...';
+  status.className = 'add-status';
+  
+  try {
+    const data = JSON.parse(JSON.stringify(appData));
+    
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    const maxId = data.projects.reduce((max, p) => Math.max(max, p.id), 0);
+    const newProject = {
+      id: maxId + 1,
+      name: name,
+      priority: priority,
+      completion: completion,
+      latestUpdate: todayStr,
+      totalUpdates: 1,
+      timeline: [{
+        date: todayStr,
+        content: content,
+        updater: updater || undefined
+      }]
+    };
+    
+    data.projects.push(newProject);
+    data.lastUpdated = todayStr;
+    
+    await saveAppData(data, `新增项目: ${name}`);
+    
+    if (updater) localStorage.setItem('lastUpdater', updater);
+    
+    status.textContent = '✅ 项目创建成功！';
+    status.className = 'add-status show success';
+    btn.textContent = '✓ 成功';
+    
+    setTimeout(() => {
+      appData = data;
+      renderAll();
+      closeAddProjectModal();
+    }, 1200);
+  } catch (err) {
+    status.textContent = '❌ ' + err.message;
+    status.className = 'add-status show error';
+    btn.disabled = false;
+    btn.textContent = '创建项目';
+  }
+}
+
+// ===================== 文件导入功能 =====================
+let importData = null; // 存储解析后的导入数据
+let importFileName = '';
+let importFileType = ''; // 'json' | 'excel' | 'csv'
+let importMapping = {}; // 列映射关系
+
+function openImportModal() {
+  const modal = document.getElementById('importModal');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  resetImportState();
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('open');
+  document.body.style.overflow = '';
+  resetImportState();
+}
+
+function resetImportState() {
+  importData = null;
+  importFileName = '';
+  importFileType = '';
+  importMapping = {};
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('importPreviewArea').innerHTML = '';
+  document.getElementById('importActions').style.display = 'none';
+  document.getElementById('importStatus').textContent = '';
+  document.getElementById('importStatus').className = 'import-status';
+  const btn = document.getElementById('btnImportSubmit');
+  btn.disabled = false;
+  btn.textContent = '确认导入';
+}
+
+// 拖拽支持
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('importDropzone');
+  if (!dz) return;
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) handleImportFile(e.dataTransfer.files[0]);
+  });
+});
+
+function handleImportFile(file) {
+  if (!file) return;
+  importFileName = file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const status = document.getElementById('importStatus');
+  
+  if (ext === 'json') {
+    importFileType = 'json';
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        processJsonImport(parsed);
+      } catch (err) {
+        status.textContent = '❌ JSON 解析失败: ' + err.message;
+        status.className = 'import-status error';
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  } else if (ext === 'xlsx' || ext === 'xls') {
+    importFileType = 'excel';
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        processTableImport(jsonData, sheetName);
+      } catch (err) {
+        status.textContent = '❌ Excel 解析失败: ' + err.message;
+        status.className = 'import-status error';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (ext === 'csv') {
+    importFileType = 'csv';
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target.result;
+        const parsed = parseCSV(text);
+        processTableImport(parsed, 'CSV');
+      } catch (err) {
+        status.textContent = '❌ CSV 解析失败: ' + err.message;
+        status.className = 'import-status error';
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  } else {
+    status.textContent = '❌ 不支持的文件格式，请上传 JSON / Excel / CSV 文件';
+    status.className = 'import-status error';
+  }
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) throw new Error('CSV 数据为空');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const result = [];
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+    const row = {};
+    headers.forEach((h, idx) => row[h] = values[idx] || '');
+    result.push(row);
+  }
+  return result;
+}
+
+// 处理 JSON 格式导入
+function processJsonImport(parsed) {
+  const previewArea = document.getElementById('importPreviewArea');
+  
+  // 检查是否是看板数据格式（有 projects 数组）
+  if (parsed.projects && Array.isArray(parsed.projects)) {
+    importData = { type: 'full', data: parsed };
+    const projCount = parsed.projects.length;
+    const totalEntries = parsed.projects.reduce((sum, p) => sum + (p.timeline ? p.timeline.length : 0), 0);
+    
+    let previewHtml = `
+      <div class="import-preview">
+        <div class="import-preview-header">
+          <div class="file-info">
+            <span class="fname">📄 ${importFileName}</span>
+            <span class="fstats">✅ ${projCount} 个项目 · ${totalEntries} 条进展记录</span>
+          </div>
+        </div>
+        <div class="import-preview-body">
+          <table><thead><tr>
+            <th>项目名称</th><th>优先级</th><th>完成度</th><th>最近更新</th><th>更新次数</th>
+          </tr></thead><tbody>`;
+    
+    parsed.projects.forEach(p => {
+      previewHtml += `<tr>
+        <td>${p.name || '-'}</td>
+        <td>${p.priority || '-'}</td>
+        <td>${p.completion ? (parseFloat(p.completion) * 100).toFixed(0) + '%' : '-'}</td>
+        <td>${p.latestUpdate || '-'}</td>
+        <td>${p.totalUpdates || (p.timeline ? p.timeline.length : 0)}</td>
+      </tr>`;
+    });
+    
+    previewHtml += '</tbody></table></div></div>';
+    previewHtml += `
+      <div class="import-options">
+        <label><input type="radio" name="importMode" value="merge" checked> 合并到现有数据（相同项目名追加记录）</label>
+        <label><input type="radio" name="importMode" value="replace"> 完全替换现有数据</label>
+      </div>`;
+    
+    previewArea.innerHTML = previewHtml;
+  } else if (Array.isArray(parsed)) {
+    // 纯数组格式，按表格处理
+    processTableImport(parsed, 'JSON 数组');
+    return;
+  } else {
+    document.getElementById('importStatus').textContent = '❌ 无法识别的数据格式。支持包含 projects 数组的看板数据或项目记录数组。';
+    document.getElementById('importStatus').className = 'import-status error';
+    return;
+  }
+  
+  document.getElementById('importActions').style.display = 'flex';
+}
+
+// 处理表格格式导入（Excel/CSV/JSON数组）
+function processTableImport(rows, sourceName) {
+  if (!rows || rows.length === 0) {
+    document.getElementById('importStatus').textContent = '❌ 文件内容为空';
+    document.getElementById('importStatus').className = 'import-status error';
+    return;
+  }
+  
+  const headers = Object.keys(rows[0]);
+  const previewArea = document.getElementById('importPreviewArea');
+  
+  // 自动检测列映射
+  const fieldMap = {
+    '项目': ['项目', '项目名称', 'project', 'name', '项目名', '客户名称', '客户'],
+    '日期': ['日期', 'date', '时间', '更新时间', '更新日期', '跟进日期'],
+    '内容': ['内容', '进展', 'content', '进展内容', '跟进内容', '描述', '备注', '说明', '详情'],
+    '更新人': ['更新人', 'updater', '负责人', '跟进人', '操作人', '填写人'],
+    '优先级': ['优先级', 'priority', '重要程度', '紧急程度'],
+    '完成度': ['完成度', 'completion', '进度', '完成率', '完成比例']
+  };
+  
+  importMapping = {};
+  Object.keys(fieldMap).forEach(field => {
+    const keywords = fieldMap[field];
+    for (const h of headers) {
+      if (keywords.some(k => h.toLowerCase().includes(k.toLowerCase()))) {
+        importMapping[field] = h;
+        break;
+      }
+    }
+  });
+  
+  // 构建映射选择器
+  const fieldLabels = {
+    '项目': '项目名称',
+    '日期': '日期',
+    '内容': '进展内容',
+    '更新人': '更新人',
+    '优先级': '优先级',
+    '完成度': '完成度'
+  };
+  
+  let mappingHtml = '<div class="import-mapping"><div class="mapping-title">📋 字段映射（自动检测，可手动调整）</div><div class="mapping-grid">';
+  Object.keys(fieldLabels).forEach(field => {
+    const current = importMapping[field] || '';
+    mappingHtml += `<div class="mapping-item">
+      <span class="mapping-label">${fieldLabels[field]}</span>
+      <select id="mapping-${field}" onchange="importMapping['${field}']=this.value">
+        <option value="">-- 不映射 --</option>
+        ${headers.map(h => `<option value="${h}" ${h === current ? 'selected' : ''}>${h}</option>`).join('')}
+      </select>
+    </div>`;
+  });
+  mappingHtml += '</div></div>';
+  
+  // 预览表格（最多显示20行）
+  const displayRows = rows.slice(0, 20);
+  let tableHtml = `
+    <div class="import-preview">
+      <div class="import-preview-header">
+        <div class="file-info">
+          <span class="fname">📄 ${importFileName}</span>
+          <span class="fstats">✅ ${rows.length} 条记录 (${sourceName})</span>
+        </div>
+      </div>
+      <div class="import-preview-body">
+        <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+  
+  displayRows.forEach(row => {
+    tableHtml += '<tr>' + headers.map(h => `<td>${String(row[h] || '').substring(0, 50)}</td>`).join('') + '</tr>';
+  });
+  
+  if (rows.length > 20) {
+    tableHtml += `<tr><td colspan="${headers.length}" style="text-align:center;color:var(--text-secondary)">... 还有 ${rows.length - 20} 条记录</td></tr>`;
+  }
+  
+  tableHtml += '</tbody></table></div></div>';
+  
+  previewArea.innerHTML = tableHtml + mappingHtml;
+  importData = { type: 'table', data: rows, source: sourceName };
+  document.getElementById('importActions').style.display = 'flex';
+}
+
+// 执行导入
+async function submitImport() {
+  if (!importData) return;
+  
+  const btn = document.getElementById('btnImportSubmit');
+  btn.disabled = true;
+  btn.textContent = '导入中...';
+  showImportStatus('正在准备数据...', '');
+
+  try {
+    const currentData = JSON.parse(JSON.stringify(appData));
+    
+    let newData;
+    let commitMessage;
+    
+    if (importData.type === 'full') {
+      // 完整看板数据格式
+      const mode = document.querySelector('input[name="importMode"]:checked')?.value || 'merge';
+      if (mode === 'replace') {
+        newData = importData.data;
+        commitMessage = `导入文件(替换): ${importFileName}`;
+      } else {
+        // 合并模式
+        newData = JSON.parse(JSON.stringify(currentData)); // deep copy
+        importData.data.projects.forEach(importedProject => {
+          const existing = newData.projects.find(p => p.name === importedProject.name);
+          if (existing) {
+            // 追加不重复的 timeline 条目
+            const existingDates = new Set(existing.timeline.map(t => t.date + '|' + t.content));
+            (importedProject.timeline || []).forEach(entry => {
+              const key = entry.date + '|' + entry.content;
+              if (!existingDates.has(key)) {
+                existing.timeline.unshift(entry);
+                existingDates.add(key);
+              }
+            });
+            existing.totalUpdates = existing.timeline.length;
+            if (importedProject.latestUpdate > existing.latestUpdate) {
+              existing.latestUpdate = importedProject.latestUpdate;
+            }
+          } else {
+            // 新项目
+            const maxId = newData.projects.reduce((max, p) => Math.max(max, p.id), 0);
+            importedProject.id = maxId + 1;
+            newData.projects.push(importedProject);
+          }
+        });
+        commitMessage = `导入文件(合并): ${importFileName}`;
+      }
+    } else if (importData.type === 'table') {
+      // 表格格式：根据映射关系生成数据
+      newData = JSON.parse(JSON.stringify(currentData));
+      const rows = importData.data;
+      const nameField = importMapping['项目'];
+      const dateField = importMapping['日期'];
+      const contentField = importMapping['内容'];
+      const updaterField = importMapping['更新人'];
+      const priorityField = importMapping['优先级'];
+      const completionField = importMapping['完成度'];
+      
+      if (!nameField && !contentField) {
+        throw new Error('至少需要映射「项目名称」或「进展内容」字段');
+      }
+      
+      let addedCount = 0;
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      rows.forEach(row => {
+        const projName = nameField ? String(row[nameField] || '').trim() : '';
+        const date = dateField ? String(row[dateField] || '').trim() : todayStr;
+        const content = contentField ? String(row[contentField] || '').trim() : '';
+        const updater = updaterField ? String(row[updaterField] || '').trim() : '';
+        const priority = priorityField ? String(row[priorityField] || '').trim() : '';
+        const completion = completionField ? String(row[completionField] || '').trim() : '';
+        
+        if (!projName && !content) return;
+        
+        // 查找或创建项目
+        let project = projName ? newData.projects.find(p => p.name === projName) : null;
+        
+        if (!project && projName) {
+          const maxId = newData.projects.reduce((max, p) => Math.max(max, p.id), 0);
+          project = {
+            id: maxId + 1,
+            name: projName,
+            priority: priority || '高',
+            completion: completion || '0',
+            latestUpdate: date,
+            totalUpdates: 0,
+            timeline: []
+          };
+          newData.projects.push(project);
+        }
+        
+        if (project && content) {
+          const entry = { date, content };
+          if (updater) entry.updater = updater;
+          project.timeline.unshift(entry);
+          project.totalUpdates = (project.totalUpdates || 0) + 1;
+          if (date > project.latestUpdate) project.latestUpdate = date;
+          if (priority) project.priority = priority;
+          if (completion) project.completion = completion;
+          addedCount++;
+        }
+      });
+      
+      newData.lastUpdated = todayStr;
+      commitMessage = `导入文件: ${importFileName} (${addedCount}条记录)`;
+    }
+    
+    // 保存到云存储
+    await saveAppData(newData, commitMessage);
+    
+    showImportStatus('✅ 导入成功！页面即将刷新数据...', 'success');
+    
+    setTimeout(() => {
+      appData = newData;
+      renderTrackingView();
+      renderDatabaseView();
+      document.getElementById('lastUpdated').textContent = '数据更新: ' + newData.lastUpdated;
+      closeImportModal();
+    }, 1500);
+    
+  } catch (err) {
+    showImportStatus('❌ ' + err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '确认导入';
+  }
+}
+
+function showImportStatus(msg, type) {
+  const el = document.getElementById('importStatus');
+  el.textContent = msg;
+  el.className = 'import-status' + (type ? ' ' + type : '');
+}
+
+// ===================== Init =====================
+loadData().then(() => {
+  switchView('tracking');
+});
+</script>
 </body>
 </html>
