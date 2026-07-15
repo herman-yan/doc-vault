@@ -2765,30 +2765,30 @@ function renderCRMTable(customers) {
   if(!customers.length) return '<div class="card" style="text-align:center;color:var(--text-secondary);padding:40px">暂无客户数据</div>';
   return `
     <div class="card" style="padding:0">
-      <div class="table-wrap"><table>
+      <div class="table-wrap"><table style="table-layout:fixed;width:100%">
         <thead><tr>
-          <th>客户 / 门店</th>
-          <th>车型（品牌）</th>
-          <th>配置电池</th>
-          <th>地址</th>
-          <th>联系人</th>
-          <th>联系电话</th>
-          <th>区域</th>
-          <th>客户类型</th>
-          <th>标签</th>
-          <th>关联工单</th>
-          <th>操作</th>
+          <th style="width:14%">客户 / 门店</th>
+          <th style="width:10%">车型（品牌）</th>
+          <th style="width:16%">配置电池</th>
+          <th style="width:15%">地址</th>
+          <th style="width:8%">联系人</th>
+          <th style="width:10%">联系电话</th>
+          <th style="width:6%">区域</th>
+          <th style="width:7%">客户类型</th>
+          <th style="width:8%">标签</th>
+          <th style="width:5%">关联工单</th>
+          <th style="width:7%">操作</th>
         </tr></thead>
         <tbody>
           ${customers.map(c => `
             <tr onclick="viewCustomer('${c.id}')">
-              <td style="font-weight:600">${c.name||'-'}</td>
+              <td style="font-weight:600;white-space:nowrap">${c.name||'-'}</td>
               <td><span class="brand-badge">🚗 ${c.vehicleBrand||'-'}</span></td>
-              <td>${c.batteryModel ? `<span class="battery-pill sm">🔋 ${c.batteryModel}</span>` : '-'}</td>
-              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(c.address||'').replace(/"/g,'&quot;')}">${c.address||'-'}</td>
-              <td style="color:var(--primary);font-weight:500">${c.contact||'-'}</td>
-              <td>${c.phone||'-'}</td>
-              <td>${c.region||'-'}</td>
+              <td>${c.batteryModel ? `<span class="battery-pill sm" style="white-space:normal;display:inline-block;text-align:center;line-height:1.4">🔋 ${c.batteryModel}</span>` : '-'}</td>
+              <td style="overflow:hidden;text-overflow:ellipsis" title="${(c.address||'').replace(/"/g,'&quot;')}">${c.address||'-'}</td>
+              <td style="color:var(--primary);font-weight:500;white-space:nowrap">${c.contact||'-'}</td>
+              <td style="white-space:nowrap">${c.phone||'-'}</td>
+              <td style="white-space:nowrap">${c.region||'-'}</td>
               <td><span class="badge ${c.customerType==='大客户'?'badge-purple':c.customerType==='战略客户'?'badge-blue':'badge-gray'}">${c.customerType||'中小客户'}</span></td>
               <td>${(c.tags||[]).map(t => `<span class="crm-tag ${t==='VIP'?'tag-vip':t==='重点客户'?'tag-key':(t==='宁德时代'||t==='宁德时代门店')?'tag-catl':'tag-new'}">${t}</span>`).join(' ')}</td>
               <td>${getRelatedOrderCount(c.name)}</td>
