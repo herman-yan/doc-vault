@@ -1,0 +1,2282 @@
+{
+  "items": [
+    {
+      "pn": "724240360061",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2025.11,
+      "sale_price": 2154.88,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "770252-00037",
+      "name": "电流传感器",
+      "category": "传感器类",
+      "spec": "",
+      "unit": "个",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 296.67,
+      "sale_price": 351.28,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修",
+        "更换电流传感器"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "830300-00049",
+      "name": "电流传感器",
+      "category": "传感器类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 296.67,
+      "sale_price": 351.28,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换电流传感器"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "830300-00117",
+      "name": "电流传感器",
+      "category": "传感器类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 296.67,
+      "sale_price": 351.28,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换电流传感器"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "AS-BXW1YCAR-002",
+      "name": "低压部件",
+      "category": "电气部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 409.91,
+      "sale_price": 483.52,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换低压插件"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "LS6C3E0Z2RB362664",
+      "name": "检测服务",
+      "category": "检测服务类",
+      "spec": "",
+      "unit": "次",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "保外检测"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00031",
+      "name": "高压底座",
+      "category": "电气部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 698.22,
+      "sale_price": 860.23,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修",
+        "更换高压底座"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00079",
+      "name": "MTP箱体",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 4623.11,
+      "sale_price": 5591.71,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "MTP换箱体",
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00083",
+      "name": "电池模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 5405.97,
+      "sale_price": 8097.73,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修",
+        "更换模组",
+        "更换电池下箱体"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00086",
+      "name": "MTP箱体",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 4801.08,
+      "sale_price": 6433.33,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "MTP换箱体",
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00093",
+      "name": "电池整包",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 14.41,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "保外检测",
+        "常规维修",
+        "更换PTC保险",
+        "更换整包"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00123",
+      "name": "MTP箱体",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2980.55,
+      "sale_price": 3784.74,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "MTP换箱体",
+        "更换继电器"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00152",
+      "name": "MTP箱体",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 4735.07,
+      "sale_price": 5525.67,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "MTP换箱体"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00218",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 8691.2,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00221",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 4448.21,
+      "sale_price": 19038.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00234",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 33126.7,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00248",
+      "name": "MTP箱体",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 6095.67,
+      "sale_price": 7247.29,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "MTP换箱体"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00255",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 32452.83,
+      "sale_price": 37056.28,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00278",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 5165.25,
+      "sale_price": 6100.1,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00306",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 7072.3,
+      "sale_price": 7862.64,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00310",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 10798.52,
+      "sale_price": 12818.72,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00313",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 3,
+      "safe_stock": 3,
+      "purchase_price": 6424.93,
+      "sale_price": 8806.11,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1",
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00316",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 3284.98,
+      "sale_price": 3621.09,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00331",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 4500.31,
+      "sale_price": 5398.54,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00335",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 13200.0,
+      "sale_price": 7309.67,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00347",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 6754.23,
+      "sale_price": 8167.67,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00395",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 5095.91,
+      "sale_price": 6180.09,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-底板更换水冷板修复",
+        "CTP-箱体及水冷板更换",
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00443",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 5520.61,
+      "sale_price": 4993.49,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00465",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换底护板"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00483",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 2647.34,
+      "sale_price": 3658.87,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1",
+        "CTP-底板更换水冷板修复",
+        "换保险继电器"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00486",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 8085.92,
+      "sale_price": 9736.37,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00516",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00518",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1181.42,
+      "sale_price": 1562.59,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "购买电脑版"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00526",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 6762.06,
+      "sale_price": 8059.31,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00572",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 8085.92,
+      "sale_price": 9736.37,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00594",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 8756.07,
+      "sale_price": 10401.6,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00597",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 9747.5,
+      "sale_price": 11389.26,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换",
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00628",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 2390.39,
+      "sale_price": 2752.45,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00677",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2732.18,
+      "sale_price": 3185.6,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00754",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 3212.78,
+      "sale_price": 3480.29,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00765",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2579.32,
+      "sale_price": 2792.85,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复",
+        "更换底护板"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00769",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 3,
+      "safe_stock": 3,
+      "purchase_price": 6954.95,
+      "sale_price": 8158.77,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1",
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00777",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 3090.05,
+      "sale_price": 4206.43,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00783",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 3138.04,
+      "sale_price": 3456.58,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换底护板"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00808",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换底护板"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00820",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "焊接吊耳"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00851",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 3079.14,
+      "sale_price": 4100.09,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00880",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1445.78,
+      "sale_price": 1730.39,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1",
+        "更换继电器保险"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-00953",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 10213.66,
+      "sale_price": 12412.02,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01001",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 6166.08,
+      "sale_price": 7399.5,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01014",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 176.96,
+      "sale_price": 210.18,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01029",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2375.85,
+      "sale_price": 2603.89,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01049",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 5978.86,
+      "sale_price": 8150.42,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01114",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 1203.21,
+      "sale_price": 1301.36,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1",
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01138",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1106.3,
+      "sale_price": 1171.53,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1",
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01154",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01180",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 4362.77,
+      "sale_price": 5014.68,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01181",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2628.35,
+      "sale_price": 3096.52,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1",
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01237",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01291",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2964.48,
+      "sale_price": 3297.82,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "测试维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01320",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 4076.54,
+      "sale_price": 4469.13,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01406",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01422",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "焊接边梁，更换底护板"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01503",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换底护板"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01529",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2567.41,
+      "sale_price": 3891.36,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR01-01538",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 3651.29,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02 00117",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 6439.92,
+      "sale_price": 8655.9,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00054",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 5630.91,
+      "sale_price": 7353.75,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00058",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 5313.21,
+      "sale_price": 7616.52,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00080",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 3385.64,
+      "sale_price": 4010.66,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换",
+        "电箱更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00083",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 12800.74,
+      "sale_price": 14912.95,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00106",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 5749.62,
+      "sale_price": 8302.85,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00110",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 6141.66,
+      "sale_price": 7281.74,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00117",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 8801.87,
+      "sale_price": 9719.04,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-箱体及水冷板更换",
+        "更换底护板"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00129",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 6178.51,
+      "sale_price": 7272.15,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00149",
+      "name": "PTC加热部件",
+      "category": "电气部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换PTC保险"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00164",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 4089.35,
+      "sale_price": 9196.61,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1",
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00167",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 5904.97,
+      "sale_price": 6624.42,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00179",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 6074.47,
+      "sale_price": 7255.65,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00207",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 5051.53,
+      "sale_price": 6231.64,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-箱体及水冷板更换",
+        "下箱体底护板_冲压"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00212",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 5110.08,
+      "sale_price": 6017.93,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00214",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2443.37,
+      "sale_price": 2588.35,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00217",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 4806.47,
+      "sale_price": 5651.84,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R2",
+        "CTP-箱体及水冷板更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00232",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2256.2,
+      "sale_price": 3284.74,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00233",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2051.8,
+      "sale_price": 2300.06,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换底护板"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00245",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2432.94,
+      "sale_price": 3599.82,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-R1"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00257",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2297.27,
+      "sale_price": 2430.47,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00270",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 24153.6,
+      "sale_price": 27313.38,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复",
+        "更换线束继电器"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00280",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 79.83,
+      "sale_price": 91.33,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换防爆阀"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00399",
+      "name": "CTP箱体/模组",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2671.11,
+      "sale_price": 2831.52,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "CTP-底板更换水冷板修复"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00400",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PCAR02-00432",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PEHT01-00123",
+      "name": "通用配件",
+      "category": "通用配件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 780.0,
+      "sale_price": 891.04,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "上盖-FP"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PEHT01-00160",
+      "name": "通用配件",
+      "category": "通用配件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1270.44,
+      "sale_price": 1444.16,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PEHT01-01550",
+      "name": "通用配件",
+      "category": "通用配件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 64675.5,
+      "sale_price": 76410.6,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "电箱更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PEHT01-02307",
+      "name": "通用配件",
+      "category": "通用配件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 93127.5,
+      "sale_price": 110153.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "电箱更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-00225",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1006.49,
+      "sale_price": 1226.44,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-00308",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-00717",
+      "name": "高压底座",
+      "category": "电气部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 123.84,
+      "sale_price": 141.26,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换高压底座"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-00818",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-01009",
+      "name": "电池整包",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 29572.8,
+      "sale_price": 32572.8,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换整包；"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-01101",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1215.85,
+      "sale_price": 1623.65,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换箱盖；"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-01119",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 45285.0,
+      "sale_price": 53402.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "电箱更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-01262",
+      "name": "电池整包",
+      "category": "电池包/箱体类",
+      "spec": "",
+      "unit": "套",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 44387.0,
+      "sale_price": 79907.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换整包"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-01349",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1031.93,
+      "sale_price": 1156.56,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-01400",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 18139.2,
+      "sale_price": 21248.36,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修",
+        "更换电箱上盖；"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-01793",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 2,
+      "safe_stock": 2,
+      "purchase_price": 159.98,
+      "sale_price": 187.25,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-01927",
+      "name": "高压部件",
+      "category": "电气部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 103.69,
+      "sale_price": 123.79,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换高压插头"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-01937",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 50720.4,
+      "sale_price": 60264.48,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "电箱更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-02150",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2361.24,
+      "sale_price": 2768.45,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换箱盖"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-02162",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1140.7,
+      "sale_price": 1282.92,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修",
+        "更换线束"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-02347",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 613.69,
+      "sale_price": 710.16,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换线束"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-02705",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1060.3,
+      "sale_price": 1247.29,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03062",
+      "name": "高压底座",
+      "category": "电气部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 331.69,
+      "sale_price": 375.25,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换高压底座"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03094",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 463.78,
+      "sale_price": 536.19,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换MSD"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03159",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 47962.91,
+      "sale_price": 60838.9,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修",
+        "电箱更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03172",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 95391.0,
+      "sale_price": 121024.4,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "电箱更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03231",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 124256.5,
+      "sale_price": 147107.8,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "电箱更换"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03384",
+      "name": "底座",
+      "category": "电气部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 489.11,
+      "sale_price": 569.49,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "保外检测",
+        "更换底座"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03553",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 673.65,
+      "sale_price": 806.03,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03599",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修",
+        "电箱补电"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03626",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 259.46,
+      "sale_price": 296.26,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换继电器"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03650",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 133354.45,
+      "sale_price": 157225.34,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换电箱"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03658",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "常规维修"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03800",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 598.01,
+      "sale_price": 679.29,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换箱盖"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03896",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 2290.2,
+      "sale_price": 2629.56,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换箱盖；"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-03945",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 72.34,
+      "sale_price": 350.36,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换水冷管"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-04336",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 969.02,
+      "sale_price": 1142.79,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换继电器"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "PESV01-04378",
+      "name": "电池部件",
+      "category": "电池模组/部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 0.0,
+      "sale_price": 0.0,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "电箱补电"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "POSC01-000018",
+      "name": "电流传感器",
+      "category": "传感器类",
+      "spec": "",
+      "unit": "个",
+      "stock": 0,
+      "safe_stock": 2,
+      "purchase_price": 1662.59,
+      "sale_price": 2013.95,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "更换电流传感器"
+      ],
+      "note": ""
+    },
+    {
+      "pn": "无",
+      "name": "PTC加热部件",
+      "category": "电气部件类",
+      "spec": "",
+      "unit": "个",
+      "stock": 23,
+      "safe_stock": 23,
+      "purchase_price": 95.01,
+      "sale_price": 2011.45,
+      "location": "",
+      "supplier": "",
+      "apply_to": [
+        "保外检测",
+        "常规维修",
+        "更换PTC保险",
+        "电箱更换"
+      ],
+      "note": ""
+    }
+  ],
+  "orders": [],
+  "txns": [],
+  "updated_at": "2026-07-15"
+}
