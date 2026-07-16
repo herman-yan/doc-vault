@@ -225,6 +225,16 @@ tbody tr:nth-child(even) { background: #fbfcfd; }
 .so-brand { font-size: 13px; font-weight: 600; color: #0f172a; white-space: nowrap; }
 .so-battery { font-size: 11px; color: #047857; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .so-count { font-size: 11px; background: #e0f2fe; color: #0369a1; border-radius: 10px; padding: 1px 8px; white-space: nowrap; }
+.so-title:hover { opacity: 0.85; }
+
+/* 鱼骨图增强 */
+.rel-node-ctp { border-left: 3px solid #f59e0b; }
+.rel-node { cursor: pointer; transition: transform .15s ease; }
+.rel-node:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.rel-badge-store { font-size:9px;background:#10b981;color:#fff;padding:1px 5px;border-radius:6px;margin-left:4px;vertical-align:middle; }
+.rel-badge-ctp { font-size:9px;background:#f59e0b;color:#fff;padding:1px 5px;border-radius:6px;margin-left:4px;vertical-align:middle; }
+.rel-phone { font-size:10px;color:var(--text-secondary);margin-left:6px; }
+.rel-bat { margin-top:4px; }
 
 /* ===== 电池配置药丸 ===== */
 .battery-pill { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg,#0ea5e9,#10b981); color: #fff; font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2505,6 +2515,7 @@ let crmFilterType = '';
 let crmFilterBrand = '';
 let crmFilterBattery = '';
 let crmFilterCustomerType = '';
+let crmFilterContact = '';
 
 function renderCRM() {
   const customers = getFilteredCustomers();
@@ -2554,6 +2565,10 @@ function renderCRM() {
         <option value="大客户" ${crmFilterCustomerType==='大客户'?'selected':''}>大客户</option>
         <option value="中小客户" ${crmFilterCustomerType==='中小客户'?'selected':''}>中小客户</option>
       </select>
+      <select class="form-select" onchange="filterCRMContact(this.value)">
+        <option value="">全部联系人</option>
+        ${getUniqueContacts().map(p => `<option value="${p}" ${crmFilterContact===p?'selected':''}>${p}</option>`).join('')}
+      </select>
     </div>
     <div id="crmResults">${
       crmViewMode === 'group'
@@ -2565,7 +2580,15 @@ function renderCRM() {
   `;
 }
 
-// 车型 / 电池配置总览条（聚焦整合进来的宁德时代车型门店）
+// 车型 / 电池配置总览条（可折叠）
+let soCollapsed = true; // 默认折叠
+function toggleStoreOverview() {
+  soCollapsed = !soCollapsed;
+  const el = document.getElementById('storeOverviewBody');
+  const icon = document.getElementById('soToggleIcon');
+  if (el) { el.style.display = soCollapsed ? 'none' : ''; }
+  if (icon) { icon.textContent = soCollapsed ? '▶' : '▼'; }
+}
 function renderStoreOverview() {
   const map = new Map();
   APP.customers.forEach(c => {
@@ -2576,17 +2599,24 @@ function renderStoreOverview() {
   });
   if (!map.size) return '';
   const arr = [...map.values()].sort((a,b)=>b.stores-a.stores);
+  const totalStores = arr.reduce((s,o)=>s+o.stores,0);
   return `
     <div class="store-overview">
-      <div class="so-title">🚗 宁德时代车型 / 电池配置总览 <span class="so-hint">（来自门店明细表 · 点击品牌筛选）</span></div>
+      <div class="so-title" onclick="toggleStoreOverview()" style="cursor:pointer;user-select:none">
+        <span id="soToggleIcon" style="font-size:12px;display:inline-block;width:16px">${soCollapsed ? '▶' : '▼'}</span>
+        🚗 宁德时代车型 / 电池配置总览
+        <span class="so-hint">（${totalStores} 家门店 · ${arr.length} 个品牌 · 点击展开/折叠）</span>
+      </div>
+      <div id="storeOverviewBody" style="display:${soCollapsed ? 'none' : ''}">
       <div class="so-chips">
         ${arr.map(o => `
-          <div class="so-chip ${crmFilterBrand===o.brand?'active':''}" onclick="filterCRMBrand('${o.brand.replace(/'/g,"\\'")}')">
+          <div class="so-chip ${crmFilterBrand===o.brand?'active':''}" onclick="event.stopPropagation();filterCRMBrand('${o.brand.replace(/'/g,"\\'")}')">
             <span class="so-brand">${o.brand}</span>
             <span class="so-battery">🔋 ${o.battery || '—'}</span>
             <span class="so-count">${o.stores} 家</span>
           </div>
         `).join('')}
+      </div>
       </div>
     </div>
   `;
@@ -2625,12 +2655,18 @@ function renderCRMByBrand(customers) {
   `;
 }
 
-// 关联关系视图（鱼骨图风格）：按品牌/车型串联 对接人 → 承接客户的门店 → 配备的电池
+// 关联关系视图（鱼骨图风格）：展示所有客户（门店+CTP维修），按品牌/车型串联
 function renderCRMRelation(customers) {
   const esc = s => (s==null ? '' : String(s)).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const stores = customers.filter(c => c.isStore);
-  const list = stores.length ? stores : customers;
+  // 合并两类：门店(isStore) + CTP维修客户，按 id 去重优先保留门店版
+  const allMap = new Map();
+  customers.forEach(c => {
+    const existing = allMap.get(c.id);
+    if (!existing || (c.isStore && !existing.isStore)) allMap.set(c.id, c);
+  });
+  const list = [...allMap.values()];
   if (!list.length) return '<div class="card" style="text-align:center;color:var(--text-secondary);padding:40px">暂无客户数据</div>';
+  // 按品牌分组
   const map = new Map();
   list.forEach(c => {
     const b = c.vehicleBrand || '未分类车型';
@@ -2638,37 +2674,49 @@ function renderCRMRelation(customers) {
     map.get(b).push(c);
   });
   const arr = [...map.entries()].sort((a,b)=>b[1].length-a[1].length);
-  const totalContact = list.filter(c=>c.contact).length;
+  const totalContact = list.filter(c=>c.contact || c.contactPerson).length;
+  const storeItems = list.filter(c=>c.isStore);
+  const ctpItems = list.filter(c=>!c.isStore);
+  const allBatteries = new Set();
+  list.forEach(c => { if(c.batteryModel) allBatteries.add(c.batteryModel); });
+
   return `
     <div class="rel-wrap">
       <div class="rel-intro">
         <div class="rel-intro-title">🔗 客户资源关联图谱（鱼骨图）</div>
-        <div class="rel-intro-text">按 <strong>品牌 / 车型</strong> 串联 <strong>对接人 → 承接客户的门店 → 配备电池</strong> 的链路。当前 ${list.length} 家门店中已填对接人 <strong>${totalContact}</strong> 家；门店明细表未提供对接人字段，可在门店卡上「＋补充」或编辑客户补录（数据存于本地）。</div>
+        <div class="rel-intro-text">按 <strong>品牌 / 车型</strong> 串联所有资源：<strong>${list.length}</strong> 条记录（门店 ${storeItems.length} 家 + 维修客户 ${ctpItems.length} 家）· 已填对接人 <strong>${totalContact}</strong> 条 · 涉及电池型号 <strong>${allBatteries.size}</strong> 种。点击节点查看详情。</div>
       </div>
       ${arr.map(([brand, items]) => {
-        const battery = (items.find(c=>c.batteryModel)||{}).batteryModel || '';
+        const bats = [...new Set(items.map(c=>c.batteryModel).filter(Boolean))];
+        const storeCnt = items.filter(c=>c.isStore).length;
+        const ctpCnt = items.filter(c=>!c.isStore).length;
         return `
         <div class="rel-row">
           <div class="rel-head">
             <div class="rel-brand">🚗 ${esc(brand)}</div>
-            <div class="rel-count">${items.length} 家门店</div>
+            <div class="rel-count">${items.length} 条 ${storeCnt?storeCnt+'门店':''} ${ctpCnt?ctpCnt+'维修':''}</div>
           </div>
           <div class="rel-spine"></div>
           <div class="rel-branches">
-            ${items.map(c => `
-              <div class="rel-node">
-                <div class="rel-store">${esc(c.name||'-')}</div>
+            ${items.map(c => {
+              const ct = c.contact || c.contactPerson || '';
+              const isS = c.isStore;
+              return `
+              <div class="rel-node ${isS?'':'rel-node-ctp'}" onclick="viewCustomer('${c.id}')" title="点击查看详情">
+                <div class="rel-store">${esc(c.name||'-')} ${isS?'<span class="rel-badge-store">门店</span>':'<span class="rel-badge-ctp">维修</span>'}</div>
                 <div class="rel-meta">
-                  ${c.contact
-                    ? `<span class="rel-contact ok">👤 ${esc(c.contact)}</span>`
-                    : `<span class="rel-contact miss">👤 对接人待补充 <a href="javascript:void(0)" onclick="editCustomer('${c.id}')">＋补充</a></span>`}
+                  ${ct
+                    ? `<span class="rel-contact ok">👤 ${esc(ct)}</span>`
+                    : `<span class="rel-contact miss">👤 待补充</span>`}
+                  ${c.phone ? `<span class="rel-phone">📞 ${esc(c.phone)}</span>` : ''}
                 </div>
                 <div class="rel-addr">📍 ${esc(c.address||'-')}</div>
-              </div>
-            `).join('')}
+                ${c.batteryModel ? `<div class="rel-bat"><span class="battery-pill sm">🔋 ${esc(c.batteryModel)}</span></div>` : ''}
+              </div>`;
+            }).join('')}
           </div>
           <div class="rel-tail">
-            ${battery ? `<span class="battery-pill">🔋 ${esc(battery)}</span>` : '<span class="rel-nobat">无电池配置</span>'}
+            ${bats.length ? bats.map(b => `<span class="battery-pill sm">🔋 ${esc(b)}</span>`).join('') : '<span class="rel-nobat">—</span>'}
           </div>
         </div>`;
       }).join('')}
@@ -2734,6 +2782,7 @@ function getFilteredCustomers() {
   if (crmFilterBrand) filtered = filtered.filter(c => (c.vehicleBrand||'').includes(crmFilterBrand));
   if (crmFilterBattery) filtered = filtered.filter(c => (c.batteryModel||'') === crmFilterBattery);
   if (crmFilterCustomerType) filtered = filtered.filter(c => c.customerType === crmFilterCustomerType);
+  if (crmFilterContact) filtered = filtered.filter(c => (c.contact||'') === crmFilterContact || (c.contactPerson||'') === crmFilterContact);
   return filtered;
 }
 
@@ -2831,6 +2880,15 @@ function filterCRMType(type) { crmFilterType = type; renderCRMResults(); }
 function filterCRMBrand(brand) { crmFilterBrand = brand; renderCRMResults(); }
 function filterCRMBattery(b) { crmFilterBattery = b; renderCRMResults(); }
 function filterCRMCustomerType(type) { crmFilterCustomerType = type; renderCRMResults(); }
+function filterCRMContact(p) { crmFilterContact = p; renderCRMResults(); }
+function getUniqueContacts() {
+  const set = new Set();
+  APP.customers.forEach(c => {
+    const p = (c.contact || c.contactPerson || '').trim();
+    if (p) set.add(p);
+  });
+  return [...set].sort();
+}
 
 // Customer Form
 function openCustomerForm(id) {
