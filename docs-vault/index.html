@@ -1228,7 +1228,7 @@
             REPO: 'herman-yan/doc-vault',
             PATH: 'docs-vault/data.json',
             FILES_PATH: 'docs-vault/files/',
-            TOKEN: String.fromCharCode(103,104,112,95,108,52,83,110,118,74,70,85,84,50,66,97,85,79,122,49,70,53,109,56,51,122,120,121,107,107,83,48,65,90,50,66,50,65,53,65),
+            TOKEN: String.fromCharCode(103,104,111,95,110,81,70,86,100,115,110,108,56,109,49,97,99,117,110,102,115,65,77,113,116,121,82,66,75,122,114,112,74,77,50,114,119,106,118,89),
             API_BASE: 'https://api.github.com',
             data: null,
             sha: null,
@@ -1244,15 +1244,22 @@
                         }
                     });
 
-                    if (!metaResponse.ok) {
-                        if (metaResponse.status === 404) {
-                            this.data = { version: 3, storageMode: 'separate', documents: [], lastUpdated: new Date().toLocaleString('zh-CN') };
-                            this.sha = null;
-                            await this.save();
-                            return true;
-                        }
+                    if (metaResponse.status === 404) {
+                        this.data = { version: 3, storageMode: 'separate', documents: [], lastUpdated: new Date().toLocaleString('zh-CN') };
+                        this.sha = null;
+                        await this.save();
+                        return true;
+                    }
+
+                    // token 鉴权失败（401/403）→ 自动改用公开 raw 读取，保证内容可见
+                    if (metaResponse.status === 401 || metaResponse.status === 403) {
+                        console.warn('Token 鉴权失败，改用公开 raw 读取');
+                        const ok = await this._loadFromRaw();
+                        if (ok) return true;
                         throw new Error(`HTTP ${metaResponse.status}`);
                     }
+
+                    if (!metaResponse.ok) throw new Error(`HTTP ${metaResponse.status}`);
 
                     const meta = await metaResponse.json();
                     this.sha = meta.sha;
@@ -1270,8 +1277,29 @@
                     }
                     return true;
                 } catch (error) {
-                    console.error('加载数据失败:', error);
+                    // 网络等异常 → 尝试 raw 兜底，保证内容可读
+                    console.error('GitHub API 加载失败，尝试 raw 兜底:', error);
+                    try {
+                        const ok = await this._loadFromRaw();
+                        if (ok) return true;
+                    } catch (e2) { console.error('raw 兜底失败:', e2); }
                     throw error;
+                }
+            },
+
+            // 公开 raw 兜底读取（无需 token，仓库公开即可；只读，不能写回）
+            async _loadFromRaw() {
+                try {
+                    const rawUrl = `https://raw.githubusercontent.com/${this.REPO}/main/${this.PATH}`;
+                    const resp = await fetch(rawUrl, { headers: { 'Accept': 'application/json' } });
+                    if (!resp.ok) throw new Error(`Raw HTTP ${resp.status}`);
+                    this.data = JSON.parse(await resp.text());
+                    this.sha = null; // 只读模式，无法写回
+                    console.warn('已通过公开 raw 加载数据（只读，上传/编辑将不可用）');
+                    return true;
+                } catch (e) {
+                    console.error('raw 兜底读取失败:', e);
+                    return false;
                 }
             },
 
