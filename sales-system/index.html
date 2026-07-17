@@ -231,6 +231,13 @@ tbody tr:nth-child(even) { background: #fbfcfd; }
 .rel-node-ctp { border-left: 3px solid #f59e0b; }
 .rel-node { cursor: pointer; transition: transform .15s ease; }
 .rel-node:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+
+/* 客户资源库（看板）鱼骨图 */
+.kb-rel .rel-head { flex: 0 0 178px; }
+.kb-rel .rel-brand { font-size: 13px; line-height: 1.4; }
+.rel-node-situation { border-left: 3px solid #6366f1; min-width: 215px; }
+.rel-situation { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 4px; }
+.rel-situation .badge { font-size: 10.5px; padding: 2px 8px; }
 .rel-badge-store { font-size:9px;background:#10b981;color:#fff;padding:1px 5px;border-radius:6px;margin-left:4px;vertical-align:middle; }
 .rel-badge-ctp { font-size:9px;background:#f59e0b;color:#fff;padding:1px 5px;border-radius:6px;margin-left:4px;vertical-align:middle; }
 .rel-phone { font-size:10px;color:var(--text-secondary);margin-left:6px; }
@@ -3495,58 +3502,70 @@ function kbAggregate(filtered) {
 function kbInner() {
   const filtered = kbFiltered();
   const rows = kbAggregate(filtered);
-  const tQuote = rows.reduce((s,r)=>s+r.quoteTotal,0);
-  const tRecv = rows.reduce((s,r)=>s+r.received,0);
-  const tUnrec = rows.reduce((s,r)=>s+r.unreceived,0);
-  const tProfit = rows.reduce((s,r)=>s+r.grossProfit,0);
-  const all = APP.baoWaiOrders || [];
-  const opt = (arr) => [...new Set(arr.filter(Boolean))].sort().map(p=>`<option ${'__V__'===p?'selected':''}>${esc(p)}</option>`).join('');
-  const optSel = (arr, cur) => [...new Set(arr.filter(Boolean))].sort().map(p=>`<option value="${esc(p)}" ${cur===p?'selected':''}>${esc(p)}</option>`).join('');
-
+  const inProgress = filtered.filter(o => (o.repairStatus||'')!=='维修完成').length;
+  const done = filtered.filter(o => (o.repairStatus||'')==='维修完成').length;
+  const custSet = new Set(filtered.map(o=>o.customerName).filter(Boolean));
+  const statusClass = s => {
+    if (s==='维修完成') return 'badge-green';
+    if (s==='维修中') return 'badge-yellow';
+    if (s && s.indexOf('待')===0) return 'badge-blue';
+    if (s==='异常'||s==='退回') return 'badge-red';
+    return 'badge-gray';
+  };
+  const relIntro = `
+    <div class="rel-intro">
+      <div class="rel-intro-title">🔗 客户资源关联图谱（鱼骨图）</div>
+      <div class="rel-intro-text">按 <strong>具体门店（签约客户）</strong> 串联资源：<strong>${rows.length}</strong> 家门店 · <strong>${filtered.length}</strong> 笔保外工单 · 涉及终端客户 <strong>${custSet.size}</strong> 位。每条链路：<strong>门店 → 客户对接人 + 电话 → 业务对接工单情况</strong>。点击卡片查看该门店全部工单明细。</div>
+    </div>`;
+  if (!rows.length) return `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-number">0</div><div class="stat-label">签约客户数</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--primary)">0</div><div class="stat-label">保外工单数</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--warning)">0</div><div class="stat-label">在修工单</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--success)">0</div><div class="stat-label">已完成</div></div>
+      <div class="stat-card"><div class="stat-number">0</div><div class="stat-label">涉及客户</div></div>
+    </div>
+    <div class="card" style="text-align:center;color:var(--text-secondary);padding:40px">暂无保外工单数据</div>`;
   return `
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-number">${rows.length}</div><div class="stat-label">签约客户数</div></div>
       <div class="stat-card"><div class="stat-number" style="color:var(--primary)">${filtered.length}</div><div class="stat-label">保外工单数</div></div>
-      <div class="stat-card"><div class="stat-number" style="color:var(--success)">¥${fmt(tQuote)}</div><div class="stat-label">报价总额</div></div>
-      <div class="stat-card"><div class="stat-number" style="color:var(--success)">¥${fmt(tRecv)}</div><div class="stat-label">已回款</div></div>
-      <div class="stat-card"><div class="stat-number" style="color:var(--warning)">¥${fmt(tUnrec)}</div><div class="stat-label">未回款</div></div>
-      <div class="stat-card"><div class="stat-number" style="color:${tProfit>=0?'var(--success)':'#dc2626'}">¥${fmt(tProfit)}</div><div class="stat-label">毛利</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${inProgress}</div><div class="stat-label">在修工单</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--success)">${done}</div><div class="stat-label">已完成</div></div>
+      <div class="stat-card"><div class="stat-number">${custSet.size}</div><div class="stat-label">涉及客户</div></div>
     </div>
-    <div class="card" style="padding:0">
-      <div class="table-wrap"><table style="table-layout:fixed;width:100%;min-width:1180px">
-        <thead><tr>
-          <th style="width:15%">签约客户</th>
-          <th style="width:11%">客户姓名</th>
-          <th style="width:10%">客户电话</th>
-          <th style="width:6%">城市</th>
-          <th style="width:7%">对接人</th>
-          <th style="width:6%">工单数</th>
-          <th style="width:11%">最新更新</th>
-          <th style="width:11%">报价总额</th>
-          <th style="width:11%">已回款</th>
-          <th style="width:11%">未回款</th>
-          <th style="width:11%">毛利</th>
-          <th style="width:5%">操作</th>
-        </tr></thead>
-        <tbody>
-          ${rows.length ? rows.map(r => `
-            <tr style="cursor:pointer" onclick="viewBaoWaiCustomer('${esc(r.name)}')">
-              <td style="font-weight:600">${esc(r.name)}${r.statusDist['维修中']?`<span class="badge badge-yellow" style="margin-left:6px">${r.statusDist['维修中']}在修</span>`:''}</td>
-              <td>${r.customers.length ? esc(r.customers[0])+(r.customers.length>1?` <span class="badge badge-gray">+${r.customers.length-1}</span>`:'') : '—'}</td>
-              <td>${r.phones.length ? esc(r.phones[0])+(r.phones.length>1?` <span class="badge badge-gray">+${r.phones.length-1}</span>`:'') : '—'}</td>
-              <td>${esc(r.city||'-')}</td>
-              <td>${esc(r.contact||'-')}</td>
-              <td>${r.count}</td>
-              <td>${r.lastUpdate||'—'}</td>
-              <td>¥${fmt(r.quoteTotal)}</td>
-              <td style="color:var(--success)">¥${fmt(r.received)}</td>
-              <td style="color:var(--warning)">¥${fmt(r.unreceived)}</td>
-              <td style="color:${r.grossProfit>=0?'var(--success)':'#dc2626'}">¥${fmt(r.grossProfit)}</td>
-              <td><button class="btn btn-sm btn-primary" onclick="event.stopPropagation();viewBaoWaiCustomer('${esc(r.name)}')">明细</button></td>
-            </tr>
-          `).join('') : '<tr><td colspan="12" style="text-align:center;color:var(--text-secondary);padding:40px">暂无保外工单数据</td></tr>'}
-        </tbody>
-      </table></div>
+    <div class="rel-wrap kb-rel">
+      ${relIntro}
+      ${rows.map(r => `
+        <div class="rel-row" style="cursor:pointer" onclick="viewBaoWaiCustomer('${esc(r.name)}')" title="点击查看 ${esc(r.name)} 的全部工单">
+          <div class="rel-head">
+            <div class="rel-brand">🏬 ${esc(r.name)}</div>
+            <div class="rel-count">${esc(r.city||'-')} · ${r.count} 工单</div>
+          </div>
+          <div class="rel-spine"></div>
+          <div class="rel-branches">
+            <div class="rel-node">
+              <div class="rel-store">👤 客户对接人</div>
+              <div class="rel-meta">
+                <span class="rel-contact ok">${esc(r.contact||'待补充')}</span>
+                <span class="rel-phone">📞 ${r.phones.length ? esc(r.phones[0])+(r.phones.length>1?` +${r.phones.length-1}`:'') : '暂无电话'}</span>
+              </div>
+              ${r.customers.length ? `<div class="rel-addr">👥 终端客户 ${r.customers.length} 位${r.customers.length>1?'（'+esc(r.customers[0])+' 等）':'（'+esc(r.customers[0])+'）'}</div>` : ''}
+            </div>
+            <div class="rel-node rel-node-situation">
+              <div class="rel-store">📋 业务对接工单</div>
+              <div class="rel-situation">
+                ${Object.entries(r.statusDist).map(([s,n]) => `<span class="badge ${statusClass(s)}">${esc(s)} ${n}</span>`).join('')}
+              </div>
+              <div class="rel-meta">共 ${r.count} 单 · 最新 ${r.lastUpdate||'—'}</div>
+            </div>
+          </div>
+          <div class="rel-tail">
+            <div style="font-size:12px;font-weight:600">📍 ${esc(r.city||'-')}</div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:4px">涉及客户 ${r.customers.length||1} 位</div>
+          </div>
+        </div>
+      `).join('')}
     </div>`;
 }
 
@@ -3555,8 +3574,8 @@ function renderKanban() {
   const optSel = (arr, cur) => [...new Set(arr.filter(Boolean))].sort().map(p=>`<option value="${esc(p)}" ${cur===p?'selected':''}>${esc(p)}</option>`).join('');
   return `
     <div class="page-header">
-      <div><div class="page-title">客户维度看板（保外业务）</div>
-      <div class="page-subtitle">以签约客户为核心，聚合保外工单的报价 / 回款 / 毛利 · 点击客户查看工单明细</div></div>
+      <div><div class="page-title">客户资源库（保外业务）</div>
+      <div class="page-subtitle">鱼骨图视角：具体门店 → 客户对接人 + 电话 → 业务对接工单情况 · 点击卡片查看该门店全部工单</div></div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-primary" onclick="exportKanbanCSV()">📤 导出看板 CSV</button>
         <button class="btn btn-outline" onclick="exportBaoWaiDetailCSV()">导出工单明细</button>
@@ -3582,29 +3601,39 @@ function refreshKb() {
 function viewBaoWaiCustomer(name) {
   const orders = (APP.baoWaiOrders||[]).filter(o => (o.signedCustomer||'')===name);
   if (!orders.length) return;
-  const sum = f => orders.reduce((s,o)=>s+(parseFloat(o[f])||0),0);
+  const statusClass = s => {
+    if (s==='维修完成') return 'badge-green';
+    if (s==='维修中') return 'badge-yellow';
+    if (s && s.indexOf('待')===0) return 'badge-blue';
+    if (s==='异常'||s==='退回') return 'badge-red';
+    return 'badge-gray';
+  };
+  const inProgress = orders.filter(o => (o.repairStatus||'')!=='维修完成').length;
+  const done = orders.filter(o => (o.repairStatus||'')==='维修完成').length;
+  const custSet = new Set(orders.map(o=>o.customerName).filter(Boolean));
+  const contact = mostCommon(orders.map(o=>o.contactPerson)) || '待补充';
+  const phones = [...new Set(orders.map(o=>o.customerPhone).filter(Boolean))];
   const html = `
     <div class="modal-header">
-      <div class="modal-title">保外业务 · ${esc(name)}</div>
+      <div class="modal-title">🏬 ${esc(name)}</div>
       <button class="modal-close" onclick="closeModal()">&times;</button>
     </div>
     <div class="modal-body">
       <div class="detail-header">
         <div>
           <div style="font-size:18px;font-weight:700">${esc(name)}</div>
-          <div style="font-size:13px;color:var(--text-secondary)">${orders.length} 笔保外工单 · 涉及客户 ${[...new Set(orders.map(o=>o.customerName).filter(Boolean))].length||orders.length} 位 · 城市 ${esc(mostCommon(orders.map(o=>o.city))||'-')} · 对接人 ${esc(mostCommon(orders.map(o=>o.contactPerson))||'-')}</div>
+          <div style="font-size:13px;color:var(--text-secondary)">城市 ${esc(mostCommon(orders.map(o=>o.city))||'-')} · 对接人 ${esc(contact)}${phones.length?(' · 📞 '+esc(phones[0])+(phones.length>1?` +${phones.length-1}`:'')):' · 暂无电话'} · 涉及客户 ${custSet.size||orders.length} 位</div>
         </div>
         <div style="margin-left:auto;display:flex;gap:14px;text-align:right">
-          <div><div style="font-size:11px;color:var(--text-secondary)">报价总额</div><div style="font-size:16px;font-weight:700">¥${fmt(sum('quoteTotal'))}</div></div>
-          <div><div style="font-size:11px;color:var(--text-secondary)">已回款</div><div style="font-size:16px;font-weight:700;color:var(--success)">¥${fmt(sum('received'))}</div></div>
-          <div><div style="font-size:11px;color:var(--text-secondary)">未回款</div><div style="font-size:16px;font-weight:700;color:var(--warning)">¥${fmt(sum('unreceived'))}</div></div>
-          <div><div style="font-size:11px;color:var(--text-secondary)">毛利</div><div style="font-size:16px;font-weight:700;color:${sum('grossProfit')>=0?'var(--success)':'#dc2626'}">¥${fmt(sum('grossProfit'))}</div></div>
+          <div><div style="font-size:11px;color:var(--text-secondary)">工单数</div><div style="font-size:16px;font-weight:700">${orders.length}</div></div>
+          <div><div style="font-size:11px;color:var(--text-secondary)">在修</div><div style="font-size:16px;font-weight:700;color:var(--warning)">${inProgress}</div></div>
+          <div><div style="font-size:11px;color:var(--text-secondary)">已完成</div><div style="font-size:16px;font-weight:700;color:var(--success)">${done}</div></div>
         </div>
       </div>
       <div class="detail-section">
-        <div class="detail-section-title">📦 保外工单明细 (${orders.length})</div>
+        <div class="detail-section-title">📋 业务对接工单 (${orders.length})</div>
         <div class="table-wrap"><table>
-          <thead><tr><th>月份</th><th>客户姓名</th><th>客户电话</th><th>车牌</th><th>车架号</th><th>PN</th><th>项目/需求</th><th>状态</th><th>最新更新</th><th>报价</th><th>已回款</th><th>维修人</th></tr></thead>
+          <thead><tr><th>月份</th><th>客户姓名</th><th>客户电话</th><th>车牌</th><th>车架号</th><th>PN</th><th>项目/需求</th><th>状态</th><th>最新更新</th><th>维修人</th></tr></thead>
           <tbody>
             ${orders.map(o => `<tr>
               <td>${o.month||'-'}月</td>
@@ -3614,10 +3643,8 @@ function viewBaoWaiCustomer(name) {
               <td style="font-size:11px">${esc(o.vin||'-')}</td>
               <td>${esc(o.pn||'-')}</td>
               <td>${esc(o.repairDesc||o.projectType||'-')}</td>
-              <td>${esc(o.repairStatus||'-')}</td>
+              <td><span class="badge ${statusClass(o.repairStatus)}">${esc(o.repairStatus||'-')}</span></td>
               <td>${bwLatestDate(o)||'-'}</td>
-              <td>¥${fmt(o.quoteTotal)}</td>
-              <td>¥${fmt(o.received)}</td>
               <td>${esc(o.engineer||'-')}</td>
             </tr>`).join('')}
           </tbody>
