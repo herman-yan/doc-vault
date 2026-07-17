@@ -347,9 +347,9 @@
             <div class="detail-close" onclick="closeUpload()">✕</div>
         </div>
         <div class="detail-body">
-            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">支持 <b>.txt / .md / .csv / .xlsx</b>。上传后自动解析为知识条目，立即参与客服问答检索，并保存在本浏览器（localStorage）。</p>
+            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">支持 <b>.txt / .md / .csv / .xlsx / .pdf</b>。上传后自动解析为知识条目，立即参与客服问答检索，并保存在本浏览器（localStorage）。</p>
             <label class="upload-drop" id="uploadDrop">
-                <input type="file" id="uploadInput" multiple accept=".txt,.md,.csv,.xlsx,.xls" style="display:none;" onchange="handleUploadFiles(this.files)">
+                <input type="file" id="uploadInput" multiple accept=".txt,.md,.csv,.xlsx,.xls,.pdf" style="display:none;" onchange="handleUploadFiles(this.files)">
                 <div class="upload-drop-inner">
                     <div class="upload-drop-icon">📥</div>
                     <div class="upload-drop-text">点击选择，或将文件拖拽到此处</div>
@@ -420,6 +420,8 @@ const LS_LLM = 'kb_llm_config';
 let currentDetailId = null;
 let pendingUploads = [];
 let xlsxLoading = false;
+let pdfLoading = false;
+let pdfWaiters = [];
 
 function getAllEntries(){
     try {
@@ -569,6 +571,42 @@ function handleUploadFiles(fileList){
                     reader.readAsArrayBuffer(f);
                 }catch(err){ alert('解析 Excel 失败：'+f.name+' '+err.message); }
             });
+        } else if(/\.pdf$/i.test(f.name)){
+            const ph = makeEntry(f.name.replace(/\.pdf$/i,''), '⏳ 正在解析 PDF…', 'pdf');
+            ph._parsing = true;
+            pendingUploads.push(ph);
+            renderUploadList();
+            ensurePDFJS(()=>{
+                const reader = new FileReader();
+                reader.onload = e=>{
+                    extractPdfText(new Uint8Array(e.target.result)).then(text=>{
+                        const idx = pendingUploads.indexOf(ph);
+                        const cleaned = (text||'').trim();
+                        if(!cleaned){
+                            if(idx>=0) pendingUploads.splice(idx,1);
+                            renderUploadList();
+                            alert('PDF「'+f.name+'」未提取到文本，可能是扫描件（纯图片）。这类文件需要 OCR，暂不支持自动解析。');
+                            return;
+                        }
+                        const parts = parseFile(f.name.replace(/\.pdf$/i,'.txt'), cleaned)
+                            .map(p=>{ p.category='pdf'; p.categoryLabel='文档资料'; return p; });
+                        if(idx>=0){ pendingUploads.splice(idx, 1, ...parts); } else { parts.forEach(p=>pendingUploads.push(p)); }
+                        renderUploadList();
+                    }).catch(err=>{
+                        const idx = pendingUploads.indexOf(ph);
+                        if(idx>=0) pendingUploads.splice(idx,1);
+                        renderUploadList();
+                        alert('解析 PDF 失败：'+f.name+' '+(err&&err.message||err));
+                    });
+                };
+                reader.onerror = ()=>{
+                    const idx = pendingUploads.indexOf(ph);
+                    if(idx>=0) pendingUploads.splice(idx,1);
+                    renderUploadList();
+                    alert('读取文件失败：'+f.name);
+                };
+                reader.readAsArrayBuffer(f);
+            });
         } else {
             const reader = new FileReader();
             reader.onload = e=>{ parseFile(f.name, e.target.result).forEach(p=>pendingUploads.push(p)); renderUploadList(); };
@@ -587,6 +625,41 @@ function ensureXLSX(cb){
     s.onload = ()=>{ xlsxLoading=false; cb(); };
     s.onerror = ()=>{ xlsxLoading=false; alert('SheetJS 加载失败，Excel 解析暂不可用'); };
     document.head.appendChild(s);
+}
+
+function ensurePDFJS(cb){
+    if(window.pdfjsLib){ cb(); return; }
+    if(pdfLoading){ pdfWaiters.push(cb); return; }
+    pdfLoading = true; pdfWaiters.push(cb);
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+    s.onload = ()=>{
+        try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'; }catch(e){}
+        pdfLoading=false; const ws=pdfWaiters.slice(); pdfWaiters=[]; ws.forEach(fn=>{ try{fn();}catch(e){} });
+    };
+    s.onerror = ()=>{ pdfLoading=false; pdfWaiters=[]; alert('PDF 解析库加载失败（需要联网加载 pdf.js），暂不可用'); };
+    document.head.appendChild(s);
+}
+
+async function extractPdfText(uint8){
+    const pdf = await window.pdfjsLib.getDocument({data: uint8}).promise;
+    const out = [];
+    for(let p=1; p<=pdf.numPages; p++){
+        const page = await pdf.getPage(p);
+        const tc = await page.getTextContent();
+        let last = null, line = '';
+        const lines = [];
+        tc.items.forEach(it=>{
+            const y = it.transform[5];
+            if(last!==null && Math.abs(y-last) > 3){ lines.push(line); line=''; }
+            line += it.str;
+            if(it.hasEOL){ lines.push(line); line=''; last=null; return; }
+            last = y;
+        });
+        if(line) lines.push(line);
+        out.push(lines.join('\n'));
+    }
+    return out.join('\n\n');
 }
 
 function serializeRow(row){
