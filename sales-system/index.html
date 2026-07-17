@@ -243,6 +243,15 @@ tbody tr:nth-child(even) { background: #fbfcfd; }
 .rel-phone { font-size:10px;color:var(--text-secondary);margin-left:6px; }
 .rel-bat { margin-top:4px; }
 
+/* 鱼骨图对接信息节点（对接人 + 终端客户分离） */
+.kb-contact-row { display: flex; align-items: center; gap: 6px; padding: 6px 0 2px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 6px; }
+.kb-contact-label { font-size: 11px; color: #6b7280; white-space: nowrap; }
+.kb-cust-section { margin-top: 4px; }
+.kb-cust-header { font-size: 11.5px; font-weight: 600; color: #4b5563; margin-bottom: 4px; }
+.kb-cust-item { display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 12px; }
+.kb-cust-name { font-weight: 500; color: #1f2937; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-cust-phone { font-size: 10.5px; color: #6366f1; background: #eef2ff; padding: 1px 7px; border-radius: 8px; white-space: nowrap; }
+
 /* ===== 电池配置药丸 ===== */
 .battery-pill { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg,#0ea5e9,#10b981); color: #fff; font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .battery-pill.sm { font-size: 11px; padding: 2px 8px; }
@@ -3511,6 +3520,17 @@ function kbAggregate(filtered) {
       statusDist,
       customers: [...new Set(os.map(o=>o.customerName).filter(Boolean))],
       phones: [...new Set(os.map(o=>o.customerPhone).filter(Boolean))],
+      // 终端客户详情：姓名 → 电话列表（一对多，用于鱼骨图逐条展示）
+      customerDetails: (() => {
+        const m = new Map();
+        os.forEach(o => {
+          const cn = (o.customerName||'').trim(); const cp = (o.customerPhone||'').trim();
+          if (!cn) return;
+          if (!m.has(cn)) m.set(cn, []);
+          if (cp && !m.get(cn).includes(cp)) m.get(cn).push(cp);
+        });
+        return [...m.entries()].map(([name, phs]) => ({ name, phones: phs }));
+      })(),
       lastUpdate: (() => { let mx=null; os.forEach(o=>{const d=bwLatestDate(o); if(d&&(mx===null||d>mx))mx=d;}); return mx; })(),
     };
   }).sort((a,b)=>b.quoteTotal-a.quoteTotal);
@@ -3532,7 +3552,7 @@ function kbInner() {
   const relIntro = `
     <div class="rel-intro">
       <div class="rel-intro-title">🔗 客户资源关联图谱（鱼骨图）</div>
-      <div class="rel-intro-text">按 <strong>具体门店（签约客户）</strong> 串联资源：<strong>${rows.length}</strong> 家门店 · <strong>${filtered.length}</strong> 笔保外工单 · 涉及终端客户 <strong>${custSet.size}</strong> 位。每条链路：<strong>门店 → 客户对接人 + 电话 → 业务对接工单情况</strong>。点击卡片查看该门店全部工单明细。</div>
+      <div class="rel-intro-text">按 <strong>具体门店（签约客户）</strong> 串联资源：<strong>${rows.length}</strong> 家门店 · <strong>${filtered.length}</strong> 笔保外工单 · 涉及终端客户 <strong>${custSet.size}</strong> 位。每条链路：<strong>门店 → 对接人 + 终端客户明细 → 业务对接工单情况</strong>。点击卡片查看该门店全部工单明细。</div>
     </div>`;
   if (!rows.length) return `
     <div class="stats-grid">
@@ -3562,12 +3582,23 @@ function kbInner() {
           <div class="rel-spine"></div>
           <div class="rel-branches">
             <div class="rel-node">
-              <div class="rel-store">👤 客户对接人</div>
-              <div class="rel-meta">
+              <div class="rel-store">📋 对接信息</div>
+              <!-- 对接人：独立一行，不带终端电话 -->
+              <div class="kb-contact-row">
+                <span class="kb-contact-label">👤 对接人</span>
                 <span class="rel-contact ok">${esc(r.contact||'待补充')}</span>
-                <span class="rel-phone">📞 ${r.phones.length ? esc(r.phones[0])+(r.phones.length>1?` +${r.phones.length-1}`:'') : '暂无电话'}</span>
               </div>
-              ${r.customers.length ? `<div class="rel-addr">👥 终端客户 ${r.customers.length} 位${r.customers.length>1?'（'+esc(r.customers[0])+' 等）':'（'+esc(r.customers[0])+'）'}</div>` : ''}
+              <!-- 终端客户列表：每条带姓名+自己的电话，清晰配对 -->
+              ${r.customerDetails.length ? `
+              <div class="kb-cust-section">
+                <div class="kb-cust-header">👥 终端客户 <b>${r.customerDetails.length}</b> 位</div>
+                ${r.customerDetails.map(c => `
+                  <div class="kb-cust-item">
+                    <span class="kb-cust-name">${esc(c.name)}</span>
+                    ${c.phones.length ? `<span class="kb-cust-phone">📞 ${c.phones.map(p=>esc(p)).join('／')}</span>` : ''}
+                  </div>
+                `).join('')}
+              </div>` : '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px">暂无终端客户信息</div>'}
             </div>
             <div class="rel-node rel-node-situation">
               <div class="rel-store">📋 业务对接工单</div>
@@ -3592,7 +3623,7 @@ function renderKanban() {
   return `
     <div class="page-header">
       <div><div class="page-title">客户资源库（保外业务）</div>
-      <div class="page-subtitle">鱼骨图视角：具体门店 → 客户对接人 + 电话 → 业务对接工单情况 · 点击卡片查看该门店全部工单</div></div>
+      <div class="page-subtitle">鱼骨图视角：具体门店 → 对接人 + 终端客户明细 → 业务对接工单情况 · 点击卡片查看该门店全部工单</div></div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-primary" onclick="exportKanbanCSV()">📤 导出看板 CSV</button>
         <button class="btn btn-outline" onclick="exportBaoWaiDetailCSV()">导出工单明细</button>
