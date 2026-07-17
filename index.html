@@ -5,1191 +5,915 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>宁家服务数字化运营系统</title>
     <style>
-        /* ========== 基础样式重置 ========== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* ============================================================
+           设计系统 · 宁家服务数字化运营系统
+           风格：企业级运营控制台（浅色 / 商务 / 克制配色）
+           ============================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            /* 深色主题配色 */
-            --bg-primary: #1a1a2e;
-            --bg-secondary: #16213e;
-            --bg-card: rgba(255, 255, 255, 0.05);
-            --bg-card-hover: rgba(255, 255, 255, 0.08);
-            --border-color: rgba(255, 255, 255, 0.1);
-            
-            /* 蓝色渐变色 */
-            --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --gradient-secondary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #43e97b 100%);
-            
-            /* 文字颜色 */
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.7);
-            --text-muted: rgba(255, 255, 255, 0.5);
-            
-            /* 功能色 */
-            --color-pending: #ffa502;
-            --color-progress: #3498db;
-            --color-completed: #2ecc71;
-            --color-warning: #e74c3c;
-            --color-info: #9b59b6;
-            
-            /* 玻璃拟态 */
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            /* 品牌色 —— 深海军蓝 */
+            --brand:        #0E2A47;
+            --brand-2:      #15395B;
+            --brand-line:   #1E4A7A;
+
+            /* 功能强调色（克制、专业） */
+            --c-blue:   #2563EB;   /* 服务运营 */
+            --c-teal:   #0D9488;   /* 经营拓展 */
+            --c-indigo: #5B5BD6;   /* 数据洞察 */
+            --c-green:  #15803D;   /* 知识协同 */
+
+            /* 状态色 */
+            --st-online:   #15803D;
+            --st-building: #B45309;
+
+            /* 中性色 */
+            --bg:      #F4F6FB;
+            --bg-soft: #EEF2F8;
+            --card:    #FFFFFF;
+            --border:  #E5E9F1;
+            --border-2:#DCE2EC;
+            --text:    #1F2A3A;
+            --text-2:  #5B6B82;
+            --text-3:  #93A1B5;
+
+            --shadow-sm: 0 1px 2px rgba(16,32,64,.05);
+            --shadow:    0 1px 3px rgba(16,32,64,.06), 0 10px 28px rgba(16,32,64,.06);
+            --shadow-lg: 0 4px 12px rgba(16,32,64,.08), 0 18px 42px rgba(16,32,64,.10);
+
+            --radius: 14px;
+            --radius-sm: 10px;
         }
 
+        html { -webkit-text-size-adjust: 100%; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                         "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg);
+            /* 极淡的点阵纹理，增加质感但不喧宾夺主 */
+            background-image: radial-gradient(rgba(16,42,71,.035) 1px, transparent 1px);
+            background-size: 22px 22px;
+            color: var(--text);
             min-height: 100vh;
-            overflow-x: hidden;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
         }
 
-        /* ========== 背景装饰 ========== */
-        .bg-decoration {
-            position: fixed;
+        a { color: inherit; text-decoration: none; }
+        svg { display: block; }
+
+        /* ===================== 顶部品牌栏 ===================== */
+        .topbar {
+            background: linear-gradient(120deg, var(--brand) 0%, var(--brand-2) 100%);
+            color: #fff;
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
+            z-index: 50;
+            box-shadow: 0 1px 0 rgba(255,255,255,.06), 0 6px 22px rgba(14,42,71,.18);
         }
-
-        .bg-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.3;
-        }
-
-        .bg-orb-1 {
-            width: 400px;
-            height: 400px;
-            background: #4facfe;
-            top: -100px;
-            right: -100px;
-        }
-
-        .bg-orb-2 {
-            width: 300px;
-            height: 300px;
-            background: #00f2fe;
-            bottom: 10%;
-            left: -50px;
-        }
-
-        .bg-orb-3 {
-            width: 200px;
-            height: 200px;
-            background: #667eea;
-            top: 50%;
-            right: 20%;
-        }
-
-        /* ========== 主容器 ========== */
-        .main-container {
-            position: relative;
-            z-index: 1;
-            max-width: 1920px;
+        .topbar-inner {
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 0 40px;
-        }
-
-        /* ========== 顶部导航栏 ========== */
-        .header {
+            padding: 0 28px;
+            height: 66px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-            border-bottom: 1px solid var(--border-color);
+            gap: 20px;
         }
-
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 16px;
+        .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+        .brand-mark {
+            width: 42px; height: 42px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 4px 12px rgba(29,78,216,.45);
+            flex-shrink: 0;
         }
-
-        .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--gradient-primary);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
-        }
-
-        .logo-text h1 {
-            font-size: 22px;
-            font-weight: 600;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .logo-text p {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 12px;
-            transition: background 0.25s ease;
-        }
-        .header-right:hover {
-            background: rgba(79, 172, 254, 0.12);
-        }
-        .header-info .username {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            justify-content: flex-end;
-        }
-        .contact-hint {
-            font-size: 11px;
-            color: #4facfe;
-            background: rgba(79, 172, 254, 0.15);
-            border: 1px solid rgba(79, 172, 254, 0.35);
-            border-radius: 10px;
-            padding: 1px 7px;
-            font-weight: 600;
+        .brand-mark svg { width: 24px; height: 24px; color: #fff; }
+        .brand-text { min-width: 0; }
+        .brand-name {
+            font-size: 17px; font-weight: 700; letter-spacing: .3px;
             white-space: nowrap;
         }
-        .header-right:hover .contact-hint {
-            background: rgba(79, 172, 254, 0.28);
+        .brand-sub {
+            font-size: 11.5px; color: rgba(255,255,255,.62);
+            white-space: nowrap; margin-top: 1px;
         }
 
-        .header-info {
-            text-align: right;
+        .topbar-right { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+        .sys-status {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 12.5px; color: rgba(255,255,255,.78);
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: 999px;
+            background: rgba(255,255,255,.05);
         }
-
-        .header-info .username {
-            font-size: 14px;
-            color: var(--text-primary);
-            font-weight: 500;
+        .sys-status .dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #34D399;
+            box-shadow: 0 0 0 3px rgba(52,211,153,.22);
         }
-
-        .header-info .datetime {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        .header-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: var(--gradient-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        /* ========== 数据概览看板 ========== */
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 40px 0 20px;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 20px;
-            background: var(--gradient-primary);
-            border-radius: 2px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-        }
-
-        .stat-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: var(--glass-shadow);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--gradient-primary);
-        }
-
-        .stat-card:nth-child(2)::before {
-            background: linear-gradient(135deg, #ffa502, #ff6342);
-        }
-
-        .stat-card:nth-child(3)::before {
-            background: linear-gradient(135deg, #3498db, #9b59b6);
-        }
-
-        .stat-card:nth-child(4)::before {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            background: var(--bg-card-hover);
-            box-shadow: 0 12px 40px rgba(79, 172, 254, 0.2);
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-bottom: 16px;
-        }
-
-        .stat-card:nth-child(1) .stat-icon {
-            background: rgba(79, 172, 254, 0.2);
-        }
-
-        .stat-card:nth-child(2) .stat-icon {
-            background: rgba(255, 165, 2, 0.2);
-        }
-
-        .stat-card:nth-child(3) .stat-icon {
-            background: rgba(52, 152, 219, 0.2);
-        }
-
-        .stat-card:nth-child(4) .stat-icon {
-            background: rgba(46, 204, 113, 0.2);
-        }
-
-        .stat-content h3 {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .stat-content p {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .stat-breakdown {
-            display: flex;
-            gap: 16px;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .stat-item {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .stat-item span {
-            font-weight: 600;
-            margin-right: 4px;
-        }
-
-        .stat-item.pending span { color: var(--color-pending); }
-        .stat-item.progress span { color: var(--color-progress); }
-        .stat-item.completed span { color: var(--color-completed); }
-
-        /* ========== 模块入口区 ========== */
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-        }
-
-        .module-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 28px;
-            box-shadow: var(--glass-shadow);
-            transition: all 0.3s ease;
+        .admin-chip {
+            display: flex; align-items: center; gap: 10px;
+            padding: 5px 14px 5px 6px;
+            border: 1px solid rgba(255,255,255,.16);
+            border-radius: 999px;
+            background: rgba(255,255,255,.06);
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            transition: background .2s ease, border-color .2s ease;
+            font: inherit; color: #fff;
         }
-
-        .module-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, transparent 0%, rgba(79, 172, 254, 0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .module-card:hover::after {
-            opacity: 1;
-        }
-
-        .module-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(79, 172, 254, 0.3);
-            box-shadow: 0 20px 50px rgba(79, 172, 254, 0.15);
-        }
-
-        .module-card.building {
-            opacity: 0.7;
-        }
-
-        .module-card.building:hover {
-            transform: none;
-            cursor: not-allowed;
-        }
-
-        .module-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            margin-bottom: 20px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .module-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .module-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .module-desc {
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 16px;
-        }
-
-        .module-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .module-status {
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 500;
-        }
-
-        .module-status.online {
-            background: rgba(46, 204, 113, 0.2);
-            color: #2ecc71;
-        }
-
-        .module-status.building {
-            background: rgba(255, 165, 2, 0.2);
-            color: #ffa502;
-        }
-
-        .module-enter {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .module-card:hover .module-enter {
-            background: var(--gradient-primary);
-            border-color: transparent;
-            transform: translateX(5px);
-        }
-
-        .module-card.building .module-enter {
-            opacity: 0.5;
-        }
-
-        /* ========== 快捷操作区 ========== */
-        .quick-actions {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 24px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn:hover {
-            background: var(--bg-card-hover);
-            border-color: rgba(79, 172, 254, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        .action-btn .icon {
-            font-size: 18px;
-        }
-
-        .action-btn.primary {
-            background: var(--gradient-primary);
-            border: none;
-        }
-
-        .action-btn.primary:hover {
-            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
-        }
-
-        /* ========== 最近动态 ========== */
-        .activity-section {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-            margin-bottom: 40px;
-        }
-
-        .activity-list {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: var(--glass-shadow);
-        }
-
-        .activity-item {
-            display: flex;
-            gap: 16px;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-time {
-            width: 60px;
-            font-size: 12px;
-            color: var(--text-muted);
-            text-align: right;
-        }
-
-        .activity-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--gradient-primary);
-            margin-top: 4px;
+        .admin-chip:hover { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.30); }
+        .admin-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,.16);
+            display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
+        }
+        .admin-avatar svg { width: 18px; height: 18px; color: #fff; }
+        .admin-meta { display: flex; flex-direction: column; line-height: 1.25; text-align: left; }
+        .admin-name { font-size: 13px; font-weight: 600; }
+        .admin-role { font-size: 10.5px; color: rgba(255,255,255,.6); }
+
+        /* ===================== 主体容器 ===================== */
+        .container { max-width: 1280px; margin: 0 auto; padding: 30px 28px 0; }
+
+        .page-head {
+            display: flex; align-items: flex-end; justify-content: space-between;
+            gap: 20px; margin-bottom: 26px; flex-wrap: wrap;
+        }
+        .page-kicker {
+            font-size: 11.5px; font-weight: 600; letter-spacing: 2px;
+            color: var(--c-blue); text-transform: uppercase; margin-bottom: 6px;
+        }
+        .page-title { font-size: 26px; font-weight: 700; letter-spacing: .4px; color: var(--brand); }
+        .page-aside { text-align: right; }
+        .page-date {
+            font-size: 15px; font-weight: 600; color: var(--text);
+            font-variant-numeric: tabular-nums;
+        }
+        .page-tip { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+        /* ===================== KPI 概览 ===================== */
+        .section-label {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 13px; font-weight: 600; color: var(--text-2);
+            letter-spacing: .5px; margin: 8px 0 16px;
+        }
+        .section-label::before {
+            content: ""; width: 3px; height: 14px; border-radius: 2px;
+            background: var(--c-blue);
+        }
+
+        .kpi-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+            margin-bottom: 34px;
+        }
+        .kpi {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            box-shadow: var(--shadow-sm);
             position: relative;
+            overflow: hidden;
+            transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease;
         }
-
-        .activity-dot::after {
-            content: '';
-            position: absolute;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: calc(100% + 20px);
-            background: var(--border-color);
+        .kpi::before {
+            content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+            background: var(--c, var(--c-blue));
         }
-
-        .activity-item:last-child .activity-dot::after {
-            display: none;
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-content p {
-            font-size: 14px;
-            color: var(--text-primary);
-            line-height: 1.5;
-        }
-
-        .activity-content .highlight {
-            color: #4facfe;
-            font-weight: 500;
-        }
-
-        .activity-tag {
-            display: inline-block;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-top: 6px;
-            background: rgba(79, 172, 254, 0.15);
-            color: #4facfe;
-        }
-
-        /* ========== 公告卡片 ========== */
-        .announcement-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: var(--glass-shadow);
-        }
-
-        .announcement-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .announcement-header h4 {
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .announcement-item {
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .announcement-item:hover {
-            padding-left: 10px;
-        }
-
-        .announcement-item:last-child {
-            border-bottom: none;
-        }
-
-        .announcement-title {
-            font-size: 14px;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-        }
-
-        .announcement-meta {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .new-badge {
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            background: #e74c3c;
-            border-radius: 50%;
-            margin-left: 8px;
-        }
-
-        /* ========== 底部版权 ========== */
-        .footer {
-            text-align: center;
-            padding: 30px 0;
-            border-top: 1px solid var(--border-color);
-            color: var(--text-muted);
-            font-size: 12px;
-        }
-
-        /* ========== 提示弹窗 ========== */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal {
-            background: var(--bg-secondary);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 32px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
-
-        .modal-overlay.active .modal {
-            transform: scale(1);
-        }
-
-        .modal-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #ffa502 0%, #ff6342 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin: 0 auto 24px;
-        }
-
-        .modal h3 {
-            font-size: 20px;
-            margin-bottom: 12px;
-        }
-
-        .modal p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-            line-height: 1.6;
-        }
-
-        .modal-btn {
-            padding: 12px 32px;
-            background: var(--gradient-primary);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
-        }
-
-        /* ========== 响应式适配 ========== */
-        @media (max-width: 1600px) {
-            .modules-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .main-container {
-                padding: 0 24px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .modules-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .activity-section {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid,
-            .modules-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header {
-                flex-direction: column;
-                gap: 20px;
-            }
-            
-            .header-right {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .quick-actions {
-                justify-content: center;
-            }
-        }
-        /* ========== 钉钉联系弹窗 ========== */
-        .ding-modal { text-align: center; max-width: 340px; }
-        .ding-modal .ding-avatar {
-            width: 64px; height: 64px; border-radius: 50%;
-            background: linear-gradient(135deg, #4facfe 0%, #43e97b 100%);
+        .kpi:hover { box-shadow: var(--shadow); transform: translateY(-3px); border-color: var(--border-2); }
+        .kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .kpi-ico {
+            width: 42px; height: 42px; border-radius: 11px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 30px; margin: 0 auto 12px;
+            background: color-mix(in srgb, var(--c) 12%, #fff);
+            color: var(--c);
         }
-        .ding-modal h3 { font-size: 19px; margin-bottom: 4px; }
-        .ding-sub { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px; }
-        .ding-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 18px; }
-        .ding-btn {
-            display: inline-block; width: 100%;
-            padding: 12px 0; border-radius: 10px;
-            background: linear-gradient(135deg, #4facfe 0%, #43e97b 100%);
-            color: #fff; text-decoration: none; font-size: 15px; font-weight: 600;
-            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.35);
-            transition: transform 0.2s ease;
+        .kpi-ico svg { width: 22px; height: 22px; }
+        .kpi-tag {
+            font-size: 11px; font-weight: 600; color: var(--c);
+            background: color-mix(in srgb, var(--c) 10%, #fff);
+            padding: 3px 9px; border-radius: 999px;
         }
-        .ding-btn:hover { transform: translateY(-2px); }
-        .ding-modal .modal-btn { margin-top: 14px; width: 100%; }
+        .kpi-label { font-size: 13px; color: var(--text-2); }
+        .kpi-value {
+            font-size: 32px; font-weight: 700; color: var(--text);
+            line-height: 1.1; margin: 4px 0 12px;
+            font-variant-numeric: tabular-nums; letter-spacing: -.5px;
+        }
+        .kpi-value small { font-size: 15px; font-weight: 600; color: var(--text-3); margin-left: 3px; }
+        .kpi-foot {
+            display: flex; gap: 14px; padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 12px; color: var(--text-3);
+        }
+        .kpi-foot b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
 
-        /* ========== 系统模块分类分组 ========== */
-        .module-group { margin-bottom: 32px; }
-        .module-group:last-child { margin-bottom: 0; }
-        .group-header {
-            display: flex; align-items: center; gap: 14px;
-            margin: 8px 0 16px; padding-bottom: 10px;
-            border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
+        /* ===================== 模块分组 ===================== */
+        .group { margin-bottom: 30px; }
+        .group-head {
+            display: flex; align-items: center; gap: 13px;
+            padding-bottom: 12px; margin-bottom: 18px;
+            border-bottom: 1px solid var(--border);
         }
-        .group-icon {
-            width: 42px; height: 42px; border-radius: 12px;
+        .group-ico {
+            width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
-            font-size: 21px; flex-shrink: 0; color: #fff;
-            box-shadow: 0 4px 14px rgba(79,172,254,0.25);
+            background: color-mix(in srgb, var(--c) 14%, #fff);
+            color: var(--c);
         }
-        .group-meta { display: flex; flex-direction: column; }
-        .group-title { font-size: 17px; font-weight: 700; color: var(--text-primary); letter-spacing: .3px; }
-        .group-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .group-ico svg { width: 20px; height: 20px; }
+        .group-titles { min-width: 0; }
+        .group-title { font-size: 16.5px; font-weight: 700; color: var(--brand); letter-spacing: .3px; }
+        .group-desc { font-size: 12px; color: var(--text-3); margin-top: 2px; }
         .group-count {
             margin-left: auto; align-self: center;
-            font-size: 12px; color: var(--text-secondary);
-            background: var(--card2, rgba(255,255,255,0.06));
-            border: 1px solid var(--border, rgba(255,255,255,0.1));
-            border-radius: 20px; padding: 3px 12px; white-space: nowrap;
+            font-size: 12px; font-weight: 600; color: var(--text-2);
+            background: var(--bg-soft); border: 1px solid var(--border);
+            border-radius: 999px; padding: 4px 12px; white-space: nowrap;
+        }
+
+        .module-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 22px 18px;
+            box-shadow: var(--shadow-sm);
+            display: flex; flex-direction: column;
+            cursor: pointer;
+            transition: box-shadow .22s ease, transform .22s ease, border-color .22s ease;
+            position: relative;
+            min-height: 158px;
+        }
+        .card::after {
+            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+            background: var(--c);
+            border-radius: 0 0 var(--radius) var(--radius);
+            transform: scaleX(0); transform-origin: left;
+            transition: transform .25s ease;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+            border-color: color-mix(in srgb, var(--c) 45%, var(--border));
+        }
+        .card:hover::after { transform: scaleX(1); }
+        .card-ico {
+            width: 46px; height: 46px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--c) 12%, #fff);
+            color: var(--c);
+            margin-bottom: 14px;
+        }
+        .card-ico svg { width: 24px; height: 24px; }
+        .card-title { font-size: 15.5px; font-weight: 700; color: var(--text); letter-spacing: .2px; }
+        .card-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.6; margin-top: 6px; flex: 1; }
+        .card-foot {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 14px;
+        }
+        .pill {
+            font-size: 11.5px; font-weight: 600; padding: 4px 11px; border-radius: 999px;
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .pill-on { color: var(--st-online); background: rgba(21,128,61,.10); }
+        .pill-bd { color: var(--st-building); background: rgba(180,83,9,.10); }
+        .card-arrow {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1px solid var(--border-2);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-3); font-size: 15px;
+            transition: all .22s ease;
+        }
+        .card:hover .card-arrow {
+            background: var(--c); border-color: var(--c); color: #fff;
+            transform: translateX(3px);
+        }
+        .card--lock { cursor: not-allowed; }
+        .card--lock:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--border); }
+        .card--lock .card-arrow { color: var(--text-3); }
+        .card--lock:hover .card-arrow { background: transparent; border-color: var(--border-2); color: var(--text-3); transform: none; }
+
+        /* ===================== 动态 & 公告 ===================== */
+        .news {
+            display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px;
+            margin: 38px 0 10px;
+        }
+        .panel {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow-sm);
+            padding: 22px 24px;
+        }
+        .panel-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .panel-title { font-size: 15px; font-weight: 700; color: var(--brand); letter-spacing: .3px; }
+        .panel-more { font-size: 12px; color: var(--text-3); cursor: pointer; }
+        .panel-more:hover { color: var(--c-blue); }
+
+        .timeline { margin-top: 8px; }
+        .tl-item { display: flex; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+        .tl-item:last-child { border-bottom: none; }
+        .tl-date {
+            width: 46px; flex-shrink: 0; text-align: right;
+            font-size: 12px; font-weight: 600; color: var(--text-2);
+            font-variant-numeric: tabular-nums; padding-top: 1px;
+        }
+        .tl-rail { position: relative; width: 12px; flex-shrink: 0; display: flex; justify-content: center; }
+        .tl-rail::before {
+            content: ""; position: absolute; top: 4px; width: 9px; height: 9px; border-radius: 50%;
+            background: var(--c-blue); box-shadow: 0 0 0 3px rgba(37,99,235,.14);
+        }
+        .tl-rail::after {
+            content: ""; position: absolute; top: 13px; bottom: -16px; width: 1.5px;
+            background: var(--border);
+        }
+        .tl-item:last-child .tl-rail::after { display: none; }
+        .tl-body { flex: 1; min-width: 0; }
+        .tl-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+        .tl-text b { color: var(--c-blue); font-weight: 600; }
+        .tl-tag {
+            display: inline-block; font-size: 11px; font-weight: 600;
+            color: var(--text-2); background: var(--bg-soft);
+            padding: 2px 9px; border-radius: 6px; margin-top: 7px;
+        }
+
+        .anno-item {
+            padding: 13px 0; border-bottom: 1px solid var(--border);
+            display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+            transition: padding-left .2s ease;
+        }
+        .anno-item:last-child { border-bottom: none; }
+        .anno-item:hover { padding-left: 6px; }
+        .anno-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-indigo); margin-top: 6px; flex-shrink: 0; }
+        .anno-main { flex: 1; min-width: 0; }
+        .anno-title { font-size: 13.5px; color: var(--text); line-height: 1.5; display: flex; align-items: center; gap: 7px; }
+        .anno-new {
+            font-size: 10px; font-weight: 700; color: #fff; background: #DC2626;
+            border-radius: 4px; padding: 1px 5px; flex-shrink: 0;
+        }
+        .anno-date { font-size: 11.5px; color: var(--text-3); margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+        /* ===================== 页脚 ===================== */
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid var(--border);
+            background: #fff;
+        }
+        .footer-inner {
+            max-width: 1280px; margin: 0 auto; padding: 22px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 14px; flex-wrap: wrap;
+            font-size: 12px; color: var(--text-3);
+        }
+        .footer strong { color: var(--text-2); font-weight: 600; }
+
+        /* ===================== 弹窗 ===================== */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(14,42,71,.5);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; visibility: hidden;
+            transition: opacity .25s ease, visibility .25s ease;
+        }
+        .overlay.active { opacity: 1; visibility: visible; }
+        .modal {
+            background: #fff; border-radius: 18px; padding: 32px;
+            width: 92%; max-width: 380px; text-align: center;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(10px) scale(.97); transition: transform .25s ease;
+        }
+        .overlay.active .modal { transform: translateY(0) scale(1); }
+        .modal-ico {
+            width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 18px;
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--c-amber, #B45309) 14%, #fff);
+            color: var(--c-amber, #B45309);
+        }
+        .modal-ico svg { width: 30px; height: 30px; }
+        .modal h3 { font-size: 18px; color: var(--brand); margin-bottom: 10px; }
+        .modal p { font-size: 13.5px; color: var(--text-2); line-height: 1.65; margin-bottom: 22px; }
+        .modal-btn {
+            width: 100%; padding: 12px 0; border: none; border-radius: 10px;
+            background: var(--c-blue); color: #fff; font-size: 14px; font-weight: 600;
+            cursor: pointer; font-family: inherit;
+            transition: background .2s ease, transform .15s ease;
+        }
+        .modal-btn:hover { background: #1D4ED8; transform: translateY(-1px); }
+
+        /* 钉钉弹窗 */
+        .ding-ico {
+            width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px;
+            background: linear-gradient(135deg, #2575FB 0%, #1EAEFF 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 22px rgba(37,117,251,.35);
+        }
+        .ding-ico svg { width: 30px; height: 30px; color: #fff; }
+        .ding-sub { font-size: 12.5px; color: var(--text-3); margin: 4px 0 12px; }
+        .ding-btn {
+            display: block; width: 100%; padding: 12px 0; border-radius: 10px;
+            background: linear-gradient(135deg, #2575FB 0%, #1EAEFF 100%);
+            color: #fff; font-size: 15px; font-weight: 600; margin-bottom: 12px;
+            box-shadow: 0 6px 18px rgba(37,117,251,.32);
+            transition: transform .15s ease;
+        }
+        .ding-btn:hover { transform: translateY(-2px); }
+
+        /* ===================== 响应式 ===================== */
+        @media (max-width: 1080px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .module-grid { grid-template-columns: repeat(2, 1fr); }
+            .news { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            .topbar-inner { height: auto; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+            .sys-status { display: none; }
+            .container { padding: 22px 16px 0; }
+            .kpi-grid, .module-grid { grid-template-columns: 1fr; }
+            .page-aside { text-align: left; }
+            .page-head { align-items: flex-start; }
         }
     </style>
 </head>
 <body>
-    <!-- 背景装饰 -->
-    <div class="bg-decoration">
-        <div class="bg-orb bg-orb-1"></div>
-        <div class="bg-orb bg-orb-2"></div>
-        <div class="bg-orb bg-orb-3"></div>
-    </div>
 
-    <div class="main-container">
-        <!-- 顶部导航栏 -->
-        <header class="header">
-            <div class="logo-section">
-                <div class="logo-icon">🔋</div>
-                <div class="logo-text">
-                    <h1>宁家服务数字化运营系统</h1>
-                    <p>新能源电池维修业务综合管理平台</p>
+    <!-- ===================== 顶部品牌栏 ===================== -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <div class="brand-mark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="8" width="14" height="9" rx="2"/>
+                        <path d="M21 11v3"/>
+                        <path d="M9.2 11.2 11 13l2.8-3.4"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-name">宁家服务数字化运营系统</div>
+                    <div class="brand-sub">新能源电池售后服务 · 综合运营管理平台</div>
                 </div>
             </div>
-            <div class="header-right" onclick="openDingtalk()" title="点击通过钉钉联系系统管理员">
-                <div class="header-info">
-                    <div class="username">系统管理员 <span class="contact-hint">📲 联系</span></div>
-                    <div class="datetime" id="currentTime">2024-01-15 09:30:00</div>
-                </div>
-                <div class="header-avatar">👤</div>
+            <div class="topbar-right">
+                <div class="sys-status"><span class="dot"></span>系统运行正常</div>
+                <button class="admin-chip" onclick="openDingtalk()" title="点击通过钉钉联系系统管理员">
+                    <span class="admin-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="3.4"/>
+                            <path d="M5.5 19a6.5 6.5 0 0 1 13 0"/>
+                        </svg>
+                    </span>
+                    <span class="admin-meta">
+                        <span class="admin-name">系统管理员</span>
+                        <span class="admin-role">点击通过钉钉联系</span>
+                    </span>
+                </button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <!-- 数据概览看板 -->
-        <section class="stats-section">
-            <h2 class="section-title">数据概览</h2>
-            <div class="stats-grid">
-                <!-- 今日工单 -->
-                <div class="stat-card">
-                    <div class="stat-icon">📋</div>
-                    <div class="stat-content">
-                        <h3>28</h3>
-                        <p>今日工单总数</p>
-                        <div class="stat-breakdown">
-                            <div class="stat-item pending"><span>8</span>待处理</div>
-                            <div class="stat-item progress"><span>12</span>进行中</div>
-                            <div class="stat-item completed"><span>8</span>已完成</div>
-                        </div>
+    <!-- ===================== 主体 ===================== -->
+    <main class="container">
+
+        <!-- 页头 -->
+        <div class="page-head">
+            <div>
+                <div class="page-kicker">Operations Console</div>
+                <h1 class="page-title">运营工作台 · 系统总览</h1>
+            </div>
+            <div class="page-aside">
+                <div class="page-date" id="currentTime">—</div>
+                <div class="page-tip">业务数据每日 00:00 自动汇总更新</div>
+            </div>
+        </div>
+
+        <!-- KPI 概览 -->
+        <div class="section-label">核心指标概览</div>
+        <section class="kpi-grid">
+            <!-- 今日工单 -->
+            <article class="kpi" style="--c:var(--c-blue)">
+                <div class="kpi-top">
+                    <div class="kpi-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="8" y="3" width="8" height="3" rx="1"/>
+                            <path d="M9 5H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                            <path d="M9 13.5l1.6 1.6L13 12"/>
+                        </svg>
+                    </div>
+                    <span class="kpi-tag">实时</span>
+                </div>
+                <div class="kpi-label">今日工单总数</div>
+                <div class="kpi-value">28</div>
+                <div class="kpi-foot">
+                    <span><b>8</b> 待处理</span>
+                    <span><b>12</b> 进行中</span>
+                    <span><b>8</b> 已完成</span>
+                </div>
+            </article>
+
+            <!-- 库存预警 -->
+            <article class="kpi" style="--c:var(--c-teal)">
+                <div class="kpi-top">
+                    <div class="kpi-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/>
+                            <path d="M3 8l9 5 9-5"/>
+                            <path d="M12 13v8"/>
+                        </svg>
+                    </div>
+                    <span class="kpi-tag">预警</span>
+                </div>
+                <div class="kpi-label">库存预警数量</div>
+                <div class="kpi-value">5</div>
+                <div class="kpi-foot">
+                    <span><b>3</b> 库存不足</span>
+                    <span><b>2</b> 临期预警</span>
+                </div>
+            </article>
+
+            <!-- 进行中项目 -->
+            <article class="kpi" style="--c:var(--c-indigo)">
+                <div class="kpi-top">
+                    <div class="kpi-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="5" height="16" rx="1.2"/>
+                            <rect x="10" y="4" width="5" height="10" rx="1.2"/>
+                            <rect x="17" y="4" width="5" height="13" rx="1.2"/>
+                        </svg>
+                    </div>
+                    <span class="kpi-tag">进行中</span>
+                </div>
+                <div class="kpi-label">进行中的项目</div>
+                <div class="kpi-value">12</div>
+                <div class="kpi-foot">
+                    <span><b>5</b> 本周新增</span>
+                    <span><b>3</b> 本周完成</span>
+                </div>
+            </article>
+
+            <!-- 新能源市占率 -->
+            <article class="kpi" style="--c:var(--c-green)">
+                <div class="kpi-top">
+                    <div class="kpi-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 17l6-6 4 4 8-8"/>
+                            <path d="M17 7h4v4"/>
+                        </svg>
+                    </div>
+                    <span class="kpi-tag">均值</span>
+                </div>
+                <div class="kpi-label">新能源平均市占率</div>
+                <div class="kpi-value">55.3<small>%</small></div>
+                <div class="kpi-foot">
+                    <span>全省均值</span>
+                    <span><b>31</b> 省覆盖</span>
+                </div>
+            </article>
+        </section>
+
+        <!-- ===================== 系统模块 ===================== -->
+        <div class="section-label">业务系统模块</div>
+
+        <!-- 分组一：服务运营 -->
+        <section class="group" style="--c:var(--c-blue)">
+            <div class="group-head">
+                <div class="group-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+                    </svg>
+                </div>
+                <div class="group-titles">
+                    <div class="group-title">服务运营</div>
+                    <div class="group-desc">售后维修业务的执行中枢，覆盖工单、技术、备件与返修全流程</div>
+                </div>
+                <span class="group-count">4 个模块</span>
+            </div>
+            <div class="module-grid">
+                <a class="card" style="--c:var(--c-blue)" href="https://herman-yan.github.io/doc-vault/work-order/">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="8" y="3" width="8" height="3" rx="1"/>
+                            <path d="M9 5H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                            <path d="M9 13.5l1.6 1.6L13 12"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">服务站工单管理系统</div>
+                    <div class="card-desc">保内 / 保外工单流转，多站点统一管理，实时追踪处理进度</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </a>
+
+                <div class="card card--lock" style="--c:var(--c-blue)" onclick="showBuildingModal()">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">维修技术管理系统</div>
+                    <div class="card-desc">故障案例库、维修手册、技术培训课程统一管理</div>
+                    <div class="card-foot">
+                        <span class="pill pill-bd">建设中</span>
+                        <span class="card-arrow">🔒</span>
                     </div>
                 </div>
-                <!-- 库存预警 -->
-                <div class="stat-card">
-                    <div class="stat-icon">⚠️</div>
-                    <div class="stat-content">
-                        <h3>5</h3>
-                        <p>库存预警数量</p>
-                        <div class="stat-breakdown">
-                            <div class="stat-item pending"><span>3</span>库存不足</div>
-                            <div class="stat-item progress"><span>2</span>临期预警</div>
-                        </div>
+
+                <a class="card" style="--c:var(--c-blue)" href="https://herman-yan.github.io/doc-vault/warehouse/">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/>
+                            <path d="M3 8l9 5 9-5"/>
+                            <path d="M12 13v8"/>
+                        </svg>
                     </div>
-                </div>
-                <!-- 进行中项目 -->
-                <div class="stat-card">
-                    <div class="stat-icon">🚀</div>
-                    <div class="stat-content">
-                        <h3>12</h3>
-                        <p>进行中的项目</p>
-                        <div class="stat-breakdown">
-                            <div class="stat-item progress"><span>5</span>本周新增</div>
-                            <div class="stat-item completed"><span>3</span>本周完成</div>
-                        </div>
+                    <div class="card-title">库存管理系统</div>
+                    <div class="card-desc">工程师订货、库房出入库、旧件回收，物料目录由台账与指标清单提炼</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
                     </div>
+                </a>
+
+                <a class="card" style="--c:var(--c-blue)" href="https://herman-yan.github.io/doc-vault/sales-system/">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">返修业务管理系统</div>
+                    <div class="card-desc">CTP 返修进度追踪，客户资源管理，业务数据分析</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- 分组二：经营拓展 -->
+        <section class="group" style="--c:var(--c-teal)">
+            <div class="group-head">
+                <div class="group-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/>
+                    </svg>
                 </div>
-                <!-- 文档总数 -->
-                <div class="stat-card">
-                    <div class="stat-icon">📚</div>
-                    <div class="stat-content">
-                        <h3>1,286</h3>
-                        <p>中央资料库文档</p>
-                        <div class="stat-breakdown">
-                            <div class="stat-item"><span>本周新增 23</span></div>
-                        </div>
+                <div class="group-titles">
+                    <div class="group-title">经营拓展</div>
+                    <div class="group-desc">客户价值挖掘与渠道网点拓展，驱动业务规模增长</div>
+                </div>
+                <span class="group-count">2 个模块</span>
+            </div>
+            <div class="module-grid">
+                <a class="card" style="--c:var(--c-teal)" href="https://herman-yan.github.io/crm-client-manager/crm_system.html">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 3h12l3 6-9 12L3 9l3-6z"/>
+                            <path d="M9 3v6l3 6 3-6V3"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">增值业务运营系统</div>
+                    <div class="card-desc">客户资源与项目全流程管理，多项目推进状态追踪与业务动态提醒</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </a>
+
+                <div class="card card--lock" style="--c:var(--c-teal)" onclick="showBuildingModal()">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l1-4h16l1 4"/>
+                            <path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/>
+                            <path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">商点管理系统</div>
+                    <div class="card-desc">商户网点信息建档、门店分布与经营状态管理，多网点统一运营监控</div>
+                    <div class="card-foot">
+                        <span class="pill pill-bd">建设中</span>
+                        <span class="card-arrow">🔒</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 模块入口区 -->
-        <section class="modules-section">
-            <h2 class="section-title">系统模块</h2>
-            <!-- 分组一：维修服务核心 -->
-            <div class="module-group">
-                <div class="group-header">
-                    <div class="group-icon" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)">🔧</div>
-                    <div class="group-meta">
-                        <div class="group-title">维修服务核心</div>
-                        <div class="group-desc">工单、技术、备件与返修——新能源电池维修的主业务流</div>
-                    </div>
-                    <span class="group-count">4 个模块</span>
+        <!-- 分组三：数据洞察 -->
+        <section class="group" style="--c:var(--c-indigo)">
+            <div class="group-head">
+                <div class="group-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12h4l3 8 4-16 3 8h4"/>
+                    </svg>
                 </div>
-                <div class="modules-grid">
-                    <!-- 服务站工单管理系统 - 已上线 -->
-                    <div class="module-card" onclick="navigateTo('https://herman-yan.github.io/doc-vault/work-order/')">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)">🔧</div>
-                        <div class="module-content">
-                            <h3 class="module-title">服务站工单管理系统</h3>
-                            <p class="module-desc">保内/保外工单流转，多站点统一管理，实时追踪处理进度</p>
-                            <div class="module-footer">
-                                <span class="module-status online">已上线</span>
-                                <div class="module-enter">→</div>
-                            </div>
+                <div class="group-titles">
+                    <div class="group-title">数据洞察</div>
+                    <div class="group-desc">行业舆情与市场格局监测，为经营决策提供数据支撑</div>
+                </div>
+                <span class="group-count">2 个模块</span>
+            </div>
+            <div class="module-grid">
+                <a class="card" style="--c:var(--c-indigo)" href="https://herman-yan.github.io/doc-vault/sentiment-log/">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12h4l3 8 4-16 3 8h4"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">舆情监控日志</div>
+                    <div class="card-desc">每日行业舆情自动汇总，风险预警与来源追踪，结果云端自动存储</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </a>
+
+                <a class="card" style="--c:var(--c-indigo)" href="https://herman-yan.github.io/doc-vault/sentiment-log/nev.html">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 17l6-6 4 4 8-8"/>
+                            <path d="M17 7h4v4"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">新能源市占率看板</div>
+                    <div class="card-desc">各省市月度新能源渗透率监测，地图、排行与趋势多维呈现</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- 分组四：知识协同 -->
+        <section class="group" style="--c:var(--c-green)">
+            <div class="group-head">
+                <div class="group-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5z"/>
+                        <path d="M14 3v5h5"/>
+                    </svg>
+                </div>
+                <div class="group-titles">
+                    <div class="group-title">知识协同</div>
+                    <div class="group-desc">知识沉淀、标准赋能与跨团队项目协同的中后台支撑</div>
+                </div>
+                <span class="group-count">3 个模块</span>
+            </div>
+            <div class="module-grid">
+                <a class="card" style="--c:var(--c-green)" href="https://herman-yan.github.io/doc-vault/docs-vault/">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">中央资料管理库</div>
+                    <div class="card-desc">文档分类上传检索，团队共享协作，权限精细管控</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </a>
+
+                <a class="card" style="--c:var(--c-green)" href="https://herman-yan.github.io/doc-vault/kb-qa/">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5c-2-1.5-5-1.5-7 0v14c2-1.5 5-1.5 7 0 2-1.5 5-1.5 7 0V5c-2-1.5-5-1.5-7 0z"/>
+                            <path d="M12 5v14"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">员工客服知识库</div>
+                    <div class="card-desc">团队知识集中管理，全文检索与分类浏览，问答式知识沉淀与协作共享</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </a>
+
+                <a class="card" style="--c:var(--c-green)" href="https://herman-yan.github.io/doc-vault/project-board/">
+                    <div class="card-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="5" height="16" rx="1.2"/>
+                            <rect x="10" y="4" width="5" height="10" rx="1.2"/>
+                            <rect x="17" y="4" width="5" height="13" rx="1.2"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">项目管理看板</div>
+                    <div class="card-desc">项目进度追踪、任务分配、里程碑管理</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- ===================== 动态 & 公告 ===================== -->
+        <section class="news">
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-title">最近动态</div>
+                    <div class="panel-more">查看全部</div>
+                </div>
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-date">07-17</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text">首页完成专业化改版，系统模块按 <b>服务运营 / 经营拓展 / 数据洞察 / 知识协同</b> 重新归类</div>
+                            <span class="tl-tag">系统更新</span>
                         </div>
                     </div>
-
-                    <!-- 维修技术管理系统 - 建设中 -->
-                    <div class="module-card building" onclick="showBuildingModal()">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)">💡</div>
-                        <div class="module-content">
-                            <h3 class="module-title">维修技术管理系统</h3>
-                            <p class="module-desc">故障案例库、维修手册、技术培训课程管理</p>
-                            <div class="module-footer">
-                                <span class="module-status building">建设中</span>
-                                <div class="module-enter">🔒</div>
-                            </div>
+                    <div class="tl-item">
+                        <div class="tl-date">07-16</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text"><b>新能源电车市占率看板</b> 上线，覆盖 31 个省级行政区月度渗透率</div>
+                            <span class="tl-tag">数据上线</span>
                         </div>
                     </div>
-
-                    <!-- 库存管理系统 - 已上线 -->
-                    <div class="module-card" onclick="navigateTo('https://herman-yan.github.io/doc-vault/warehouse/')">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#ffa502 0%,#ff6342 100%)">📦</div>
-                        <div class="module-content">
-                            <h3 class="module-title">库存管理系统</h3>
-                            <p class="module-desc">工程师订货、库房出入库、旧件回收，物料目录由保外台账与指标清单提炼</p>
-                            <div class="module-footer">
-                                <span class="module-status online">已上线</span>
-                                <div class="module-enter">→</div>
-                            </div>
+                    <div class="tl-item">
+                        <div class="tl-date">07-15</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text">舆情监控日志改版完成，新增风险等级统计与原文来源追踪</div>
+                            <span class="tl-tag">功能更新</span>
                         </div>
                     </div>
-
-                    <!-- 返修业务管理系统 - 已上线 -->
-                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/sales-system/')">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%)">💼</div>
-                        <div class="module-content">
-                            <h3 class="module-title">返修业务管理系统</h3>
-                            <p class="module-desc">CTP返修进度追踪，客户资源管理，业务数据分析</p>
-                            <div class="module-footer">
-                                <span class="module-status online">已上线</span>
-                                <div class="module-enter">→</div>
-                            </div>
+                    <div class="tl-item">
+                        <div class="tl-date">07-10</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text"><b>员工客服知识库</b> 完成更名，支持本地文件上传与全文检索</div>
+                            <span class="tl-tag">功能上线</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 分组二：客户与经营 -->
-            <div class="module-group">
-                <div class="group-header">
-                    <div class="group-icon" style="background:linear-gradient(135deg,#fa709a 0%,#fee140 100%)">💼</div>
-                    <div class="group-meta">
-                        <div class="group-title">客户与经营</div>
-                        <div class="group-desc">面向客户与市场——增值业务、门店网点与行业舆情</div>
-                    </div>
-                    <span class="group-count">3 个模块</span>
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-title">系统公告</div>
                 </div>
-                <div class="modules-grid">
-                    <!-- 增值业务运营系统 - 已上线 -->
-                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/crm-client-manager/crm_system.html')">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#30cfd0 0%,#330867 100%)">💎</div>
-                        <div class="module-content">
-                            <h3 class="module-title">增值业务运营系统</h3>
-                            <p class="module-desc">客户资源与项目全流程管理，多项目推进状态追踪，业务动态实时提醒</p>
-                            <div class="module-footer">
-                                <span class="module-status online">已上线</span>
-                                <div class="module-enter">→</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 商点管理系统 - 建设中 -->
-                    <div class="module-card building" onclick="showBuildingModal()">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#f6d365 0%,#fda085 100%)">🏪</div>
-                        <div class="module-content">
-                            <h3 class="module-title">商点管理系统</h3>
-                            <p class="module-desc">商户网点信息建档、门店分布与经营状态管理，多网点统一运营监控</p>
-                            <div class="module-footer">
-                                <span class="module-status building">建设中</span>
-                                <div class="module-enter">🔒</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 舆情监控日志 - 已上线 -->
-                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/sentiment-log/')">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#fa709a 0%,#fee140 100%)">📡</div>
-                        <div class="module-content">
-                            <h3 class="module-title">舆情监控日志</h3>
-                            <p class="module-desc">每日行业舆情自动汇总，风险预警与来源追踪，结果云端自动存储</p>
-                            <div class="module-footer">
-                                <span class="module-status online">已上线</span>
-                                <div class="module-enter">→</div>
-                            </div>
-                        </div>
+                <div class="anno-item">
+                    <span class="anno-dot"></span>
+                    <div class="anno-main">
+                        <div class="anno-title">商点管理系统开发中，敬请期待<span class="anno-new">NEW</span></div>
+                        <div class="anno-date">2026-07-17</div>
                     </div>
                 </div>
-            </div>
-
-            <!-- 分组三：知识与协同 -->
-            <div class="module-group">
-                <div class="group-header">
-                    <div class="group-icon" style="background:linear-gradient(135deg,#4facfe 0%,#43e97b 100%)">📚</div>
-                    <div class="group-meta">
-                        <div class="group-title">知识与协同</div>
-                        <div class="group-desc">资料、知识沉淀与项目协同的中后台支撑</div>
+                <div class="anno-item">
+                    <span class="anno-dot"></span>
+                    <div class="anno-main">
+                        <div class="anno-title">新能源电车市占率看板已发布（入口：数据洞察）</div>
+                        <div class="anno-date">2026-07-16</div>
                     </div>
-                    <span class="group-count">3 个模块</span>
                 </div>
-                <div class="modules-grid">
-                    <!-- 中央资料管理库 - 已上线 -->
-                    <div class="module-card" onclick="navigateTo('https://herman-yan.github.io/doc-vault/docs-vault/')">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#a8edea 0%,#fed6e3 100%)">📂</div>
-                        <div class="module-content">
-                            <h3 class="module-title">中央资料管理库</h3>
-                            <p class="module-desc">文档分类上传检索，团队共享协作，权限精细管控</p>
-                            <div class="module-footer">
-                                <span class="module-status online">已上线</span>
-                                <div class="module-enter">→</div>
-                            </div>
-                        </div>
+                <div class="anno-item">
+                    <span class="anno-dot"></span>
+                    <div class="anno-main">
+                        <div class="anno-title">舆情监控日志已接入行业资讯原文链接</div>
+                        <div class="anno-date">2026-07-15</div>
                     </div>
-
-                    <!-- 员工客服知识库 - 已上线 -->
-                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/kb-qa/')">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#4facfe 0%,#43e97b 100%)">📚</div>
-                        <div class="module-content">
-                            <h3 class="module-title">员工客服知识库</h3>
-                            <p class="module-desc">团队知识集中管理，全文检索与分类浏览，问答式知识沉淀与协作共享</p>
-                            <div class="module-footer">
-                                <span class="module-status online">已上线</span>
-                                <div class="module-enter">→</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 项目管理看板 - 已上线 -->
-                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/project-board/')">
-                        <div class="module-icon" style="background:linear-gradient(135deg,#ff9a9e 0%,#fad0c4 100%)">📊</div>
-                        <div class="module-content">
-                            <h3 class="module-title">项目管理看板</h3>
-                            <p class="module-desc">项目进度追踪、任务分配、里程碑管理</p>
-                            <div class="module-footer">
-                                <span class="module-status online">已上线</span>
-                                <div class="module-enter">→</div>
-                            </div>
-                        </div>
+                </div>
+                <div class="anno-item">
+                    <span class="anno-dot"></span>
+                    <div class="anno-main">
+                        <div class="anno-title">系统支持本地存储扩容，上传文档不受浏览器容量限制</div>
+                        <div class="anno-date">2026-07-10</div>
                     </div>
                 </div>
             </div>
         </section>
+    </main>
 
-        <!-- 快捷操作区 -->
-        <section class="quick-section">
-            <h2 class="section-title">快捷操作</h2>
-            <div class="quick-actions">
-                <button class="action-btn primary" onclick="navigateTo('https://herman-yan.github.io/doc-vault/work-order/')">
-                    <span class="icon">➕</span>
-                    <span>新建工单</span>
-                </button>
-                <button class="action-btn" onclick="navigateTo('https://herman-yan.github.io/doc-vault/docs-vault/')">
-                    <span class="icon">📤</span>
-                    <span>上传文档</span>
-                </button>
-                <button class="action-btn" onclick="navigateTo('https://herman-yan.github.io/doc-vault/warehouse/')">
-                    <span class="icon">📋</span>
-                    <span>库存盘点</span>
-                </button>
-                <button class="action-btn" onclick="showBuildingModal()">
-                    <span class="icon">📌</span>
-                    <span>项目创建</span>
-                </button>
+    <!-- ===================== 页脚 ===================== -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div>© 2026 <strong>宁家服务数字化运营系统</strong> · 新能源电池售后服务综合管理平台</div>
+            <div>系统版本 v2.0 · 数据每日自动汇总 · 技术支持：数字化运营组</div>
+        </div>
+    </footer>
+
+    <!-- 建设中弹窗 -->
+    <div class="overlay" id="buildingModal">
+        <div class="modal" style="--c-amber:#B45309">
+            <div class="modal-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+                    <path d="M12 3v4"/>
+                </svg>
             </div>
-        </section>
-
-        <!-- 最近动态与公告 -->
-        <section class="activity-section">
-            <!-- 最近动态 -->
-            <div class="activity-list">
-                <h2 class="section-title">最近动态</h2>
-                <div class="activity-item">
-                    <div class="activity-time">07-17</div>
-                    <div class="activity-dot"></div>
-                    <div class="activity-content">
-                        <p>首页新增 <span class="highlight">商点管理系统</span> 板块，状态标注为「建设中」</p>
-                        <span class="activity-tag">系统更新</span>
-                    </div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-time">07-17</div>
-                    <div class="activity-dot"></div>
-                    <div class="activity-content">
-                        <p>舆情监控日志补齐 <span class="highlight">07-11~07-17</span> 一周行业舆情，每条资讯支持「阅读原文」</p>
-                        <span class="activity-tag">功能更新</span>
-                    </div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-time">07-16</div>
-                    <div class="activity-dot"></div>
-                    <div class="activity-content">
-                        <p><span class="highlight">新能源电车市占率看板</span> 上线，覆盖 31 个省级行政区月度渗透率</p>
-                        <span class="activity-tag">数据上线</span>
-                    </div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-time">07-15</div>
-                    <div class="activity-dot"></div>
-                    <div class="activity-content">
-                        <p>舆情监控日志改版完成，新增风险等级统计与原文来源追踪</p>
-                        <span class="activity-tag">功能更新</span>
-                    </div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-time">07-10</div>
-                    <div class="activity-dot"></div>
-                    <div class="activity-content">
-                        <p><span class="highlight">员工客服知识库</span> 完成更名，支持本地文件上传与全文检索</p>
-                        <span class="activity-tag">功能上线</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 系统公告 -->
-            <div class="announcement-card">
-                <div class="announcement-header">
-                    <h4>📢 系统公告</h4>
-                </div>
-                <div class="announcement-item">
-                    <div class="announcement-title">
-                        商点管理系统开发中，敬请期待
-                        <span class="new-badge"></span>
-                    </div>
-                    <div class="announcement-meta">2026-07-17</div>
-                </div>
-                <div class="announcement-item">
-                    <div class="announcement-title">新能源电车市占率看板已发布（入口：舆情监控日志）</div>
-                    <div class="announcement-meta">2026-07-16</div>
-                </div>
-                <div class="announcement-item">
-                    <div class="announcement-title">舆情监控日志已接入行业资讯原文链接</div>
-                    <div class="announcement-meta">2026-07-15</div>
-                </div>
-                <div class="announcement-item">
-                    <div class="announcement-title">系统支持本地存储扩容，上传文档不受浏览器容量限制</div>
-                    <div class="announcement-meta">2026-07-10</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 底部版权 -->
-        <footer class="footer">
-            <p>© 2024 宁家服务数字化运营系统 v1.0 | 新能源电池维修业务综合管理平台</p>
-        </footer>
-    </div>
-
-    <!-- 建设中提示弹窗 -->
-    <div class="modal-overlay" id="buildingModal">
-        <div class="modal">
-            <div class="modal-icon">🚧</div>
             <h3>模块建设中</h3>
             <p>该功能模块正在紧张开发中，<br>预计近期上线，敬请期待！</p>
             <button class="modal-btn" onclick="closeModal()">知道了</button>
@@ -1197,97 +921,43 @@
     </div>
 
     <!-- 钉钉联系弹窗 -->
-    <div class="modal-overlay" id="dingtalkModal">
-        <div class="modal ding-modal">
-            <div class="ding-avatar">👤</div>
+    <div class="overlay" id="dingtalkModal">
+        <div class="modal">
+            <div class="ding-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="3.4"/>
+                    <path d="M5.5 19a6.5 6.5 0 0 1 13 0"/>
+                </svg>
+            </div>
             <h3>系统管理员</h3>
             <p class="ding-sub">宁家服务数字化运营系统 · 负责人</p>
-            <p class="ding-desc">如遇到系统问题或需要支持，欢迎通过钉钉直接联系我，点击按钮即可打开我的钉钉名片。</p>
+            <p style="margin-bottom:14px">如遇到系统问题或需要支持，欢迎通过钉钉直接联系我，点击按钮即可打开我的钉钉名片。</p>
             <a class="ding-btn" href="https://n.dingtalk.com/dingding/dd-card-view/index/index.html?cardId=CARD-SV0-xYiLYOomqGnIJsqp0SsYHqKmf%2BP%2BYzhlwfIHV1a%2BYIw%3D" target="_blank" rel="noopener">💬 在钉钉联系我</a>
-            <button class="modal-btn" onclick="closeDingtalk()">关闭</button>
+            <button class="modal-btn" onclick="closeDingtalk()" style="background:var(--bg-soft);color:var(--text-2)">关闭</button>
         </div>
     </div>
 
     <script>
-        /**
-         * 更新时间显示
-         * 每秒刷新当前时间
-         */
-        function updateTime() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            document.getElementById('currentTime').textContent = 
-                `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        /* 时间显示 */
+        function pad(n){ return String(n).padStart(2,'0'); }
+        function updateTime(){
+            const d = new Date();
+            const wk = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+            document.getElementById('currentTime').textContent =
+                `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${wk}`;
         }
-        
-        // 初始化时间并每秒更新
-        updateTime();
-        setInterval(updateTime, 1000);
+        updateTime(); setInterval(updateTime, 1000);
 
-        /**
-         * 导航到指定页面
-         * @param {string} url - 目标URL
-         */
-        function navigateTo(url) {
-            if (url && url !== 'javascript:void(0)') {
-                window.location.href = url;
-            }
-        }
+        /* 弹窗控制 */
+        function showBuildingModal(){ document.getElementById('buildingModal').classList.add('active'); }
+        function closeModal(){ document.getElementById('buildingModal').classList.remove('active'); }
+        function openDingtalk(){ document.getElementById('dingtalkModal').classList.add('active'); }
+        function closeDingtalk(){ document.getElementById('dingtalkModal').classList.remove('active'); }
 
-        /**
-         * 显示"建设中"提示弹窗
-         */
-        function showBuildingModal() {
-            document.getElementById('buildingModal').classList.add('active');
-        }
-
-        /**
-         * 关闭提示弹窗
-         */
-        function closeModal() {
-            document.getElementById('buildingModal').classList.remove('active');
-        }
-
-        // 点击弹窗背景也可关闭
-        document.getElementById('buildingModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-
-        // ESC键关闭弹窗
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeModal();
-                closeDingtalk();
-            }
-        });
-
-        /**
-         * 显示钉钉联系弹窗
-         */
-        function openDingtalk() {
-            document.getElementById('dingtalkModal').classList.add('active');
-        }
-
-        /**
-         * 关闭钉钉联系弹窗
-         */
-        function closeDingtalk() {
-            document.getElementById('dingtalkModal').classList.remove('active');
-        }
-
-        // 点击弹窗背景也可关闭钉钉弹窗
-        document.getElementById('dingtalkModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDingtalk();
-            }
+        document.getElementById('buildingModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+        document.getElementById('dingtalkModal').addEventListener('click', function(e){ if(e.target===this) closeDingtalk(); });
+        document.addEventListener('keydown', function(e){
+            if(e.key === 'Escape'){ closeModal(); closeDingtalk(); }
         });
     </script>
 </body>
