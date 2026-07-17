@@ -210,6 +210,15 @@
     .answer-tip { background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--radius-md); padding:18px 20px; font-size:14px; color:var(--text-secondary); }
     .answer-tip.ok { border-color:rgba(67,233,123,.3); color:#43e97b; }
     .answer-tip.warn { border-color:rgba(245,87,108,.3); color:#f5576c; margin-top:10px; }
+    .answer-card.synth { border-color:rgba(79,172,254,.28); background:linear-gradient(135deg, rgba(79,172,254,.07), rgba(67,233,123,.04)); }
+    .ans-summary-lead { font-size:14px; color:var(--text-primary); margin-bottom:10px; font-weight:500; }
+    .ans-summary-list { margin:0 0 12px; padding-left:20px; }
+    .ans-summary-list li { font-size:13.5px; line-height:1.8; color:var(--text-secondary); margin-bottom:6px; }
+    .ans-sum-src { color:var(--text-muted); font-size:12px; }
+    .ans-summary-note { font-size:12px; color:var(--text-muted); background:rgba(255,255,255,.03); border-left:2px solid rgba(79,172,254,.3); padding:8px 12px; border-radius:6px; }
+    .ans-refs { margin-top:18px; }
+    .ans-refs-title { font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+    .ans-refs .answer-item { margin-bottom:10px; }
     .answer-loading { text-align:center; padding:26px; color:var(--text-secondary); font-size:14px; }
     .answer-loading .dot { display:inline-block; width:8px; height:8px; margin:0 3px; border-radius:50%; background:#4facfe; animation:dotPulse 1.2s infinite; }
     .answer-loading .dot:nth-child(2){ animation-delay:.2s; } .answer-loading .dot:nth-child(3){ animation-delay:.4s; }
@@ -562,15 +571,79 @@ async function askQuestion(){
     renderRetrieveAnswer(q, hits, box);
 }
 
+// 去除 Markdown 标记，便于提取干净句子
+function stripMd(md){
+    if(!md) return '';
+    return md
+        .replace(/```[\s\S]*?```/g, ' ')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/^#{1,6}\s*/gm, '')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/^\s*[-*+]\s+/gm, '')
+        .replace(/^\s*\d+\.\s+/gm, '')
+        .replace(/\|/g, ' ')
+        .replace(/\r/g, '')
+        .replace(/[ \t]{2,}/g, ' ')
+        .replace(/\n{2,}/g, '\n')
+        .trim();
+}
+// 按中英文标点/换行断句（兼容旧浏览器，不用 lookbehind）
+function sentencesOf(text){
+    if(!text) return [];
+    const parts = text.split(/([。！？!?]|\n)/);
+    const out = [];
+    for(let i=0;i<parts.length;i+=2){
+        let s = (parts[i]||'') + (parts[i+1]||'');
+        s = s.replace(/\s+/g,' ').trim();
+        if(s.length>=4) out.push(s);
+    }
+    return out;
+}
+// 从命中文档中聚合要点，形成摘要
+function buildSummary(q, hits){
+    const bullets = [];
+    const seen = new Set();
+    hits.slice(0,4).forEach(h=>{
+        const e = h.entry;
+        const text = stripMd(e.content || e.introduction || e.title);
+        const sents = sentencesOf(text);
+        let picked = sents.filter(s=>{
+            const sl = s.toLowerCase();
+            return h.hitTokens.some(t=> sl.indexOf(t)>=0);
+        });
+        if(!picked.length) picked = sents.slice(0,1); // 仅靠标签命中时取首句
+        picked.slice(0,2).forEach(s=>{
+            const key = s.slice(0,24);
+            if(seen.has(key)) return;
+            seen.add(key);
+            bullets.push({ text:s, title:e.title });
+        });
+    });
+    return bullets.slice(0,6);
+}
+
 function renderRetrieveAnswer(q, hits, box){
     if(!hits.length){
         box.innerHTML = '<div class="answer-card empty"><div class="answer-head"><span class="answer-badge">🤔</span><span>未找到相关答案</span></div><div class="answer-body">知识库中暂时没有匹配「'+escapeHtml(q)+'」的内容。<br>点击右上角「📥 上传文件」把相关内部文档加进来，下次就能查到啦。</div></div>';
         return;
     }
-    let html = '<div class="answer-card"><div class="answer-head"><span class="answer-badge ok">💡</span><span>为你检索到 '+hits.length+' 条相关答案</span></div><div class="answer-body">';
+    // 1) 答案汇总框：根据命中资料自动聚合要点
+    const bullets = buildSummary(q, hits);
+    let html = '<div class="answer-card synth"><div class="answer-head"><span class="answer-badge ok">💡</span><span>为你汇总答案（基于本地检索）</span></div><div class="answer-body">';
+    html += '<div class="ans-summary-lead">关于「'+escapeHtml(q)+'」，从 '+hits.length+' 条匹配资料中汇总要点如下：</div>';
+    html += '<ul class="ans-summary-list">';
+    bullets.forEach(b=>{
+        html += '<li>'+escapeHtml(b.text)+' <span class="ans-sum-src">— '+escapeHtml(b.title)+'</span></li>';
+    });
+    html += '</ul>';
+    html += '<div class="ans-summary-note">※ 以上内容由本地检索自动聚合，仅供参考；点击下方引用材料可核对原文。</div>';
+    html += '</div></div>';
+    // 2) 引用材料：列出命中的原始文档，点击可看完整内容
+    html += '<div class="ans-refs"><div class="ans-refs-title">📚 引用材料（'+hits.length+' 条）</div>';
     hits.forEach(h=>{
         const e = h.entry;
-        const snip = snippetWithHit(e.content||e.introduction, h.hitTokens, 260);
+        const snip = snippetWithHit(e.content||e.introduction, h.hitTokens, 220);
         html += '<div class="answer-item" onclick="openDetail(\''+e.id+'\')">'
             + '<div class="answer-item-head"><span class="type-'+e.category+' ans-cat">'+e.categoryLabel+'</span>'
             + '<span class="ans-title">'+escapeHtml(e.title)+'</span>'
@@ -579,7 +652,7 @@ function renderRetrieveAnswer(q, hits, box){
             + '<div class="ans-snippet">'+highlightText(escapeHtml(snip), h.hitTokens.join(' '))+'</div>'
             + '</div>';
     });
-    html += '</div><div class="answer-foot">点击任意答案卡片可查看完整内容 · 匹配自 '+hits.length+' 条本地知识</div></div>';
+    html += '</div>';
     box.innerHTML = html;
 }
 
