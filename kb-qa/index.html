@@ -569,7 +569,7 @@ function handleUploadFiles(fileList){
                         renderUploadList();
                     };
                     reader.readAsArrayBuffer(f);
-                }catch(err){ alert('解析 Excel 失败：'+f.name+' '+err.message); }
+                }catch(err){ toast('解析 Excel 失败：'+f.name+' '+err.message, 'error'); }
             });
         } else if(/\.pdf$/i.test(f.name)){
             const ph = makeEntry(f.name.replace(/\.pdf$/i,''), '⏳ 正在解析 PDF…', 'pdf');
@@ -585,7 +585,7 @@ function handleUploadFiles(fileList){
                         if(!cleaned){
                             if(idx>=0) pendingUploads.splice(idx,1);
                             renderUploadList();
-                            alert('PDF「'+f.name+'」未提取到文本，可能是扫描件（纯图片）。这类文件需要 OCR，暂不支持自动解析。');
+                            toast('PDF「'+f.name+'」未提取到文本，可能是扫描件（纯图片）。这类文件需要 OCR，暂不支持自动解析。', 'warn');
                             return;
                         }
                         const parts = parseFile(f.name.replace(/\.pdf$/i,'.txt'), cleaned)
@@ -596,21 +596,21 @@ function handleUploadFiles(fileList){
                         const idx = pendingUploads.indexOf(ph);
                         if(idx>=0) pendingUploads.splice(idx,1);
                         renderUploadList();
-                        alert('解析 PDF 失败：'+f.name+' '+(err&&err.message||err));
+                        toast('解析 PDF 失败：'+f.name+' '+(err&&err.message||err), 'error');
                     });
                 };
                 reader.onerror = ()=>{
                     const idx = pendingUploads.indexOf(ph);
                     if(idx>=0) pendingUploads.splice(idx,1);
                     renderUploadList();
-                    alert('读取文件失败：'+f.name);
+                    toast('读取文件失败：'+f.name, 'error');
                 };
                 reader.readAsArrayBuffer(f);
             });
         } else {
             const reader = new FileReader();
             reader.onload = e=>{ parseFile(f.name, e.target.result).forEach(p=>pendingUploads.push(p)); renderUploadList(); };
-            reader.onerror = ()=> alert('读取文件失败：'+f.name);
+            reader.onerror = ()=> toast('读取文件失败：'+f.name, 'error');
             reader.readAsText(f, 'utf-8');
         }
     });
@@ -623,7 +623,7 @@ function ensureXLSX(cb){
     const s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
     s.onload = ()=>{ xlsxLoading=false; cb(); };
-    s.onerror = ()=>{ xlsxLoading=false; alert('SheetJS 加载失败，Excel 解析暂不可用'); };
+    s.onerror = ()=>{ xlsxLoading=false; toast('SheetJS 加载失败，Excel 解析暂不可用', 'error'); };
     document.head.appendChild(s);
 }
 
@@ -637,7 +637,7 @@ function ensurePDFJS(cb){
         try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'; }catch(e){}
         pdfLoading=false; const ws=pdfWaiters.slice(); pdfWaiters=[]; ws.forEach(fn=>{ try{fn();}catch(e){} });
     };
-    s.onerror = ()=>{ pdfLoading=false; pdfWaiters=[]; alert('PDF 解析库加载失败（需要联网加载 pdf.js），暂不可用'); };
+    s.onerror = ()=>{ pdfLoading=false; pdfWaiters=[]; toast('PDF 解析库加载失败（需要联网加载 pdf.js），暂不可用', 'error'); };
     document.head.appendChild(s);
 }
 
@@ -736,10 +736,33 @@ function removeUpload(i){ pendingUploads.splice(i,1); renderUploadList(); }
 function clearUpload(){ pendingUploads=[]; renderUploadList(); const inp=document.getElementById('uploadInput'); if(inp) inp.value=''; }
 
 function confirmUpload(){
-    if(!pendingUploads.length){ alert('请先选择文件'); return; }
-    const existing = JSON.parse(localStorage.getItem(LS_USER) || '[]');
-    const merged = existing.concat(pendingUploads);
-    localStorage.setItem(LS_USER, JSON.stringify(merged));
+    if(!pendingUploads.length){ toast('请先选择文件', 'warn'); return; }
+    // 过滤掉仍在解析中的占位条目（如 PDF 尚未解析完成）
+    const stillParsing = pendingUploads.filter(p=>p._parsing);
+    const toSave = pendingUploads.filter(p=>!p._parsing);
+    if(stillParsing.length){
+        toast('有 '+stillParsing.length+' 个文件仍在解析中，已先加入其余内容', 'warn');
+    }
+    if(!toSave.length){ toast('文件还在解析，请稍候再点「加入知识库」', 'warn'); return; }
+
+    let merged;
+    try {
+        const existing = JSON.parse(localStorage.getItem(LS_USER) || '[]');
+        merged = (Array.isArray(existing) ? existing : []).concat(toSave);
+        merged.forEach(e=>{ if(e) delete e._parsing; });
+        localStorage.setItem(LS_USER, JSON.stringify(merged));
+    } catch(err){
+        // 配额超限等：尝试按精简版（截断正文）保存
+        try {
+            const slim = merged.map(e=>{ const c=(e&&e.content||'').slice(0,20000); return Object.assign({}, e, {content:c}); });
+            localStorage.setItem(LS_USER, JSON.stringify(slim));
+            toast('本地空间不足，已按精简版保存（正文已截断）', 'warn');
+            merged = slim;
+        } catch(e2){
+            toast('保存失败：浏览器本地存储空间不足，请删除部分已上传内容后重试', 'error');
+            return; // 不关闭弹窗，保留列表让用户处理
+        }
+    }
     pendingUploads = [];
     renderUploadList();
     closeUpload();
@@ -747,6 +770,23 @@ function confirmUpload(){
     updateModeHint();
     const box = document.getElementById('answerBox');
     if(box) box.innerHTML = '<div class="answer-tip ok">✅ 已成功加入 '+merged.length+' 条知识到本地知识库，现在可以直接提问啦！</div>';
+}
+
+function toast(msg, type){
+    type = type || 'ok';
+    let box = document.getElementById('kbToast');
+    if(!box){
+        box = document.createElement('div');
+        box.id = 'kbToast';
+        box.style.cssText = 'position:fixed;left:50%;bottom:32px;transform:translateX(-50%);z-index:9999;max-width:80%;padding:12px 18px;border-radius:10px;font-size:14px;line-height:1.4;box-shadow:0 8px 24px rgba(0,0,0,.25);color:#fff;opacity:0;transition:opacity .25s;pointer-events:none;';
+        document.body.appendChild(box);
+    }
+    const colors = { ok:'#23c45e', warn:'#f0a020', error:'#e54848' };
+    box.style.background = colors[type] || colors.ok;
+    box.textContent = msg;
+    box.style.opacity = '1';
+    clearTimeout(box._t);
+    box._t = setTimeout(()=>{ box.style.opacity = '0'; }, 2800);
 }
 
 // ========== 弹窗开关 ==========
@@ -803,10 +843,10 @@ function renderCards() {
     if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         items = items.filter(i =>
-            i.title.toLowerCase().includes(q) ||
-            i.introduction.toLowerCase().includes(q) ||
-            i.content.toLowerCase().includes(q) ||
-            i.tags.some(t => t.toLowerCase().includes(q))
+            (i.title||'').toLowerCase().includes(q) ||
+            (i.introduction||'').toLowerCase().includes(q) ||
+            (i.content||'').toLowerCase().includes(q) ||
+            (i.tags||[]).some(t => (t||'').toLowerCase().includes(q))
         );
     }
 
@@ -820,19 +860,19 @@ function renderCards() {
 
     grid.innerHTML = items.map(item => {
         const typeClass = 'type-' + item.category;
-        const highlight = searchQuery.trim() ? highlightText(item.introduction, searchQuery) : escapeHtml(item.introduction);
+        const highlight = searchQuery.trim() ? highlightText(item.introduction||'', searchQuery) : escapeHtml(item.introduction||'');
         return `
         <div class="kb-card" onclick="openDetail('${item.id}')">
             <div class="kb-card-header">
                 <span class="kb-card-type ${typeClass}">${item.categoryLabel}</span>
                 <span class="kb-time">${item.timeLabel}</span>
             </div>
-            <div class="kb-title">${escapeHtml(item.title)}</div>
+            <div class="kb-title">${escapeHtml(item.title||'')}</div>
             <div class="kb-snippet">${highlight}</div>
-            <div class="kb-tags">${item.tags.map(t => '<span class="kb-tag">'+escapeHtml(t)+'</span>').join('')}</div>
+            <div class="kb-tags">${(item.tags||[]).map(t => '<span class="kb-tag">'+escapeHtml(t)+'</span>').join('')}</div>
             <div class="kb-meta">
-                <span>📄 ${item.size}</span>
-                <span>🏷️ ${item.tags.length} 个标签</span>
+                <span>📄 ${item.size||''}</span>
+                <span>🏷️ ${(item.tags||[]).length} 个标签</span>
             </div>
         </div>`;
     }).join('');
@@ -876,7 +916,7 @@ function openDetail(id) {
     document.getElementById('detailBadge').textContent = item.categoryLabel;
     document.getElementById('detailTitle').textContent = item.title;
     document.getElementById('detailBody').innerHTML = mdToHtml(item.content);
-    document.getElementById('detailMeta').textContent = `${item.timeLabel} · ${item.size} · ${item.tags.join(' / ')}`;
+    document.getElementById('detailMeta').textContent = `${item.timeLabel} · ${item.size} · ${(item.tags||[]).join(' / ')}`;
     document.getElementById('modalOverlay').classList.add('show');
     document.body.style.overflow = 'hidden';
 }
