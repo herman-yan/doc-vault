@@ -165,6 +165,83 @@
             .stats-row { grid-template-columns:1fr 1fr; gap:10px; }
             .stat-num { font-size:22px; }
         }
+    /* ========== 客服问答区 ========== */
+    .qa-section { margin-top:28px; }
+    .qa-hero { background:linear-gradient(135deg, rgba(79,172,254,.12) 0%, rgba(102,126,234,.08) 100%); border:1px solid rgba(79,172,254,.18); border-radius:var(--radius-xl); padding:34px 32px; text-align:center; box-shadow:var(--glass-shadow); position:relative; overflow:hidden; }
+    .qa-hero::after { content:''; position:absolute; top:-60px; right:-60px; width:200px; height:200px; background:radial-gradient(circle, rgba(79,172,254,.25), transparent 70%); }
+    .qa-hero-title { font-size:26px; font-weight:700; background:var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; position:relative; }
+    .qa-hero-sub { font-size:13px; color:var(--text-secondary); margin-top:8px; position:relative; }
+    .qa-box { display:flex; gap:10px; margin:22px auto 0; max-width:680px; position:relative; }
+    .qa-icon { position:absolute; left:18px; top:50%; transform:translateY(-50%); font-size:18px; pointer-events:none; }
+    .qa-box input { flex:1; padding:15px 20px 15px 50px; background:rgba(255,255,255,.06); border:1px solid var(--glass-border); border-radius:30px; color:var(--text-primary); font-size:15px; outline:none; transition:all .3s; }
+    .qa-box input:focus { border-color:rgba(79,172,254,.5); box-shadow:0 0 0 3px rgba(79,172,254,.15); }
+    .qa-box input::placeholder { color:var(--text-muted); }
+    .qa-btn { padding:0 30px; background:var(--gradient-primary); border:none; border-radius:30px; color:white; font-size:15px; font-weight:600; cursor:pointer; transition:all .25s; white-space:nowrap; }
+    .qa-btn:hover { box-shadow:0 6px 20px rgba(79,172,254,.5); transform:translateY(-1px); }
+    .qa-examples { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:16px; position:relative; }
+    .qa-ex-label { font-size:12px; color:var(--text-muted); align-self:center; }
+    .qa-ex { font-size:12px; padding:6px 14px; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:20px; color:var(--text-secondary); cursor:pointer; transition:all .25s; }
+    .qa-ex:hover { color:#4facfe; border-color:rgba(79,172,254,.4); background:rgba(79,172,254,.1); }
+    .qa-mode-hint { margin-top:16px; font-size:12px; color:var(--text-muted); position:relative; }
+
+    /* ========== 答案展示 ========== */
+    .answer-box { margin-top:20px; }
+    .answer-card { background:var(--glass-bg); backdrop-filter:blur(10px); border:1px solid var(--glass-border); border-radius:var(--radius-lg); padding:22px; box-shadow:var(--glass-shadow); animation:modalIn .3s ease; }
+    .answer-card.empty { text-align:center; }
+    .answer-card.ai { border-color:rgba(67,233,123,.3); background:linear-gradient(135deg, rgba(67,233,123,.06), rgba(79,172,254,.04)); }
+    .answer-head { display:flex; align-items:center; gap:10px; margin-bottom:14px; font-size:15px; font-weight:600; }
+    .answer-badge { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; background:rgba(79,172,254,.15); }
+    .answer-badge.ok { background:rgba(67,233,123,.18); }
+    .answer-badge.ai { background:rgba(67,233,123,.2); }
+    .answer-body { display:flex; flex-direction:column; gap:12px; }
+    .answer-item { background:rgba(255,255,255,.04); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:14px 16px; cursor:pointer; transition:all .25s; text-align:left; }
+    .answer-item:hover { background:var(--bg-card-hover); border-color:rgba(79,172,254,.3); transform:translateX(4px); }
+    .answer-item-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+    .ans-cat { font-size:10px; padding:2px 9px; border-radius:10px; font-weight:500; }
+    .ans-title { font-size:14px; font-weight:600; color:var(--text-primary); }
+    .ans-user { font-size:10px; padding:2px 8px; border-radius:10px; background:rgba(255,165,2,.18); color:#ffa502; }
+    .ans-snippet { font-size:13px; color:var(--text-secondary); line-height:1.7; }
+    .answer-foot { margin-top:14px; font-size:12px; color:var(--text-muted); border-top:1px dashed var(--border-color); padding-top:12px; }
+    .answer-tip { background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--radius-md); padding:18px 20px; font-size:14px; color:var(--text-secondary); }
+    .answer-tip.ok { border-color:rgba(67,233,123,.3); color:#43e97b; }
+    .answer-tip.warn { border-color:rgba(245,87,108,.3); color:#f5576c; margin-top:10px; }
+    .answer-loading { text-align:center; padding:26px; color:var(--text-secondary); font-size:14px; }
+    .answer-loading .dot { display:inline-block; width:8px; height:8px; margin:0 3px; border-radius:50%; background:#4facfe; animation:dotPulse 1.2s infinite; }
+    .answer-loading .dot:nth-child(2){ animation-delay:.2s; } .answer-loading .dot:nth-child(3){ animation-delay:.4s; }
+    @keyframes dotPulse { 0%,80%,100%{ opacity:.3; transform:scale(.8); } 40%{ opacity:1; transform:scale(1.1); } }
+
+    /* ========== 知识库操作区 ========== */
+    .kb-section-actions { display:flex; align-items:center; gap:14px; }
+
+    /* ========== 上传弹窗 ========== */
+    .upload-drop { display:block; border:2px dashed var(--glass-border); border-radius:var(--radius-lg); padding:36px; text-align:center; cursor:pointer; transition:all .3s; margin-bottom:16px; }
+    .upload-drop:hover, .upload-drop.dragging { border-color:rgba(79,172,254,.6); background:rgba(79,172,254,.06); }
+    .upload-drop-inner { pointer-events:none; }
+    .upload-drop-icon { font-size:40px; margin-bottom:10px; }
+    .upload-drop-text { font-size:15px; color:var(--text-primary); margin-bottom:6px; }
+    .upload-drop-hint { font-size:12px; color:var(--text-muted); }
+    .upload-list { display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto; }
+    .upload-item { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.04); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:10px 14px; }
+    .up-cat { font-size:10px; padding:2px 9px; border-radius:10px; font-weight:500; flex-shrink:0; }
+    .up-title { flex:1; font-size:13px; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .up-del { cursor:pointer; color:var(--text-muted); font-size:14px; padding:0 4px; }
+    .up-del:hover { color:#f5576c; }
+
+    /* ========== 设置弹窗 ========== */
+    .set-row { display:flex; flex-direction:column; gap:6px; margin-bottom:18px; }
+    .set-row > span { font-size:13px; color:var(--text-secondary); }
+    .set-input { padding:11px 14px; background:rgba(255,255,255,.05); border:1px solid var(--glass-border); border-radius:var(--radius-sm); color:var(--text-primary); font-size:14px; outline:none; }
+    .set-input:focus { border-color:rgba(79,172,254,.5); }
+    .set-row input[type=checkbox] { width:18px; height:18px; accent-color:#4facfe; }
+    .set-warn { font-size:12px; color:#ffa502; background:rgba(255,165,2,.1); border-radius:var(--radius-sm); padding:10px 14px; line-height:1.6; }
+
+    @media (max-width:768px) {
+        .qa-hero { padding:24px 18px; }
+        .qa-hero-title { font-size:21px; }
+        .qa-box { flex-direction:column; }
+        .qa-btn { padding:13px; }
+        .kb-section-actions { flex-direction:column; align-items:flex-start; gap:10px; }
+    }
     </style>
 </head>
 <body>
@@ -180,6 +257,8 @@
             </div>
         </div>
         <div class="header-right">
+            <button class="header-btn" onclick="openSettings()">⚙ 设置</button>
+            <button class="header-btn" onclick="openUpload()">📥 上传文件</button>
             <button class="header-btn" onclick="expandAll()">📂 展开全部</button>
             <a href="../" class="header-btn">← 返回主站</a>
         </div>
@@ -192,6 +271,27 @@
         <div class="stat-card"><div class="stat-num" id="catCount">4</div><div class="stat-label">分类覆盖</div></div>
         <div class="stat-card"><div class="stat-num" id="updateTime">今日</div><div class="stat-label">最近更新</div></div>
     </div>
+
+    <!-- 客服自主问答区 -->
+    <section class="qa-section">
+        <div class="qa-hero">
+            <div class="qa-hero-title">向知识库提问，秒获答案</div>
+            <div class="qa-hero-sub">客服自主查询 · 内部文件可随时上传扩充 · 智能检索 / AI 生成 双模式</div>
+            <div class="qa-box">
+                <span class="qa-icon">💬</span>
+                <input type="text" id="qaInput" placeholder="例如：宁德维修拍照小程序如何做 R1/R2 分级？" onkeydown="if(event.key==='Enter')askQuestion()">
+                <button class="qa-btn" onclick="askQuestion()">提问</button>
+            </div>
+            <div class="qa-examples">
+                <span class="qa-ex-label">热门问题：</span>
+                <span class="qa-ex" onclick="fillExample(this)">企业增值业务分配原则</span>
+                <span class="qa-ex" onclick="fillExample(this)">会议纪要怎么汇总导入</span>
+                <span class="qa-ex" onclick="fillExample(this)">ima 知识库使用指南</span>
+            </div>
+            <div class="qa-mode-hint" id="qaModeHint">当前模式：智能检索（内置知识 + 你上传的文件）</div>
+        </div>
+        <div class="answer-box" id="answerBox"></div>
+    </section>
 
     <!-- 工具栏：搜索 + 分类 -->
     <div class="toolbar">
@@ -212,7 +312,10 @@
     <div class="kb-section">
         <div class="section-header">
             <h2 class="section-title">知识库内容</h2>
-            <span class="result-count" id="resultCount">共 4 条结果</span>
+            <div class="kb-section-actions">
+                <span class="result-count" id="resultCount">共 4 条结果</span>
+                <button class="header-btn" onclick="openUpload()">📥 上传内部文件</button>
+            </div>
         </div>
         <div class="kb-grid" id="kbGrid"></div>
     </div>
@@ -236,416 +339,433 @@
     </div>
 </div>
 
+<!-- 上传文件弹窗 -->
+<div class="modal-overlay" id="uploadOverlay" onclick="if(event.target===this)closeUpload()">
+    <div class="detail-modal" style="max-width:640px;">
+        <div class="detail-header">
+            <div class="detail-header-left"><span class="detail-badge type-tech">📥</span><h2 class="detail-title">上传内部文件扩充知识库</h2></div>
+            <div class="detail-close" onclick="closeUpload()">✕</div>
+        </div>
+        <div class="detail-body">
+            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">支持 <b>.txt / .md / .csv / .xlsx</b>。上传后自动解析为知识条目，立即参与客服问答检索，并保存在本浏览器（localStorage）。</p>
+            <label class="upload-drop" id="uploadDrop">
+                <input type="file" id="uploadInput" multiple accept=".txt,.md,.csv,.xlsx,.xls" style="display:none;" onchange="handleUploadFiles(this.files)">
+                <div class="upload-drop-inner">
+                    <div class="upload-drop-icon">📥</div>
+                    <div class="upload-drop-text">点击选择，或将文件拖拽到此处</div>
+                    <div class="upload-drop-hint">可多选 · 单文件 ≤ 5MB</div>
+                </div>
+            </label>
+            <div class="upload-list" id="uploadList"></div>
+        </div>
+        <div class="detail-footer">
+            <span class="detail-footer-info" id="uploadMeta">尚未选择文件</span>
+            <div style="display:flex;gap:10px;">
+                <button class="detail-action-btn" style="background:var(--glass-bg);color:var(--text-primary);border:1px solid var(--glass-border);" onclick="clearUpload()">清空</button>
+                <button class="detail-action-btn" onclick="confirmUpload()">✓ 加入知识库</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 设置弹窗（LLM 引擎） -->
+<div class="modal-overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
+    <div class="detail-modal" style="max-width:620px;">
+        <div class="detail-header">
+            <div class="detail-header-left"><span class="detail-badge type-meeting">⚙</span><h2 class="detail-title">答案引擎设置</h2></div>
+            <div class="detail-close" onclick="closeSettings()">✕</div>
+        </div>
+        <div class="detail-body">
+            <label class="set-row"><span>启用 AI 大模型生成答案</span><input type="checkbox" id="llmEnabled"></label>
+            <label class="set-row"><span>API 地址（OpenAI 兼容）</span><input type="text" id="llmBase" placeholder="https://api.deepseek.com/v1" class="set-input"></label>
+            <label class="set-row"><span>模型名称</span><input type="text" id="llmModel" placeholder="deepseek-chat" class="set-input"></label>
+            <label class="set-row"><span>API Key</span><input type="password" id="llmKey" placeholder="sk-..." class="set-input"></label>
+            <p class="set-warn">⚠️ 密钥明文保存在本浏览器 localStorage，仅用于前端直连大模型。请勿在公共电脑开启此功能。</p>
+        </div>
+        <div class="detail-footer">
+            <span class="detail-footer-info" id="settingsMeta"></span>
+            <button class="detail-action-btn" onclick="saveSettings()">保存设置</button>
+        </div>
+    </div>
+</div>
+
 <script>
 // ========== 知识数据 ==========
 const KB_DATA = [
-{
-    id: 'kb-001',
-    title: '宁德维修拍照小程序设计助手（系统提示词 + 任务指令）',
-    category: 'tech',
-    categoryLabel: '技术方案',
-    timeLabel: '昨天更新',
-    tags: ['小程序设计', '宁德维修', 'System Prompt', 'R1/R2分级维修', '拍照规范'],
-    size: '81KB',
-    introduction: '将维修照片采集标准转化为微信小程序「宁家维修拍照资料库」的落地方案。包含完整的系统提示词（角色设定+领域知识）和任务指令（首次触发词），可直接粘贴到 WorkBuddy/Coze/Dify 等平台使用。覆盖 R1/R2 分级维修、PPT 20 类基础照片标准、Excel 72 项拍摄要求。',
-    content: `## 一、方案背景与依据
-
-### 1. 录音讨论核心
-- 维修分为 **R1（简易维修，如拆底护板/铆钉拉拔）** 与 **R2（复杂维修，如换箱体/铺胶）**，照片要求不同。
-- 小程序需支持：电池号扫码（12/24位自动识别PN）、必填/非必填项控制、离线暂存、内部分类归档、报单员一键导出。
-- 强调"保证数量+必填项"优先，AI识别可作后期增强。
-- 非售后（主机厂）业务需单独备注进出场自拍、工作时长。
-
-### 2. PPT《乘用车市场维修—基础照片》标准
-明确20类基础照片：车牌、铭牌/VIN、里程、电池号、维修前后上位机、故障、新/旧件、空位、扭力漆笔、隔离区、封箱、气密、接插件、外出、进/出场、ABA、充放电等。
-
-### 3. Excel《返修拍摄要求0716》整合表
-划分 **10大工序环节**，共72项拍照点，精确标注R1/R2数量。
-
----
-
-## 二、小程序总体设计
-
-**名称**：宁家维修拍照资料库（企业微信/微信小程序）
-**目标**：替代手工记录，按工单引导拍照，自动校验必填数量，形成可追溯照片库。
-
-### 核心业务流程
-\`\`\`
-创建工单（输/扫码电池号 → 选售后/非售后 + R1/R2）
-   ↓
-系统生成【个性化拍照清单】（带*为必填，引用PPT示例）
-   ↓
-技师按工序页签拍照（本地缓存 → 联网提交）
-   ↓
-资料库自动归类命名（工单_工序_项目_序号）
-   ↓
-质检员审核（对照标准，高压件触发远程视频）
-   ↓
-通过后报单员导出外呼格式包
-\`\`\`
-
----
-
-## 三、关键功能模块
-
-### 模块1：智能工单初始化
-- **电池号录入**：支持扫码或手动，自动识别12/24位
-- **业务类型选择**：售后/R1、售后/R2、非售后（主机厂）
-- **清单生成**：调取Excel表，标记必填
-
-### 模块2：引导式拍照上传
-每个拍照项包含：
-- **规范要求**：直接引用PPT红字
-- **示例图**：嵌入正确/错误照片
-- **数量计数器**：R1/R2要求数
-- **相机控件**：自带时间/位置水印
-
-| 工序 | 拍照项（部分） | R1数量 | R2数量 |
-|------|---------------|--------|--------|
-| 来料 | 叉车/电池号/360°视频 | 1/1/1 | 同 |
-| 预检 | 车牌、里程(ODO)、上位机 | 1~8 | 同 |
-| 气密 | 连接照+合格照(PASS) | 前2后2 | 前2后2 |
-| 回装 | 底护板/天体/扭力/漆笔 | 4 | 30(含高压) |
-
-### 模块3：离线缓存与提交
-录音指出"外呼不建单码，需先拍手中" → 小程序支持**草稿箱**
-
-### 模块4：资料库与智能校验
-- **自动命名**：\`{工单号}_{R1/R2}_{工序}_{项目}_{第n张}_{时间戳}.jpg\`
-- **必填拦截**：缺张禁止提交
-- **AI预留接口**：车牌OCR、里程ODO识别
-
-### 模块5：质检闭环
-- **人工质检**：逐张点选"合格/不合格"
-- **远程视频质检**：高压件触发
-- **打回机制**：不合格微信通知补拍
-
-### 角色权限表
-
-| 角色 | 权限 |
-|------|------|
-| 维修技师 | 建单、扫码、按工序拍照上传、暂存草稿 |
-| 报单员 | 从资料库筛选必填照片、导出报单压缩包 |
-| 质检员 | 审核照片规范性（人工+远程视频）、打回重拍 |
-| 管理员 | 维护PPT/Excel标准库、配置R1/R2规则 |
-
----
-
-## 四、🔧 系统提示词（System Prompt）
-
-> 粘贴至平台的「角色设定 / System Prompt / 指令」栏
-
-\`\`\`text
-你是一名资深汽车动力电池售后数字化产品经理，
-精通宁德时代（CATL）乘用车市场维修规范。
-你的职责是将维修照片采集标准转化为微信小程序
-"宁家维修拍照资料库"的落地设计方案与开发文档。
-
-【强制领域知识库】
-1. 分级维修：R1（简易）、R2（复杂），照片数量严格依据
-   《返修拍摄要求0716》(Excel) 的10大工序72项。
-2. 基础照片20类标准（PPT《乘用车市场维修—基础照片》）。
-3. 录音关键规则：离线暂存、99事件禁拍、气密必填等。
-4. 必填逻辑：电池号、车牌、维修前上位机等缺张禁止提交。
-
-【输出规范】
-- 使用中文结构化Markdown，专业且简洁
-- 涉及数量必须标注R1/R2差异
-- 不偏离上述标准，不臆造非标流程
-\`\`\`
-
----
-
-## 五、📝 任务指令（Task Instruction）
-
-> 粘贴至平台的「开场白 / 用户任务 / 首条消息」栏
-
-\`\`\`text
-请基于"宁德时代乘用车维修拍照资料库小程序"顶层方案，
-直接产出《小程序详细设计压缩包》，要求：
-
-1. 核心闭环流全流程图
-2. 前端页面清单（至少5个核心页面）
-3. 动态表单JSON样例（来料+预检字段）
-4. 数据库设计（repair_order/photo_record/qc_task三表）
-5. 关键伪代码（电池号12/24位识别 + 99事件禁拍）
-
-请严格引用领域知识库，直接输出文档，勿闲聊。
-\`\`\`
-
----
-
-## 六、实施分期
-
-- **一期**：照搬Excel清单+PPT示例，做数量校验、离线暂存、人工质检
-- **二期**：加AI识错（车牌歪、里程小计）、远程视频模块
-- **三期**：分析照片数据，反向优化维修SOP`
-},
-{
-    id: 'kb-002',
-    title: '企业增值业务分配与维修激励会议纪要',
-    category: 'meeting',
-    categoryLabel: '会议纪要',
-    timeLabel: '7月13日更新',
-    tags: ['增值业务', '分配原则', '维修激励', '包干制', '合伙人模式', '会议纪要'],
-    size: '51KB',
-    introduction: '内部会议完整纪要，涵盖两大议题：① 渠道部增值业务分配原则宣贯（三大原则+六类业务细则+执行报备要求）② 维修工程师提成调整与"包干制/合伙人"三级激励模型讨论。含脑图索引与核心数据。',
-    content: `# 企业增值业务分配与维修激励会议纪要
-
-## 一、会议概览
-
-- **文档来源**：内部会议录音转写
-- **核心主题**：
-  1. 增值业务分配原则宣贯（渠道部）
-  2. 维修工程师提成调整与"包干制/合伙人"激励模型讨论
-- **关键背景**：企业从"无序拓客"向"规则管控+内部创业"转型
-
----
-
-## 二、增值业务分配原则宣贯
-
-### 1. 三大基本原则
-
-| 原则 | 要点 |
-|------|------|
-| **赚足优先** | 先依断点分配；同等级竞争同业务时适用能力优先 |
-| **能力优先** | 依执行站反应能力、服务综合实力择优授权 |
-| **区域协同** | 统筹资源，杜绝重复开发、跨区拓客 |
-
-### 2. 六类业务分配细则
-
-| 业务类型 | 核心授权与管控要点 |
-|---------|------------------|
-| **以旧换新-大巴换电延保** | 产业授权+项目授权；跨城市投第三方标受限；强制配C电电池 |
-| **以旧换新-非大巴换电** | 产业授权后全国拓展，无需单项目授权；冲突就近承接 |
-| **保外维修（R2等）** | 城市授权，禁跨城；价格/策略总部统一 |
-| **保险权益及维保** | 不区分区域，全国展业各自发挥（零到一阶段先跑模型） |
-| **代理销售/服务** | 直营站优先，油品限服务站内；大区统管 |
-| **回收业务** | 直营站优先，可跨区域；须国家溯源平台备案 |
-| **教培（社培/校企）** | 省内一家主体，三年一认证 |
-
-### 3. 执行与报备要求
-
-- 接洽客户 **2自然日内** 邮件报备（含项目名、区域、体量等）
-- 大区负责人为辖区第一责任人
-- 严禁超权限、恶性压价、私自回收
-
-### 4. 答疑焦点
-
-- **公交/重卡**：江苏等省网点密，建议"按省划范围"待研议
-- **小众电池建档**：新物料号需工厂共建，约5周起
-- **回收白名单**：须经指定子公司渠道
-
----
-
-## 三、维修激励与合伙人机制
-
-### 1. 提成政策调整
-
-- 原 C2P返修、保外维修按 **产值阶梯15%-24%** 提
-- 新增 **微面** 按毛利15%提，均叠加计算
-- 人均产值 >1.1万 上浮10%
-
-### 2. 包干制（合伙人）三级模型
-
-| 级别 | 方案 | 提成比例 | 特点 |
-|------|------|---------|------|
-| **初级** | 公司出车，组员承担油费/过路 | 保底+5%（如三万产值多4500元） | 低门槛起步 |
-| **中级（主推）** | 自备车，公司不担保险保养 | **30%-35%** | 月省成本即增收 |
-| **高级** | 公司配危化品运输车 | 维修+运输双份 | 催生自有危品资质 |
-
-> 外部合伙人须建劳动关系，扣10%安全保证金，无客诉次月退
-
-### 3. 落底风险与应对
-
-- **车辆违规**：签协议自负连带责任
-- **质检标准**：拆包全节点拍照（8节点132张），工序内嵌质检
-- **5S管理**：评审推迟，要求下沉实操避"漂亮无落地"
-
-### 4. 核心数据
-
-- 直营站单车月养车成本 **5700元**（含租/险）
-- 自带车过路油费约 **2000元**
-- 现有小组月产值多 **不足3万**
-- 新方案引力在"转心态、卷业务"`
-
----
-
-## 四、文本脑图（层级索引）
-
-\`\`\`
-# 企业增值业务与维修激励会议总结
-├── 增值业务分配原则宣贯
-│   ├── 会议背景与目的（规避无序拓客）
-│   ├── 三大基本原则（赚足/能力/区域协同）
-│   ├── 六类业务分配细则
-│   ├── 执行与报备要求（2日报备/大区负责）
-│   └── 答疑焦点
-└── 维修激励与合伙人机制讨论
-    ├── 提成政策调整（阶梯+微面+上浮）
-    ├── 包干制三级模型（初级/中级/高级）
-    ├── 落地风险与应对
-    └── 核心数据（5700成本/不足3万产值）
-\`\``
-},
-{
-    id: 'kb-003',
-    title: '会议纪要汇总方法与 ima 知识库导入指南',
-    category: 'guide',
-    categoryLabel: '使用指南',
-    timeLabel: '7月13日更新',
-    tags: ['会议纪要', '知识管理', 'ima导入', 'AI工具', '模板'],
-    size: '51KB',
-    introduction: '涵盖两大实用指南：① 会议纪要汇总的核心方法（会前准备→会中记录→会后整理→审核归档的标准流程与模板）② 将内容添加到 ima 知识库的 5 种方式（PC上传/笔记转入/小程序导入/网页链接/划词收藏）。含主流 AI 纪要工具对比。',
-    content: `# 会议纪要汇总方法与知识库导入指南
-
----
-
-## 第一部分：会议纪要汇总核心方法
-
-### 1. 核心理念
-
-> 会议纪要是**管理工具**与**决策刀**，而非"录音笔"。核心是捕捉**决策**与**行动**，过滤80%冗余信息。
-
-### 2. 标准文档结构（3+1格式）
-
-| 板块 | 内容要点 |
-|------|---------|
-| **头部（概况）** | 标题、精确时间地点、人员排序、30秒成果概要 |
-| **主体（正文）** | 按议题分块，"会议认为/决定/要求"表述 |
-| **尾部（文尾）** | 督办事项清单 + 参会名单 + 版记 |
-
-### 3. 撰写三步法
-
-**第一步：记录要点**（角色从"记录者"变"提炼者"）
-- 会前摸清"三个底"：议程、上期纪要、名单
-- 会中用"红绿灯法"：绿灯记结论、黄灯记依据、红灯舍弃闲聊
-
-**第二步：提炼精华**（遵循"三去三留"）
-- **去过程留结论、去态度留动作、去模糊留量化**
-
-**第三步：形成决议**（每条必须四要素）
-- ✅ 动作明确、✅ 责任唯一、✅ 时限刚性、✅ 督办闭环
-
-> 每条决议杜绝"相关部门""尽快"等模糊词
-
-### 4. AI工具对比（2026年推荐）
-
-| 工具 | 核心优势 | 适用场景 |
-|------|---------|---------|
-| 讯飞听见会记 | 中文识别率98.7%，5分钟出稿 | 国产标杆 |
-| 飞书妙记 | 实时转录+自动纪要待办 | 飞书生态 |
-| 通义听悟 | 章节脉络提取 | 阿里/钉钉生态 |
-| WPS AI | 转录即文档 | WPS办公闭环 |
-| 腾讯元宝纪要 | 原腾讯会议AI | 腾讯生态 |
-
----
-
-## 第二部分：如何将内容添加到 ima 知识库
-
-### 方式一：PC端/移动端上传本地文件
-保存为 PDF/DOC/MD/TXT 等 → 打开 ima 知识库 → 点击"+" → 上传文件或拖拽
-
-### 方式二：复制文本通过笔记转入
-新建笔记 → 粘贴内容 → 点击右上角灯泡图标 → "加入知识库"
-
-### 方式三：微信小程序导入
-搜索"ima知识库"小程序 → 导入微信文件/本地相册/拍照
-
-### 方式四：网页链接快捷导入
-点击"+" → "网页链接" → 输入 URL（一次最多10条）
-
-### 方式五：划词或收藏
-浏览器用 ima 打开网页 → 右上角灯泡收藏 / 选中文字 → "加入知识库"
-
----
-
-## 第三部分：落地建议
-
-1. 将纪要模板复制为 Word/MD 文档拖入 ima
-2. 或直接用笔记功能记录并打标签（如 \`#办公模板\`）
-3. 后续在搜索框输入标签即可唤起知识
-4. 让 AI 辅助生成结构化文稿，完成从对话到沉淀的闭环`
-},
-{
-    id: 'kb-004',
-    title: 'ima 知识库使用指南（官方手册）',
-    category: 'pdf',
-    categoryLabel: '文档资料',
-    timeLabel: '7月11日更新',
-    tags: ['ima知识库', '使用指南', '共享知识库', '微信小程序'],
-    size: '12MB',
-    introduction: 'ima 知识库官方使用指南，覆盖 PC 客户端（ima.copilot）与微信小程序双端操作。内容包括：① 收藏知识搭建第二大脑 ② 标签分类管理 ③ 基于知识库问答获得个性化回答 ④ 共享知识库创建与成员管理 ⑤ 微信小程序快捷导入与跨端查看。',
-    content: `# ima 知识库使用指南
-
-> ima 知识库是你的专属知识空间，包括个人知识库与共享知识库。
-
----
-
-## 1. 收藏知识，搭建你的第二大脑
-
-### 支持的文件格式
-PDF、Word、PPT、Excel、XMind、Markdown、TXT、音频、图片、HTML 等全格式支持。
-
-### 导入方式
-- **PC客户端**：拖拽文件到窗口内即可快速存入
-- **微信聊天**：长按文件 → "用其他应用打开" → "IMA知识库"
-- **公众号文章**：右上角"..." → "用小程序工具打开" → "IMA知识库"
-- **浏览器插件**：右键 → "网页加入IMA知识库"
-- **新建笔记**：点击左上角"新建个人笔记"，写入内容自动同步
-
----
-
-## 2. 管理知识，利用标签便捷分类
-
-### 为知识打上标签
-- 更便捷地管理和检索知识
-- 支持多标签交叉定位
-
-### 全文搜索
-在知识库搜索框输入关键词，即可**回溯找寻知识灵感**
-
----
-
-## 3. 应用知识，获得个性化回答
-
-ima 可以**聚焦于知识库内容**，输出更个性化的回答。
-
-### 两种提问方式：
-1. **自由提问**：输入问题，获取基于个人知识库内容的回答
-2. **标签筛选**：输入 \`#\` 选择标签，获取基于指定标签下内容的回答
-
-> 💡 温故而知新——让知识库成为你的第二大脑
-
----
-
-## 4. 共享知识，让知识流动起来
-
-### 创建共享知识库
-- 为共享知识库添加专属名称、封面和描述
-- 从个人知识库、本地文件中导入内容
-
-### 分享方式
-- 通过**分享链接**或**二维码**分享给他人
-- 进行**成员管理**，设置内容查看权限
-
----
-
-## 5. 微信小程序功能
-
-### 快捷导入
-- 批量导入微信聊天中的文件、本地图片
-- 阅读公众号文章时一键存入
-
-### 跨端查看
-- 收藏的内容可在 PC 端、小程序中跨端查看
-- 切换查看个人/共享知识库
-
-### 问问 ima
-- 问全网 or 问知识库，轻松获取答案
-- 基于知识库提问可获得更精准的个性化回答`
-}
+    {
+        "id": "kb-001",
+        "title": "宁德维修拍照小程序设计助手（系统提示词 + 任务指令）",
+        "category": "tech",
+        "categoryLabel": "技术方案",
+        "timeLabel": "昨天更新",
+        "size": "81KB",
+        "tags": [
+            "小程序设计",
+            "宁德维修",
+            "System Prompt",
+            "R1/R2分级维修",
+            "拍照规范"
+        ],
+        "introduction": "将维修照片采集标准转化为微信小程序「宁家维修拍照资料库」的落地方案。包含完整的系统提示词（角色设定+领域知识）和任务指令（首次触发词），可直接粘贴到 WorkBuddy/Coze/Dify 等平台使用。覆盖 R1/R2 分级维修、PPT 20 类基础照片标准、Excel 72 项拍摄要求。",
+        "content": "## 一、方案背景与依据\n\n### 1. 录音讨论核心\n- 维修分为 **R1（简易维修，如拆底护板/铆钉拉拔）** 与 **R2（复杂维修，如换箱体/铺胶）**，照片要求不同。\n- 小程序需支持：电池号扫码（12/24位自动识别PN）、必填/非必填项控制、离线暂存、内部分类归档、报单员一键导出。\n- 强调\"保证数量+必填项\"优先，AI识别可作后期增强。\n- 非售后（主机厂）业务需单独备注进出场自拍、工作时长。\n\n### 2. PPT《乘用车市场维修—基础照片》标准\n明确20类基础照片：车牌、铭牌/VIN、里程、电池号、维修前后上位机、故障、新/旧件、空位、扭力漆笔、隔离区、封箱、气密、接插件、外出、进/出场、ABA、充放电等。\n\n### 3. Excel《返修拍摄要求0716》整合表\n划分 **10大工序环节**，共72项拍照点，精确标注R1/R2数量。\n\n---\n\n## 二、小程序总体设计\n\n**名称**：宁家维修拍照资料库（企业微信/微信小程序）\n**目标**：替代手工记录，按工单引导拍照，自动校验必填数量，形成可追溯照片库。\n\n### 核心业务流程\n```\n创建工单（输/扫码电池号 → 选售后/非售后 + R1/R2）\n   ↓\n系统生成【个性化拍照清单】（带*为必填，引用PPT示例）\n   ↓\n技师按工序页签拍照（本地缓存 → 联网提交）\n   ↓\n资料库自动归类命名（工单_工序_项目_序号）\n   ↓\n质检员审核（对照标准，高压件触发远程视频）\n   ↓\n通过后报单员导出外呼格式包\n```\n\n---\n\n## 三、关键功能模块\n\n### 模块1：智能工单初始化\n- **电池号录入**：支持扫码或手动，自动识别12/24位\n- **业务类型选择**：售后/R1、售后/R2、非售后（主机厂）\n- **清单生成**：调取Excel表，标记必填\n\n### 模块2：引导式拍照上传\n每个拍照项包含：\n- **规范要求**：直接引用PPT红字\n- **示例图**：嵌入正确/错误照片\n- **数量计数器**：R1/R2要求数\n- **相机控件**：自带时间/位置水印\n\n| 工序 | 拍照项（部分） | R1数量 | R2数量 |\n|------|---------------|--------|--------|\n| 来料 | 叉车/电池号/360°视频 | 1/1/1 | 同 |\n| 预检 | 车牌、里程(ODO)、上位机 | 1~8 | 同 |\n| 气密 | 连接照+合格照(PASS) | 前2后2 | 前2后2 |\n| 回装 | 底护板/天体/扭力/漆笔 | 4 | 30(含高压) |\n\n### 模块3：离线缓存与提交\n录音指出\"外呼不建单码，需先拍手中\" → 小程序支持**草稿箱**\n\n### 模块4：资料库与智能校验\n- **自动命名**：`{工单号}_{R1/R2}_{工序}_{项目}_{第n张}_{时间戳}.jpg`\n- **必填拦截**：缺张禁止提交\n- **AI预留接口**：车牌OCR、里程ODO识别\n\n### 模块5：质检闭环\n- **人工质检**：逐张点选\"合格/不合格\"\n- **远程视频质检**：高压件触发\n- **打回机制**：不合格微信通知补拍\n\n### 角色权限表\n\n| 角色 | 权限 |\n|------|------|\n| 维修技师 | 建单、扫码、按工序拍照上传、暂存草稿 |\n| 报单员 | 从资料库筛选必填照片、导出报单压缩包 |\n| 质检员 | 审核照片规范性（人工+远程视频）、打回重拍 |\n| 管理员 | 维护PPT/Excel标准库、配置R1/R2规则 |\n\n---\n\n## 四、🔧 系统提示词（System Prompt）\n\n> 粘贴至平台的「角色设定 / System Prompt / 指令」栏\n\n```text\n你是一名资深汽车动力电池售后数字化产品经理，\n精通宁德时代（CATL）乘用车市场维修规范。\n你的职责是将维修照片采集标准转化为微信小程序\n\"宁家维修拍照资料库\"的落地设计方案与开发文档。\n\n【强制领域知识库】\n1. 分级维修：R1（简易）、R2（复杂），照片数量严格依据\n   《返修拍摄要求0716》(Excel) 的10大工序72项。\n2. 基础照片20类标准（PPT《乘用车市场维修—基础照片》）。\n3. 录音关键规则：离线暂存、99事件禁拍、气密必填等。\n4. 必填逻辑：电池号、车牌、维修前上位机等缺张禁止提交。\n\n【输出规范】\n- 使用中文结构化Markdown，专业且简洁\n- 涉及数量必须标注R1/R2差异\n- 不偏离上述标准，不臆造非标流程\n```\n\n---\n\n## 五、📝 任务指令（Task Instruction）\n\n> 粘贴至平台的「开场白 / 用户任务 / 首条消息」栏\n\n```text\n请基于\"宁德时代乘用车维修拍照资料库小程序\"顶层方案，\n直接产出《小程序详细设计压缩包》，要求：\n\n1. 核心闭环流全流程图\n2. 前端页面清单（至少5个核心页面）\n3. 动态表单JSON样例（来料+预检字段）\n4. 数据库设计（repair_order/photo_record/qc_task三表）\n5. 关键伪代码（电池号12/24位识别 + 99事件禁拍）\n\n请严格引用领域知识库，直接输出文档，勿闲聊。\n```\n\n---\n\n## 六、实施分期\n\n- **一期**：照搬Excel清单+PPT示例，做数量校验、离线暂存、人工质检\n- **二期**：加AI识错（车牌歪、里程小计）、远程视频模块\n- **三期**：分析照片数据，反向优化维修SOP",
+        "uploaded": false
+    },
+    {
+        "id": "kb-002",
+        "title": "企业增值业务分配与维修激励会议纪要",
+        "category": "meeting",
+        "categoryLabel": "会议纪要",
+        "timeLabel": "7月13日更新",
+        "size": "51KB",
+        "tags": [
+            "增值业务",
+            "分配原则",
+            "维修激励",
+            "包干制",
+            "合伙人模式",
+            "会议纪要"
+        ],
+        "introduction": "内部会议完整纪要，涵盖两大议题：① 渠道部增值业务分配原则宣贯（三大原则+六类业务细则+执行报备要求）② 维修工程师提成调整与\"包干制/合伙人\"三级激励模型讨论。含脑图索引与核心数据。",
+        "content": "# 企业增值业务分配与维修激励会议纪要\n\n## 一、会议概览\n\n- **文档来源**：内部会议录音转写\n- **核心主题**：\n  1. 增值业务分配原则宣贯（渠道部）\n  2. 维修工程师提成调整与\"包干制/合伙人\"激励模型讨论\n- **关键背景**：企业从\"无序拓客\"向\"规则管控+内部创业\"转型\n\n---\n\n## 二、增值业务分配原则宣贯\n\n### 1. 三大基本原则\n\n| 原则 | 要点 |\n|------|------|\n| **赚足优先** | 先依断点分配；同等级竞争同业务时适用能力优先 |\n| **能力优先** | 依执行站反应能力、服务综合实力择优授权 |\n| **区域协同** | 统筹资源，杜绝重复开发、跨区拓客 |\n\n### 2. 六类业务分配细则\n\n| 业务类型 | 核心授权与管控要点 |\n|---------|------------------|\n| **以旧换新-大巴换电延保** | 产业授权+项目授权；跨城市投第三方标受限；强制配C电电池 |\n| **以旧换新-非大巴换电** | 产业授权后全国拓展，无需单项目授权；冲突就近承接 |\n| **保外维修（R2等）** | 城市授权，禁跨城；价格/策略总部统一 |\n| **保险权益及维保** | 不区分区域，全国展业各自发挥（零到一阶段先跑模型） |\n| **代理销售/服务** | 直营站优先，油品限服务站内；大区统管 |\n| **回收业务** | 直营站优先，可跨区域；须国家溯源平台备案 |\n| **教培（社培/校企）** | 省内一家主体，三年一认证 |\n\n### 3. 执行与报备要求\n\n- 接洽客户 **2自然日内** 邮件报备（含项目名、区域、体量等）\n- 大区负责人为辖区第一责任人\n- 严禁超权限、恶性压价、私自回收\n\n### 4. 答疑焦点\n\n- **公交/重卡**：江苏等省网点密，建议\"按省划范围\"待研议\n- **小众电池建档**：新物料号需工厂共建，约5周起\n- **回收白名单**：须经指定子公司渠道\n\n---\n\n## 三、维修激励与合伙人机制\n\n### 1. 提成政策调整\n\n- 原 C2P返修、保外维修按 **产值阶梯15%-24%** 提\n- 新增 **微面** 按毛利15%提，均叠加计算\n- 人均产值 >1.1万 上浮10%\n\n### 2. 包干制（合伙人）三级模型\n\n| 级别 | 方案 | 提成比例 | 特点 |\n|------|------|---------|------|\n| **初级** | 公司出车，组员承担油费/过路 | 保底+5%（如三万产值多4500元） | 低门槛起步 |\n| **中级（主推）** | 自备车，公司不担保险保养 | **30%-35%** | 月省成本即增收 |\n| **高级** | 公司配危化品运输车 | 维修+运输双份 | 催生自有危品资质 |\n\n> 外部合伙人须建劳动关系，扣10%安全保证金，无客诉次月退\n\n### 3. 落底风险与应对\n\n- **车辆违规**：签协议自负连带责任\n- **质检标准**：拆包全节点拍照（8节点132张），工序内嵌质检\n- **5S管理**：评审推迟，要求下沉实操避\"漂亮无落地\"\n\n### 4. 核心数据\n\n- 直营站单车月养车成本 **5700元**（含租/险）\n- 自带车过路油费约 **2000元**\n- 现有小组月产值多 **不足3万**\n- 新方案引力在\"转心态、卷业务\"`\n\n---\n\n## 四、文本脑图（层级索引）\n\n```\n# 企业增值业务与维修激励会议总结\n├── 增值业务分配原则宣贯\n│   ├── 会议背景与目的（规避无序拓客）\n│   ├── 三大基本原则（赚足/能力/区域协同）\n│   ├── 六类业务分配细则\n│   ├── 执行与报备要求（2日报备/大区负责）\n│   └── 答疑焦点\n└── 维修激励与合伙人机制讨论\n    ├── 提成政策调整（阶梯+微面+上浮）\n    ├── 包干制三级模型（初级/中级/高级）\n    ├── 落地风险与应对\n    └── 核心数据（5700成本/不足3万产值）\n``",
+        "uploaded": false
+    },
+    {
+        "id": "kb-003",
+        "title": "会议纪要汇总方法与 ima 知识库导入指南",
+        "category": "guide",
+        "categoryLabel": "使用指南",
+        "timeLabel": "7月13日更新",
+        "size": "51KB",
+        "tags": [
+            "会议纪要",
+            "知识管理",
+            "ima导入",
+            "AI工具",
+            "模板"
+        ],
+        "introduction": "涵盖两大实用指南：① 会议纪要汇总的核心方法（会前准备→会中记录→会后整理→审核归档的标准流程与模板）② 将内容添加到 ima 知识库的 5 种方式（PC上传/笔记转入/小程序导入/网页链接/划词收藏）。含主流 AI 纪要工具对比。",
+        "content": "# 会议纪要汇总方法与知识库导入指南\n\n---\n\n## 第一部分：会议纪要汇总核心方法\n\n### 1. 核心理念\n\n> 会议纪要是**管理工具**与**决策刀**，而非\"录音笔\"。核心是捕捉**决策**与**行动**，过滤80%冗余信息。\n\n### 2. 标准文档结构（3+1格式）\n\n| 板块 | 内容要点 |\n|------|---------|\n| **头部（概况）** | 标题、精确时间地点、人员排序、30秒成果概要 |\n| **主体（正文）** | 按议题分块，\"会议认为/决定/要求\"表述 |\n| **尾部（文尾）** | 督办事项清单 + 参会名单 + 版记 |\n\n### 3. 撰写三步法\n\n**第一步：记录要点**（角色从\"记录者\"变\"提炼者\"）\n- 会前摸清\"三个底\"：议程、上期纪要、名单\n- 会中用\"红绿灯法\"：绿灯记结论、黄灯记依据、红灯舍弃闲聊\n\n**第二步：提炼精华**（遵循\"三去三留\"）\n- **去过程留结论、去态度留动作、去模糊留量化**\n\n**第三步：形成决议**（每条必须四要素）\n- ✅ 动作明确、✅ 责任唯一、✅ 时限刚性、✅ 督办闭环\n\n> 每条决议杜绝\"相关部门\"\"尽快\"等模糊词\n\n### 4. AI工具对比（2026年推荐）\n\n| 工具 | 核心优势 | 适用场景 |\n|------|---------|---------|\n| 讯飞听见会记 | 中文识别率98.7%，5分钟出稿 | 国产标杆 |\n| 飞书妙记 | 实时转录+自动纪要待办 | 飞书生态 |\n| 通义听悟 | 章节脉络提取 | 阿里/钉钉生态 |\n| WPS AI | 转录即文档 | WPS办公闭环 |\n| 腾讯元宝纪要 | 原腾讯会议AI | 腾讯生态 |\n\n---\n\n## 第二部分：如何将内容添加到 ima 知识库\n\n### 方式一：PC端/移动端上传本地文件\n保存为 PDF/DOC/MD/TXT 等 → 打开 ima 知识库 → 点击\"+\" → 上传文件或拖拽\n\n### 方式二：复制文本通过笔记转入\n新建笔记 → 粘贴内容 → 点击右上角灯泡图标 → \"加入知识库\"\n\n### 方式三：微信小程序导入\n搜索\"ima知识库\"小程序 → 导入微信文件/本地相册/拍照\n\n### 方式四：网页链接快捷导入\n点击\"+\" → \"网页链接\" → 输入 URL（一次最多10条）\n\n### 方式五：划词或收藏\n浏览器用 ima 打开网页 → 右上角灯泡收藏 / 选中文字 → \"加入知识库\"\n\n---\n\n## 第三部分：落地建议\n\n1. 将纪要模板复制为 Word/MD 文档拖入 ima\n2. 或直接用笔记功能记录并打标签（如 `#办公模板`）\n3. 后续在搜索框输入标签即可唤起知识\n4. 让 AI 辅助生成结构化文稿，完成从对话到沉淀的闭环",
+        "uploaded": false
+    },
+    {
+        "id": "kb-004",
+        "title": "ima 知识库使用指南（官方手册）",
+        "category": "pdf",
+        "categoryLabel": "文档资料",
+        "timeLabel": "7月11日更新",
+        "size": "12MB",
+        "tags": [
+            "ima知识库",
+            "使用指南",
+            "共享知识库",
+            "微信小程序"
+        ],
+        "introduction": "ima 知识库官方使用指南，覆盖 PC 客户端（ima.copilot）与微信小程序双端操作。内容包括：① 收藏知识搭建第二大脑 ② 标签分类管理 ③ 基于知识库问答获得个性化回答 ④ 共享知识库创建与成员管理 ⑤ 微信小程序快捷导入与跨端查看。",
+        "content": "# ima 知识库使用指南\n\n> ima 知识库是你的专属知识空间，包括个人知识库与共享知识库。\n\n---\n\n## 1. 收藏知识，搭建你的第二大脑\n\n### 支持的文件格式\nPDF、Word、PPT、Excel、XMind、Markdown、TXT、音频、图片、HTML 等全格式支持。\n\n### 导入方式\n- **PC客户端**：拖拽文件到窗口内即可快速存入\n- **微信聊天**：长按文件 → \"用其他应用打开\" → \"IMA知识库\"\n- **公众号文章**：右上角\"...\" → \"用小程序工具打开\" → \"IMA知识库\"\n- **浏览器插件**：右键 → \"网页加入IMA知识库\"\n- **新建笔记**：点击左上角\"新建个人笔记\"，写入内容自动同步\n\n---\n\n## 2. 管理知识，利用标签便捷分类\n\n### 为知识打上标签\n- 更便捷地管理和检索知识\n- 支持多标签交叉定位\n\n### 全文搜索\n在知识库搜索框输入关键词，即可**回溯找寻知识灵感**\n\n---\n\n## 3. 应用知识，获得个性化回答\n\nima 可以**聚焦于知识库内容**，输出更个性化的回答。\n\n### 两种提问方式：\n1. **自由提问**：输入问题，获取基于个人知识库内容的回答\n2. **标签筛选**：输入 `#` 选择标签，获取基于指定标签下内容的回答\n\n> 💡 温故而知新——让知识库成为你的第二大脑\n\n---\n\n## 4. 共享知识，让知识流动起来\n\n### 创建共享知识库\n- 为共享知识库添加专属名称、封面和描述\n- 从个人知识库、本地文件中导入内容\n\n### 分享方式\n- 通过**分享链接**或**二维码**分享给他人\n- 进行**成员管理**，设置内容查看权限\n\n---\n\n## 5. 微信小程序功能\n\n### 快捷导入\n- 批量导入微信聊天中的文件、本地图片\n- 阅读公众号文章时一键存入\n\n### 跨端查看\n- 收藏的内容可在 PC 端、小程序中跨端查看\n- 切换查看个人/共享知识库\n\n### 问问 ima\n- 问全网 or 问知识库，轻松获取答案\n- 基于知识库提问可获得更精准的个性化回答",
+        "uploaded": false
+    }
 ];
+
+
+
+// ========== 用户上传数据 + 合并 ==========
+const LS_USER = 'kb_user_entries';
+const LS_LLM = 'kb_llm_config';
+let currentDetailId = null;
+let pendingUploads = [];
+let xlsxLoading = false;
+
+function getAllEntries(){
+    try {
+        const u = JSON.parse(localStorage.getItem(LS_USER) || '[]');
+        return KB_DATA.concat(Array.isArray(u) ? u : []);
+    } catch(e) { return KB_DATA.slice(); }
+}
+function loadLLMConfig(){ try { return JSON.parse(localStorage.getItem(LS_LLM) || '{}'); } catch(e){ return {}; } }
+function isLLMEnabled(){ const c = loadLLMConfig(); return !!(c.enabled && c.base && c.key); }
+
+// 简单中文分词（字符级 2-gram + 英文词/子串）
+function tokenize(text){
+    if(!text) return [];
+    const t = (text||'').toLowerCase().replace(/[\s，。、；：！？“”‘’（）()\[\]【】…—\-\.,;:!?\/\\|]+/g,' ');
+    const toks = [];
+    t.split(/\s+/).filter(Boolean).forEach(w=>{
+        toks.push(w);
+        const cn = w.replace(/[a-z0-9]/gi,'');
+        if(cn.length>=2){ for(let i=0;i<cn.length-1;i++) toks.push(cn.substr(i,2)); }
+        if(/[a-z0-9]/i.test(w) && w.length>=4){ for(let i=0;i<w.length-2;i++) toks.push(w.substr(i,3)); }
+    });
+    return toks.filter(Boolean);
+}
+
+// 检索打分
+function searchEntries(query, topN){
+    topN = topN || 3;
+    const qTokens = tokenize(query);
+    if(!qTokens.length) return [];
+    const entries = getAllEntries();
+    const scored = entries.map(e=>{
+        const title = (e.title||'').toLowerCase();
+        const intro = (e.introduction||'').toLowerCase();
+        const content = (e.content||'').toLowerCase();
+        const tags = ((e.tags||[]).join(' ')).toLowerCase();
+        let score = 0; const hit = new Set();
+        qTokens.forEach(qt=>{
+            if(title.indexOf(qt)>=0){ score+=5; hit.add(qt); }
+            if(tags.indexOf(qt)>=0){ score+=4; hit.add(qt); }
+            if(intro.indexOf(qt)>=0){ score+=2; hit.add(qt); }
+            if(content.indexOf(qt)>=0){ score+=1; hit.add(qt); }
+        });
+        return { entry:e, score, hitTokens:[...hit] };
+    }).filter(x=>x.score>0);
+    scored.sort((a,b)=>b.score-a.score);
+    return scored.slice(0, topN);
+}
+
+function snippetWithHit(content, hitTokens, len){
+    len = len || 220;
+    if(!content) return '';
+    const lower = content.toLowerCase();
+    let pos = -1;
+    (hitTokens||[]).forEach(t=>{ const i=lower.indexOf(t); if(i>=0 && (pos<0||i<pos)) pos=i; });
+    if(pos<0) pos=0;
+    let start = Math.max(0, pos-40);
+    let snip = content.substr(start, len);
+    if(start>0) snip = '…'+snip;
+    if(start+len < content.length) snip = snip+'…';
+    return snip;
+}
+
+// ========== 问答入口 ==========
+async function askQuestion(){
+    const input = document.getElementById('qaInput');
+    const q = (input && input.value || '').trim();
+    const box = document.getElementById('answerBox');
+    if(!box) return;
+    if(!q){ box.innerHTML = '<div class="answer-tip">请输入你想查询的问题 👆</div>'; return; }
+    box.innerHTML = '<div class="answer-loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span> 正在检索知识库…</div>';
+    updateModeHint();
+    const hits = searchEntries(q, 5);
+    if(isLLMEnabled() && hits.length){
+        try { await askWithLLM(q, hits, box); return; }
+        catch(err){ box.innerHTML += '<div class="answer-tip warn">⚠️ 大模型调用失败，已回退本地检索结果。</div>'; }
+    }
+    renderRetrieveAnswer(q, hits, box);
+}
+
+function renderRetrieveAnswer(q, hits, box){
+    if(!hits.length){
+        box.innerHTML = '<div class="answer-card empty"><div class="answer-head"><span class="answer-badge">🤔</span><span>未找到相关答案</span></div><div class="answer-body">知识库中暂时没有匹配「'+escapeHtml(q)+'」的内容。<br>点击右上角「📥 上传文件」把相关内部文档加进来，下次就能查到啦。</div></div>';
+        return;
+    }
+    let html = '<div class="answer-card"><div class="answer-head"><span class="answer-badge ok">💡</span><span>为你检索到 '+hits.length+' 条相关答案</span></div><div class="answer-body">';
+    hits.forEach(h=>{
+        const e = h.entry;
+        const snip = snippetWithHit(e.content||e.introduction, h.hitTokens, 260);
+        html += '<div class="answer-item" onclick="openDetail(\''+e.id+'\')">'
+            + '<div class="answer-item-head"><span class="type-'+e.category+' ans-cat">'+e.categoryLabel+'</span>'
+            + '<span class="ans-title">'+escapeHtml(e.title)+'</span>'
+            + (e.source==='user' ? '<span class="ans-user">我上传</span>' : '')
+            + '</div>'
+            + '<div class="ans-snippet">'+highlightText(escapeHtml(snip), h.hitTokens.join(' '))+'</div>'
+            + '</div>';
+    });
+    html += '</div><div class="answer-foot">点击任意答案卡片可查看完整内容 · 匹配自 '+hits.length+' 条本地知识</div></div>';
+    box.innerHTML = html;
+}
+
+async function askWithLLM(q, hits, box){
+    const c = loadLLMConfig();
+    const context = hits.map((h,i)=>'[资料'+(i+1)+'] '+h.entry.title+'\n'+(h.entry.content||h.entry.introduction||'').slice(0,1500)).join('\n\n');
+    const sys = '你是企业客服知识库助手。请仅依据下方「资料」回答用户问题，用简洁中文、分点说明；若资料不足请明确说明无法回答。\n\n资料：\n'+context;
+    const url = c.base.replace(/\/$/,'') + '/chat/completions';
+    const resp = await fetch(url, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+        body: JSON.stringify({ model:c.model||'deepseek-chat', messages:[
+            {role:'system', content:sys},
+            {role:'user', content:q}
+        ], temperature:0.3 })
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const data = await resp.json();
+    const ans = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '（模型未返回内容）';
+    box.innerHTML = '<div class="answer-card ai"><div class="answer-head"><span class="answer-badge ai">🤖 AI</span><span>基于知识库生成的答案</span></div><div class="answer-body">'+mdToHtml(ans)+'</div><div class="answer-foot">参考来源：'+hits.length+' 条本地知识 · 由 '+escapeHtml(c.model||'deepseek-chat')+' 生成</div></div>';
+}
+
+function updateModeHint(){
+    const h = document.getElementById('qaModeHint');
+    if(!h) return;
+    h.innerHTML = isLLMEnabled()
+        ? '当前模式：<b style="color:#43e97b">AI 大模型生成</b>（已填入 API Key）'
+        : '当前模式：<b style="color:#4facfe">智能检索</b>（内置知识 + 你上传的文件）';
+}
+
+// ========== 文件上传解析 ==========
+function handleUploadFiles(fileList){
+    const files = Array.from(fileList||[]);
+    if(!files.length) return;
+    files.forEach(f=>{
+        if(/\.(xlsx|xls)$/i.test(f.name)){
+            ensureXLSX(()=>{
+                try{
+                    const reader = new FileReader();
+                    reader.onload = e=>{
+                        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:true});
+                        const rows = [];
+                        wb.SheetNames.forEach(sn=>{
+                            const ws = wb.Sheets[sn];
+                            XLSX.utils.sheet_to_json(ws, {defval:''}).forEach(r=> rows.push(serializeRow(r)));
+                        });
+                        rows.map((txt,i)=>makeEntry(f.name+' #'+(i+1), txt, 'tech')).forEach(p=>pendingUploads.push(p));
+                        renderUploadList();
+                    };
+                    reader.readAsArrayBuffer(f);
+                }catch(err){ alert('解析 Excel 失败：'+f.name+' '+err.message); }
+            });
+        } else {
+            const reader = new FileReader();
+            reader.onload = e=>{ parseFile(f.name, e.target.result).forEach(p=>pendingUploads.push(p)); renderUploadList(); };
+            reader.onerror = ()=> alert('读取文件失败：'+f.name);
+            reader.readAsText(f, 'utf-8');
+        }
+    });
+}
+
+function ensureXLSX(cb){
+    if(window.XLSX){ cb(); return; }
+    if(xlsxLoading) return;
+    xlsxLoading = true;
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.onload = ()=>{ xlsxLoading=false; cb(); };
+    s.onerror = ()=>{ xlsxLoading=false; alert('SheetJS 加载失败，Excel 解析暂不可用'); };
+    document.head.appendChild(s);
+}
+
+function serializeRow(row){
+    return Object.keys(row).map(k=> k+': '+(row[k]==null?'':row[k])).join('\n');
+}
+
+function parseFile(name, text){
+    const lower = name.toLowerCase();
+    if(lower.endsWith('.csv')){
+        const lines = (text||'').split(/\r?\n/).filter(l=>l.trim());
+        if(lines.length < 2) return [makeEntry(name, text||'', guessCat(name+(text||'')))];
+        const header = splitCsvLine(lines[0]);
+        const titleIdx = Math.max(0, header.findIndex(h=>/标题|问题|名称|主题|name|title|question|问题内容/i.test(h)));
+        return lines.slice(1).map(l=>{
+            const r = splitCsvLine(l);
+            const title = r[titleIdx] || r[0] || name;
+            const body = header.map((h,i)=> h+': '+(r[i]||'')).join('\n');
+            return makeEntry(title, body, guessCat(body+title));
+        });
+    }
+    if(lower.endsWith('.md') || lower.endsWith('.txt')){
+        const blocks = (text||'').split(/^#\s+/m).filter(b=>b.trim());
+        if(blocks.length <= 1) return [makeEntry(name.replace(/\.(md|txt)$/i,''), text||'', guessCat(text||''))];
+        return blocks.map(b=>{ const ls=b.split('\n'); const t=ls[0].trim(); const c=ls.slice(1).join('\n').trim(); return makeEntry(t||name, c, guessCat(c+t)); });
+    }
+    return [makeEntry(name, text||'', guessCat(text||''))];
+}
+
+function splitCsvLine(line){
+    const out=[]; let cur=''; let q=false;
+    for(let i=0;i<line.length;i++){
+        const ch=line[i];
+        if(ch==='"'){ if(q && line[i+1]==='"'){ cur+='"'; i++; } else q=!q; }
+        else if(ch===',' && !q){ out.push(cur); cur=''; }
+        else cur+=ch;
+    }
+    out.push(cur); return out.map(s=>s.trim());
+}
+
+function guessCat(t){
+    t=(t||'').toLowerCase();
+    if(/纪要|会议|meeting/.test(t)) return 'meeting';
+    if(/指南|手册|说明|教程|guide|帮助|使用/.test(t)) return 'guide';
+    if(/pdf|文档|规范|制度|标准|规则/.test(t)) return 'pdf';
+    return 'tech';
+}
+
+function makeEntry(title, content, category){
+    const catMap={tech:['技术方案','🔧'],meeting:['会议纪要','📋'],guide:['使用指南','📖'],pdf:['文档资料','📄']};
+    const cl = catMap[category] || catMap.tech;
+    return {
+        id:'usr-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),
+        title:(title||'').slice(0,120),
+        category:category,
+        categoryLabel:cl[0],
+        timeLabel:'刚刚上传',
+        tags:[],
+        size:Math.round((content||'').length/1024*10)/10+'KB',
+        introduction:(content||'').slice(0,160),
+        content:content||'',
+        source:'user'
+    };
+}
+
+function renderUploadList(){
+    const el = document.getElementById('uploadList');
+    const meta = document.getElementById('uploadMeta');
+    if(!el) return;
+    if(!pendingUploads.length){ el.innerHTML=''; if(meta) meta.textContent='尚未选择文件'; return; }
+    if(meta) meta.textContent = '待加入 '+pendingUploads.length+' 条知识';
+    el.innerHTML = pendingUploads.map((p,i)=>'<div class="upload-item"><span class="type-'+p.category+' up-cat">'+p.categoryLabel+'</span><span class="up-title">'+escapeHtml(p.title)+'</span><span class="up-del" onclick="removeUpload('+i+')">✕</span></div>').join('');
+}
+function removeUpload(i){ pendingUploads.splice(i,1); renderUploadList(); }
+function clearUpload(){ pendingUploads=[]; renderUploadList(); const inp=document.getElementById('uploadInput'); if(inp) inp.value=''; }
+
+function confirmUpload(){
+    if(!pendingUploads.length){ alert('请先选择文件'); return; }
+    const existing = JSON.parse(localStorage.getItem(LS_USER) || '[]');
+    const merged = existing.concat(pendingUploads);
+    localStorage.setItem(LS_USER, JSON.stringify(merged));
+    pendingUploads = [];
+    renderUploadList();
+    closeUpload();
+    refreshAll();
+    updateModeHint();
+    const box = document.getElementById('answerBox');
+    if(box) box.innerHTML = '<div class="answer-tip ok">✅ 已成功加入 '+merged.length+' 条知识到本地知识库，现在可以直接提问啦！</div>';
+}
+
+// ========== 弹窗开关 ==========
+function openUpload(){ const o=document.getElementById('uploadOverlay'); if(o){ o.classList.add('show'); document.body.style.overflow='hidden'; } }
+function closeUpload(){ const o=document.getElementById('uploadOverlay'); if(o){ o.classList.remove('show'); document.body.style.overflow=''; } }
+function openSettings(){
+    const c = loadLLMConfig();
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||''; };
+    const chk=document.getElementById('llmEnabled'); if(chk) chk.checked=!!c.enabled;
+    set('llmBase', c.base); set('llmModel', c.model); set('llmKey', c.key);
+    const o=document.getElementById('settingsOverlay'); if(o){ o.classList.add('show'); document.body.style.overflow='hidden'; }
+    updateModeHint();
+}
+function closeSettings(){ const o=document.getElementById('settingsOverlay'); if(o){ o.classList.remove('show'); document.body.style.overflow=''; } }
+function saveSettings(){
+    const c = {
+        enabled: !!(document.getElementById('llmEnabled')||{}).checked,
+        base: (document.getElementById('llmBase')||{}).value.trim(),
+        model: (document.getElementById('llmModel')||{}).value.trim(),
+        key: (document.getElementById('llmKey')||{}).value.trim()
+    };
+    localStorage.setItem(LS_LLM, JSON.stringify(c));
+    const m=document.getElementById('settingsMeta'); if(m){ m.textContent='已保存'; setTimeout(()=>{ if(m) m.textContent=''; },2000); }
+    updateModeHint();
+}
+
+function fillExample(el){ const q=(el.textContent||'').trim(); const inp=document.getElementById('qaInput'); if(inp) inp.value=q; askQuestion(); }
+
+function refreshAll(){
+    const all = getAllEntries();
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('totalCount', all.length);
+    set('qaCount', all.filter(e=>/tech/.test(e.category)).length);
+    set('catCount', new Set(all.map(e=>e.category)).size);
+    const userCnt = all.filter(e=>e.source==='user').length;
+    set('updateTime', userCnt ? ('已上传'+userCnt) : '今日');
+    renderCards();
+}
 
 // ========== 渲染逻辑 ==========
 let currentFilter = 'all';
@@ -653,7 +773,7 @@ let searchQuery = '';
 
 function renderCards() {
     const grid = document.getElementById('kbGrid');
-    let items = KB_DATA;
+    let items = getAllEntries();
 
     // 分类过滤
     if (currentFilter !== 'all') {
@@ -728,7 +848,8 @@ function onSearch() {
 }
 
 function openDetail(id) {
-    const item = KB_DATA.find(k => k.id === id);
+    currentDetailId = id;
+    const item = getAllEntries().find(k => k.id === id);
     if (!item) return;
 
     const typeClass = 'type-' + item.category;
@@ -747,7 +868,7 @@ function closeDetail() {
 }
 
 function copyContent() {
-    const item = KB_DATA.find(k => k.title === document.getElementById('detailTitle').textContent);
+    const item = getAllEntries().find(k => k.id === currentDetailId);
     if (!item) return;
     navigator.clipboard.writeText(item.content).then(() => {
         const btn = document.querySelector('.detail-action-btn');
@@ -810,7 +931,15 @@ function mdToHtml(md) {
 }
 
 // ========== 初始化 ==========
-renderCards();
+refreshAll();
+updateModeHint();
+// 支持拖拽上传
+const drop = document.getElementById('uploadDrop');
+if(drop){
+    ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('dragging'); }));
+    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('dragging'); }));
+    drop.addEventListener('drop', e=>{ if(e.dataTransfer && e.dataTransfer.files) handleUploadFiles(e.dataTransfer.files); });
+}
 </script>
 </body>
 </html>
