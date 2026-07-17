@@ -29,10 +29,12 @@
 
   .ctl{display:flex;align-items:center;gap:14px;margin:16px 0 18px;flex-wrap:wrap;
     background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;}
-  .month-label{font-size:20px;font-weight:750;min-width:118px;font-variant-numeric:tabular-nums;}
-  .slider-wrap{flex:1;min-width:240px;display:flex;align-items:center;gap:12px;}
-  input[type=range]{flex:1;accent-color:var(--accent);height:4px;cursor:pointer;}
-  .slider-wrap .end{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .ctl-label{font-size:13px;color:var(--txt2);}
+  .month-sel{
+    background:var(--bg2);color:var(--txt);border:1px solid var(--border);border-radius:10px;
+    padding:8px 14px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;outline:none;
+  }
+  .month-sel:hover{border-color:var(--accent2);}
   .pill{font-size:12px;color:var(--txt2);background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;}
   .pill b{color:var(--accent);}
 
@@ -52,18 +54,7 @@
   .panel .hint{font-size:11.5px;color:var(--muted);margin-bottom:8px;}
   #map{width:100%;height:440px;}
   #bar{width:100%;height:440px;}
-
-  .tbl-wrap{overflow-x:auto;margin-top:6px;}
-  table.heat{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;font-variant-numeric:tabular-nums;}
-  table.heat th,table.heat td{padding:6px 7px;text-align:center;white-space:nowrap;}
-  table.heat thead th{position:sticky;top:0;color:var(--txt2);font-weight:600;background:var(--bg2);z-index:2;}
-  table.heat tbody th{text-align:left;position:sticky;left:0;background:var(--bg2);color:var(--txt);font-weight:600;z-index:1;min-width:78px;}
-  table.heat td{border-radius:4px;color:#06231a;font-weight:600;cursor:pointer;}
-  table.heat td:hover{outline:2px solid rgba(255,255,255,.5);outline-offset:-2px;}
-  table.heat td.sel{outline:2px solid #fff;outline-offset:-2px;}
-  table.heat thead th.sel{color:#fff;background:var(--accent2);}
-  .legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);margin:10px 2px 4px;}
-  .legend .bar{height:10px;width:160px;border-radius:6px;background:linear-gradient(90deg,#e8f6ee,#9fe9c4,#39d98a,#1f9d63,#0c5b39);}
+  #trend{width:100%;height:360px;}
 
   .note{font-size:11.5px;color:var(--muted);margin-top:14px;line-height:1.6;text-align:center;}
   .err{padding:50px 20px;text-align:center;color:var(--txt2);}
@@ -87,12 +78,8 @@
   </div>
 
   <div class="ctl" id="ctl" style="display:none">
-    <div class="month-label" id="monthLabel">—</div>
-    <div class="slider-wrap">
-      <span class="end" id="mStart">—</span>
-      <input type="range" id="slider" min="0" max="0" value="0" step="1">
-      <span class="end" id="mEnd">—</span>
-    </div>
+    <span class="ctl-label">选择月份</span>
+    <select id="monthSel" class="month-sel"></select>
     <span class="pill">共 <b id="mCount">0</b> 个月 · <b id="pCount">0</b> 个地区</span>
   </div>
 
@@ -104,7 +91,7 @@
     <div class="grid">
       <div class="panel">
         <h3><span class="dot"></span>省份地图分布</h3>
-        <div class="hint">颜色越深，当月新能源市占率越高</div>
+        <div class="hint">颜色越深，当月新能源市占率越高（点击省份可在下方趋势中对比）</div>
         <div id="map"></div>
       </div>
       <div class="panel">
@@ -115,10 +102,9 @@
     </div>
 
     <div class="panel">
-      <h3><span class="dot"></span>省份 × 月份 热力表</h3>
-      <div class="hint">行=地区，列=月份；点击任意单元格可切换至该月份。颜色越深市占率越高。</div>
-      <div class="tbl-wrap"><table class="heat" id="heat"></table></div>
-      <div class="legend"><span>低</span><span class="bar"></span><span>高</span><span style="margin-left:8px">单位：%</span></div>
+      <h3><span class="dot"></span>趋势走势</h3>
+      <div class="hint">默认展示当月排名前 8 地区，点击图例可切换显隐；点击地图省份可加入对比</div>
+      <div id="trend"></div>
     </div>
 
     <div class="note" id="footNote"></div>
@@ -130,8 +116,10 @@ const EMBED = window.NEV_EMBEDDED;
 let MODEL = null;
 let MONTHS = [], PROV = [], UNIT = '%';
 let cur = 0;
-let mapChart, barChart;
+let mapChart, barChart, trendChart;
 let mapReady = false;
+const TREND_DEFAULT = 8;
+let trendPicks = null; // null => 自动(前N)
 
 function shortName(n){ return n.replace(/省$/,'').replace(/市$/,'').replace(/自治区$/,'').replace(/回族|壮族|维吾尔/,''); }
 function fmt(v){ return (v==null)?'—':(Number(v).toFixed(1)); }
@@ -152,31 +140,30 @@ async function init(){
 
   cur = MONTHS.length - 1;
 
-  const slider = document.getElementById('slider');
-  slider.max = MONTHS.length - 1; slider.value = cur;
-  document.getElementById('mStart').textContent = MONTHS[0];
-  document.getElementById('mEnd').textContent = MONTHS[MONTHS.length-1];
+  // 月份下拉
+  const sel = document.getElementById('monthSel');
+  sel.innerHTML = MONTHS.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+  sel.value = cur;
+  sel.addEventListener('change', e=> setMonth(+e.target.value));
+
   document.getElementById('mCount').textContent = MONTHS.length;
   document.getElementById('pCount').textContent = PROV.length;
   document.getElementById('ctl').style.display='flex';
   document.getElementById('app').style.display='block';
 
-  slider.addEventListener('input', e=>{ setMonth(+e.target.value); });
-
   mapChart = echarts.init(document.getElementById('map'),'dark');
   barChart = echarts.init(document.getElementById('bar'),'dark');
-  window.addEventListener('resize', ()=>{ mapChart.resize(); barChart.resize(); });
+  trendChart = echarts.init(document.getElementById('trend'),'dark');
+  window.addEventListener('resize', ()=>{ mapChart.resize(); barChart.resize(); trendChart.resize(); });
 
   loadMap();
-  renderKPI(); renderBar(); renderHeat();
-  document.getElementById('monthLabel').textContent = MONTHS[cur];
+  renderKPI(); renderBar(); renderTrend();
 }
 
 function setMonth(m){
   cur = Math.max(0, Math.min(MONTHS.length-1, m));
-  document.getElementById('slider').value = cur;
-  document.getElementById('monthLabel').textContent = MONTHS[cur];
-  renderKPI(); renderMap(); renderBar(); renderHeat();
+  document.getElementById('monthSel').value = cur;
+  renderKPI(); renderMap(); renderBar(); renderTrend();
 }
 
 // ---------- KPI ----------
@@ -207,17 +194,22 @@ function renderKPI(){
     </div>`).join('');
 }
 
-// ---------- 地图 ----------
+// ---------- 地图（同域名 geoJSON 优先，外网兜底） ----------
 function loadMap(){
-  fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
-    .then(r=>{ if(!r.ok) throw new Error('geojson '+r.status); return r.json(); })
+  const tryLoad = (url) => fetch(url).then(r=>{ if(!r.ok) throw new Error(''+r.status); return r.json(); });
+  tryLoad('china-geo.json')
+    .catch(()=> tryLoad('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json'))
     .then(geo=>{
       echarts.registerMap('china', geo);
       mapReady = true;
+      mapChart.on('click', p=>{
+        const hit = PROV.find(x=> x.name===p.name || shortName(x.name)===p.name);
+        if(hit) toggleTrendPick(hit.name);
+      });
       renderMap();
     })
     .catch(err=>{
-      document.getElementById('map').innerHTML = '<div class="err" style="padding:40px 10px">⚠️ 地图底图加载失败（需联网获取地理边界），其余图表不受影响。<br>'+err.message+'</div>';
+      document.getElementById('map').innerHTML = '<div class="err" style="padding:40px 10px">⚠️ 地图底图加载失败。<br>'+err.message+'</div>';
     });
 }
 function renderMap(){
@@ -225,6 +217,8 @@ function renderMap(){
   const data = PROV.map(p=>({ name:p.name, value:p.values[cur] }));
   const maxV = Math.max(...data.map(d=>d.value));
   const minV = Math.min(...data.map(d=>d.value));
+  // 已选中对比的省份高亮描边
+  const picked = trendPicks || trendSeriesNames();
   mapChart.setOption({
     backgroundColor:'transparent',
     tooltip:{ trigger:'item', formatter:p=> p.value!=null ? `${p.name}<br/>市占率：<b>${p.value.toFixed(1)}%</b>` : p.name },
@@ -235,7 +229,7 @@ function renderMap(){
       type:'map', map:'china', roam:false, label:{ show:false },
       emphasis:{ label:{show:false}, itemStyle:{ areaColor:'#ffd166' } },
       itemStyle:{ borderColor:'rgba(255,255,255,.25)', borderWidth:.6, areaColor:'#1d2942' },
-      data
+      data: data.map(d=>({ ...d, itemStyle: picked.includes(d.name) ? { borderColor:'#fff', borderWidth:1.4 } : {} }))
     }]
   });
 }
@@ -258,30 +252,40 @@ function renderBar(){
   });
 }
 
-// ---------- 热力表 ----------
-function heatColor(v, minV, maxV){
-  const t = (v-minV)/(maxV-minV || 1);
-  const stops = [[232,246,238],[159,233,196],[57,217,138],[31,157,99],[12,91,57]];
-  const seg = t*(stops.length-1);
-  const i = Math.min(stops.length-2, Math.floor(seg));
-  const f = seg-i;
-  const c = stops[i].map((s,k)=> Math.round(s + (stops[i+1][k]-s)*f));
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
+// ---------- 趋势折线 ----------
+function trendSeriesNames(){
+  if(trendPicks && trendPicks.length) return trendPicks.slice();
+  return PROV.map(p=>({name:p.name, v:p.values[cur]})).sort((a,b)=>b.v-a.v).slice(0,TREND_DEFAULT).map(d=>d.name);
 }
-function renderHeat(){
-  const minV = Math.min(...PROV.map(p=>Math.min(...p.values)));
-  const maxV = Math.max(...PROV.map(p=>Math.max(...p.values)));
-  const tbl = document.getElementById('heat');
-  let html = '<thead><tr><th></th>' + MONTHS.map((m,i)=>`<th class="${i===cur?'sel':''}">${m.slice(2)}</th>`).join('') + '</tr></thead><tbody>';
-  PROV.forEach(p=>{
-    html += `<tr><th>${shortName(p.name)}</th>` + p.values.map((v,i)=>{
-      const bg = heatColor(v, minV, maxV);
-      return `<td style="background:${bg};color:#06231a" data-m="${i}" title="${p.name} ${MONTHS[i]}: ${v.toFixed(1)}%">${v.toFixed(1)}</td>`;
-    }).join('') + '</tr>';
+function toggleTrendPick(name){
+  if(!trendPicks) trendPicks = trendSeriesNames();
+  const i = trendPicks.indexOf(name);
+  if(i>=0) trendPicks.splice(i,1); else trendPicks.push(name);
+  if(trendPicks.length===0) trendPicks=null;
+  renderTrend();
+  if(mapReady) renderMap();
+}
+function renderTrend(){
+  const names = trendSeriesNames();
+  const palette = ['#39d98a','#4facfe','#ffb454','#ff7b9c','#b78cff','#5ad0e0','#f5d76e','#8de08d','#e07b54','#6fb1ff'];
+  const series = names.map((nm,idx)=>{
+    const p = PROV.find(x=>x.name===nm);
+    return {
+      name:shortName(nm), type:'line', smooth:true, symbol:'circle', symbolSize:5,
+      lineStyle:{width:2, color:palette[idx%palette.length]},
+      itemStyle:{color:palette[idx%palette.length]},
+      data: p ? p.values.map(v=>+v.toFixed(1)) : []
+    };
   });
-  html += '</tbody>';
-  tbl.innerHTML = html;
-  tbl.querySelectorAll('td').forEach(td=> td.addEventListener('click', ()=> setMonth(+td.dataset.m) ));
+  trendChart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{ trigger:'axis' },
+    legend:{ type:'scroll', top:0, textStyle:{color:'#cfe', fontSize:11}, data:names.map(n=>shortName(n)) },
+    grid:{left:8,right:18,top:34,bottom:6,containLabel:true},
+    xAxis:{ type:'category', boundaryGap:false, data:MONTHS, axisLabel:{color:'#9fb', fontSize:10, rotate:MONTHS.length>14?30:0}, axisLine:{lineStyle:{color:'rgba(255,255,255,.15)'}} },
+    yAxis:{ type:'value', axisLabel:{formatter:'{value}%', color:'#9fb'}, splitLine:{lineStyle:{color:'rgba(255,255,255,.07)'}} },
+    series
+  }, true);
 }
 
 init();
