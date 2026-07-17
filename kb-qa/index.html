@@ -302,7 +302,7 @@
     <div class="toolbar">
         <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" placeholder="搜索知识库内容（标题、正文、标签）..." oninput="onSearch()">
+            <input type="text" id="searchInput" placeholder="搜索知识库内容（标题、正文、标签）..." autocomplete="off" oninput="onSearch()">
         </div>
         <div class="filter-chips">
             <span class="chip chip-all active" onclick="setFilter('all',this)">全部</span>
@@ -1061,6 +1061,8 @@ function mdToHtml(md) {
 // ========== 初始化 ==========
 // 先从 IndexedDB 载入已上传内容（并自动迁移旧版 localStorage 数据），再渲染
 loadUserEntries().then(()=>{ refreshAll(); updateModeHint(); });
+// 确保搜索框为空（防止浏览器自动填充残留值）
+const si = document.getElementById('searchInput'); if(si) si.value = '';
 // 支持拖拽上传
 const drop = document.getElementById('uploadDrop');
 if(drop){
