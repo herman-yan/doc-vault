@@ -59,6 +59,8 @@
         .header-right { display:flex;align-items:center;gap:18px; }
         .header-btn { padding:8px 18px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;color:var(--text-primary);font-size:13px;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:6px; }
         .header-btn:hover { background:var(--bg-card-hover); border-color:rgba(79,172,254,.3); }
+        .header-btn.ghost { color:#e57373; border-color:rgba(229,115,115,.35); }
+        .header-btn.ghost:hover { background:rgba(229,115,115,.12); border-color:rgba(229,115,115,.6); }
 
         /* ========== 统计卡片区 ========== */
         .stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:28px; }
@@ -94,6 +96,9 @@
         .kb-grid { display:flex;flex-direction:column;gap:14px; }
         .kb-card { background:var(--glass-bg);backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--glass-shadow);cursor:pointer;transition:all .3s;position:relative;overflow:hidden; }
         .kb-card:hover { transform:translateX(6px);background:var(--bg-card-hover);border-color:rgba(79,172,254,.2); }
+        .kb-del { position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:rgba(229,72,72,.12);color:#e54848;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s,background .15s;z-index:2; }
+        .kb-del:hover { background:rgba(229,72,72,.28); }
+        .kb-card:hover .kb-del { opacity:1; }
         .kb-card-header { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px; }
         .kb-card-type { font-size:11px;padding:3px 10px;border-radius:12px;font-weight:500; }
         .type-tech { background:rgba(79,172,254,.15);color:#4facfe; }
@@ -314,6 +319,7 @@
             <h2 class="section-title">知识库内容</h2>
             <div class="kb-section-actions">
                 <span class="result-count" id="resultCount">共 4 条结果</span>
+                <button class="header-btn ghost" onclick="clearAllUser()">🗑️ 清空我的上传</button>
                 <button class="header-btn" onclick="openUpload()">📥 上传内部文件</button>
             </div>
         </div>
@@ -347,7 +353,7 @@
             <div class="detail-close" onclick="closeUpload()">✕</div>
         </div>
         <div class="detail-body">
-            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">支持 <b>.txt / .md / .csv / .xlsx / .pdf</b>。上传后自动解析为知识条目，立即参与客服问答检索，并保存在本浏览器（localStorage）。</p>
+            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">支持 <b>.txt / .md / .csv / .xlsx / .pdf</b>。上传后自动解析为知识条目，立即参与客服问答检索，并保存在本浏览器（IndexedDB，容量充足，可存大量文件）。</p>
             <label class="upload-drop" id="uploadDrop">
                 <input type="file" id="uploadInput" multiple accept=".txt,.md,.csv,.xlsx,.xls,.pdf" style="display:none;" onchange="handleUploadFiles(this.files)">
                 <div class="upload-drop-inner">
@@ -415,6 +421,8 @@ const KB_DATA = [
 
 
 // ========== 用户上传数据 + 合并 ==========
+// 说明：localStorage 仅 ~5MB，上传文件多了会报“存储不足”。
+// 现改存 IndexedDB（配额通常为数百 MB，足够），并在内存维持 USER_CACHE 供同步读取。
 const LS_USER = 'kb_user_entries';
 const LS_LLM = 'kb_llm_config';
 let currentDetailId = null;
@@ -422,11 +430,83 @@ let pendingUploads = [];
 let xlsxLoading = false;
 let pdfLoading = false;
 let pdfWaiters = [];
+let USER_CACHE = [];        // 已上传条目（内存缓存，启动时从 IndexedDB 载入）
+
+// ---------- IndexedDB 封装 ----------
+const DB_NAME = 'kbqa_db', DB_STORE = 'user_entries', DB_VER = 1;
+let _dbPromise = null;
+function openDB(){
+    if(_dbPromise) return _dbPromise;
+    _dbPromise = new Promise((res, rej)=>{
+        if(typeof indexedDB === 'undefined'){ rej(new Error('no-indexedDB')); return; }
+        const req = indexedDB.open(DB_NAME, DB_VER);
+        req.onupgradeneeded = e=>{
+            const db = e.target.result;
+            if(!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE, { keyPath:'_kid' });
+        };
+        req.onsuccess = e=> res(e.target.result);
+        req.onerror = e=> rej(e.target.error || new Error('open-failed'));
+    });
+    return _dbPromise;
+}
+function idbGetAll(){
+    return openDB().then(db=> new Promise((res, rej)=>{
+        const tx = db.transaction(DB_STORE, 'readonly');
+        const req = tx.objectStore(DB_STORE).getAll();
+        req.onsuccess = ()=> res(Array.isArray(req.result) ? req.result : []);
+        req.onerror = ()=> rej(req.error);
+    }));
+}
+function idbPutAll(arr){
+    return openDB().then(db=> new Promise((res, rej)=>{
+        const tx = db.transaction(DB_STORE, 'readwrite');
+        const st = tx.objectStore(DB_STORE);
+        st.clear();
+        arr.forEach(e=> st.put(Object.assign({ _kid: e.id }, e)));
+        tx.oncomplete = ()=> res(true);
+        tx.onerror = ()=> rej(tx.error);
+    }));
+}
+function idbClearAll(){
+    return openDB().then(db=> new Promise((res, rej)=>{
+        const tx = db.transaction(DB_STORE, 'readwrite');
+        tx.objectStore(DB_STORE).clear();
+        tx.oncomplete = ()=> res(true);
+        tx.onerror = ()=> rej(tx.error);
+    }));
+}
+function stripInternal(e){ const c = Object.assign({}, e); delete c._parsing; delete c._kid; return c; }
+function saveUserCache(){
+    const data = USER_CACHE.map(stripInternal);
+    return idbPutAll(data).catch(err=>{
+        console.warn('IndexedDB 保存失败，回退 localStorage：', err);
+        try { localStorage.setItem(LS_USER, JSON.stringify(data)); return true; }
+        catch(e2){ throw e2; }
+    });
+}
+function loadUserEntries(){
+    return idbGetAll().then(raw=>{
+        let arr = (raw||[]).map(e=>{ const c = Object.assign({}, e); delete c._kid; return c; });
+        // 从旧版 localStorage 迁移，避免已上传内容丢失
+        try {
+            const legacy = JSON.parse(localStorage.getItem(LS_USER) || '[]');
+            if(Array.isArray(legacy) && legacy.length){
+                const have = new Set(arr.map(e=>e.id));
+                legacy.forEach(e=>{ if(e && e.id && !have.has(e.id)) arr.push(e); });
+                USER_CACHE = arr;
+                return saveUserCache().then(()=>{ try{ localStorage.removeItem(LS_USER); }catch(_){} });
+            }
+        } catch(_){}
+        USER_CACHE = arr;
+    }).catch(err=>{
+        console.warn('IndexedDB 读取失败，回退 localStorage：', err);
+        try { USER_CACHE = JSON.parse(localStorage.getItem(LS_USER) || '[]'); } catch(_){ USER_CACHE = []; }
+    });
+}
 
 function getAllEntries(){
     try {
-        const u = JSON.parse(localStorage.getItem(LS_USER) || '[]');
-        return KB_DATA.concat(Array.isArray(u) ? u : []);
+        return KB_DATA.concat(Array.isArray(USER_CACHE) ? USER_CACHE : []);
     } catch(e) { return KB_DATA.slice(); }
 }
 function loadLLMConfig(){ try { return JSON.parse(localStorage.getItem(LS_LLM) || '{}'); } catch(e){ return {}; } }
@@ -745,31 +825,36 @@ function confirmUpload(){
     }
     if(!toSave.length){ toast('文件还在解析，请稍候再点「加入知识库」', 'warn'); return; }
 
-    let merged;
-    try {
-        const existing = JSON.parse(localStorage.getItem(LS_USER) || '[]');
-        merged = (Array.isArray(existing) ? existing : []).concat(toSave);
-        merged.forEach(e=>{ if(e) delete e._parsing; });
-        localStorage.setItem(LS_USER, JSON.stringify(merged));
-    } catch(err){
-        // 配额超限等：尝试按精简版（截断正文）保存
-        try {
-            const slim = merged.map(e=>{ const c=(e&&e.content||'').slice(0,20000); return Object.assign({}, e, {content:c}); });
-            localStorage.setItem(LS_USER, JSON.stringify(slim));
-            toast('本地空间不足，已按精简版保存（正文已截断）', 'warn');
-            merged = slim;
-        } catch(e2){
-            toast('保存失败：浏览器本地存储空间不足，请删除部分已上传内容后重试', 'error');
-            return; // 不关闭弹窗，保留列表让用户处理
-        }
-    }
+    toSave.forEach(e=>{ if(e) delete e._parsing; });
+    USER_CACHE = USER_CACHE.concat(toSave);   // 内存同步更新，立即参与检索
+    saveUserCache().then(()=>{
+        toast('✅ 已成功加入 '+toSave.length+' 条知识（本浏览器持久化，容量充足）', 'ok');
+    }).catch(err=>{
+        toast('保存失败：'+(err && err.message || err)+'。可尝试删除部分已上传内容后再试', 'error');
+    });
     pendingUploads = [];
     renderUploadList();
     closeUpload();
     refreshAll();
     updateModeHint();
     const box = document.getElementById('answerBox');
-    if(box) box.innerHTML = '<div class="answer-tip ok">✅ 已成功加入 '+merged.length+' 条知识到本地知识库，现在可以直接提问啦！</div>';
+    if(box) box.innerHTML = '<div class="answer-tip ok">✅ 已成功加入 '+toSave.length+' 条知识到本地知识库，现在可以直接提问啦！</div>';
+}
+
+// 删除单条已上传知识
+function deleteEntry(id){
+    if(!window.confirm('确定删除这条知识吗？此操作不可恢复。')) return;
+    USER_CACHE = USER_CACHE.filter(e=> e.id !== id);
+    saveUserCache().then(()=>{ toast('已删除该知识条目', 'ok'); refreshAll(); })
+                       .catch(err=> toast('删除失败：'+(err&&err.message||err), 'error'));
+}
+
+// 清空全部已上传知识
+function clearAllUser(){
+    if(!USER_CACHE.length){ toast('当前没有可清理的上传内容', 'warn'); return; }
+    if(!window.confirm('将删除你上传的全部知识条目（共 '+USER_CACHE.length+' 条），此操作不可恢复。确定吗？')) return;
+    idbClearAll().then(()=>{ USER_CACHE = []; toast('已清空全部上传内容', 'ok'); refreshAll(); updateModeHint(); })
+                 .catch(err=> toast('清空失败：'+(err&&err.message||err), 'error'));
 }
 
 function toast(msg, type){
@@ -861,8 +946,11 @@ function renderCards() {
     grid.innerHTML = items.map(item => {
         const typeClass = 'type-' + item.category;
         const highlight = searchQuery.trim() ? highlightText(item.introduction||'', searchQuery) : escapeHtml(item.introduction||'');
+        const delBtn = (item.source==='user')
+            ? `<span class="kb-del" title="删除该知识" onclick="event.stopPropagation();deleteEntry('${item.id}')">✕</span>` : '';
         return `
         <div class="kb-card" onclick="openDetail('${item.id}')">
+            ${delBtn}
             <div class="kb-card-header">
                 <span class="kb-card-type ${typeClass}">${item.categoryLabel}</span>
                 <span class="kb-time">${item.timeLabel}</span>
@@ -990,8 +1078,8 @@ function mdToHtml(md) {
 }
 
 // ========== 初始化 ==========
-refreshAll();
-updateModeHint();
+// 先从 IndexedDB 载入已上传内容（并自动迁移旧版 localStorage 数据），再渲染
+loadUserEntries().then(()=>{ refreshAll(); updateModeHint(); });
 // 支持拖拽上传
 const drop = document.getElementById('uploadDrop');
 if(drop){
