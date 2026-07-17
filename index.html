@@ -150,6 +150,32 @@
             display: flex;
             align-items: center;
             gap: 30px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 12px;
+            transition: background 0.25s ease;
+        }
+        .header-right:hover {
+            background: rgba(79, 172, 254, 0.12);
+        }
+        .header-info .username {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+        .contact-hint {
+            font-size: 11px;
+            color: #4facfe;
+            background: rgba(79, 172, 254, 0.15);
+            border: 1px solid rgba(79, 172, 254, 0.35);
+            border-radius: 10px;
+            padding: 1px 7px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .header-right:hover .contact-hint {
+            background: rgba(79, 172, 254, 0.28);
         }
 
         .header-info {
@@ -765,6 +791,27 @@
                 justify-content: center;
             }
         }
+        /* ========== 钉钉联系弹窗 ========== */
+        .ding-modal { text-align: center; max-width: 340px; }
+        .ding-modal .ding-avatar {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #43e97b 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; margin: 0 auto 12px;
+        }
+        .ding-modal h3 { font-size: 19px; margin-bottom: 4px; }
+        .ding-sub { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px; }
+        .ding-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 18px; }
+        .ding-btn {
+            display: inline-block; width: 100%;
+            padding: 12px 0; border-radius: 10px;
+            background: linear-gradient(135deg, #4facfe 0%, #43e97b 100%);
+            color: #fff; text-decoration: none; font-size: 15px; font-weight: 600;
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.35);
+            transition: transform 0.2s ease;
+        }
+        .ding-btn:hover { transform: translateY(-2px); }
+        .ding-modal .modal-btn { margin-top: 14px; width: 100%; }
     </style>
 </head>
 <body>
@@ -785,9 +832,9 @@
                     <p>新能源电池维修业务综合管理平台</p>
                 </div>
             </div>
-            <div class="header-right">
+            <div class="header-right" onclick="openDingtalk()" title="点击通过钉钉联系系统管理员">
                 <div class="header-info">
-                    <div class="username">系统管理员</div>
+                    <div class="username">系统管理员 <span class="contact-hint">📲 联系</span></div>
                     <div class="datetime" id="currentTime">2024-01-15 09:30:00</div>
                 </div>
                 <div class="header-avatar">👤</div>
@@ -1014,43 +1061,43 @@
             <div class="activity-list">
                 <h2 class="section-title">最近动态</h2>
                 <div class="activity-item">
-                    <div class="activity-time">09:25</div>
+                    <div class="activity-time">07-17</div>
                     <div class="activity-dot"></div>
                     <div class="activity-content">
-                        <p><span class="highlight">张伟</span> 完成了工单 <span class="highlight">#WO-2024-0128</span> 的维修处理</p>
-                        <span class="activity-tag">工单完成</span>
+                        <p>首页新增 <span class="highlight">商点管理系统</span> 板块，状态标注为「建设中」</p>
+                        <span class="activity-tag">系统更新</span>
                     </div>
                 </div>
                 <div class="activity-item">
-                    <div class="activity-time">09:18</div>
+                    <div class="activity-time">07-17</div>
                     <div class="activity-dot"></div>
                     <div class="activity-content">
-                        <p><span class="highlight">李娜</span> 上传了新的技术文档《BMS通讯协议V2.0》</p>
-                        <span class="activity-tag">文档上传</span>
+                        <p>舆情监控日志补齐 <span class="highlight">07-11~07-17</span> 一周行业舆情，每条资讯支持「阅读原文」</p>
+                        <span class="activity-tag">功能更新</span>
                     </div>
                 </div>
                 <div class="activity-item">
-                    <div class="activity-time">08:52</div>
+                    <div class="activity-time">07-16</div>
                     <div class="activity-dot"></div>
                     <div class="activity-content">
-                        <p>新工单 <span class="highlight">#WO-2024-0129</span> 已分配至 北京朝阳服务站</p>
-                        <span class="activity-tag">工单分配</span>
+                        <p><span class="highlight">新能源电车市占率看板</span> 上线，覆盖 31 个省级行政区月度渗透率</p>
+                        <span class="activity-tag">数据上线</span>
                     </div>
                 </div>
                 <div class="activity-item">
-                    <div class="activity-time">08:30</div>
+                    <div class="activity-time">07-15</div>
                     <div class="activity-dot"></div>
                     <div class="activity-content">
-                        <p><span class="highlight">库存预警</span>：磷酸铁锂电池模组库存不足，当前剩余 <span class="highlight">3</span> 件</p>
-                        <span class="activity-tag">库存预警</span>
+                        <p>舆情监控日志改版完成，新增风险等级统计与原文来源追踪</p>
+                        <span class="activity-tag">功能更新</span>
                     </div>
                 </div>
                 <div class="activity-item">
-                    <div class="activity-time">昨天</div>
+                    <div class="activity-time">07-10</div>
                     <div class="activity-dot"></div>
                     <div class="activity-content">
-                        <p><span class="highlight">王强</span> 完成了「服务站技术培训」项目里程碑</p>
-                        <span class="activity-tag">项目进展</span>
+                        <p><span class="highlight">员工客服知识库</span> 完成更名，支持本地文件上传与全文检索</p>
+                        <span class="activity-tag">功能上线</span>
                     </div>
                 </div>
             </div>
@@ -1062,22 +1109,22 @@
                 </div>
                 <div class="announcement-item">
                     <div class="announcement-title">
-                        系统升级通知
+                        商点管理系统开发中，敬请期待
                         <span class="new-badge"></span>
                     </div>
-                    <div class="announcement-meta">2024-01-15</div>
+                    <div class="announcement-meta">2026-07-17</div>
                 </div>
                 <div class="announcement-item">
-                    <div class="announcement-title">新增备件条码扫描功能</div>
-                    <div class="announcement-meta">2024-01-12</div>
+                    <div class="announcement-title">新能源电车市占率看板已发布（入口：舆情监控日志）</div>
+                    <div class="announcement-meta">2026-07-16</div>
                 </div>
                 <div class="announcement-item">
-                    <div class="announcement-title">2024年春节期间值班安排</div>
-                    <div class="announcement-meta">2024-01-10</div>
+                    <div class="announcement-title">舆情监控日志已接入行业资讯原文链接</div>
+                    <div class="announcement-meta">2026-07-15</div>
                 </div>
                 <div class="announcement-item">
-                    <div class="announcement-title">工单处理时效考核标准调整</div>
-                    <div class="announcement-meta">2024-01-08</div>
+                    <div class="announcement-title">系统支持本地存储扩容，上传文档不受浏览器容量限制</div>
+                    <div class="announcement-meta">2026-07-10</div>
                 </div>
             </div>
         </section>
@@ -1095,6 +1142,18 @@
             <h3>模块建设中</h3>
             <p>该功能模块正在紧张开发中，<br>预计近期上线，敬请期待！</p>
             <button class="modal-btn" onclick="closeModal()">知道了</button>
+        </div>
+    </div>
+
+    <!-- 钉钉联系弹窗 -->
+    <div class="modal-overlay" id="dingtalkModal">
+        <div class="modal ding-modal">
+            <div class="ding-avatar">👤</div>
+            <h3>系统管理员</h3>
+            <p class="ding-sub">宁家服务数字化运营系统 · 负责人</p>
+            <p class="ding-desc">如遇到系统问题或需要支持，欢迎通过钉钉直接联系我，点击按钮即可打开我的钉钉名片。</p>
+            <a class="ding-btn" href="https://n.dingtalk.com/dingding/dd-card-view/index/index.html?cardId=CARD-SV0-xYiLYOomqGnIJsqp0SsYHqKmf%2BP%2BYzhlwfIHV1a%2BYIw%3D" target="_blank" rel="noopener">💬 在钉钉联系我</a>
+            <button class="modal-btn" onclick="closeDingtalk()">关闭</button>
         </div>
     </div>
 
@@ -1155,6 +1214,28 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeModal();
+                closeDingtalk();
+            }
+        });
+
+        /**
+         * 显示钉钉联系弹窗
+         */
+        function openDingtalk() {
+            document.getElementById('dingtalkModal').classList.add('active');
+        }
+
+        /**
+         * 关闭钉钉联系弹窗
+         */
+        function closeDingtalk() {
+            document.getElementById('dingtalkModal').classList.remove('active');
+        }
+
+        // 点击弹窗背景也可关闭钉钉弹窗
+        document.getElementById('dingtalkModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDingtalk();
             }
         });
     </script>
