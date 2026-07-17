@@ -133,6 +133,12 @@
         }
         .item-cat.risk { background: rgba(231,76,60,0.15); color: #ff6b5b; }
         .item-text { color: var(--text-secondary); }
+        .item-link {
+            flex-shrink: 0; font-size: 12px; color: #6fc0ff; text-decoration: none;
+            padding: 2px 9px; border: 1px solid rgba(79,172,254,0.4); border-radius: 6px;
+            height: fit-content; white-space: nowrap; transition: all .15s;
+        }
+        .item-link:hover { background: rgba(79,172,254,0.18); color: #fff; border-color: #4facfe; }
 
         .log-meta { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--text-muted); }
         .log-meta span { display: inline-flex; align-items: center; gap: 4px; }
@@ -291,7 +297,10 @@
             const itemsHtml = (l.items && l.items.length)
                 ? `<div class="log-items">${l.items.map(it => {
                     const isRisk = /风险|起火|自燃|爆炸|召回|停产|亏损|超标|事故|涨价/.test(it.category || '');
-                    return `<div class="log-item"><span class="item-cat ${isRisk ? 'risk' : ''}">${it.category || '资讯'}</span><span class="item-text">${it.text || ''}</span></div>`;
+                    const link = it.url
+                        ? `<a class="item-link" href="${it.url}" target="_blank" rel="noopener">🔗 阅读原文</a>`
+                        : '';
+                    return `<div class="log-item"><span class="item-cat ${isRisk ? 'risk' : ''}">${it.category || '资讯'}</span><span class="item-text">${it.text || ''}</span>${link}</div>`;
                   }).join('')}</div>`
                 : '';
             return `
