@@ -394,17 +394,6 @@
             z-index: 1;
         }
 
-        .module-card:nth-child(1) .module-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .module-card:nth-child(2) .module-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .module-card:nth-child(3) .module-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .module-card:nth-child(4) .module-icon { background: linear-gradient(135deg, #ffa502 0%, #ff6342 100%); }
-        .module-card:nth-child(5) .module-icon { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
-        .module-card:nth-child(6) .module-icon { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); }
-        .module-card:nth-child(7) .module-icon { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
-        .module-card:nth-child(8) .module-icon { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-.module-card:nth-child(9) .module-icon { background: linear-gradient(135deg, #4facfe 0%, #43e97b 100%); }
-        .module-card:nth-child(10) .module-icon { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
-
         .module-content {
             position: relative;
             z-index: 1;
@@ -812,6 +801,31 @@
         }
         .ding-btn:hover { transform: translateY(-2px); }
         .ding-modal .modal-btn { margin-top: 14px; width: 100%; }
+
+        /* ========== 系统模块分类分组 ========== */
+        .module-group { margin-bottom: 32px; }
+        .module-group:last-child { margin-bottom: 0; }
+        .group-header {
+            display: flex; align-items: center; gap: 14px;
+            margin: 8px 0 16px; padding-bottom: 10px;
+            border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
+        }
+        .group-icon {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 21px; flex-shrink: 0; color: #fff;
+            box-shadow: 0 4px 14px rgba(79,172,254,0.25);
+        }
+        .group-meta { display: flex; flex-direction: column; }
+        .group-title { font-size: 17px; font-weight: 700; color: var(--text-primary); letter-spacing: .3px; }
+        .group-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .group-count {
+            margin-left: auto; align-self: center;
+            font-size: 12px; color: var(--text-secondary);
+            background: var(--card2, rgba(255,255,255,0.06));
+            border: 1px solid var(--border, rgba(255,255,255,0.1));
+            border-radius: 20px; padding: 3px 12px; white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -899,133 +913,170 @@
         <!-- 模块入口区 -->
         <section class="modules-section">
             <h2 class="section-title">系统模块</h2>
-            <div class="modules-grid">
-                <!-- 服务站工单管理系统 - 已上线 -->
-                <div class="module-card" onclick="navigateTo('https://herman-yan.github.io/doc-vault/work-order/')">
-                    <div class="module-icon">🔧</div>
-                    <div class="module-content">
-                        <h3 class="module-title">服务站工单管理系统</h3>
-                        <p class="module-desc">保内/保外工单流转，多站点统一管理，实时追踪处理进度</p>
-                        <div class="module-footer">
-                            <span class="module-status online">已上线</span>
-                            <div class="module-enter">→</div>
+            <!-- 分组一：维修服务核心 -->
+            <div class="module-group">
+                <div class="group-header">
+                    <div class="group-icon" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)">🔧</div>
+                    <div class="group-meta">
+                        <div class="group-title">维修服务核心</div>
+                        <div class="group-desc">工单、技术、备件与返修——新能源电池维修的主业务流</div>
+                    </div>
+                    <span class="group-count">4 个模块</span>
+                </div>
+                <div class="modules-grid">
+                    <!-- 服务站工单管理系统 - 已上线 -->
+                    <div class="module-card" onclick="navigateTo('https://herman-yan.github.io/doc-vault/work-order/')">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)">🔧</div>
+                        <div class="module-content">
+                            <h3 class="module-title">服务站工单管理系统</h3>
+                            <p class="module-desc">保内/保外工单流转，多站点统一管理，实时追踪处理进度</p>
+                            <div class="module-footer">
+                                <span class="module-status online">已上线</span>
+                                <div class="module-enter">→</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 维修技术管理系统 - 建设中 -->
+                    <div class="module-card building" onclick="showBuildingModal()">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)">💡</div>
+                        <div class="module-content">
+                            <h3 class="module-title">维修技术管理系统</h3>
+                            <p class="module-desc">故障案例库、维修手册、技术培训课程管理</p>
+                            <div class="module-footer">
+                                <span class="module-status building">建设中</span>
+                                <div class="module-enter">🔒</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 库存管理系统 - 已上线 -->
+                    <div class="module-card" onclick="navigateTo('https://herman-yan.github.io/doc-vault/warehouse/')">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#ffa502 0%,#ff6342 100%)">📦</div>
+                        <div class="module-content">
+                            <h3 class="module-title">库存管理系统</h3>
+                            <p class="module-desc">工程师订货、库房出入库、旧件回收，物料目录由保外台账与指标清单提炼</p>
+                            <div class="module-footer">
+                                <span class="module-status online">已上线</span>
+                                <div class="module-enter">→</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 返修业务管理系统 - 已上线 -->
+                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/sales-system/')">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%)">💼</div>
+                        <div class="module-content">
+                            <h3 class="module-title">返修业务管理系统</h3>
+                            <p class="module-desc">CTP返修进度追踪，客户资源管理，业务数据分析</p>
+                            <div class="module-footer">
+                                <span class="module-status online">已上线</span>
+                                <div class="module-enter">→</div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- 中央资料管理库 - 已上线 -->
-                <div class="module-card" onclick="navigateTo('https://herman-yan.github.io/doc-vault/docs-vault/')">
-                    <div class="module-icon">📂</div>
-                    <div class="module-content">
-                        <h3 class="module-title">中央资料管理库</h3>
-                        <p class="module-desc">文档分类上传检索，团队共享协作，权限精细管控</p>
-                        <div class="module-footer">
-                            <span class="module-status online">已上线</span>
-                            <div class="module-enter">→</div>
+            <!-- 分组二：客户与经营 -->
+            <div class="module-group">
+                <div class="group-header">
+                    <div class="group-icon" style="background:linear-gradient(135deg,#fa709a 0%,#fee140 100%)">💼</div>
+                    <div class="group-meta">
+                        <div class="group-title">客户与经营</div>
+                        <div class="group-desc">面向客户与市场——增值业务、门店网点与行业舆情</div>
+                    </div>
+                    <span class="group-count">3 个模块</span>
+                </div>
+                <div class="modules-grid">
+                    <!-- 增值业务运营系统 - 已上线 -->
+                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/crm-client-manager/crm_system.html')">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#30cfd0 0%,#330867 100%)">💎</div>
+                        <div class="module-content">
+                            <h3 class="module-title">增值业务运营系统</h3>
+                            <p class="module-desc">客户资源与项目全流程管理，多项目推进状态追踪，业务动态实时提醒</p>
+                            <div class="module-footer">
+                                <span class="module-status online">已上线</span>
+                                <div class="module-enter">→</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商点管理系统 - 建设中 -->
+                    <div class="module-card building" onclick="showBuildingModal()">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#f6d365 0%,#fda085 100%)">🏪</div>
+                        <div class="module-content">
+                            <h3 class="module-title">商点管理系统</h3>
+                            <p class="module-desc">商户网点信息建档、门店分布与经营状态管理，多网点统一运营监控</p>
+                            <div class="module-footer">
+                                <span class="module-status building">建设中</span>
+                                <div class="module-enter">🔒</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 舆情监控日志 - 已上线 -->
+                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/sentiment-log/')">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#fa709a 0%,#fee140 100%)">📡</div>
+                        <div class="module-content">
+                            <h3 class="module-title">舆情监控日志</h3>
+                            <p class="module-desc">每日行业舆情自动汇总，风险预警与来源追踪，结果云端自动存储</p>
+                            <div class="module-footer">
+                                <span class="module-status online">已上线</span>
+                                <div class="module-enter">→</div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- 维修技术管理系统 - 建设中 -->
-                <div class="module-card building" onclick="showBuildingModal()">
-                    <div class="module-icon">💡</div>
-                    <div class="module-content">
-                        <h3 class="module-title">维修技术管理系统</h3>
-                        <p class="module-desc">故障案例库、维修手册、技术培训课程管理</p>
-                        <div class="module-footer">
-                            <span class="module-status building">建设中</span>
-                            <div class="module-enter">🔒</div>
+            <!-- 分组三：知识与协同 -->
+            <div class="module-group">
+                <div class="group-header">
+                    <div class="group-icon" style="background:linear-gradient(135deg,#4facfe 0%,#43e97b 100%)">📚</div>
+                    <div class="group-meta">
+                        <div class="group-title">知识与协同</div>
+                        <div class="group-desc">资料、知识沉淀与项目协同的中后台支撑</div>
+                    </div>
+                    <span class="group-count">3 个模块</span>
+                </div>
+                <div class="modules-grid">
+                    <!-- 中央资料管理库 - 已上线 -->
+                    <div class="module-card" onclick="navigateTo('https://herman-yan.github.io/doc-vault/docs-vault/')">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#a8edea 0%,#fed6e3 100%)">📂</div>
+                        <div class="module-content">
+                            <h3 class="module-title">中央资料管理库</h3>
+                            <p class="module-desc">文档分类上传检索，团队共享协作，权限精细管控</p>
+                            <div class="module-footer">
+                                <span class="module-status online">已上线</span>
+                                <div class="module-enter">→</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- 库存管理系统 - 已上线 -->
-                <div class="module-card" onclick="navigateTo('https://herman-yan.github.io/doc-vault/warehouse/')">
-                    <div class="module-icon">📦</div>
-                    <div class="module-content">
-                        <h3 class="module-title">库存管理系统</h3>
-                        <p class="module-desc">工程师订货、库房出入库、旧件回收，物料目录由保外台账与指标清单提炼</p>
-                        <div class="module-footer">
-                            <span class="module-status online">已上线</span>
-                            <div class="module-enter">→</div>
+                    <!-- 员工客服知识库 - 已上线 -->
+                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/kb-qa/')">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#4facfe 0%,#43e97b 100%)">📚</div>
+                        <div class="module-content">
+                            <h3 class="module-title">员工客服知识库</h3>
+                            <p class="module-desc">团队知识集中管理，全文检索与分类浏览，问答式知识沉淀与协作共享</p>
+                            <div class="module-footer">
+                                <span class="module-status online">已上线</span>
+                                <div class="module-enter">→</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- 项目管理看板 - 已上线 -->
-                <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/project-board/')">
-                    <div class="module-icon">📊</div>
-                    <div class="module-content">
-                        <h3 class="module-title">项目管理看板</h3>
-                        <p class="module-desc">项目进度追踪、任务分配、里程碑管理</p>
-                        <div class="module-footer">
-                            <span class="module-status online">已上线</span>
-                            <div class="module-enter">→</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 返修业务管理系统 - 已上线 -->
-                <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/sales-system/')">
-                    <div class="module-icon">💼</div>
-                    <div class="module-content">
-                        <h3 class="module-title">返修业务管理系统</h3>
-                        <p class="module-desc">CTP返修进度追踪，客户资源管理，业务数据分析</p>
-                        <div class="module-footer">
-                            <span class="module-status online">已上线</span>
-                            <div class="module-enter">→</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 增值业务运营系统 - 已上线 -->
-                <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/crm-client-manager/crm_system.html')">
-                    <div class="module-icon">💎</div>
-                    <div class="module-content">
-                        <h3 class="module-title">增值业务运营系统</h3>
-                        <p class="module-desc">客户资源与项目全流程管理，多项目推进状态追踪，业务动态实时提醒</p>
-                        <div class="module-footer">
-                            <span class="module-status online">已上线</span>
-                            <div class="module-enter">→</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 舆情监控日志 - 已上线 -->
-                <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/sentiment-log/')">
-                    <div class="module-icon">📡</div>
-                    <div class="module-content">
-                        <h3 class="module-title">舆情监控日志</h3>
-                        <p class="module-desc">每日行业舆情自动汇总，风险预警与来源追踪，结果云端自动存储</p>
-                        <div class="module-footer">
-                            <span class="module-status online">已上线</span>
-                            <div class="module-enter">→</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 员工客服知识库 - 已上线 -->
-                <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/kb-qa/')">
-                    <div class="module-icon">📚</div>
-                    <div class="module-content">
-                        <h3 class="module-title">员工客服知识库</h3>
-                        <p class="module-desc">团队知识集中管理，全文检索与分类浏览，问答式知识沉淀与协作共享</p>
-                        <div class="module-footer">
-                            <span class="module-status online">已上线</span>
-                            <div class="module-enter">→</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 商点管理系统 - 建设中 -->
-                <div class="module-card building" onclick="showBuildingModal()">
-                    <div class="module-icon">🏪</div>
-                    <div class="module-content">
-                        <h3 class="module-title">商点管理系统</h3>
-                        <p class="module-desc">商户网点信息建档、门店分布与经营状态管理，多网点统一运营监控</p>
-                        <div class="module-footer">
-                            <span class="module-status building">建设中</span>
-                            <div class="module-enter">🔒</div>
+                    <!-- 项目管理看板 - 已上线 -->
+                    <div class="module-card online" onclick="navigateTo('https://herman-yan.github.io/doc-vault/project-board/')">
+                        <div class="module-icon" style="background:linear-gradient(135deg,#ff9a9e 0%,#fad0c4 100%)">📊</div>
+                        <div class="module-content">
+                            <h3 class="module-title">项目管理看板</h3>
+                            <p class="module-desc">项目进度追踪、任务分配、里程碑管理</p>
+                            <div class="module-footer">
+                                <span class="module-status online">已上线</span>
+                                <div class="module-enter">→</div>
+                            </div>
                         </div>
                     </div>
                 </div>
