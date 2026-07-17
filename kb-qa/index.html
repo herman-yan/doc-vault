@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>团队知识库问答系统 - 宁家服务数字化运营</title>
+    <style>
+        /* ========== 基础重置与主题（与 doc-vault 主站一致） ========== */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: rgba(255,255,255,0.05);
+            --bg-card-hover: rgba(255,255,255,0.08);
+            --border-color: rgba(255,255,255,0.1);
+            --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-secondary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-success: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --gradient-warm: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255,255,255,0.7);
+            --text-muted: rgba(255,255,255,0.5);
+            --glass-bg: rgba(255,255,255,0.05);
+            --glass-border: rgba(255,255,255,0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+            --color-tech: #4facfe;
+            --color-meeting: #f093fb;
+            --color-guide: #43e97b;
+            --color-pdf: #ffa502;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+        }
+        body {
+            font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+            background: var(--bg-primary); color: var(--text-primary); min-height:100vh; line-height:1.6;
+        }
+        a { color: #4facfe; text-decoration:none; }
+        a:hover { text-decoration:underline; }
+
+        /* ========== 背景装饰 ========== */
+        .bg-decoration { position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden; }
+        .bg-orb { position:absolute;border-radius:50%;filter:blur(80px);opacity:.25; }
+        .bg-orb-1 { width:400px;height:400px;background:#4facfe;top:-100px;right:-100px; }
+        .bg-orb-2 { width:300px;height:300px;background:#00f2fe;bottom:10%;left:-50px; }
+        .bg-orb-3 { width:200px;height:200px;background:#667eea;top:50%;right:20%; }
+
+        /* ========== 主容器 ========== */
+        .main-container { position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 32px; }
+
+        /* ========== 顶部导航 ========== */
+        .header { display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:1px solid var(--border-color); }
+        .logo-section { display:flex;align-items:center;gap:14px; }
+        .logo-icon { width:48px;height:48px;background:var(--gradient-primary);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 15px rgba(79,172,254,.4); }
+        .logo-text h1 { font-size:20px;font-weight:600;background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+        .logo-text p { font-size:11px;color:var(--text-muted);margin-top:2px; }
+        .header-right { display:flex;align-items:center;gap:18px; }
+        .header-btn { padding:8px 18px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;color:var(--text-primary);font-size:13px;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:6px; }
+        .header-btn:hover { background:var(--bg-card-hover); border-color:rgba(79,172,254,.3); }
+
+        /* ========== 统计卡片区 ========== */
+        .stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:28px; }
+        .stat-card { background:var(--glass-bg);backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--glass-shadow);position:relative;overflow:hidden;transition:all .3s; }
+        .stat-card::before { content:'';position:absolute;top:0;left:0;right:0;height:3px; }
+        .stat-card:nth-child(1)::before { background:var(--gradient-primary); }
+        .stat-card:nth-child(2)::before { background:var(--gradient-secondary); }
+        .stat-card:nth-child(3)::before { background:var(--gradient-success); }
+        .stat-card:nth-child(4)::before { background:var(--gradient-warm); }
+        .stat-card:hover { transform:translateY(-4px);background:var(--bg-card-hover); }
+        .stat-num { font-size:28px;font-weight:700;margin-bottom:4px; }
+        .stat-label { font-size:12px;color:var(--text-secondary); }
+
+        /* ========== 搜索栏 + 分类筛选 ========== */
+        .toolbar { display:flex;gap:12px;margin-top:24px;align-items:center;flex-wrap:wrap; }
+        .search-box { flex:1;min-width:260px;position:relative; }
+        .search-box input { width:100%;padding:12px 18px 12px 44px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:28px;color:var(--text-primary);font-size:14px;outline:none;transition:all .3s; }
+        .search-box input:focus { border-color:rgba(79,172,254,.5); box-shadow:0 0 0 3px rgba(79,172,254,.15); }
+        .search-box input::placeholder { color:var(--text-muted); }
+        .search-icon { position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;color:var(--text-muted); }
+        .filter-chips { display:flex;gap:8px;flex-wrap:wrap; }
+        .chip { padding:7px 16px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all .25s;border:1px solid transparent;background:var(--glass-bg);color:var(--text-secondary);white-space:nowrap; }
+        .chip:hover { background:var(--bg-card-hover); }
+        .chip.active { background:rgba(79,172,254,.15); color:#4facfe; border-color:rgba(79,172,254,.3); }
+        .chip-all.active { background:rgba(79,172,254,.15); color:#4facfe; border-color:rgba(79,172,254,.3); }
+
+        /* ========== 知识条目列表 ========== */
+        .kb-section { margin-top:24px; }
+        .section-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:16px; }
+        .section-title { font-size:17px;font-weight:600;display:flex;align-items:center;gap:10px; }
+        .section-title::before { content:'';width:4px;height:18px;background:var(--gradient-primary);border-radius:2px; }
+        .result-count { font-size:12px;color:var(--text-muted); }
+        .kb-grid { display:flex;flex-direction:column;gap:14px; }
+        .kb-card { background:var(--glass-bg);backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--glass-shadow);cursor:pointer;transition:all .3s;position:relative;overflow:hidden; }
+        .kb-card:hover { transform:translateX(6px);background:var(--bg-card-hover);border-color:rgba(79,172,254,.2); }
+        .kb-card-header { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px; }
+        .kb-card-type { font-size:11px;padding:3px 10px;border-radius:12px;font-weight:500; }
+        .type-tech { background:rgba(79,172,254,.15);color:#4facfe; }
+        .type-meeting { background:rgba(240,147,251,.15);color:#f093fb; }
+        .type-guide { background:rgba(67,233,123,.15);color:#43e97b; }
+        .type-pdf { background:rgba(255,165,2,.15);color:#ffa502; }
+        .kb-time { font-size:11px;color:var(--text-muted); }
+        .kb-title { font-size:16px;font-weight:600;margin-bottom:8px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+        .kb-snippet { font-size:13px;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5; }
+        .kb-tags { display:flex;gap:6px;margin-top:10px;flex-wrap:wrap; }
+        .kb-tag { font-size:11px;padding:2px 8px;background:rgba(255,255,255,.06);border-radius:4px;color:var(--text-muted); }
+        .kb-meta { display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--text-muted); }
+        .kb-meta span { display:flex;align-items:center;gap:4px; }
+
+        /* ========== 空状态 / 无结果 ========== */
+        .empty-state { text-align:center;padding:60px 20px;color:var(--text-muted); }
+        .empty-icon { font-size:48px;margin-bottom:16px;opacity:.5; }
+        .empty-text { font-size:15px;margin-bottom:8px; }
+        .empty-hint { font-size:12px;opacity:.7; }
+
+        /* ========== 详情弹窗 ========== */
+        .modal-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);z-index:999;display:none;align-items:center;justify-content:center;padding:20px; }
+        .modal-overlay.show { display:flex; }
+        .detail-modal { background:var(--bg-secondary);border:1px solid var(--glass-border);border-radius:var(--radius-xl);max-width:900px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:modalIn .3s ease; }
+        @keyframes modalIn { from{opacity:0;transform:scale(.96) translateY(20px);} to{opacity:1;transform:scale(1) translateY(0);} }
+        .detail-header { display:flex;justify-content:space-between;align-items:center;padding:22px 26px;border-bottom:1px solid var(--border-color);flex-shrink:0; }
+        .detail-header-left { display:flex;align-items:center;gap:12px; }
+        .detail-badge { font-size:11px;padding:4px 12px;border-radius:12px;font-weight:500; }
+        .detail-title { font-size:18px;font-weight:600; }
+        .detail-close { width:36px;height:36px;border-radius:50%;background:var(--glass-bg);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:all .2s;color:var(--text-secondary);flex-shrink:0; }
+        .detail-close:hover { background:rgba(245,87,108,.2); color:#f5576c; border-color:transparent; }
+        .detail-body { padding:26px;overflow-y:auto;flex:1; }
+        .detail-body h2 { font-size:16px;font-weight:600;margin:20px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border-color);color:var(--text-primary); }
+        .detail-body h2:first-child { margin-top:0; }
+        .detail-body h3 { font-size:14px;font-weight:600;margin:16px 0 8px;color:var(--text-secondary); }
+        .detail-body p, .detail-body li { font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:8px; }
+        .detail-body ul, .detail-body ol { padding-left:20px; margin-bottom:12px; }
+        .detail-body li { margin-bottom:4px; }
+        .detail-body code { background:rgba(79,172,254,.12);padding:2px 6px;border-radius:4px;font-size:13px;color:#4facfe; }
+        .detail-body pre { background:rgba(0,0,0,.3);border:1px solid var(--border-color);border-radius:8px;padding:16px;overflow-x:auto;margin:12px 0; }
+        .detail-body pre code { background:none;padding:0;color:var(--text-secondary);font-size:13px;line-height:1.6; }
+        .detail-body table { width:100%;border-collapse:collapse;margin:12px 0;font-size:13px; }
+        .detail-body th, .detail-body td { padding:10px 12px;text-align:left;border:1px solid var(--border-color); }
+        .detail-body th { background:rgba(79,172,254,.1);color:var(--text-primary);font-weight:600; }
+        .detail-body td { color:var(--text-secondary); }
+        .detail-body blockquote { border-left:3px solid #4facfe;padding:10px 16px;margin:12px 0;background:rgba(79,172,254,.05);border-radius:0 8px 8px 0;color:var(--text-secondary);font-style:italic; }
+        .detail-body strong { color:var(--text-primary); }
+        .detail-body hr { border:none;border-top:1px solid var(--border-color);margin:20px 0; }
+        .detail-footer { padding:16px 26px;border-top:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;flex-shrink:0; }
+        .detail-footer-info { font-size:12px;color:var(--text-muted); }
+        .detail-action-btn { padding:8px 20px;background:var(--gradient-primary);border:none;border-radius:20px;color:white;font-size:13px;cursor:pointer;font-weight:500;transition:all .2s; }
+        .detail-action-btn:hover { box-shadow:0 4px 15px rgba(79,172,254,.4); transform:translateY(-1px); }
+
+        /* ========== 返回主站链接 ========== */
+        .back-link { display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .3s;text-decoration:none;margin-bottom:4px; }
+        .back-link:hover { color:var(--text-primary);border-color:rgba(79,172,254,.3); text-decoration:none; }
+
+        /* ========== 响应式 ========== */
+        @media (max-width:768px) {
+            .main-container { padding:0 16px; }
+            .stats-grid, .stats-row { grid-template-columns:repeat(2,1fr); }
+            .header { flex-direction:column;gap:12px; }
+            .toolbar { flex-direction:column; align-items:stretch; }
+            .search-box { min-width:auto; }
+            .filter-chips { justify-content:flex-start; }
+            .detail-modal { max-height:92vh; border-radius:var(--radius-lg); }
+        }
+        @media (max-width:480px) {
+            .stats-row { grid-template-columns:1fr 1fr; gap:10px; }
+            .stat-num { font-size:22px; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-decoration"><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div></div>
+
+<div class="main-container">
+    <header class="header">
+        <div class="logo-section">
+            <a href="../" style="text-decoration:none;"><div class="logo-icon">📚</div></a>
+            <div class="logo-text">
+                <h1>团队知识库问答系统</h1>
+                <p>Team Knowledge Base · 智能检索 · 协作沉淀</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="header-btn" onclick="expandAll()">📂 展开全部</button>
+            <a href="../" class="header-btn">← 返回主站</a>
+        </div>
+    </header>
+
+    <!-- 统计卡片 -->
+    <div class="stats-row">
+        <div class="stat-card"><div class="stat-num" id="totalCount">4</div><div class="stat-label">知识条目总数</div></div>
+        <div class="stat-card"><div class="stat-num" id="qaCount">3</div><div class="stat-label">问答类内容</div></div>
+        <div class="stat-card"><div class="stat-num" id="catCount">4</div><div class="stat-label">分类覆盖</div></div>
+        <div class="stat-card"><div class="stat-num" id="updateTime">今日</div><div class="stat-label">最近更新</div></div>
+    </div>
+
+    <!-- 工具栏：搜索 + 分类 -->
+    <div class="toolbar">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="搜索知识库内容（标题、正文、标签）..." oninput="onSearch()">
+        </div>
+        <div class="filter-chips">
+            <span class="chip chip-all active" onclick="setFilter('all',this)">全部</span>
+            <span class="chip" onclick="setFilter('tech',this)">🔧 技术方案</span>
+            <span class="chip" onclick="setFilter('meeting',this)">📋 会议纪要</span>
+            <span class="chip" onclick="setFilter('guide',this)">📖 使用指南</span>
+            <span class="chip" onclick="setFilter('pdf',this')">📄 文档资料</span>
+        </div>
+    </div>
+
+    <!-- 知识列表 -->
+    <div class="kb-section">
+        <div class="section-header">
+            <h2 class="section-title">知识库内容</h2>
+            <span class="result-count" id="resultCount">共 4 条结果</span>
+        </div>
+        <div class="kb-grid" id="kbGrid"></div>
+    </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeDetail()">
+    <div class="detail-modal" id="detailModal">
+        <div class="detail-header">
+            <div class="detail-header-left">
+                <span class="detail-badge" id="detailBadge"></span>
+                <h2 class="detail-title" id="detailTitle"></h2>
+            </div>
+            <div class="detail-close" onclick="closeDetail()">✕</div>
+        </div>
+        <div class="detail-body" id="detailBody"></div>
+        <div class="detail-footer">
+            <span class="detail-footer-info" id="detailMeta"></span>
+            <button class="detail-action-btn" onclick="copyContent()">📋 复制内容</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========== 知识数据 ==========
+const KB_DATA = [
+{
+    id: 'kb-001',
+    title: '宁德维修拍照小程序设计助手（系统提示词 + 任务指令）',
+    category: 'tech',
+    categoryLabel: '技术方案',
+    timeLabel: '昨天更新',
+    tags: ['小程序设计', '宁德维修', 'System Prompt', 'R1/R2分级维修', '拍照规范'],
+    size: '81KB',
+    introduction: '将维修照片采集标准转化为微信小程序「宁家维修拍照资料库」的落地方案。包含完整的系统提示词（角色设定+领域知识）和任务指令（首次触发词），可直接粘贴到 WorkBuddy/Coze/Dify 等平台使用。覆盖 R1/R2 分级维修、PPT 20 类基础照片标准、Excel 72 项拍摄要求。',
+    content: `## 一、方案背景与依据
+
+### 1. 录音讨论核心
+- 维修分为 **R1（简易维修，如拆底护板/铆钉拉拔）** 与 **R2（复杂维修，如换箱体/铺胶）**，照片要求不同。
+- 小程序需支持：电池号扫码（12/24位自动识别PN）、必填/非必填项控制、离线暂存、内部分类归档、报单员一键导出。
+- 强调"保证数量+必填项"优先，AI识别可作后期增强。
+- 非售后（主机厂）业务需单独备注进出场自拍、工作时长。
+
+### 2. PPT《乘用车市场维修—基础照片》标准
+明确20类基础照片：车牌、铭牌/VIN、里程、电池号、维修前后上位机、故障、新/旧件、空位、扭力漆笔、隔离区、封箱、气密、接插件、外出、进/出场、ABA、充放电等。
+
+### 3. Excel《返修拍摄要求0716》整合表
+划分 **10大工序环节**，共72项拍照点，精确标注R1/R2数量。
+
+---
+
+## 二、小程序总体设计
+
+**名称**：宁家维修拍照资料库（企业微信/微信小程序）
+**目标**：替代手工记录，按工单引导拍照，自动校验必填数量，形成可追溯照片库。
+
+### 核心业务流程
+\`\`\`
+创建工单（输/扫码电池号 → 选售后/非售后 + R1/R2）
+   ↓
+系统生成【个性化拍照清单】（带*为必填，引用PPT示例）
+   ↓
+技师按工序页签拍照（本地缓存 → 联网提交）
+   ↓
+资料库自动归类命名（工单_工序_项目_序号）
+   ↓
+质检员审核（对照标准，高压件触发远程视频）
+   ↓
+通过后报单员导出外呼格式包
+\`\`\`
+
+---
+
+## 三、关键功能模块
+
+### 模块1：智能工单初始化
+- **电池号录入**：支持扫码或手动，自动识别12/24位
+- **业务类型选择**：售后/R1、售后/R2、非售后（主机厂）
+- **清单生成**：调取Excel表，标记必填
+
+### 模块2：引导式拍照上传
+每个拍照项包含：
+- **规范要求**：直接引用PPT红字
+- **示例图**：嵌入正确/错误照片
+- **数量计数器**：R1/R2要求数
+- **相机控件**：自带时间/位置水印
+
+| 工序 | 拍照项（部分） | R1数量 | R2数量 |
+|------|---------------|--------|--------|
+| 来料 | 叉车/电池号/360°视频 | 1/1/1 | 同 |
+| 预检 | 车牌、里程(ODO)、上位机 | 1~8 | 同 |
+| 气密 | 连接照+合格照(PASS) | 前2后2 | 前2后2 |
+| 回装 | 底护板/天体/扭力/漆笔 | 4 | 30(含高压) |
+
+### 模块3：离线缓存与提交
+录音指出"外呼不建单码，需先拍手中" → 小程序支持**草稿箱**
+
+### 模块4：资料库与智能校验
+- **自动命名**：\`{工单号}_{R1/R2}_{工序}_{项目}_{第n张}_{时间戳}.jpg\`
+- **必填拦截**：缺张禁止提交
+- **AI预留接口**：车牌OCR、里程ODO识别
+
+### 模块5：质检闭环
+- **人工质检**：逐张点选"合格/不合格"
+- **远程视频质检**：高压件触发
+- **打回机制**：不合格微信通知补拍
+
+### 角色权限表
+
+| 角色 | 权限 |
+|------|------|
+| 维修技师 | 建单、扫码、按工序拍照上传、暂存草稿 |
+| 报单员 | 从资料库筛选必填照片、导出报单压缩包 |
+| 质检员 | 审核照片规范性（人工+远程视频）、打回重拍 |
+| 管理员 | 维护PPT/Excel标准库、配置R1/R2规则 |
+
+---
+
+## 四、🔧 系统提示词（System Prompt）
+
+> 粘贴至平台的「角色设定 / System Prompt / 指令」栏
+
+\`\`\`text
+你是一名资深汽车动力电池售后数字化产品经理，
+精通宁德时代（CATL）乘用车市场维修规范。
+你的职责是将维修照片采集标准转化为微信小程序
+"宁家维修拍照资料库"的落地设计方案与开发文档。
+
+【强制领域知识库】
+1. 分级维修：R1（简易）、R2（复杂），照片数量严格依据
+   《返修拍摄要求0716》(Excel) 的10大工序72项。
+2. 基础照片20类标准（PPT《乘用车市场维修—基础照片》）。
+3. 录音关键规则：离线暂存、99事件禁拍、气密必填等。
+4. 必填逻辑：电池号、车牌、维修前上位机等缺张禁止提交。
+
+【输出规范】
+- 使用中文结构化Markdown，专业且简洁
+- 涉及数量必须标注R1/R2差异
+- 不偏离上述标准，不臆造非标流程
+\`\`\`
+
+---
+
+## 五、📝 任务指令（Task Instruction）
+
+> 粘贴至平台的「开场白 / 用户任务 / 首条消息」栏
+
+\`\`\`text
+请基于"宁德时代乘用车维修拍照资料库小程序"顶层方案，
+直接产出《小程序详细设计压缩包》，要求：
+
+1. 核心闭环流全流程图
+2. 前端页面清单（至少5个核心页面）
+3. 动态表单JSON样例（来料+预检字段）
+4. 数据库设计（repair_order/photo_record/qc_task三表）
+5. 关键伪代码（电池号12/24位识别 + 99事件禁拍）
+
+请严格引用领域知识库，直接输出文档，勿闲聊。
+\`\`\`
+
+---
+
+## 六、实施分期
+
+- **一期**：照搬Excel清单+PPT示例，做数量校验、离线暂存、人工质检
+- **二期**：加AI识错（车牌歪、里程小计）、远程视频模块
+- **三期**：分析照片数据，反向优化维修SOP`
+},
+{
+    id: 'kb-002',
+    title: '企业增值业务分配与维修激励会议纪要',
+    category: 'meeting',
+    categoryLabel: '会议纪要',
+    timeLabel: '7月13日更新',
+    tags: ['增值业务', '分配原则', '维修激励', '包干制', '合伙人模式', '会议纪要'],
+    size: '51KB',
+    introduction: '内部会议完整纪要，涵盖两大议题：① 渠道部增值业务分配原则宣贯（三大原则+六类业务细则+执行报备要求）② 维修工程师提成调整与"包干制/合伙人"三级激励模型讨论。含脑图索引与核心数据。',
+    content: `# 企业增值业务分配与维修激励会议纪要
+
+## 一、会议概览
+
+- **文档来源**：内部会议录音转写
+- **核心主题**：
+  1. 增值业务分配原则宣贯（渠道部）
+  2. 维修工程师提成调整与"包干制/合伙人"激励模型讨论
+- **关键背景**：企业从"无序拓客"向"规则管控+内部创业"转型
+
+---
+
+## 二、增值业务分配原则宣贯
+
+### 1. 三大基本原则
+
+| 原则 | 要点 |
+|------|------|
+| **赚足优先** | 先依断点分配；同等级竞争同业务时适用能力优先 |
+| **能力优先** | 依执行站反应能力、服务综合实力择优授权 |
+| **区域协同** | 统筹资源，杜绝重复开发、跨区拓客 |
+
+### 2. 六类业务分配细则
+
+| 业务类型 | 核心授权与管控要点 |
+|---------|------------------|
+| **以旧换新-大巴换电延保** | 产业授权+项目授权；跨城市投第三方标受限；强制配C电电池 |
+| **以旧换新-非大巴换电** | 产业授权后全国拓展，无需单项目授权；冲突就近承接 |
+| **保外维修（R2等）** | 城市授权，禁跨城；价格/策略总部统一 |
+| **保险权益及维保** | 不区分区域，全国展业各自发挥（零到一阶段先跑模型） |
+| **代理销售/服务** | 直营站优先，油品限服务站内；大区统管 |
+| **回收业务** | 直营站优先，可跨区域；须国家溯源平台备案 |
+| **教培（社培/校企）** | 省内一家主体，三年一认证 |
+
+### 3. 执行与报备要求
+
+- 接洽客户 **2自然日内** 邮件报备（含项目名、区域、体量等）
+- 大区负责人为辖区第一责任人
+- 严禁超权限、恶性压价、私自回收
+
+### 4. 答疑焦点
+
+- **公交/重卡**：江苏等省网点密，建议"按省划范围"待研议
+- **小众电池建档**：新物料号需工厂共建，约5周起
+- **回收白名单**：须经指定子公司渠道
+
+---
+
+## 三、维修激励与合伙人机制
+
+### 1. 提成政策调整
+
+- 原 C2P返修、保外维修按 **产值阶梯15%-24%** 提
+- 新增 **微面** 按毛利15%提，均叠加计算
+- 人均产值 >1.1万 上浮10%
+
+### 2. 包干制（合伙人）三级模型
+
+| 级别 | 方案 | 提成比例 | 特点 |
+|------|------|---------|------|
+| **初级** | 公司出车，组员承担油费/过路 | 保底+5%（如三万产值多4500元） | 低门槛起步 |
+| **中级（主推）** | 自备车，公司不担保险保养 | **30%-35%** | 月省成本即增收 |
+| **高级** | 公司配危化品运输车 | 维修+运输双份 | 催生自有危品资质 |
+
+> 外部合伙人须建劳动关系，扣10%安全保证金，无客诉次月退
+
+### 3. 落底风险与应对
+
+- **车辆违规**：签协议自负连带责任
+- **质检标准**：拆包全节点拍照（8节点132张），工序内嵌质检
+- **5S管理**：评审推迟，要求下沉实操避"漂亮无落地"
+
+### 4. 核心数据
+
+- 直营站单车月养车成本 **5700元**（含租/险）
+- 自带车过路油费约 **2000元**
+- 现有小组月产值多 **不足3万**
+- 新方案引力在"转心态、卷业务"`
+
+---
+
+## 四、文本脑图（层级索引）
+
+\`\`\`
+# 企业增值业务与维修激励会议总结
+├── 增值业务分配原则宣贯
+│   ├── 会议背景与目的（规避无序拓客）
+│   ├── 三大基本原则（赚足/能力/区域协同）
+│   ├── 六类业务分配细则
+│   ├── 执行与报备要求（2日报备/大区负责）
+│   └── 答疑焦点
+└── 维修激励与合伙人机制讨论
+    ├── 提成政策调整（阶梯+微面+上浮）
+    ├── 包干制三级模型（初级/中级/高级）
+    ├── 落地风险与应对
+    └── 核心数据（5700成本/不足3万产值）
+\`\``
+},
+{
+    id: 'kb-003',
+    title: '会议纪要汇总方法与 ima 知识库导入指南',
+    category: 'guide',
+    categoryLabel: '使用指南',
+    timeLabel: '7月13日更新',
+    tags: ['会议纪要', '知识管理', 'ima导入', 'AI工具', '模板'],
+    size: '51KB',
+    introduction: '涵盖两大实用指南：① 会议纪要汇总的核心方法（会前准备→会中记录→会后整理→审核归档的标准流程与模板）② 将内容添加到 ima 知识库的 5 种方式（PC上传/笔记转入/小程序导入/网页链接/划词收藏）。含主流 AI 纪要工具对比。',
+    content: `# 会议纪要汇总方法与知识库导入指南
+
+---
+
+## 第一部分：会议纪要汇总核心方法
+
+### 1. 核心理念
+
+> 会议纪要是**管理工具**与**决策刀**，而非"录音笔"。核心是捕捉**决策**与**行动**，过滤80%冗余信息。
+
+### 2. 标准文档结构（3+1格式）
+
+| 板块 | 内容要点 |
+|------|---------|
+| **头部（概况）** | 标题、精确时间地点、人员排序、30秒成果概要 |
+| **主体（正文）** | 按议题分块，"会议认为/决定/要求"表述 |
+| **尾部（文尾）** | 督办事项清单 + 参会名单 + 版记 |
+
+### 3. 撰写三步法
+
+**第一步：记录要点**（角色从"记录者"变"提炼者"）
+- 会前摸清"三个底"：议程、上期纪要、名单
+- 会中用"红绿灯法"：绿灯记结论、黄灯记依据、红灯舍弃闲聊
+
+**第二步：提炼精华**（遵循"三去三留"）
+- **去过程留结论、去态度留动作、去模糊留量化**
+
+**第三步：形成决议**（每条必须四要素）
+- ✅ 动作明确、✅ 责任唯一、✅ 时限刚性、✅ 督办闭环
+
+> 每条决议杜绝"相关部门""尽快"等模糊词
+
+### 4. AI工具对比（2026年推荐）
+
+| 工具 | 核心优势 | 适用场景 |
+|------|---------|---------|
+| 讯飞听见会记 | 中文识别率98.7%，5分钟出稿 | 国产标杆 |
+| 飞书妙记 | 实时转录+自动纪要待办 | 飞书生态 |
+| 通义听悟 | 章节脉络提取 | 阿里/钉钉生态 |
+| WPS AI | 转录即文档 | WPS办公闭环 |
+| 腾讯元宝纪要 | 原腾讯会议AI | 腾讯生态 |
+
+---
+
+## 第二部分：如何将内容添加到 ima 知识库
+
+### 方式一：PC端/移动端上传本地文件
+保存为 PDF/DOC/MD/TXT 等 → 打开 ima 知识库 → 点击"+" → 上传文件或拖拽
+
+### 方式二：复制文本通过笔记转入
+新建笔记 → 粘贴内容 → 点击右上角灯泡图标 → "加入知识库"
+
+### 方式三：微信小程序导入
+搜索"ima知识库"小程序 → 导入微信文件/本地相册/拍照
+
+### 方式四：网页链接快捷导入
+点击"+" → "网页链接" → 输入 URL（一次最多10条）
+
+### 方式五：划词或收藏
+浏览器用 ima 打开网页 → 右上角灯泡收藏 / 选中文字 → "加入知识库"
+
+---
+
+## 第三部分：落地建议
+
+1. 将纪要模板复制为 Word/MD 文档拖入 ima
+2. 或直接用笔记功能记录并打标签（如 \`#办公模板\`）
+3. 后续在搜索框输入标签即可唤起知识
+4. 让 AI 辅助生成结构化文稿，完成从对话到沉淀的闭环`
+},
+{
+    id: 'kb-004',
+    title: 'ima 知识库使用指南（官方手册）',
+    category: 'pdf',
+    categoryLabel: '文档资料',
+    timeLabel: '7月11日更新',
+    tags: ['ima知识库', '使用指南', '共享知识库', '微信小程序'],
+    size: '12MB',
+    introduction: 'ima 知识库官方使用指南，覆盖 PC 客户端（ima.copilot）与微信小程序双端操作。内容包括：① 收藏知识搭建第二大脑 ② 标签分类管理 ③ 基于知识库问答获得个性化回答 ④ 共享知识库创建与成员管理 ⑤ 微信小程序快捷导入与跨端查看。',
+    content: `# ima 知识库使用指南
+
+> ima 知识库是你的专属知识空间，包括个人知识库与共享知识库。
+
+---
+
+## 1. 收藏知识，搭建你的第二大脑
+
+### 支持的文件格式
+PDF、Word、PPT、Excel、XMind、Markdown、TXT、音频、图片、HTML 等全格式支持。
+
+### 导入方式
+- **PC客户端**：拖拽文件到窗口内即可快速存入
+- **微信聊天**：长按文件 → "用其他应用打开" → "IMA知识库"
+- **公众号文章**：右上角"..." → "用小程序工具打开" → "IMA知识库"
+- **浏览器插件**：右键 → "网页加入IMA知识库"
+- **新建笔记**：点击左上角"新建个人笔记"，写入内容自动同步
+
+---
+
+## 2. 管理知识，利用标签便捷分类
+
+### 为知识打上标签
+- 更便捷地管理和检索知识
+- 支持多标签交叉定位
+
+### 全文搜索
+在知识库搜索框输入关键词，即可**回溯找寻知识灵感**
+
+---
+
+## 3. 应用知识，获得个性化回答
+
+ima 可以**聚焦于知识库内容**，输出更个性化的回答。
+
+### 两种提问方式：
+1. **自由提问**：输入问题，获取基于个人知识库内容的回答
+2. **标签筛选**：输入 \`#\` 选择标签，获取基于指定标签下内容的回答
+
+> 💡 温故而知新——让知识库成为你的第二大脑
+
+---
+
+## 4. 共享知识，让知识流动起来
+
+### 创建共享知识库
+- 为共享知识库添加专属名称、封面和描述
+- 从个人知识库、本地文件中导入内容
+
+### 分享方式
+- 通过**分享链接**或**二维码**分享给他人
+- 进行**成员管理**，设置内容查看权限
+
+---
+
+## 5. 微信小程序功能
+
+### 快捷导入
+- 批量导入微信聊天中的文件、本地图片
+- 阅读公众号文章时一键存入
+
+### 跨端查看
+- 收藏的内容可在 PC 端、小程序中跨端查看
+- 切换查看个人/共享知识库
+
+### 问问 ima
+- 问全网 or 问知识库，轻松获取答案
+- 基于知识库提问可获得更精准的个性化回答`
+}
+];
+
+// ========== 渲染逻辑 ==========
+let currentFilter = 'all';
+let searchQuery = '';
+
+function renderCards() {
+    const grid = document.getElementById('kbGrid');
+    let items = KB_DATA;
+
+    // 分类过滤
+    if (currentFilter !== 'all') {
+        items = items.filter(i => i.category === currentFilter);
+    }
+
+    // 搜索过滤
+    if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        items = items.filter(i =>
+            i.title.toLowerCase().includes(q) ||
+            i.introduction.toLowerCase().includes(q) ||
+            i.content.toLowerCase().includes(q) ||
+            i.tags.some(t => t.toLowerCase().includes(q))
+        );
+    }
+
+    document.getElementById('resultCount').textContent =
+        searchQuery.trim() ? `找到 ${items.length} 条匹配结果` : `共 ${items.length} 条结果`;
+
+    if (items.length === 0) {
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">未找到匹配的知识条目</div><div class="empty-hint">试试其他关键词或切换分类</div></div>`;
+        return;
+    }
+
+    grid.innerHTML = items.map(item => {
+        const typeClass = 'type-' + item.category;
+        const highlight = searchQuery.trim() ? highlightText(item.introduction, searchQuery) : escapeHtml(item.introduction);
+        return `
+        <div class="kb-card" onclick="openDetail('${item.id}')">
+            <div class="kb-card-header">
+                <span class="kb-card-type ${typeClass}">${item.categoryLabel}</span>
+                <span class="kb-time">${item.timeLabel}</span>
+            </div>
+            <div class="kb-title">${escapeHtml(item.title)}</div>
+            <div class="kb-snippet">${highlight}</div>
+            <div class="kb-tags">${item.tags.map(t => '<span class="kb-tag">'+escapeHtml(t)+'</span>').join('')}</div>
+            <div class="kb-meta">
+                <span>📄 ${item.size}</span>
+                <span>🏷️ ${item.tags.length} 个标签</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function highlightText(text, query) {
+    if (!query.trim()) return escapeHtml(text);
+    const escaped = escapeHtml(text);
+    const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(${q})`, 'gi');
+    return escaped.replace(re, '<mark style="background:rgba(79,172,254,.3);color:#fff;padding:0 2px;border-radius:2px;">$1</mark>');
+}
+
+function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+// ========== 交互 ==========
+
+function setFilter(cat, el) {
+    currentFilter = cat;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderCards();
+}
+
+function onSearch() {
+    searchQuery = document.getElementById('searchInput').value;
+    renderCards();
+}
+
+function openDetail(id) {
+    const item = KB_DATA.find(k => k.id === id);
+    if (!item) return;
+
+    const typeClass = 'type-' + item.category;
+    document.getElementById('detailBadge').className = 'detail-badge ' + typeClass;
+    document.getElementById('detailBadge').textContent = item.categoryLabel;
+    document.getElementById('detailTitle').textContent = item.title;
+    document.getElementById('detailBody').innerHTML = mdToHtml(item.content);
+    document.getElementById('detailMeta').textContent = `${item.timeLabel} · ${item.size} · ${item.tags.join(' / ')}`;
+    document.getElementById('modalOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function copyContent() {
+    const item = KB_DATA.find(k => k.title === document.getElementById('detailTitle').textContent);
+    if (!item) return;
+    navigator.clipboard.writeText(item.content).then(() => {
+        const btn = document.querySelector('.detail-action-btn');
+        btn.textContent = '✅ 已复制';
+        setTimeout(() => btn.textContent = '📋 复制内容', 2000);
+    });
+}
+
+function expandAll() {
+    // 切换到全部并清除搜索
+    currentFilter = 'all';
+    searchQuery = '';
+    document.getElementById('searchInput').value = '';
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('.chip-all').classList.add('active');
+    renderCards();
+}
+
+// ESC 关闭弹窗
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+// ========== 简易 Markdown → HTML 转换 ==========
+function mdToHtml(md) {
+    let html = escapeHtml(md);
+    // code blocks
+    html = html.replace(/\`\`\`(\w*)\n([\s\S]*?)\`\`\`/g, (m, lang, code) =>
+        '<pre><code class="lang-'+lang+'">'+code+'</code></pre>');
+    // inline code
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // headings
+    html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h2>$1</h2>');
+    // bold & italic
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // hr
+    html = html.replace(/^---$/gm, '<hr>');
+    // blockquote
+    html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+    // tables
+    html = html.replace(/^\|(.+)\|$/gm, (m, row) => {
+        const cells = row.split('|').map(c => c.trim());
+        if (cells.every(c => /^[-:]+$/.test(c))) return ''; // skip separator
+        const tag = cells[0] && /^[^|]*$/.test(row) ? 'th' : 'td';
+        return '<tr>' + cells.map(c => '<'+tag+'>'+c+'</'+tag+'>').join('') + '</tr>';
+    });
+    // wrap consecutive <tr> in <table>
+    html = html.replace(/(<tr>[\s\S]*?<\/tr>(?:\s*<tr>[\s\S]*?<\/tr>)*)/g, '<table>$1</table>');
+    // ul/ol
+    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>');
+    html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+    // paragraphs
+    html = html.replace(/^(?!<[hublop]|<\/|\s)(.+)$/gm, '<p>$1</p>');
+    // clean empty
+    html = html.replace(/<p>\s*<\/p>/g, '');
+    return html;
+}
+
+// ========== 初始化 ==========
+renderCards();
+</script>
+</body>
+</html>
