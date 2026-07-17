@@ -3436,6 +3436,18 @@ function handleExcelUpload(input) {
 // ===== 客户维度看板（保外业务） =====
 let kbSearch='', kbContact='', kbCity='', kbStatus='', kbPType='';
 
+// 解析保外工单中的最新更新日期（取 requestDate / repairDoneDate / invoiceDate / receivableDate 的最大值）
+function bwParseDate(s) {
+  if (!s) return null;
+  const m = String(s).match(/(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})/);
+  if (!m) return null;
+  return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+}
+function bwLatestDate(o) {
+  const ds = [o.requestDate, o.repairDoneDate, o.invoiceDate, o.receivableDate].map(bwParseDate).filter(Boolean);
+  return ds.length ? ds.reduce((a,b)=> a>b?a:b) : null;
+}
+
 function kbFiltered() {
   const all = APP.baoWaiOrders || [];
   return all.filter(o => {
@@ -3445,7 +3457,7 @@ function kbFiltered() {
     if (kbPType && (o.productType||'')!==kbPType) return false;
     if (kbSearch) {
       const t = kbSearch.toLowerCase();
-      const hay = ((o.signedCustomer||'')+(o.customerName||'')+(o.plateNumber||'')+(o.pn||'')).toLowerCase();
+      const hay = ((o.signedCustomer||'')+(o.customerName||'')+(o.customerPhone||'')+(o.plateNumber||'')+(o.pn||'')).toLowerCase();
       if (!hay.includes(t)) return false;
     }
     return true;
@@ -3473,6 +3485,9 @@ function kbAggregate(filtered) {
       city: mostCommon(os.map(o=>o.city)),
       contact: mostCommon(os.map(o=>o.contactPerson)),
       statusDist,
+      customers: [...new Set(os.map(o=>o.customerName).filter(Boolean))],
+      phones: [...new Set(os.map(o=>o.customerPhone).filter(Boolean))],
+      lastUpdate: (() => { let mx=null; os.forEach(o=>{const d=bwLatestDate(o); if(d&&(mx===null||d>mx))mx=d;}); return mx; })(),
     };
   }).sort((a,b)=>b.quoteTotal-a.quoteTotal);
 }
@@ -3498,32 +3513,38 @@ function kbInner() {
       <div class="stat-card"><div class="stat-number" style="color:${tProfit>=0?'var(--success)':'#dc2626'}">¥${fmt(tProfit)}</div><div class="stat-label">毛利</div></div>
     </div>
     <div class="card" style="padding:0">
-      <div class="table-wrap"><table style="table-layout:fixed;width:100%">
+      <div class="table-wrap"><table style="table-layout:fixed;width:100%;min-width:1180px">
         <thead><tr>
-          <th style="width:20%">签约客户</th>
-          <th style="width:8%">城市</th>
-          <th style="width:8%">对接人</th>
-          <th style="width:7%">工单数</th>
-          <th style="width:14%">报价总额</th>
-          <th style="width:14%">已回款</th>
-          <th style="width:14%">未回款</th>
-          <th style="width:13%">毛利</th>
-          <th style="width:6%">操作</th>
+          <th style="width:15%">签约客户</th>
+          <th style="width:11%">客户姓名</th>
+          <th style="width:10%">客户电话</th>
+          <th style="width:6%">城市</th>
+          <th style="width:7%">对接人</th>
+          <th style="width:6%">工单数</th>
+          <th style="width:11%">最新更新</th>
+          <th style="width:11%">报价总额</th>
+          <th style="width:11%">已回款</th>
+          <th style="width:11%">未回款</th>
+          <th style="width:11%">毛利</th>
+          <th style="width:5%">操作</th>
         </tr></thead>
         <tbody>
           ${rows.length ? rows.map(r => `
             <tr style="cursor:pointer" onclick="viewBaoWaiCustomer('${esc(r.name)}')">
               <td style="font-weight:600">${esc(r.name)}${r.statusDist['维修中']?`<span class="badge badge-yellow" style="margin-left:6px">${r.statusDist['维修中']}在修</span>`:''}</td>
+              <td>${r.customers.length ? esc(r.customers[0])+(r.customers.length>1?` <span class="badge badge-gray">+${r.customers.length-1}</span>`:'') : '—'}</td>
+              <td>${r.phones.length ? esc(r.phones[0])+(r.phones.length>1?` <span class="badge badge-gray">+${r.phones.length-1}</span>`:'') : '—'}</td>
               <td>${esc(r.city||'-')}</td>
               <td>${esc(r.contact||'-')}</td>
               <td>${r.count}</td>
+              <td>${r.lastUpdate||'—'}</td>
               <td>¥${fmt(r.quoteTotal)}</td>
               <td style="color:var(--success)">¥${fmt(r.received)}</td>
               <td style="color:var(--warning)">¥${fmt(r.unreceived)}</td>
               <td style="color:${r.grossProfit>=0?'var(--success)':'#dc2626'}">¥${fmt(r.grossProfit)}</td>
               <td><button class="btn btn-sm btn-primary" onclick="event.stopPropagation();viewBaoWaiCustomer('${esc(r.name)}')">明细</button></td>
             </tr>
-          `).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-secondary);padding:40px">暂无保外工单数据</td></tr>'}
+          `).join('') : '<tr><td colspan="12" style="text-align:center;color:var(--text-secondary);padding:40px">暂无保外工单数据</td></tr>'}
         </tbody>
       </table></div>
     </div>`;
@@ -3571,7 +3592,7 @@ function viewBaoWaiCustomer(name) {
       <div class="detail-header">
         <div>
           <div style="font-size:18px;font-weight:700">${esc(name)}</div>
-          <div style="font-size:13px;color:var(--text-secondary)">${orders.length} 笔保外工单 · 城市 ${esc(mostCommon(orders.map(o=>o.city))||'-')} · 对接人 ${esc(mostCommon(orders.map(o=>o.contactPerson))||'-')}</div>
+          <div style="font-size:13px;color:var(--text-secondary)">${orders.length} 笔保外工单 · 涉及客户 ${[...new Set(orders.map(o=>o.customerName).filter(Boolean))].length||orders.length} 位 · 城市 ${esc(mostCommon(orders.map(o=>o.city))||'-')} · 对接人 ${esc(mostCommon(orders.map(o=>o.contactPerson))||'-')}</div>
         </div>
         <div style="margin-left:auto;display:flex;gap:14px;text-align:right">
           <div><div style="font-size:11px;color:var(--text-secondary)">报价总额</div><div style="font-size:16px;font-weight:700">¥${fmt(sum('quoteTotal'))}</div></div>
@@ -3583,15 +3604,18 @@ function viewBaoWaiCustomer(name) {
       <div class="detail-section">
         <div class="detail-section-title">📦 保外工单明细 (${orders.length})</div>
         <div class="table-wrap"><table>
-          <thead><tr><th>月份</th><th>车牌</th><th>车架号</th><th>PN</th><th>项目/需求</th><th>状态</th><th>报价</th><th>已回款</th><th>维修人</th></tr></thead>
+          <thead><tr><th>月份</th><th>客户姓名</th><th>客户电话</th><th>车牌</th><th>车架号</th><th>PN</th><th>项目/需求</th><th>状态</th><th>最新更新</th><th>报价</th><th>已回款</th><th>维修人</th></tr></thead>
           <tbody>
             ${orders.map(o => `<tr>
               <td>${o.month||'-'}月</td>
+              <td>${esc(o.customerName||'-')}</td>
+              <td>${esc(o.customerPhone||'-')}</td>
               <td>${esc(o.plateNumber||'-')}</td>
               <td style="font-size:11px">${esc(o.vin||'-')}</td>
               <td>${esc(o.pn||'-')}</td>
               <td>${esc(o.repairDesc||o.projectType||'-')}</td>
               <td>${esc(o.repairStatus||'-')}</td>
+              <td>${bwLatestDate(o)||'-'}</td>
               <td>¥${fmt(o.quoteTotal)}</td>
               <td>¥${fmt(o.received)}</td>
               <td>${esc(o.engineer||'-')}</td>
@@ -3609,16 +3633,16 @@ function viewBaoWaiCustomer(name) {
 
 function exportKanbanCSV() {
   const rows = kbAggregate(kbFiltered());
-  const headers = ['签约客户','城市','对接人','工单数','报价总额','已回款','未回款','毛利'];
-  const data = rows.map(r => [r.name, r.city||'', r.contact||'', r.count, r.quoteTotal.toFixed(2), r.received.toFixed(2), r.unreceived.toFixed(2), r.grossProfit.toFixed(2)]);
+  const headers = ['签约客户','客户姓名','客户电话','城市','对接人','工单数','最新更新','报价总额','已回款','未回款','毛利'];
+  const data = rows.map(r => [r.name, r.customers.join('/'), r.phones.join('/'), r.city||'', r.contact||'', r.count, r.lastUpdate||'', r.quoteTotal.toFixed(2), r.received.toFixed(2), r.unreceived.toFixed(2), r.grossProfit.toFixed(2)]);
   const csv = '﻿' + [headers.join(','), ...data.map(r => r.map(c => `"${String(c==null?'':c).replace(/"/g,'""')}"`).join(','))].join('\n');
   downloadCSV(csv, `保外客户看板_${todayStr()}.csv`);
 }
 
 function exportBaoWaiDetailCSV() {
   const all = kbFiltered();
-  const headers = ['月份','签约客户','城市','对接人','客户姓名','车牌','车架号','PN','产品类型','项目类型','维修状态','需求描述','维修工程师','报价总额','已回款','未回款','开票金额','毛利'];
-  const data = all.map(o => [o.month, o.signedCustomer, o.city, o.contactPerson, o.customerName, o.plateNumber, o.vin, o.pn, o.productType, o.projectType, o.repairStatus, o.repairDesc, o.engineer, (o.quoteTotal||0).toFixed(2), (o.received||0).toFixed(2), (o.unreceived||0).toFixed(2), (o.invoiceAmount||0).toFixed(2), (o.grossProfit||0).toFixed(2)]);
+  const headers = ['月份','签约客户','城市','对接人','客户姓名','客户电话','车牌','车架号','PN','产品类型','项目类型','维修状态','需求描述','最新更新','维修工程师','报价总额','已回款','未回款','开票金额','毛利'];
+  const data = all.map(o => [o.month, o.signedCustomer, o.city, o.contactPerson, o.customerName, o.customerPhone, o.plateNumber, o.vin, o.pn, o.productType, o.projectType, o.repairStatus, o.repairDesc, bwLatestDate(o)||'', o.engineer, (o.quoteTotal||0).toFixed(2), (o.received||0).toFixed(2), (o.unreceived||0).toFixed(2), (o.invoiceAmount||0).toFixed(2), (o.grossProfit||0).toFixed(2)]);
   const csv = '﻿' + [headers.join(','), ...data.map(r => r.map(c => `"${String(c==null?'':c).replace(/"/g,'""')}"`).join(','))].join('\n');
   downloadCSV(csv, `保外工单明细_${todayStr()}.csv`);
 }
