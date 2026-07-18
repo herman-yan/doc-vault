@@ -1823,18 +1823,18 @@ function detectSheetType(headers) {
 function mapRow(rawRow, columnMap, defaults) {
   const obj = {...defaults};
   for (const [cnHeader, jsKey] of Object.entries(columnMap)) {
-    if (rawRow[cnHeader] !== undefined && rawRow[cnHeader] !== null) {
-      let val = rawRow[cnHeader];
-      if (val instanceof Date) {
-        const y = val.getFullYear();
-        const m = String(val.getMonth()+1).padStart(2,'0');
-        const d = String(val.getDate()).padStart(2,'0');
-        val = `${y}-${m}-${d}`;
-      } else {
-        val = String(val).trim();
-      }
-      obj[jsKey] = val;
+    if (rawRow[cnHeader] === undefined || rawRow[cnHeader] === null) continue;
+    let val = rawRow[cnHeader];
+    if (val instanceof Date) {
+      const y = val.getFullYear();
+      const m = String(val.getMonth()+1).padStart(2,'0');
+      const d = String(val.getDate()).padStart(2,'0');
+      val = `${y}-${m}-${d}`;
+    } else {
+      val = String(val).trim();
+      if (val === '') continue;   // 空单元格保留默认值，避免覆盖 0 / 0.0 等
     }
+    obj[jsKey] = val;
   }
   return obj;
 }
