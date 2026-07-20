@@ -3700,6 +3700,8 @@ function renderKanban() {
       <div style="display:flex;gap:10px">
         <button class="btn btn-primary" onclick="exportKanbanCSV()">📤 导出看板 CSV</button>
         <button class="btn btn-outline" onclick="exportBaoWaiDetailCSV()">导出工单明细</button>
+        <button class="btn btn-outline" onclick="document.getElementById('baoWaiExcelInput').click()" title="上传保外业务 Excel，自动对比增量并更新">📥 上传Excel</button>
+        <input type="file" id="baoWaiExcelInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="importBaoWaiExcel(this)">
       </div>
     </div>
     <div class="filter-bar">
@@ -3816,6 +3818,245 @@ function downloadCSV(csv, filename) {
   setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
+/* ===== 保外业务 Excel 上传 + 增量对比更新 ===== */
+const BW_COLUMN_MAP = {
+  '月份':'month', '签约客户':'signedCustomer', '客户姓名':'customerName',
+  '客户电话':'customerPhone', '城市':'city', '对接人':'contactPerson',
+  '车牌':'plateNumber', '车架号':'vin', 'PN':'pn', '产品类型':'productType',
+  '项目类型':'projectType', '维修状态':'repairStatus', '需求描述':'repairDesc',
+  '维修工程师':'engineer', '报价总额':'quoteTotal', '已回款':'received',
+  '未回款':'unreceived', '开票金额':'invoiceAmount', '毛利':'grossProfit',
+  '请求时间':'requestDate', '维修完成时间':'repairDoneDate',
+  '开票时间':'invoiceDate', '应收时间':'receivableDate'
+};
+const BW_NUMERIC = ['month','quoteTotal','received','unreceived','invoiceAmount','grossProfit'];
+const BW_DATE_FIELDS = ['requestDate','repairDoneDate','invoiceDate','receivableDate'];
+
+// 复合匹配键：优先车架号，其次 车牌+客户，再次 车牌+门店，再次 客户+PN，再次 门店+客户+月份
+function bwNormKey(o) {
+  const signed = (o.signedCustomer||'').trim();
+  const month = (o.month||'').toString().trim();
+  const cust = (o.customerName||'').trim();
+  const plate = (o.plateNumber||'').trim();
+  const vin = (o.vin||'').trim();
+  const pn = (o.pn||'').trim();
+  if (vin) return 'V:'+vin;
+  if (plate && cust) return 'P:'+plate+'|C:'+cust;
+  if (plate && signed) return 'P:'+plate+'|S:'+signed;
+  if (cust && pn) return 'C:'+cust+'|PN:'+pn;
+  if (signed && cust && month) return 'S:'+signed+'|C:'+cust+'|M:'+month;
+  return 'S:'+signed+'|C:'+cust+'|P:'+plate;
+}
+
+function bwFmtDate(val) {
+  if (val === null || val === undefined || val === '') return '';
+  if (val instanceof Date) {
+    const y = val.getFullYear();
+    const m = String(val.getMonth()+1).padStart(2,'0');
+    const d = String(val.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  return String(val).trim();
+}
+
+function mapBaoWaiRow(rawRow) {
+  const obj = {};
+  for (const [cnHeader, jsKey] of Object.entries(BW_COLUMN_MAP)) {
+    let val = rawRow[cnHeader];
+    if (val === undefined || val === null) continue;
+    val = bwFmtDate(val);
+    if (val === '') continue; // 空值不覆盖
+    if (BW_NUMERIC.includes(jsKey)) {
+      const n = parseFloat(String(val).replace(/[,，¥￥\s]/g,''));
+      obj[jsKey] = isNaN(n) ? val : n;
+    } else {
+      obj[jsKey] = val;
+    }
+  }
+  return obj;
+}
+
+function detectBaoWaiSheet(headers) {
+  const keys = ['签约客户','客户姓名','车架号','车牌','PN','对接人','维修状态'];
+  let score = 0;
+  headers.forEach(h => { if (keys.includes(h.trim())) score++; });
+  return score >= 2;
+}
+
+function importBaoWaiExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type:'array', cellDates:true});
+      let parsed = [];
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        let jsonData = XLSX.utils.sheet_to_json(sheet, {defval:''});
+        if (!jsonData.length) continue;
+        let headers = Object.keys(jsonData[0]);
+        // 标题行探测：前 5 行内有表头则重解析
+        if (!detectBaoWaiSheet(headers)) {
+          let hr = -1;
+          for (let i=0; i<Math.min(5, jsonData.length); i++) {
+            if (detectBaoWaiSheet(Object.keys(jsonData[i]))) { hr = i; break; }
+          }
+          if (hr === -1) {
+            const range = XLSX.utils.decode_range(sheet['!ref']||'A1');
+            for (let r=range.s.r; r<=Math.min(range.s.r+5, range.e.r); r++) {
+              const rh=[];
+              for (let c=range.s.c; c<=range.e.c; c++) {
+                const cell = sheet[XLSX.utils.encode_cell({r,c})];
+                if (cell && cell.v) rh.push(String(cell.v).trim());
+              }
+              if (detectBaoWaiSheet(rh)) {
+                const raw = XLSX.utils.sheet_to_json(sheet, {defval:'', header:1, raw:false});
+                const headerRow = raw[r];
+                jsonData = raw.slice(r+1).map(row => { const o={}; headerRow.forEach((h,idx)=>{ if(h&&row[idx]!==undefined) o[h]=row[idx]; }); return o; });
+                headers = headerRow.map(h=>String(h).trim());
+                break;
+              }
+            }
+          } else {
+            const raw = XLSX.utils.sheet_to_json(sheet, {defval:'', header:1, raw:false});
+            const headerRow = raw[hr];
+            jsonData = raw.slice(hr+1).map(row => { const o={}; headerRow.forEach((h,idx)=>{ if(h&&row[idx]!==undefined) o[h]=row[idx]; }); return o; });
+            headers = headerRow.map(h=>String(h).trim());
+          }
+        }
+        if (!detectBaoWaiSheet(headers)) continue;
+        jsonData.forEach(row => {
+          const m = mapBaoWaiRow(row);
+          if (!m.signedCustomer && !m.customerName && !m.vin && !m.plateNumber) return; // 跳过空白行
+          parsed.push(m);
+        });
+      }
+      if (!parsed.length) {
+        alert('未在 Excel 中识别到保外业务数据（需要含「签约客户/客户姓名/车架号/车牌」等列）。');
+        input.value = '';
+        return;
+      }
+      // 增量对比
+      const existing = APP.baoWaiOrders || [];
+      const existMap = new Map();
+      existing.forEach(o => { const k = bwNormKey(o); if (!existMap.has(k)) existMap.set(k, o); });
+      const diff = { added: [], updated: [], unchanged: 0 };
+      const skipKeys = new Set();
+      parsed.forEach(p => {
+        const k = bwNormKey(p);
+        const ex = existMap.get(k);
+        if (!ex) {
+          diff.added.push(p);
+        } else if (skipKeys.has(k)) {
+          diff.unchanged++;
+        } else {
+          // 逐字段比较
+          const changes = [];
+          for (const f of Object.keys(p)) {
+            const nv = p[f]; const ov = ex[f];
+            if (nv === '' || nv === undefined || nv === null) continue;
+            if (String(ov||'') !== String(nv)) {
+              changes.push({ field: f, from: ov===''||ov===undefined?'（空）':ov, to: nv });
+            }
+          }
+          if (changes.length) { diff.updated.push({ key:k, rec:ex, changes, src:p }); skipKeys.add(k); }
+          else diff.unchanged++;
+        }
+      });
+      showBaoWaiPreview(parsed, diff, input);
+    } catch (err) {
+      alert('Excel 解析失败：' + err.message);
+      console.error(err);
+    }
+    input.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showBaoWaiPreview(parsed, diff, input) {
+  const labelOf = f => (Object.entries(BW_COLUMN_MAP).find(([k,v])=>v===f)||[f])[0];
+  const head = `
+    <div class="modal-header">
+      <div class="modal-title">📥 增量对比结果</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section">
+        <div class="detail-section-title">📊 对比概览（共解析 ${parsed.length} 行）</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 4px">
+          <span class="badge badge-green">新增 ${diff.added.length}</span>
+          <span class="badge badge-blue">更新 ${diff.updated.length}</span>
+          <span class="badge badge-gray">无变化 ${diff.unchanged}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">匹配规则：车架号 > 车牌+客户 > 车牌+门店 > 客户+PN > 门店+客户+月份。仅用 Excel 中的非空值补全/覆盖已有数据。</div>
+      </div>`;
+  let body = '';
+  if (diff.added.length) {
+    body += `<div class="detail-section"><div class="detail-section-title">➕ 将新增 ${diff.added.length} 条</div><div class="table-wrap"><table><thead><tr><th>签约客户</th><th>客户</th><th>车牌</th><th>车架号</th><th>PN</th><th>状态</th></tr></thead><tbody>${
+      diff.added.slice(0,30).map(o=>`<tr><td>${esc(o.signedCustomer||'-')}</td><td>${esc(o.customerName||'-')}</td><td>${esc(o.plateNumber||'-')}</td><td style="font-size:11px">${esc(o.vin||'-')}</td><td>${esc(o.pn||'-')}</td><td>${esc(o.repairStatus||'-')}</td></tr>`).join('')
+    }${diff.added.length>30?`<tr><td colspan="6" style="text-align:center;color:var(--text-secondary)">… 其余 ${diff.added.length-30} 条省略</td></tr>`:''}</tbody></table></div></div>`;
+  }
+  if (diff.updated.length) {
+    body += `<div class="detail-section"><div class="detail-section-title">✏️ 将更新 ${diff.updated.length} 条</div><div style="max-height:300px;overflow:auto">${
+      diff.updated.slice(0,40).map(u=>`<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:8px"><div style="font-weight:600;font-size:13px;margin-bottom:4px">${esc(u.rec.signedCustomer||u.rec.customerName||u.key)}</div>${
+        u.changes.map(c=>`<div style="font-size:12px;display:flex;gap:6px;align-items:center"><span style="color:var(--text-secondary);min-width:90px">${esc(labelOf(c.field))}</span><span style="text-decoration:line-through;color:#c0392b">${esc(String(c.from))}</span><span>→</span><span style="color:var(--success);font-weight:600">${esc(String(c.to))}</span></div>`).join('')
+      }</div>`).join('')
+    }${diff.updated.length>40?`<div style="text-align:center;color:var(--text-secondary);font-size:12px">… 其余 ${diff.updated.length-40} 条省略</div>`:''}</div></div>`;
+  }
+  if (!diff.added.length && !diff.updated.length) {
+    body = `<div class="card" style="text-align:center;color:var(--text-secondary);padding:30px">Excel 数据与现有记录完全一致，无需更新 ✅</div>`;
+  }
+  const foot = `
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="applyBaoWaiImport(${diff.added.length}, ${diff.updated.length})">确认更新（新增 ${diff.added.length} / 覆盖 ${diff.updated.length}）</button>
+    </div>`;
+  // 暂存到全局供确认时使用
+  window._bwDiff = { parsed, diff };
+  showModal(head + body + foot);
+}
+
+function applyBaoWaiImport() {
+  const stash = window._bwDiff;
+  if (!stash) { closeModal(); return; }
+  const { parsed, diff } = stash;
+  const existing = APP.baoWaiOrders || [];
+  // 应用更新
+  const existMap = new Map();
+  existing.forEach(o => { const k = bwNormKey(o); if (!existMap.has(k)) existMap.set(k, o); });
+  diff.updated.forEach(u => {
+    const ex = existMap.get(u.key);
+    if (!ex) return;
+    u.changes.forEach(c => { ex[c.field] = u.src[c.field]; });
+  });
+  // 新增
+  if (diff.added.length) {
+    // 计算各月最大 seq
+    const maxSeq = {};
+    existing.forEach(o => { const m = o.month; const s = parseInt(o.seq)||0; if (!maxSeq[m] || s>maxSeq[m]) maxSeq[m]=s; });
+    diff.added.forEach(a => {
+      const m = a.month || (existing.length?existing[existing.length-1].month:1);
+      maxSeq[m] = (maxSeq[m]||0) + 1;
+      const rec = Object.assign({
+        seq: String(maxSeq[m]), workOrderNo:'无', productType:a.productType||'', projectType:a.projectType||'',
+        repairDesc:a.repairDesc||'', engineer:a.engineer||'', quoteReceivable:0, partsSales:0, laborFee:0,
+        partsCost:0, logisticsFee:0, logisticsPaid:'无', logisticsInvoice:'无', profitShare:0,
+        repairArea:'', receivableDate:'', payMethod:'', payStatus:'无', grossMargin:0, paidToCATL:'',
+        catlInvoice:'', review:'', remark:'', quoteTotal:0, received:0, unreceived:0, invoiceAmount:0, grossProfit:0
+      }, a);
+      rec.month = rec.month || m;
+      existing.push(rec);
+    });
+  }
+  APP.baoWaiOrders = existing;
+  saveData(APP);
+  window._bwDiff = null;
+  closeModal();
+  renderPage();
+  alert(`✅ 更新完成：新增 ${diff.added.length} 条，更新 ${diff.updated.length} 条，无变化 ${diff.unchanged} 条`);
+}
 
 function renderExport() {
   return `
