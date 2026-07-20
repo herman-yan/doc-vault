@@ -304,7 +304,6 @@ tbody tr:nth-child(even) { background: #fbfcfd; }
   .sidebar, .btn, .filter-bar, .pipeline, .type-tabs, .year-tabs { display: none !important; }
   .main { margin-left: 0; }
 }
-
 /* ===== 浮动新增按钮（与项目看板风格一致） ===== */
 .fab-add {
   position: fixed;
@@ -373,9 +372,9 @@ tbody tr:nth-child(even) { background: #fbfcfd; }
     <div class="nav-item" data-page="repair" onclick="switchPage('repair')">
       <span class="icon">🔧</span><span>返修进度管理</span><span class="nav-badge" id="nav-badge-repair">0</span>
     </div>
-    <div class="nav-section">客户管理</div>
+    <div class="nav-section">车型与配置</div>
     <div class="nav-item" data-page="crm" onclick="switchPage('crm')">
-      <span class="icon">👥</span><span>客户资源管理</span><span class="nav-badge" id="nav-badge-crm">0</span>
+      <span class="icon">🚗</span><span>宁德时代车型/电池配置</span><span class="nav-badge" id="nav-badge-crm">0</span>
     </div>
     <div class="nav-item" data-page="kanban" onclick="switchPage('kanban')">
       <span class="icon">📈</span><span>客户维度看板</span><span class="nav-badge" id="nav-badge-kanban">0</span>
@@ -2630,7 +2629,7 @@ function renderCRM() {
   
   return `
     <div class="page-header">
-      <div><div class="page-title">客户资源管理</div></div>
+      <div><div class="page-title">宁德时代车型/电池配置总览</div></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="btn btn-outline" onclick="importStores()" title="把《宁德时代电池车型北京门店明细》合并进资料库">📥 导入宁德门店</button>
         <div class="view-toggle">
@@ -2994,7 +2993,7 @@ function filterCRMBattery(b) { crmFilterBattery = b; renderCRMResults(); }
 function filterCRMCustomerType(type) { crmFilterCustomerType = type; renderCRMResults(); }
 function filterCRMContact(p) { crmFilterContact = p; renderCRMResults(); }
 
-// 导出客户资源管理中的全部客户档案为 CSV（含保外/返修关联工单数）
+// 导出宁德时代车型/电池配置中的全部客户档案为 CSV（含保外/返修关联工单数）
 function exportCustomersCSV() {
   const rows = (APP.customers || []);
   const headers = ['客户名称','联系人','电话','区域','客户类型','车型/品牌','电池型号','保修状态','标签','关联工单数','是否保外','创建日期','地址'];
@@ -3899,6 +3898,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderPage();
 });
 </script>
+
 <!-- 浮动新增按钮：新增客户 / 门店（与项目看板一致） -->
 <button class="fab-add" onclick="openCustomerForm()" title="新增客户 / 门店">+</button>
 </body>
