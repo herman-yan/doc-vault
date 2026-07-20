@@ -2167,6 +2167,10 @@ body {
       <textarea class="form-textarea" id="newProjectContent" placeholder="填写初始进展内容..."></textarea>
     </div>
     <div class="form-group">
+      <label class="form-label">填报人</label>
+      <input type="text" class="form-input" id="newProjectReporter" placeholder="项目填报人">
+    </div>
+    <div class="form-group">
       <label class="form-label">更新人</label>
       <input type="text" class="form-input" id="newProjectUpdater" placeholder="填写人">
     </div>
@@ -3544,7 +3548,9 @@ function openAddProjectModal() {
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
   const lastUpdater = localStorage.getItem('lastUpdater') || '';
+  const lastReporter = localStorage.getItem('lastReporter') || '';
   document.getElementById('newProjectUpdater').value = lastUpdater;
+  document.getElementById('newProjectReporter').value = lastReporter;
   document.getElementById('newProjectName').focus();
 }
 
@@ -3555,6 +3561,7 @@ function closeAddProjectModal() {
   document.getElementById('newProjectName').value = '';
   document.getElementById('newProjectContent').value = '';
   document.getElementById('newProjectCompletion').value = '';
+  document.getElementById('newProjectReporter').value = '';
   document.getElementById('newProjectUpdater').value = '';
   const status = document.getElementById('addProjectStatus');
   status.className = 'add-status';
@@ -3569,6 +3576,7 @@ async function submitNewProject() {
   const priority = document.getElementById('newProjectPriority').value;
   const completion = document.getElementById('newProjectCompletion').value.trim() || '0';
   const content = document.getElementById('newProjectContent').value.trim();
+  const reporter = document.getElementById('newProjectReporter').value.trim();
   const updater = document.getElementById('newProjectUpdater').value.trim();
   const status = document.getElementById('addProjectStatus');
   const btn = document.getElementById('btnAddProject');
@@ -3592,6 +3600,7 @@ async function submitNewProject() {
       name: name,
       priority: priority,
       completion: completion,
+      reporter: reporter || undefined,
       latestUpdate: todayStr,
       totalUpdates: 1,
       timeline: [{
@@ -3607,6 +3616,7 @@ async function submitNewProject() {
     await saveAppData(data, `新增项目: ${name}`);
     
     if (updater) localStorage.setItem('lastUpdater', updater);
+    if (reporter) localStorage.setItem('lastReporter', reporter);
     
     status.textContent = '✅ 项目创建成功！';
     status.className = 'add-status show success';
