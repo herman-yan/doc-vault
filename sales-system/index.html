@@ -2110,6 +2110,7 @@ function renderDashboard() {
   // Business type stats
   const bnCount = orders.filter(o => o.businessType === '保内').length;
   const bwCount = orders.filter(o => o.businessType === '保外').length;
+  const wcCount = orders.filter(o => !o.businessType || o.businessType === '未分类').length;
 
   // Status distribution
   const statusCounts = {};
@@ -2155,10 +2156,17 @@ function renderDashboard() {
               <div style="height:100%;width:${total?bwCount/total*100:0}%;background:var(--warning);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;min-width:${bwCount?'30px':'0'}">${bwCount}</div>
             </div>
           </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:60px;font-size:13px;color:var(--text-secondary);text-align:right">未分类</span>
+            <div style="flex:1;height:28px;background:#f1f5f9;border-radius:6px;overflow:hidden">
+              <div style="height:100%;width:${total?wcCount/total*100:0}%;background:#9ca3af;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;min-width:${wcCount?'30px':'0'}">${wcCount}</div>
+            </div>
+          </div>
         </div>
         <div style="padding:8px 0;font-size:12px;color:var(--text-secondary)">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>保内占比</span><span>${total?Math.round(bnCount/total*100):0}%</span></div>
-          <div style="display:flex;justify-content:space-between"><span>保外占比</span><span>${total?Math.round(bwCount/total*100):0}%</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>保外占比</span><span>${total?Math.round(bwCount/total*100):0}%</span></div>
+          <div style="display:flex;justify-content:space-between"><span>未分类占比</span><span>${total?Math.round(wcCount/total*100):0}%</span></div>
         </div>
       </div>
     </div>
@@ -2172,7 +2180,7 @@ function renderDashboard() {
               <td style="font-weight:600">${o.workOrderNo||'-'}</td>
               <td>${o.customer||'-'}</td>
               <td>${o.plateNumber||'-'}</td>
-              <td><span class="badge ${o.businessType==='保内'?'badge-blue':'badge-yellow'}">${o.businessType||'-'}</span></td>
+              <td><span class="badge ${o.businessType==='保内'?'badge-blue':o.businessType==='保外'?'badge-yellow':'badge-gray'}">${o.businessType||'-'}</span></td>
               <td><span class="status-pill status-${o.status}">${o.status}</span></td>
               <td>${o.returnFactoryDate||'-'}</td>
               <td>${o.repairPerson||'-'}</td>
@@ -2216,6 +2224,7 @@ function renderRepairList() {
       <div class="type-tab ${rpFilterType===''?'active':''}" onclick="filterRepairType('')">全部</div>
       <div class="type-tab ${rpFilterType==='保内'?'active':''}" onclick="filterRepairType('保内')">🔧 保内返修</div>
       <div class="type-tab ${rpFilterType==='保外'?'active':''}" onclick="filterRepairType('保外')">🔩 保外返修</div>
+      <div class="type-tab ${rpFilterType==='未分类'?'active':''}" onclick="filterRepairType('未分类')">❓ 未分类</div>
     </div>
     <div class="year-tabs">
       <div class="year-tab ${rpFilterYear==='25年度'?'active':''}" onclick="filterRepairYear('25年度')">25年度</div>
@@ -2292,7 +2301,7 @@ function renderRepairRows(orders) {
   return orders.map(o => `
     <tr onclick="viewRepair('${o.id}')">
       <td style="font-weight:600">${o.workOrderNo||'-'}</td>
-      <td><span class="badge ${o.businessType==='保内'?'badge-blue':'badge-yellow'}">${o.businessType||'-'}</span></td>
+      <td><span class="badge ${o.businessType==='保内'?'badge-blue':o.businessType==='保外'?'badge-yellow':'badge-gray'}">${o.businessType||'-'}</span></td>
       <td>${o.customer||'-'}</td>
       <td>${o.plateNumber||'-'}</td>
       <td>${o.vin||'-'}</td>
@@ -2351,6 +2360,7 @@ function openRepairForm(id) {
           <div class="form-group">
             <label class="form-label">业务类型<span class="required">*</span></label>
             <select class="form-select" id="f_rp_businessType">
+              <option value="未分类" ${o?.businessType==='未分类'||!o?.businessType?'selected':''}>未分类</option>
               <option value="保内" ${o?.businessType==='保内'?'selected':''}>保内</option>
               <option value="保外" ${o?.businessType==='保外'?'selected':''}>保外</option>
             </select>
@@ -2514,7 +2524,7 @@ function viewRepair(id) {
     </div>
     <div class="modal-body">
       <div class="detail-header">
-        <span class="badge ${o.businessType==='保内'?'badge-blue':'badge-yellow'}">${o.businessType}</span>
+        <span class="badge ${o.businessType==='保内'?'badge-blue':o.businessType==='保外'?'badge-yellow':'badge-gray'}">${o.businessType}</span>
         <span class="detail-id">${o.workOrderNo}</span>
         <span class="status-pill status-${o.status}">${o.status}</span>
       </div>
@@ -3324,12 +3334,13 @@ const RP_COLUMN_MAP = {
   '返厂时间':'returnFactoryDate','维修完成时间':'repairCompleteDate',
   '返回时间':'returnDate','物料采购时间':'materialPurchaseDate',
   '物料到货时间':'materialArrivalDate','维修人':'repairPerson',
-  '进度1':'progress','进度2':'progress2'
+  '进度1':'progress','进度2':'progress2',
+  '业务类型':'businessType','保修类型':'businessType','保内保外':'businessType','分类':'businessType','类型':'businessType'
 };
 
 const RP_DEFAULTS = {
   repairAddress:'宁家服务',workOrderNo:'',fieldOrder:'',reportStatus:'',
-  businessType:'保内',customer:'',contactPerson:'',plateNumber:'',vin:'',
+  businessType:'未分类',customer:'',contactPerson:'',plateNumber:'',vin:'',
   barcode:'',pn:'',returnFactoryDate:'',repairCompleteDate:'',returnDate:'',
   materialPurchaseDate:'',materialArrivalDate:'',repairPerson:'',
   status:'待返厂',progress:'',progress2:'',createDate:''
@@ -3435,15 +3446,12 @@ function handleExcelUpload(input) {
           jsonData.forEach(row => {
             const mapped = mapRepairRow(row);
             if (!mapped.workOrderNo) return;
-            
-            // Auto-detect business type
-            if (!mapped.businessType || mapped.businessType === '保内') {
-              const progressStr = (mapped.progress || '').toLowerCase();
-              if (progressStr.includes('保外') || progressStr.includes('付费')) {
-                mapped.businessType = '保外';
-              }
+
+            // 仅当 Excel 明确标注了业务类型（保内/保外）时采用，否则保持「未分类」，不做自动判断
+            if (mapped.businessType && !['保内','保外','未分类'].includes(mapped.businessType)) {
+              mapped.businessType = '未分类';
             }
-            
+
             // Auto-detect status from dates and progress
             if (!mapped.status || mapped.status === '待返厂') {
               if (mapped.returnDate) mapped.status = '已寄回';
@@ -3788,6 +3796,7 @@ const KB_IMPORT_MAP = {
   '需求描述':'repairDesc','问题描述':'repairDesc','故障描述':'repairDesc','备注':'repairDesc','维修描述':'repairDesc',
   '最新更新':'latestUpdate','更新时间':'latestUpdate','最后更新':'latestUpdate',
   '维修工程师':'engineer','工程师':'engineer','维修人':'engineer',
+  '业务类型':'businessType','保修类型':'businessType','保内保外':'businessType','分类':'businessType','类型':'businessType',
   '报价总额':'quoteTotal','报价':'quoteTotal','金额':'quoteTotal','合计金额':'quoteTotal',
   '已回款':'received','已收款':'received','实收金额':'received',
   '未回款':'unreceived','未收金额':'unreceived','欠款':'unreceived',
@@ -3864,7 +3873,11 @@ function importBaoWaiExcel(input) {
             obj[jsKey] = val;
           }
         }
-        if (hasData) imported.push(obj);
+        if (hasData) {
+          // 业务类型：仅接受明确保内/保外，其余一律「未分类」，不做自动判断
+          if (!['保内','保外'].includes(obj.businessType)) obj.businessType = '未分类';
+          imported.push(obj);
+        }
       });
 
       if (!imported.length) { alert('未识别到有效数据列（需包含：月份/签约客户/对接人/客户姓名/车牌/车架号/PN 等字段）'); return; }
