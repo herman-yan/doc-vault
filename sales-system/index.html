@@ -3970,10 +3970,17 @@ function showBaoWaiImportPreview(imported) {
       ${!added.length && !updated.length ? '<div style="text-align:center;padding:40px;color:var(--text-secondary)">所有数据均已存在且无变化，无需导入</div>' : ''}
     </div>
     <div class="modal-footer">
-      ${(added.length || updated.length) ? `<button class="btn btn-primary" onclick="applyBaoWaiImport(${JSON.stringify(added).replace(/"/g,'"')},${JSON.stringify(updated.map(u=>({key:u.key,changes:u.changes}))).replace(/"/g,'"')})">确认导入（新增${added.length} + 更新${updated.length}）</button>` : ''}
+      ${(added.length || updated.length) ? `<button class="btn btn-primary" id="kbImportConfirmBtn">确认导入（新增${added.length} + 更新${updated.length}）</button>` : ''}
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
     </div>`;
+  // 存入全局变量，避免 inline JSON 引号截断问题
+  window.__kbImportData = { added, updated };
   showModal(html);
+  // 绑定确认按钮事件
+  const btn = document.getElementById('kbImportConfirmBtn');
+  if (btn) btn.onclick = function() {
+    applyBaoWaiImport(window.__kbImportData.added, window.__kbImportData.updated);
+  };
 }
 
 // 确认应用导入
