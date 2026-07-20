@@ -304,6 +304,55 @@ tbody tr:nth-child(even) { background: #fbfcfd; }
   .sidebar, .btn, .filter-bar, .pipeline, .type-tabs, .year-tabs { display: none !important; }
   .main { margin-left: 0; }
 }
+/* ===== 浮动新增按钮（与项目看板风格一致） ===== */
+.fab-add {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 60;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 300;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(37,99,235,.40), inset 0 1px 0 rgba(255,255,255,.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.fab-add:hover {
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 12px 30px rgba(37,99,235,.52);
+}
+.fab-add:active { transform: scale(.96); }
+
+/* ===== CRM 卡片直接编辑入口 ===== */
+.crm-card { position: relative; }
+.crm-edit-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--primary);
+  font-size: 14px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s ease;
+}
+.crm-card:hover .crm-edit-btn { display: flex; }
+.crm-edit-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 </style>
 </head>
 <body>
@@ -2793,6 +2842,7 @@ function renderStoreCard(c) {
           <div class="crm-card-name">${c.name||'-'}</div>
           <div class="crm-card-type">${c.customerType||'中小客户'} · ${c.region||'-'}</div>
         </div>
+        <button class="crm-edit-btn" onclick="event.stopPropagation();editCustomer('${c.id}')" title="编辑客户">✎</button>
       </div>
       ${c.batteryModel ? `<div class="crm-card-battery"><span class="battery-pill">🔋 ${c.batteryModel}</span></div>` : ''}
       <div class="crm-card-info">
@@ -3848,5 +3898,8 @@ document.addEventListener('DOMContentLoaded', function() {
   renderPage();
 });
 </script>
+
+<!-- 浮动新增按钮：新增客户 / 门店（与项目看板一致） -->
+<button class="fab-add" onclick="openCustomerForm()" title="新增客户 / 门店">+</button>
 </body>
 </html>
