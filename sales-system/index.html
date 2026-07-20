@@ -353,6 +353,28 @@ tbody tr:nth-child(even) { background: #fbfcfd; }
 }
 .crm-card:hover .crm-edit-btn { display: flex; }
 .crm-edit-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Kanban card edit button */
+.kb-edit-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s ease;
+  opacity: 0;
+  z-index: 3;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.rel-row:hover .kb-edit-btn { opacity: 1; }
+.rel-row { position: relative; }
+.kb-edit-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 </style>
 </head>
 <body>
@@ -3628,6 +3650,7 @@ function kbInner() {
           <div class="rel-head">
             <div class="rel-brand">🏬 ${esc(r.name)}</div>
             <div class="rel-count">${esc(r.city||'-')} · ${r.count} 工单</div>
+            <button class="kb-edit-btn" onclick="event.stopPropagation();editBaoWaiCard('${esc(r.name)}')" title="编辑此门店信息">✎ 编辑</button>
           </div>
           <div class="rel-spine"></div>
           <div class="rel-branches">
@@ -3694,6 +3717,18 @@ function renderKanban() {
 function refreshKb() {
   const el = document.getElementById('kbBody');
   if (el) el.innerHTML = kbInner();
+}
+
+function editBaoWaiCard(name) {
+  // 在 CRM 客户表中查找匹配的门店记录
+  const cust = (APP.customers||[]).find(c => (c.name||'') === name);
+  if (cust) {
+    // 找到则打开编辑表单
+    editCustomer(cust.id);
+  } else {
+    // 未找到则新建，预填门店名
+    openCustomerForm(null, name);
+  }
 }
 
 function viewBaoWaiCustomer(name) {
