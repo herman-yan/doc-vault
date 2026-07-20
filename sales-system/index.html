@@ -3643,6 +3643,8 @@ function renderKanban() {
       <div><div class="page-title">客户资源库（保外业务）</div>
       <div class="page-subtitle">鱼骨图视角：具体门店 → 对接人 + 终端客户明细 → 业务对接工单情况 · 点击卡片查看该门店全部工单</div></div>
       <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="document.getElementById('kbExcelInput').click()">📥 上传 Excel</button>
+        <input type="file" id="kbExcelInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="importBaoWaiExcel(this)">
         <button class="btn btn-primary" onclick="exportKanbanCSV()">📤 导出看板 CSV</button>
         <button class="btn btn-outline" onclick="exportBaoWaiDetailCSV()">导出工单明细</button>
       </div>
@@ -3765,6 +3767,251 @@ function downloadCSV(csv, filename) {
   a.download = filename;
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+
+// ===== 看板 Excel 导入：去重 + 增量匹配 =====
+
+// 中文表头 → baoWaiOrders 字段映射（支持多种常见写法）
+const KB_IMPORT_MAP = {
+  '月份':'month','月':'month',
+  '签约客户':'signedCustomer','门店':'signedCustomer','客户名称':'signedCustomer','签约门店':'signedCustomer','服务门店':'signedCustomer',
+  '城市':'city','地区':'city','区域':'city',
+  '对接人':'contactPerson','对接联系人':'contactPerson','业务对接人':'contactPerson','联系人':'contactPerson',
+  '客户姓名':'customerName','终端客户':'customerName','车主姓名':'customerName','客户':'customerName',
+  '客户电话':'customerPhone','终端电话':'customerPhone','车主电话':'customerPhone','联系电话':'customerPhone',
+  '车牌':'plateNumber','车牌号':'plateNumber','车辆牌照':'plateNumber',
+  '车架号':'vin','VIN':'vin','车架号码':'vin','VIN码':'vin',
+  'PN':'pn','配件PN':'pn','物料编码':'pn','零件号':'pn',
+  '产品类型':'productType','产品':'productType','车型':'productType',
+  '项目类型':'projectType','项目/需求':'projectType','需求描述':'projectType','维修项目':'projectType',
+  '维修状态':'repairStatus','状态':'repairStatus','工单状态':'repairStatus','报单状态':'repairStatus',
+  '需求描述':'repairDesc','问题描述':'repairDesc','故障描述':'repairDesc','备注':'repairDesc','维修描述':'repairDesc',
+  '最新更新':'latestUpdate','更新时间':'latestUpdate','最后更新':'latestUpdate',
+  '维修工程师':'engineer','工程师':'engineer','维修人':'engineer',
+  '报价总额':'quoteTotal','报价':'quoteTotal','金额':'quoteTotal','合计金额':'quoteTotal',
+  '已回款':'received','已收款':'received','实收金额':'received',
+  '未回款':'unreceived','未收金额':'unreceived','欠款':'unreceived',
+  '开票金额':'invoiceAmount','发票金额':'invoiceAmount',
+  '毛利':'grossProfit'
+};
+
+function importBaoWaiExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = ''; // reset for re-upload same file
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array', cellDates:true});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      if (!sheet) { alert('无法读取 Excel 内容'); return; }
+
+      let jsonData = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      if (!jsonData.length) { alert('Excel 无数据行'); return; }
+
+      // 探测表头行
+      const headers = Object.keys(jsonData[0]);
+      let headerRowIdx = 0;
+      let matchedKeys = headers.filter(h => KB_IMPORT_MAP[String(h).trim()]);
+      if (matchedKeys.length < 3) {
+        // 尝试找真正的表头行
+        for (let i = 1; i < Math.min(6, jsonData.length); i++) {
+          const hk = Object.keys(jsonData[i]).filter(h => KB_IMPORT_MAP[String(h).trim()]);
+          if (hk.length > matchedKeys.length) { matchedKeys = hk; headerRowIdx = i; }
+        }
+        // 如果还是找不到，尝试 raw 解析找中文表头
+        if (matchedKeys.length < 3) {
+          const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+          for (let r = range.s.r; r <= Math.min(range.s.r + 5, range.e.r); r++) {
+            const rh = [];
+            for (let c = range.s.c; c <= range.e.c; c++) {
+              const cell = sheet[XLSX.utils.encode_cell({r, c})];
+              rh.push(cell ? String(cell.v).trim() : '');
+            }
+            const mk = rh.filter(h => KB_IMPORT_MAP[h]);
+            if (mk.length > matchedKeys.length) { matchedKeys = mk; headerRowIdx = r; }
+          }
+          if (headerRowIdx > 0) {
+            const rawRows = XLSX.utils.sheet_to_json(sheet, {defval:'', header:1, raw:false});
+            const hRow = rawRows[headerRowIdx];
+            jsonData = rawRows.slice(headerRowIdx + 1).map(row => {
+              const obj = {};
+              hRow.forEach((h, idx) => { if (h && row[idx] !== undefined && row[idx] !== '') obj[String(h).trim()] = row[idx]; });
+              return obj;
+            });
+          }
+        }
+      }
+
+      // 映射每行为 baoWaiOrder 对象
+      const imported = [];
+      jsonData.forEach((rawRow, idx) => {
+        const obj = {};
+        let hasData = false;
+        for (const [cnHeader, jsKey] of Object.entries(KB_IMPORT_MAP)) {
+          let val = rawRow[cnHeader];
+          if (val === undefined || val === null) continue;
+          val = String(val).trim();
+          if (val === '') continue;
+          hasData = true;
+          // 数值字段转换
+          if (['quoteTotal','received','unreceived','invoiceAmount','grossProfit'].includes(jsKey)) {
+            const n = parseFloat(String(val).replace(/[,，¥￥]/g,''));
+            if (!isNaN(n)) obj[jsKey] = n; else obj[jsKey] = val;
+          } else {
+            obj[jsKey] = val;
+          }
+        }
+        if (hasData) imported.push(obj);
+      });
+
+      if (!imported.length) { alert('未识别到有效数据列（需包含：月份/签约客户/对接人/客户姓名/车牌/车架号/PN 等字段）'); return; }
+
+      showBaoWaiImportPreview(imported);
+    } catch(err) {
+      console.error('importBaoWaiExcel error:', err);
+      alert('导入失败: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// 计算复合匹配键（用于去重）
+function bwMatchKey(o) {
+  return [
+    (o.vin||'').toUpperCase().replace(/\s/g,''),
+    (o.signedCustomer||'').trim(),
+    (o.customerName||'').trim(),
+    (o.plateNumber||'').trim()
+  ].join('|');
+}
+
+// 预览增量对比结果
+function showBaoWaiImportPreview(imported) {
+  const existing = APP.baoWaiOrders || [];
+  const existMap = new Map(); // matchKey → index in existing
+  existing.forEach((o, i) => { existMap.set(bwMatchKey(o), i); });
+
+  let added = [], updated = [];
+  imported.forEach(nrow => {
+    const key = bwMatchKey(nrow);
+    const ei = existMap.get(key);
+    if (ei !== undefined) {
+      // 找到已有记录 → 增量合并（空值不覆盖）
+      const old = existing[ei];
+      const changes = [];
+      for (const [k, v] of Object.entries(nrow)) {
+        if (!(k in old) || old[k] === '' || old[k] === null || old[k] === undefined) {
+          changes.push({ field: k, from: (old[k]||'—'), to: v });
+        } else if (String(old[k]) !== String(v)) {
+          changes.push({ field: k, from: old[k], to: v });
+        }
+      }
+      if (changes.length) updated.push({ record: old, changes, key });
+    } else {
+      added.push(nrow);
+    }
+  });
+
+  // 去重：added 内部也按 matchKey 去重
+  const seenKeys = new Set();
+  const dedupAdded = [];
+  added.forEach(row => {
+    const k = bwMatchKey(row);
+    if (seenKeys.has(k)) return;
+    seenKeys.add(k);
+    dedupAdded.push(row);
+  });
+  added = dedupAdded;
+
+  const esc2 = s => (s==null?'':String(s)).replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]));
+
+  const html = `
+    <div class="modal-header">
+      <div class="modal-title">📥 保外工单导入预览</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="max-height:65vh;overflow-y:auto">
+      <div style="background:linear-gradient(135deg,#eff6ff,#f0fdfa);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="display:flex;gap:20px;font-size:14px">
+          <div><b style="color:#166534">✅ 新增</b> <span style="font-size:18px;color:#166534;font-weight:700">${added.length}</span> 条</div>
+          <div><b style="color:#b45309">🔄 更新</b> <span style="font-size:18px;color:#b45309;font-weight:700">${updated.length}</span> 条</div>
+          <div><b style="color:#6b7280">📊 总读取</b> ${imported.length} 条（去重后）</div>
+        </div>
+      </div>
+
+      ${added.length ? `
+      <div style="margin-bottom:16px">
+        <div style="font-weight:600;margin-bottom:8px;color:#166534">📥 新增记录 (${added.length}条)</div>
+        <div style="max-height:200px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:10px">
+          <table style="width:100%;font-size:12px">
+            <thead><tr style="background:#f9fafb"><th>#</th><th>门店</th><th>客户</th><th>车牌</th><th>车架号</th><th>状态</th></tr></thead>
+            <tbody>${added.slice(0,30).map((r,i)=>`<tr><td>${i+1}</td><td>${esc2(r.signedCustomer)}</td><td>${esc2(r.customerName)}</td><td>${esc2(r.plateNumber)}</td><td style="font-size:11px">${esc2(r.vin)}</td><td>${esc2(r.repairStatus||'-')}</td></tr>`).join('')}
+            </tbody>
+          </table>
+          ${added.length > 30 ? `<div style="text-align:center;padding:6px;color:var(--text-secondary);font-size:12px">... 还有 ${added.length - 30} 条</div>` : ''}
+        </div>
+      </div>` : ''}
+
+      ${updated.length ? `
+      <div style="margin-bottom:16px">
+        <div style="font-weight:600;margin-bottom:8px;color:#b45309">🔄 更新记录 (${updated.length}条)</div>
+        <div style="max-height:250px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:10px">
+          ${updated.slice(0,15).map(u => `<div style="padding:10px;border-bottom:1px solid #f3f4f6;background:#fffbeb;border-radius:8px;margin-bottom:6px">
+            <div style="font-weight:600;font-size:13px">${esc2(u.record.signedCustomer)} · ${esc2(u.record.customerName)} · ${esc2(u.record.plateNumber||u.record.vin||'-')}</div>
+            <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">${u.changes.map(c=>`<span style="background:#fef3c7;padding:2px 7px;border-radius:5px;font-size:11px"><b>${esc2(c.field)}</b>: "${esc2(c.from)}"→"${esc2(c.to)}"</span>`).join('')}</div>
+          </div>`).join('')}
+          ${updated.length > 15 ? `<div style="text-align:center;padding:6px;color:var(--text-secondary);font-size:12px">... 还有 ${updated.length - 15} 条</div>` : ''}
+        </div>
+      </div>` : ''}
+
+      ${!added.length && !updated.length ? '<div style="text-align:center;padding:40px;color:var(--text-secondary)">所有数据均已存在且无变化，无需导入</div>' : ''}
+    </div>
+    <div class="modal-footer">
+      ${(added.length || updated.length) ? `<button class="btn btn-primary" onclick="applyBaoWaiImport(${JSON.stringify(added).replace(/"/g,'"')},${JSON.stringify(updated.map(u=>({key:u.key,changes:u.changes}))).replace(/"/g,'"')})">确认导入（新增${added.length} + 更新${updated.length}）</button>` : ''}
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>`;
+  showModal(html);
+}
+
+// 确认应用导入
+function applyBaoWaiImport(addedRaw, updatedRaw) {
+  try {
+    const added = typeof addedRaw === 'string' ? JSON.parse(addedRaw) : addedRaw;
+    const updated = typeof updatedRaw === 'string' ? JSON.parse(updatedRaw) : updatedRaw;
+
+    if (!APP.baoWaiOrders) APP.baoWaiOrders = [];
+
+    // 新增记录
+    const maxSeq = APP.baoWaiOrders.reduce((m,o)=>Math(m,o.seq||0),0);
+    added.forEach((row,i) => {
+      row.id = 'bw_' + Date.now() + '_' + i;
+      row.seq = maxSeq + i + 1;
+      row.createDate = todayStr();
+      APP.baoWaiOrders.push(row);
+    });
+
+    // 更新记录（增量合并）
+    const existMap = new Map();
+    APP.baoWaiOrders.forEach((o, i) => { existMap.set(bwMatchKey(o), i); });
+    updated.forEach(u => {
+      const ei = existMap.get(u.key);
+      if (ei === undefined) return;
+      u.changes.forEach(c => {
+        APP.baoWaiOrders[ei][c.field] = c.to;
+      });
+    });
+
+    saveData(APP);
+    renderPage();
+    closeModal();
+    alert(`✅ 导入完成！新增 ${added.length} 条 · 更新 ${updated.length} 条 · 当前共 ${APP.baoWaiOrders.length} 条保外工单`);
+  } catch(err) {
+    console.error('applyBaoWaiImport error:', err);
+    alert('应用导入时出错: ' + err.message);
+  }
 }
 
 
