@@ -60,6 +60,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 
 .gif-wrap { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #0f172a; }
 .gif-wrap img { width: 100%; display: block; }
+.gif-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+.gif-col { display: flex; flex-direction: column; }
+.gif-cap { margin-top: 10px; font-size: 12.5px; color: var(--text-secondary); font-weight: 600; text-align: center; }
 .svg-wrap { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.06); background: #f7f8fa; }
 .svg-wrap img { width: 100%; height: auto; display: block; }
 .tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; margin-top: 4px; }
@@ -72,6 +75,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
   .nav-item { padding: 9px 12px; font-size: 12px; }
   .main { margin-left: 180px; padding: 16px; }
   .map-wrap iframe { height: 70vh; }
+  .gif-row { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -114,13 +118,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
   <!-- 成长动画 -->
   <div class="card" id="growth-animation">
     <div class="card-title">🌱 成长动画 · 历次迭代 <span class="badge badge-purple">GIF</span></div>
-    <div class="card-desc">从初版框架到最新版（含返修 / 库存 / 培训体系），宁德商点结合概念地图的 6 次迭代生长全过程。</div>
-    <div class="gif-wrap">
-      <img src="iteration-growth.gif" alt="宁德商点结合概念地图迭代历程">
-    </div>
-    <div class="gif-cap" style="margin:16px 0 8px;font-size:12.5px;color:var(--text-secondary);font-weight:600;">▸ 概念地图节点 · 逐步扩张（按每个概念首次出现的版本累积生长）</div>
-    <div class="gif-wrap">
-      <img src="concept-map-growth.gif" alt="概念地图节点逐步扩张动画">
+    <div class="card-desc">左侧是 6 次迭代版本的全景对比；右侧是按每个概念首次出现版本累积生长的节点扩张动画，现在缩小到并排展示，看全生长全貌。</div>
+    <div class="gif-row">
+      <div class="gif-col">
+        <div class="gif-wrap">
+          <img src="iteration-growth.gif" alt="宁德商点结合概念地图迭代历程">
+        </div>
+        <div class="gif-cap">历次迭代版本对比（6 版生长全景）</div>
+      </div>
+      <div class="gif-col">
+        <div class="gif-wrap">
+          <img src="concept-map-growth.gif" alt="概念地图节点逐步扩张动画">
+        </div>
+        <div class="gif-cap">概念地图节点 · 逐步扩张（135 概念逐帧累积）</div>
+      </div>
     </div>
   </div>
 
