@@ -60,8 +60,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 
 .gif-wrap { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #0f172a; }
 .gif-wrap img { width: 100%; display: block; }
-.map-wrap { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.06); background: #1a1b2e; }
-.map-wrap iframe { width: 100%; height: 76vh; border: 0; display: block; }
+.svg-wrap { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.06); background: #f7f8fa; }
+.svg-wrap img { width: 100%; height: auto; display: block; }
 .tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; margin-top: 4px; }
 .tip { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; }
 .tip b { color: var(--text); }
@@ -118,20 +118,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
     <div class="gif-wrap">
       <img src="iteration-growth.gif" alt="宁德商点结合概念地图迭代历程">
     </div>
+    <div class="gif-cap" style="margin:16px 0 8px;font-size:12.5px;color:var(--text-secondary);font-weight:600;">▸ 概念地图节点 · 逐步扩张（按每个概念首次出现的版本累积生长）</div>
+    <div class="gif-wrap">
+      <img src="concept-map-growth.gif" alt="概念地图节点逐步扩张动画">
+    </div>
   </div>
 
-  <!-- 最新概念地图：可交互 -->
+  <!-- 最新概念地图：静态清晰版 -->
   <div class="card" id="concept-map">
-    <div class="card-title">🕸️ 最新概念地图 · 可交互 <span class="badge badge-blue">D3 力导向图</span></div>
-    <div class="card-desc">共 136 个概念、200+ 条关联。打开后自动播放「成长」；也可拖动顶部时间轴回看任意迭代版本，或点击节点查看详情、搜索、筛选类型。</div>
-    <div class="map-wrap">
-      <iframe src="concept-map.html" title="宁德商点结合概念地图"></iframe>
+    <div class="card-title">🕸️ 最新概念地图 · 全局关联 <span class="badge badge-blue">最新版</span></div>
+    <div class="card-desc">最新版共 135 个概念、209 条关联，按 5 类颜色区分。每一条连线代表两个概念之间的关联；点击下方图片可在新标签打开高清矢量图，自由放大看清每个点与连线。</div>
+    <div class="svg-wrap">
+      <img src="concept-map-latest.svg" alt="宁德商点结合概念地图（最新版）" onclick="window.open(this.src,'_blank')" style="cursor:zoom-in;">
     </div>
     <div class="tips">
-      <div class="tip"><b>▶ 播放成长</b><br>顶部按钮重播 6 次迭代的生长过程</div>
-      <div class="tip"><b>时间轴</b><br>拖动滑块定位到 v1–v6 任意版本</div>
-      <div class="tip"><b>点击节点</b><br>查看定义、文档来源与关联概念</div>
-      <div class="tip"><b>筛选 / 搜索</b><br>按角色·原则·机制·规则·约束过滤，或关键词定位</div>
+      <div class="tip"><b>颜色 = 类别</b><br>角色方·原则·规则·机制·义务，左上角图例对应</div>
+      <div class="tip"><b>连线 = 关联</b><br>两点之间的线表示概念间的关联，按起点类别着色</div>
+      <div class="tip"><b>放大查看</b><br>点击图片在新标签打开矢量高清图，可无限放大</div>
+      <div class="tip"><b>节点大小</b><br>关联越多的核心概念，圆点越大</div>
     </div>
   </div>
 </div>
