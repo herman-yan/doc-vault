@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商点管理 · 概念地图成长模块 - 宁家服务数字化运营系统</title>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-deep: #1d4ed8;
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --sidebar-w: 240px;
+  --blue-grad: linear-gradient(135deg,#2563eb 0%,#06b6d4 100%);
+  --orange-grad: linear-gradient(135deg,#f6d365 0%,#fda085 100%);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Sidebar */
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); color: #fff; z-index: 100; display: flex; flex-direction: column; box-shadow: 4px 0 24px rgba(0,0,0,.12); }
+.sidebar-brand { padding: 24px 18px; font-size: 17px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); letter-spacing: .5px; }
+.sidebar-brand small { display: block; font-size: 11px; font-weight: 400; color: #94a3b8; margin-top: 5px; }
+.sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+.nav-section { padding: 14px 18px 6px; font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+.nav-item { display: flex; align-items: center; padding: 11px 18px; cursor: pointer; color: #94a3b8; font-size: 13.5px; transition: all .18s ease; border-left: 3px solid transparent; gap: 10px; text-decoration: none; }
+.nav-item:hover { background: rgba(99,102,241,.1); color: #e2e8f0; }
+.nav-item.active { background: rgba(99,102,241,.15); color: #818cf8; border-left-color: #818cf8; font-weight: 500; }
+.nav-item .icon { width: 22px; text-align: center; font-size: 16px; }
+.nav-badge { margin-left: auto; background: #475569; color: #cbd5e1; font-size: 11px; padding: 1px 8px; border-radius: 10px; font-weight: 600; }
+.nav-badge.building { background: rgba(217,119,6,.25); color: #fbbf24; }
+.sidebar-foot { padding: 14px 18px; border-top: 1px solid rgba(255,255,255,.08); }
+.sidebar-foot a { display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 12.5px; text-decoration: none; transition: color .15s; }
+.sidebar-foot a:hover { color: #e2e8f0; }
+
+/* Main */
+.main { margin-left: var(--sidebar-w); padding: 28px 32px; min-height: 100vh; background: var(--bg); }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
+.page-title { font-size: 26px; font-weight: 800; background: var(--orange-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -.5px; }
+.page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all .2s ease; text-decoration: none; font-family: inherit; }
+.btn-outline { background: #fff; color: var(--text); border: 1.5px solid var(--border); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); box-shadow: 0 2px 8px rgba(37,99,235,.1); }
+
+.card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); padding: 22px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.03); }
+.card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+.card-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px; }
+.badge { font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 600; letter-spacing: .2px; }
+.badge-blue { background: #dbeafe; color: var(--primary); }
+.badge-green { background: #dcfce7; color: var(--success); }
+.badge-yellow { background: #fef3c7; color: var(--warning); }
+.badge-purple { background: #ede9fe; color: #7c3aed; }
+
+.gif-wrap { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #0f172a; }
+.gif-wrap img { width: 100%; display: block; }
+.map-wrap { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.06); background: #1a1b2e; }
+.map-wrap iframe { width: 100%; height: 76vh; border: 0; display: block; }
+.tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; margin-top: 4px; }
+.tip { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; }
+.tip b { color: var(--text); }
+
+@media (max-width: 768px) {
+  .sidebar { width: 180px; }
+  .sidebar-brand { font-size: 13px; padding: 14px 12px; }
+  .nav-item { padding: 9px 12px; font-size: 12px; }
+  .main { margin-left: 180px; padding: 16px; }
+  .map-wrap iframe { height: 70vh; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    🏪 商点管理
+    <small>商户网点 · 概念地图</small>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">概念地图</div>
+    <a class="nav-item active" href="#concept-map">
+      <span class="icon">🌱</span><span>概念地图成长</span>
+    </a>
+    <div class="nav-section">规划中</div>
+    <a class="nav-item" href="#">
+      <span class="icon">🗺️</span><span>网点档案</span><span class="nav-badge building">建设中</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">📈</span><span>经营状态监控</span><span class="nav-badge building">建设中</span>
+    </a>
+  </div>
+  <div class="sidebar-foot">
+    <a href="../index.html">← 返回系统首页</a>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-title">商点管理 · 概念地图成长模块</div>
+      <div class="page-subtitle">宁德商点结合管理体系的全局概念地图，按 6 次迭代逐步生长呈现</div>
+    </div>
+    <a class="btn btn-outline" href="../index.html">← 返回系统首页</a>
+  </div>
+
+  <!-- 成长动画 -->
+  <div class="card" id="growth-animation">
+    <div class="card-title">🌱 成长动画 · 历次迭代 <span class="badge badge-purple">GIF</span></div>
+    <div class="card-desc">从初版框架到最新版（含返修 / 库存 / 培训体系），宁德商点结合概念地图的 6 次迭代生长全过程。</div>
+    <div class="gif-wrap">
+      <img src="iteration-growth.gif" alt="宁德商点结合概念地图迭代历程">
+    </div>
+  </div>
+
+  <!-- 最新概念地图：可交互 -->
+  <div class="card" id="concept-map">
+    <div class="card-title">🕸️ 最新概念地图 · 可交互 <span class="badge badge-blue">D3 力导向图</span></div>
+    <div class="card-desc">共 136 个概念、200+ 条关联。打开后自动播放「成长」；也可拖动顶部时间轴回看任意迭代版本，或点击节点查看详情、搜索、筛选类型。</div>
+    <div class="map-wrap">
+      <iframe src="concept-map.html" title="宁德商点结合概念地图"></iframe>
+    </div>
+    <div class="tips">
+      <div class="tip"><b>▶ 播放成长</b><br>顶部按钮重播 6 次迭代的生长过程</div>
+      <div class="tip"><b>时间轴</b><br>拖动滑块定位到 v1–v6 任意版本</div>
+      <div class="tip"><b>点击节点</b><br>查看定义、文档来源与关联概念</div>
+      <div class="tip"><b>筛选 / 搜索</b><br>按角色·原则·机制·规则·约束过滤，或关键词定位</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
