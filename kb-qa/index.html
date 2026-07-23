@@ -549,17 +549,39 @@ function searchEntries(query, topN){
 }
 
 function snippetWithHit(content, hitTokens, len){
-    len = len || 220;
+    len = len || 360;
     if(!content) return '';
-    const lower = content.toLowerCase();
-    let pos = -1;
-    (hitTokens||[]).forEach(t=>{ const i=lower.indexOf(t); if(i>=0 && (pos<0||i<pos)) pos=i; });
-    if(pos<0) pos=0;
-    let start = Math.max(0, pos-40);
-    let snip = content.substr(start, len);
-    if(start>0) snip = '…'+snip;
-    if(start+len < content.length) snip = snip+'…';
-    return snip;
+    // 按句子切分（保留标点），保证片段是完整句子、语义连贯，不会把一句话切断
+    const seg = content.split(/([。！？!?；;])/);
+    const sents = [];
+    for(let i=0;i<seg.length;i+=2){
+        const s=((seg[i]||'')+(seg[i+1]||'')).trim();
+        if(s) sents.push(s);
+    }
+    if(!sents.length) return content.slice(0, len);
+    // 计算每句命中词数量，定位核心句
+    const score = sents.map(s=>{
+        const sl=s.toLowerCase(); let n=0;
+        (hitTokens||[]).forEach(t=>{ let i=sl.indexOf(t); while(i>=0){ n++; i=sl.indexOf(t,i+t.length); } });
+        return n;
+    });
+    let center=0, best=-1;
+    score.forEach((n,i)=>{ if(n>best){ best=n; center=i; } });
+    if(best<=0){
+        // 无直接命中（如仅靠标签匹配），返回开头几句
+        return sents.slice(0,3).join('').slice(0,len);
+    }
+    // 从核心句向两侧扩展，直到达到目标长度或扩完
+    let lo=center, hi=center, acc=sents[center].length;
+    while(acc<len && (lo>0 || hi<sents.length-1)){
+        const canLo=lo>0, canHi=hi<sents.length-1;
+        if(canLo && canHi){
+            if(sents[lo-1].length <= sents[hi+1].length){ lo--; acc+=sents[lo].length; }
+            else { hi++; acc+=sents[hi].length; }
+        } else if(canLo){ lo--; acc+=sents[lo].length; }
+        else { hi++; acc+=sents[hi].length; }
+    }
+    return sents.slice(lo,hi+1).join('');
 }
 
 // ========== 问答入口 ==========
@@ -608,50 +630,19 @@ function sentencesOf(text){
     }
     return out;
 }
-// 从命中文档中聚合要点，形成摘要
-function buildSummary(q, hits){
-    const bullets = [];
-    const seen = new Set();
-    hits.slice(0,4).forEach(h=>{
-        const e = h.entry;
-        const text = stripMd(e.content || e.introduction || e.title);
-        const sents = sentencesOf(text);
-        let picked = sents.filter(s=>{
-            const sl = s.toLowerCase();
-            return h.hitTokens.some(t=> sl.indexOf(t)>=0);
-        });
-        if(!picked.length) picked = sents.slice(0,1); // 仅靠标签命中时取首句
-        picked.slice(0,2).forEach(s=>{
-            const key = s.slice(0,24);
-            if(seen.has(key)) return;
-            seen.add(key);
-            bullets.push({ text:s, title:e.title });
-        });
-    });
-    return bullets.slice(0,6);
-}
 
 function renderRetrieveAnswer(q, hits, box){
     if(!hits.length){
         box.innerHTML = '<div class="answer-card empty"><div class="answer-head"><span class="answer-badge">🤔</span><span>未找到相关答案</span></div><div class="answer-body">知识库中暂时没有匹配「'+escapeHtml(q)+'」的内容。<br>点击右上角「📥 上传文件」把相关内部文档加进来，下次就能查到啦。</div></div>';
         return;
     }
-    // 1) 答案汇总框：根据命中资料自动聚合要点
-    const bullets = buildSummary(q, hits);
-    let html = '<div class="answer-card synth"><div class="answer-head"><span class="answer-badge ok">💡</span><span>为你汇总答案（基于本地检索）</span></div><div class="answer-body">';
-    html += '<div class="ans-summary-lead">关于「'+escapeHtml(q)+'」，从 '+hits.length+' 条匹配资料中汇总要点如下：</div>';
-    html += '<ul class="ans-summary-list">';
-    bullets.forEach(b=>{
-        html += '<li>'+escapeHtml(b.text)+' <span class="ans-sum-src">— '+escapeHtml(b.title)+'</span></li>';
-    });
-    html += '</ul>';
-    html += '<div class="ans-summary-note">※ 以上内容由本地检索自动聚合，仅供参考；点击下方引用材料可核对原文。</div>';
-    html += '</div></div>';
-    // 2) 引用材料：列出命中的原始文档，可展开查看完整原文
-    html += '<div class="ans-refs"><div class="ans-refs-title">📚 引用材料（'+hits.length+' 条）</div>';
+    // 直接展示命中的原始材料片段（完整句子 + 上下文，关键词高亮），不再把句子切碎后重拼成要点
+    let html = '<div class="answer-card synth"><div class="answer-head"><span class="answer-badge ok">💡</span><span>找到 '+hits.length+' 份相关材料（基于本地检索）</span></div><div class="answer-body">';
+    html += '<div class="ans-summary-lead">关于「'+escapeHtml(q)+'」，以下是从你上传的资料中匹配到的内容，已为你高亮关键词：</div>';
+    html += '<div class="ans-refs" style="margin-top:10px">';
     hits.forEach(h=>{
         const e = h.entry;
-        const snip = snippetWithHit(e.content||e.introduction, h.hitTokens, 320);
+        const snip = snippetWithHit(e.content||e.introduction, h.hitTokens, 360);
         const full = mdToHtml(e.content||e.introduction||'(暂无正文内容)');
         html += '<div class="answer-item ref-item" id="ref-'+e.id+'">'
             + '<div class="answer-item-head" onclick="openDetail(\''+e.id+'\')"><span class="type-'+e.category+' ans-cat">'+e.categoryLabel+'</span>'
@@ -664,6 +655,8 @@ function renderRetrieveAnswer(q, hits, box){
             + '</div>';
     });
     html += '</div>';
+    html += '<div class="ans-summary-note">※ 以上内容直接来自你上传的资料原文，可点击「展开原文」查看完整内容。</div>';
+    html += '</div></div>';
     box.innerHTML = html;
 }
 
@@ -705,12 +698,14 @@ function handleUploadFiles(fileList){
                     const reader = new FileReader();
                     reader.onload = e=>{
                         const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:true});
-                        const rows = [];
+                        const baseName = f.name.replace(/\.(xlsx|xls)$/i,'');
                         wb.SheetNames.forEach(sn=>{
                             const ws = wb.Sheets[sn];
-                            XLSX.utils.sheet_to_json(ws, {defval:''}).forEach(r=> rows.push(serializeRow(r)));
+                            const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+                            const text = rows.map(r=>serializeRow(r)).join('\n\n');
+                            const title = wb.SheetNames.length>1 ? (baseName+' · '+sn) : baseName;
+                            pendingUploads.push(makeEntry(title, text, 'tech'));
                         });
-                        rows.map((txt,i)=>makeEntry(f.name+' #'+(i+1), txt, 'tech')).forEach(p=>pendingUploads.push(p));
                         renderUploadList();
                     };
                     reader.readAsArrayBuffer(f);
@@ -814,21 +809,12 @@ function serializeRow(row){
 function parseFile(name, text){
     const lower = name.toLowerCase();
     if(lower.endsWith('.csv')){
-        const lines = (text||'').split(/\r?\n/).filter(l=>l.trim());
-        if(lines.length < 2) return [makeEntry(name, text||'', guessCat(name+(text||'')))];
-        const header = splitCsvLine(lines[0]);
-        const titleIdx = Math.max(0, header.findIndex(h=>/标题|问题|名称|主题|name|title|question|问题内容/i.test(h)));
-        return lines.slice(1).map(l=>{
-            const r = splitCsvLine(l);
-            const title = r[titleIdx] || r[0] || name;
-            const body = header.map((h,i)=> h+': '+(r[i]||'')).join('\n');
-            return makeEntry(title, body, guessCat(body+title));
-        });
+        // CSV 作为一个整体条目保存（保留全文，检索时按关键词定位片段），不再逐行拆成多条
+        return [makeEntry(name.replace(/\.csv$/i,''), text||'', guessCat(text||''))];
     }
     if(lower.endsWith('.md') || lower.endsWith('.txt')){
-        const blocks = (text||'').split(/^#\s+/m).filter(b=>b.trim());
-        if(blocks.length <= 1) return [makeEntry(name.replace(/\.(md|txt)$/i,''), text||'', guessCat(text||''))];
-        return blocks.map(b=>{ const ls=b.split('\n'); const t=ls[0].trim(); const c=ls.slice(1).join('\n').trim(); return makeEntry(t||name, c, guessCat(c+t)); });
+        // 一个文件 = 一个知识条目，整篇作为内容，不再按 # 标题切分（避免一个文档被拆成好几条）
+        return [makeEntry(name.replace(/\.(md|txt)$/i,''), text||'', guessCat(text||''))];
     }
     return [makeEntry(name, text||'', guessCat(text||''))];
 }
