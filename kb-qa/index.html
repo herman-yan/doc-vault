@@ -161,6 +161,18 @@
         .detail-body code { background:rgba(79,172,254,.12);padding:2px 6px;border-radius:4px;font-size:13px;color:#4facfe; }
         .detail-body pre { background:rgba(0,0,0,.3);border:1px solid var(--border-color);border-radius:8px;padding:16px;overflow-x:auto;margin:12px 0; }
         .detail-body pre code { background:none;padding:0;color:var(--text-secondary);font-size:13px;line-height:1.6; }
+        .detail-body pre.raw-content { white-space:pre-wrap; word-break:break-word; font-family:inherit; font-size:13.5px; line-height:1.85; color:var(--text-secondary); margin:0; background:rgba(0,0,0,.18); }
+        /* Excel 渲染成可横向滚动的真实表格 */
+        .xlsx-table-wrap { overflow-x:auto; max-width:100%; margin:6px 0 12px; border-radius:8px; }
+        .xlsx-table { border-collapse:collapse; width:auto; font-size:13px; background:rgba(255,255,255,.03); }
+        .xlsx-table th, .xlsx-table td { border:1px solid var(--border-color); padding:5px 10px; text-align:left; vertical-align:top; white-space:nowrap; }
+        .xlsx-table th { background:rgba(79,172,254,.18); font-weight:600; color:var(--text-primary); }
+        .xlsx-table tbody tr:nth-child(even) { background:rgba(255,255,255,.03); }
+        .xlsx-trunc { color:var(--text-muted); font-size:12px; margin:4px 0 10px; }
+        /* PDF 结构化版式：标题/段落/分页 */
+        .detail-body h3.doc-h { color:var(--text-primary); margin:16px 0 8px; font-size:1.05em; }
+        .pdf-page { border:none; border-top:1px dashed var(--border-color); margin:16px 0 4px; }
+        .pdf-page-label { color:var(--text-muted); font-size:11px; margin:2px 0 10px; }
         .detail-body table { width:100%;border-collapse:collapse;margin:12px 0;font-size:13px; }
         .detail-body th, .detail-body td { padding:10px 12px;text-align:left;border:1px solid var(--border-color); }
         .detail-body th { background:rgba(79,172,254,.1);color:var(--text-primary);font-weight:600; }
@@ -555,7 +567,7 @@ function searchEntries(query, topN){
     const scored = entries.map(e=>{
         const title = (e.title||'').toLowerCase();
         const intro = (e.introduction||'').toLowerCase();
-        const content = (e.content||'').toLowerCase();
+        const content = (e.plain||e.content||'').toLowerCase();
         const tags = ((e.tags||[]).join(' ')).toLowerCase();
         let score = 0; const hit = new Set();
         qTokens.forEach(qt=>{
@@ -664,8 +676,8 @@ function renderRetrieveAnswer(q, hits, box){
     html += '<div class="ans-refs" style="margin-top:10px">';
     hits.forEach(h=>{
         const e = h.entry;
-        const snip = snippetWithHit(e.content||e.introduction, h.hitTokens, 360);
-        const full = mdToHtml(e.content||e.introduction||'(暂无正文内容)');
+        const snip = snippetWithHit(e.plain||e.content||e.introduction, h.hitTokens, 360);
+        const full = renderDetailContent(e);
         html += '<div class="answer-item ref-item" id="ref-'+e.id+'">'
             + '<div class="answer-item-head" onclick="openDetail(\''+e.id+'\')"><span class="type-'+e.category+' ans-cat">'+e.categoryLabel+'</span>'
             + '<span class="ans-title">'+escapeHtml(e.title)+'</span>'
@@ -723,10 +735,10 @@ function handleUploadFiles(fileList){
                         const baseName = f.name.replace(/\.(xlsx|xls)$/i,'');
                         wb.SheetNames.forEach(sn=>{
                             const ws = wb.Sheets[sn];
-                            const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
-                            const text = rows.map(r=>serializeRow(r)).join('\n\n');
+                            const aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+                            const {html, text} = sheetToTable(aoa);
                             const title = wb.SheetNames.length>1 ? (baseName+' · '+sn) : baseName;
-                            pendingUploads.push(makeEntry(title, text, 'tech'));
+                            pendingUploads.push(makeEntry(title, html, 'tech', 'xlsx', text));
                         });
                         renderUploadList();
                     };
@@ -741,7 +753,7 @@ function handleUploadFiles(fileList){
             ensurePDFJS(()=>{
                 const reader = new FileReader();
                 reader.onload = e=>{
-                    extractPdfText(new Uint8Array(e.target.result)).then(text=>{
+                    extractPdfHtml(new Uint8Array(e.target.result)).then(({html, text})=>{
                         const idx = pendingUploads.indexOf(ph);
                         const cleaned = (text||'').trim();
                         if(!cleaned){
@@ -750,9 +762,8 @@ function handleUploadFiles(fileList){
                             toast('PDF「'+f.name+'」未提取到文本，可能是扫描件（纯图片）。这类文件需要 OCR，暂不支持自动解析。', 'warn');
                             return;
                         }
-                        const parts = parseFile(f.name.replace(/\.pdf$/i,'.txt'), cleaned)
-                            .map(p=>{ p.category='pdf'; p.categoryLabel='文档资料'; return p; });
-                        if(idx>=0){ pendingUploads.splice(idx, 1, ...parts); } else { parts.forEach(p=>pendingUploads.push(p)); }
+                        const e0 = makeEntry(f.name.replace(/\.pdf$/i,''), html, 'pdf', 'pdf', text);
+                        if(idx>=0){ pendingUploads.splice(idx, 1, e0); } else { pendingUploads.push(e0); }
                         renderUploadList();
                     }).catch(err=>{
                         const idx = pendingUploads.indexOf(ph);
@@ -803,42 +814,105 @@ function ensurePDFJS(cb){
     document.head.appendChild(s);
 }
 
-async function extractPdfText(uint8){
+// 将 PDF 解析为结构化 HTML（按字号识别标题、按行距分段、保留分页）+ 纯文本（用于检索）
+async function extractPdfHtml(uint8){
     const pdf = await window.pdfjsLib.getDocument({data: uint8}).promise;
-    const out = [];
+    const pageHtml = [], pageText = [];
     for(let p=1; p<=pdf.numPages; p++){
         const page = await pdf.getPage(p);
         const tc = await page.getTextContent();
-        let last = null, line = '';
-        const lines = [];
-        tc.items.forEach(it=>{
-            const y = it.transform[5];
-            if(last!==null && Math.abs(y-last) > 3){ lines.push(line); line=''; }
-            line += it.str;
-            if(it.hasEOL){ lines.push(line); line=''; last=null; return; }
-            last = y;
-        });
-        if(line) lines.push(line);
-        out.push(lines.join('\n'));
+        const items = (tc.items||[])
+            .filter(it=>it.str!=null && it.str!=='')
+            .map(it=>({
+                str: it.str,
+                x: it.transform[4],
+                y: it.transform[5],
+                h: (it.height || (it.transform ? Math.hypot(it.transform[2], it.transform[3]) : 0) || 10)
+            }))
+            .sort((a,b)=> (b.y - a.y) || (a.x - b.x)); // 自上而下、自左而右
+        // 按基线 y 聚类成行
+        const lines = []; let curY=null, cur=null;
+        for(const it of items){
+            if(curY===null || Math.abs(it.y - curY) > 2){
+                cur = { y:it.y, h:it.h, items:[it] };
+                lines.push(cur); curY = it.y;
+            } else { cur.items.push(it); }
+        }
+        // 逐行拼文本 + 记录字号
+        const rows = lines.map(L=>{
+            L.items.sort((a,b)=>a.x-b.x);
+            let txt='', lastX=null;
+            for(const it of L.items){
+                if(lastX!==null && (it.x - lastX) > 2) txt += ' ';
+                txt += it.str; lastX = it.x + (it.str.length * it.h * 0.5);
+            }
+            return { text: txt.trim(), h: L.h, y: L.y };
+        }).filter(r=>r.text);
+        // 段落分组 + 标题识别
+        const sizes = rows.map(r=>r.h).sort((a,b)=>a-b);
+        const median = sizes.length ? sizes[Math.floor(sizes.length/2)] : 10;
+        let html='', text='', para=[], lastBottom=null;
+        const flush = ()=>{
+            if(!para.length) return;
+            const ptxt = para.map(r=>r.text).join(' ').trim();
+            if(!ptxt){ para=[]; return; }
+            const maxH = Math.max(...para.map(r=>r.h));
+            const isHeading = maxH > median*1.18 && ptxt.length < 60 &&
+                !/[。！？!?；;：:，,.]/.test(ptxt.slice(-1)) && para.length <= 2;
+            html += isHeading ? '<h3 class="doc-h">'+escapeHtml(ptxt)+'</h3>' : '<p>'+escapeHtml(ptxt)+'</p>';
+            text += ptxt + '\n';
+            para = [];
+        };
+        for(const r of rows){
+            if(lastBottom!==null && (lastBottom - r.y) > median*1.6) flush();
+            para.push(r); lastBottom = r.y;
+        }
+        flush();
+        if(p>1){ html = '<hr class="pdf-page"><div class="pdf-page-label">— 第 '+p+' 页 —</div>' + html; }
+        pageHtml.push(html); pageText.push(text);
     }
-    return out.join('\n\n');
+    return { html: pageHtml.join('\n'), text: pageText.join('\n') };
 }
 
 function serializeRow(row){
     return Object.keys(row).map(k=> k+': '+(row[k]==null?'':row[k])).join('\n');
 }
 
+// 将 SheetJS 的二维数组渲染成真实 HTML 表格（首行作表头），并返回纯文本用于检索
+function sheetToTable(aoa){
+    const MAX = 1000;
+    const data = (aoa||[]).filter(r=>Array.isArray(r) && r.some(c=>c!=='' && c!=null));
+    if(!data.length) return { html:'<p>（空表格）</p>', text:'' };
+    const head = data[0] || [];
+    const body = data.slice(1, MAX+1);
+    let html = '<div class="xlsx-table-wrap"><table class="xlsx-table"><thead><tr>';
+    html += head.map(c=>'<th>'+escapeHtml(c==null?'':String(c))+'</th>').join('');
+    html += '</tr></thead><tbody>';
+    body.forEach(row=>{
+        html += '<tr>'+head.map((_,i)=>'<td>'+escapeHtml(row[i]==null?'':String(row[i]))+'</td>').join('')+'</tr>';
+    });
+    html += '</tbody></table></div>';
+    if(data.length-1 > MAX) html += '<div class="xlsx-trunc">（表格较大，已显示前 '+MAX+' 行，共 '+(data.length-1)+' 行）</div>';
+    const text = data.map(r=>r.map(c=>c==null?'':String(c)).join(' | ')).join('\n');
+    return { html, text };
+}
+
 function parseFile(name, text){
     const lower = name.toLowerCase();
     if(lower.endsWith('.csv')){
         // CSV 作为一个整体条目保存（保留全文，检索时按关键词定位片段），不再逐行拆成多条
-        return [makeEntry(name.replace(/\.csv$/i,''), text||'', guessCat(text||''))];
+        return [makeEntry(name.replace(/\.csv$/i,''), text||'', guessCat(text||''), 'csv', text||'')];
     }
-    if(lower.endsWith('.md') || lower.endsWith('.txt')){
-        // 一个文件 = 一个知识条目，整篇作为内容，不再按 # 标题切分（避免一个文档被拆成好几条）
-        return [makeEntry(name.replace(/\.(md|txt)$/i,''), text||'', guessCat(text||''))];
+    if(lower.endsWith('.md')){
+        // Markdown 文件：保留 Markdown，详情区按 Markdown 渲染
+        return [makeEntry(name.replace(/\.md$/i,''), text||'', guessCat(text||''), 'md', text||'')];
     }
-    return [makeEntry(name, text||'', guessCat(text||''))];
+    if(lower.endsWith('.txt')){
+        // 纯文本：详情区原样展示，避免被误当成 Markdown 渲染
+        return [makeEntry(name.replace(/\.txt$/i,''), text||'', guessCat(text||''), 'txt', text||'')];
+    }
+    // 其它未知文本：按纯文本原样展示
+    return [makeEntry(name, text||'', guessCat(text||''), 'txt', text||'')];
 }
 
 function splitCsvLine(line){
@@ -860,19 +934,22 @@ function guessCat(t){
     return 'tech';
 }
 
-function makeEntry(title, content, category){
+function makeEntry(title, content, category, srcExt, plain){
     const catMap={tech:['技术方案','🔧'],meeting:['会议纪要','📋'],guide:['使用指南','📖'],pdf:['文档资料','📄']};
     const cl = catMap[category] || catMap.tech;
+    const plainText = (plain!=null ? plain : content) || '';
     return {
         id:'usr-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),
         title:(title||'').slice(0,120),
         category:category,
         categoryLabel:cl[0],
+        srcExt:(srcExt||'').toLowerCase(),
         timeLabel:'刚刚上传',
         tags:[],
-        size:Math.round((content||'').length/1024*10)/10+'KB',
-        introduction:(content||'').slice(0,160),
+        size:Math.round(plainText.length/1024*10)/10+'KB',
+        introduction:plainText.slice(0,160),
         content:content||'',
+        plain:plainText,
         source:'user'
     };
 }
@@ -1051,7 +1128,7 @@ function renderCards() {
 
 function cardHtml(item, q) {
     const typeClass = 'type-' + item.category;
-    const preview = (item.introduction || item.content || '').slice(0, 150);
+    const preview = (item.plain || item.introduction || item.content || '').slice(0, 150);
     const snippet = q ? highlightText(preview, searchQuery.trim()) : escapeHtml(preview);
     const delBtn = (item.source==='user')
         ? `<span class="kb-del" title="删除该知识" onclick="event.stopPropagation();deleteEntry('${item.id}')">✕</span>` : '';
@@ -1068,7 +1145,7 @@ function cardHtml(item, q) {
         <div class="kb-tags">${srcTag}${(item.tags||[]).map(t => '<span class="kb-tag">'+escapeHtml(t)+'</span>').join('')}</div>
         <div class="kb-meta">
             <span>📄 ${item.size||''}</span>
-            <span>📝 ${(item.content||'').length} 字</span>
+            <span>📝 ${(item.plain||item.content||'').length} 字</span>
         </div>
     </div>`;
 }
@@ -1136,7 +1213,7 @@ function openDetail(id) {
     document.getElementById('detailBadge').className = 'detail-badge ' + typeClass;
     document.getElementById('detailBadge').textContent = item.categoryLabel;
     document.getElementById('detailTitle').textContent = item.title;
-    document.getElementById('detailBody').innerHTML = mdToHtml(item.content);
+    document.getElementById('detailBody').innerHTML = renderDetailContent(item);
     document.getElementById('detailMeta').textContent = `${item.timeLabel} · ${item.size} · ${(item.tags||[]).join(' / ')}`;
     document.getElementById('modalOverlay').classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -1160,7 +1237,7 @@ function toggleRef(id, ev){
 function copyContent() {
     const item = getAllEntries().find(k => k.id === currentDetailId);
     if (!item) return;
-    navigator.clipboard.writeText(item.content).then(() => {
+    navigator.clipboard.writeText(item.plain||item.content).then(() => {
         const btn = document.querySelector('.detail-action-btn');
         btn.textContent = '✅ 已复制';
         setTimeout(() => btn.textContent = '📋 复制内容', 2000);
@@ -1180,6 +1257,16 @@ function expandAll() {
 
 // ESC 关闭弹窗
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+// ========== 详情内容渲染（按来源类型决定渲染方式） ==========
+// md → Markdown 渲染；xlsx/pdf → 已生成的 HTML 直接插入；txt/csv → 原样纯文本
+function renderDetailContent(item){
+    if(!item) return '';
+    const ext = item.srcExt;
+    if(ext === 'md') return mdToHtml(item.content||'');
+    if(ext === 'xlsx' || ext === 'pdf') return item.content || item.plain || '(暂无正文内容)';
+    return '<pre class="raw-content">'+escapeHtml(item.content||item.plain||'(暂无正文内容)')+'</pre>';
+}
 
 // ========== 简易 Markdown → HTML 转换 ==========
 function mdToHtml(md) {
