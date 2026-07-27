@@ -65,6 +65,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 .gif-cap { margin-top: 10px; font-size: 12.5px; color: var(--text-secondary); font-weight: 600; text-align: center; }
 .svg-wrap { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.06); background: #f7f8fa; }
 .svg-wrap img { width: 100%; height: auto; display: block; }
+.map-wrap { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.06); background: #0f172a; }
+.map-wrap iframe { width: 100%; height: 82vh; border: 0; display: block; }
+.map-foot { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 12px; }
+.map-link { font-size: 12.5px; color: var(--primary); text-decoration: none; font-weight: 600; }
+.map-link:hover { text-decoration: underline; }
 .tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; margin-top: 4px; }
 .tip { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; }
 .tip b { color: var(--text); }
@@ -138,14 +143,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
   <!-- 最新概念地图：静态清晰版 -->
   <div class="card" id="concept-map">
     <div class="card-title">🕸️ 最新概念地图 · 全局关联 <span class="badge badge-blue">最新版</span></div>
-    <div class="card-desc">最新版共 135 个概念、209 条关联，按 5 类颜色区分。每一条连线代表两个概念之间的关联；点击下方图片可在新标签打开高清矢量图，自由放大看清每个点与连线。</div>
-    <div class="svg-wrap">
-      <img src="concept-map-latest.svg" alt="宁德商点结合概念地图（最新版）" onclick="window.open(this.src,'_blank')" style="cursor:zoom-in;">
+    <div class="card-desc">最新版共 135 个概念、209 条关联，按 5 类颜色区分。下方为<b>交互式概念地图</b>：滚轮缩放、拖拽节点、点击节点查看详情与关联、顶部筛选栏按类别过滤、底部搜索框定位概念。也可点「查看高清静态矢量图」打开放大版。</div>
+    <div class="map-wrap">
+      <iframe src="concept-map-ningde.html" title="宁德商点结合概念地图（交互版）" loading="lazy"></iframe>
+    </div>
+    <div class="map-foot">
+      <a class="map-link" href="concept-map-latest.svg" target="_blank" rel="noopener">🖼️ 查看高清静态矢量图</a>
+      <a class="map-link" href="concept-map-ningde.html" target="_blank" rel="noopener">↗ 全屏打开交互版</a>
     </div>
     <div class="tips">
-      <div class="tip"><b>颜色 = 类别</b><br>角色方·原则·规则·机制·义务，左上角图例对应</div>
+      <div class="tip"><b>颜色 = 类别</b><br>角色方·原则·规则·机制·义务，左下角图例对应</div>
       <div class="tip"><b>连线 = 关联</b><br>两点之间的线表示概念间的关联，按起点类别着色</div>
-      <div class="tip"><b>放大查看</b><br>点击图片在新标签打开矢量高清图，可无限放大</div>
+      <div class="tip"><b>交互操作</b><br>滚轮缩放 / 拖拽节点 / 点击节点看详情，顶部筛选栏过滤类别</div>
       <div class="tip"><b>节点大小</b><br>关联越多的核心概念，圆点越大</div>
     </div>
   </div>
