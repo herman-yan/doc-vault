@@ -68,23 +68,20 @@
   .growth-delta{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;min-width:66px;text-align:right;}
   .growth-delta.up{color:var(--accent);} .growth-delta.down{color:#ff7b72;}
 
-  /* 电池行业舆情月度汇总 */
-  .battery-list{display:flex;flex-direction:column;gap:12px;margin-top:6px;}
-  .batt-item{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:13px 16px;}
-  .batt-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .batt-date{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.3px;}
-  .batt-risk{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;}
-  .batt-risk.high{background:rgba(255,123,114,.18);color:#ff9b94;border:1px solid rgba(255,123,114,.4);}
-  .batt-risk.mid{background:rgba(255,180,84,.16);color:#ffce8a;border:1px solid rgba(255,180,84,.4);}
-  .batt-risk.low{background:rgba(57,217,138,.16);color:#7ee8b0;border:1px solid rgba(57,217,138,.4);}
-  .batt-meta{font-size:11.5px;color:var(--muted);margin-left:auto;}
-  .batt-sum{font-size:13px;line-height:1.7;color:var(--txt2);margin-top:9px;}
-  .batt-item details{margin-top:9px;}
-  .batt-item summary{cursor:pointer;font-size:12.5px;color:var(--accent2);user-select:none;}
-  .batt-item summary:hover{text-decoration:underline;}
-  .batt-line{font-size:12px;line-height:1.6;color:var(--txt2);padding:5px 0;border-top:1px solid var(--border);}
-  .batt-cat{display:inline-block;font-size:10.5px;font-weight:700;color:var(--accent2);background:rgba(79,172,254,.12);border-radius:6px;padding:1px 7px;margin-right:7px;}
-  .batt-loading{padding:30px;text-align:center;color:var(--txt2);font-size:13px;}
+  /* 宁德时代最近业务动态 */
+  .catl-list{display:flex;flex-direction:column;gap:11px;margin-top:6px;}
+  .catl-day{background:var(--card2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+  .catl-day > summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:12px 15px;font-size:13.5px;font-weight:700;user-select:none;}
+  .catl-day > summary::-webkit-details-marker{display:none;}
+  .catl-day > summary:hover{background:rgba(255,255,255,.03);}
+  .catl-day .cnt{font-size:11.5px;font-weight:700;color:var(--accent);background:rgba(57,217,138,.12);border-radius:20px;padding:2px 9px;}
+  .catl-day .arrow{margin-left:auto;color:var(--txt2);transition:transform .2s;font-size:11px;}
+  .catl-day[open] .arrow{transform:rotate(90deg);}
+  .catl-day .day-body{padding:2px 15px 12px;}
+  .catl-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--border);}
+  .catl-cat{display:inline-block;font-size:10.5px;font-weight:700;color:var(--accent);background:rgba(57,217,138,.12);border-radius:6px;padding:1px 7px;margin-bottom:5px;flex-shrink:0;}
+  .catl-text{font-size:12.5px;line-height:1.65;color:var(--txt2);}
+  .catl-loading{padding:30px;text-align:center;color:var(--txt2);font-size:13px;}
 @media(max-width:880px){
     .kpis{grid-template-columns:repeat(2,1fr);}
     .grid{grid-template-columns:1fr;}
@@ -141,9 +138,9 @@
     </div>
 
     <div class="panel">
-      <h3><span class="dot"></span>电池行业舆情月度汇总</h3>
-      <div class="hint">来源：舆情监控日报 · 2026 年 7 月逐日汇总（已标注日期，可展开当日要点）</div>
-      <div class="battery-list" id="battery"><div class="batt-loading">加载中…</div></div>
+      <h3><span class="dot"></span>宁德时代最近业务动态</h3>
+      <div class="hint">来源：舆情监控日报 · 近一个月（逐日提取含「宁德时代」的动态，已标注日期）</div>
+      <div class="catl-list" id="catl"><div class="catl-loading">加载中…</div></div>
     </div>
 
     <div class="note" id="footNote"></div>
@@ -197,7 +194,7 @@ async function init(){
 
   loadMap();
   renderKPI(); renderBar(); renderTrend();
-  renderGrowth(); renderBattery();
+  renderGrowth(); renderCatl();
 }
 
 function setMonth(m){
@@ -331,7 +328,7 @@ function renderTrend(){
 // ---------- 近期增长趋势较多的省市 ----------
 function renderGrowth(){
   const box = document.getElementById('growth');
-  if(cur<=0){ box.innerHTML = '<div class="batt-loading">暂无上月数据可对比</div>'; return; }
+  if(cur<=0){ box.innerHTML = '<div class="catl-loading">暂无上月数据可对比</div>'; return; }
   const arr = PROV.map(p=>({
     name:p.name, last:p.values[cur], prev:p.values[cur-1], d:p.values[cur]-p.values[cur-1]
   })).sort((a,b)=>b.d-a.d).slice(0,8);
@@ -346,35 +343,44 @@ function renderGrowth(){
   }).join('');
 }
 
-// ---------- 电池行业舆情月度汇总 ----------
-function riskClass(r){ return ({'高':'high','中':'mid','低':'low'}[r]||'low'); }
-async function renderBattery(){
-  const box = document.getElementById('battery');
+// ---------- 宁德时代最近业务动态 ----------
+async function renderCatl(){
+  const box = document.getElementById('catl');
   try{
     const r = await fetch('sentiment-data.json?t='+Date.now());
     if(!r.ok) throw new Error('HTTP '+r.status);
     const logs = await r.json();
-    const bat = logs.filter(x=>{
-      const s = (x.title||'')+(x.summary||'');
-      const hit = s.includes('电池') || (x.items||[]).some(it=>(it.text||'').includes('电池'));
-      return hit;
-    }).sort((a,b)=> b.log_date.localeCompare(a.log_date));
-    if(!bat.length){ box.innerHTML = '<div class="batt-loading">暂无电池行业舆情数据</div>'; return; }
-    box.innerHTML = bat.map(x=>{
-      const risk = riskClass(x.risk_level);
-      const items = (x.items||[]).map(it=>`<div class="batt-line"><span class="batt-cat">${it.category}</span>${it.text}</div>`).join('');
-      return `<div class="batt-item">
-        <div class="batt-head">
-          <span class="batt-date">${x.log_date}</span>
-          <span class="batt-risk ${risk}">风险 ${x.risk_level}</span>
-          <span class="batt-meta">风险点 ${x.risk_count||0} · 来源 ${x.sources_count||0}</span>
+    // 近一个月：以最新日报日期往前 30 天为截止
+    const dates = logs.map(x=>x.log_date).filter(Boolean).sort();
+    let cutoff = null;
+    if(dates.length){ const d = new Date(dates[dates.length-1]); d.setDate(d.getDate()-30); cutoff = d.toISOString().slice(0,10); }
+    const byDay = {};
+    logs.forEach(x=>{
+      if(cutoff && x.log_date && x.log_date < cutoff) return;
+      const hit = (x.items||[]).filter(it=>(it.text||'').includes('宁德时代'));
+      if(hit.length){
+        (byDay[x.log_date]=byDay[x.log_date]||[]).push(...hit.map(it=>({cat:it.category, text:it.text})));
+      } else {
+        const s = (x.title||'')+(x.summary||'');
+        if(s.includes('宁德时代')) (byDay[x.log_date]=byDay[x.log_date]||[]).push({ cat:'日报综述', text:(x.summary||'').replace(/\s+/g,' ') });
+      }
+    });
+    const days = Object.keys(byDay).sort((a,b)=> b.localeCompare(a));
+    const total = days.reduce((a,d)=> a + byDay[d].length, 0);
+    if(!days.length){ box.innerHTML = '<div class="catl-loading">近一个月暂无宁德时代业务动态</div>'; return; }
+    box.innerHTML = days.map((day,i)=>`
+      <details class="catl-day" ${i===0?'open':''}>
+        <summary><span>${day}</span><span class="cnt">${byDay[day].length} 条</span><span class="arrow">▶</span></summary>
+        <div class="day-body">
+          ${byDay[day].map(it=>`
+            <div class="catl-item">
+              ${it.cat?`<span class="catl-cat">${it.cat}</span>`:''}
+              <div class="catl-text">${it.text}</div>
+            </div>`).join('')}
         </div>
-        <div class="batt-sum">${x.summary}</div>
-        <details><summary>查看当日要点（${ (x.items||[]).length } 条）</summary>${items}</details>
-      </div>`;
-    }).join('');
+      </details>`).join('') + `<div class="catl-loading" style="padding:14px">近一个月共 ${total} 条宁德时代相关动态 · 点击日期展开</div>`;
   }catch(e){
-    box.innerHTML = '<div class="batt-loading">⚠️ 电池舆情数据加载失败：'+e.message+'</div>';
+    box.innerHTML = '<div class="catl-loading">⚠️ 宁德时代动态加载失败：'+e.message+'</div>';
   }
 }
 
