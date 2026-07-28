@@ -62,7 +62,7 @@
         .header-btn.ghost { color:#e57373; border-color:rgba(229,115,115,.35); }
         .header-btn.ghost:hover { background:rgba(229,115,115,.12); border-color:rgba(229,115,115,.6); }
 
-        /* ========== 中央资料库独立入口 ========== */
+        /* ========== 资料库独立入口 ========== */
         .vault-entry { display:flex;align-items:center;gap:16px;margin-top:24px;padding:18px 22px;background:var(--glass-bg);backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:var(--radius-lg);box-shadow:var(--glass-shadow);text-decoration:none;color:var(--text-primary);transition:all .3s;position:relative;overflow:hidden; }
         .vault-entry::before { content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gradient-success); }
         .vault-entry:hover { transform:translateY(-2px);background:var(--bg-card-hover);border-color:rgba(79,172,254,.35); }
@@ -324,7 +324,7 @@
         <div class="header-right">
             <button class="header-btn" onclick="openSettings()">⚙ 设置</button>
             <button class="header-btn" onclick="openUpload()">📥 上传文件</button>
-            <a href="../docs-vault/" target="_blank" rel="noopener" class="header-btn">🗂️ 中央资料库</a>
+            <a href="../docs-vault/" target="_blank" rel="noopener" class="header-btn">🗂️ 资料库</a>
             <button class="header-btn" onclick="expandAll()">📂 展开全部</button>
             <a href="../" class="header-btn">← 返回主站</a>
         </div>
@@ -338,11 +338,11 @@
         <div class="stat-card"><div class="stat-num" id="updateTime">今日</div><div class="stat-label">最近更新</div></div>
     </div>
 
-    <!-- 中央资料管理库独立入口 -->
+    <!-- 资料管理库独立入口 -->
     <a class="vault-entry" href="../docs-vault/" target="_blank" rel="noopener">
         <div class="vault-entry-ico">🗂️</div>
         <div class="vault-entry-main">
-            <div class="vault-entry-title">中央资料管理库</div>
+            <div class="vault-entry-title">资料管理库</div>
             <div class="vault-entry-desc">团队共享文档中心：分类上传、权限管控、云端协作检索。与知识库互补，集中管理需共享的正式资料。</div>
         </div>
         <div class="vault-entry-go">进入 →</div>
