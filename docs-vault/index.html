@@ -1861,24 +1861,35 @@ body {
                 const uploadZone = document.getElementById('uploadZone');
                 const fileInput = document.getElementById('fileInput');
                 const uploaderInputWrap = document.getElementById('uploaderInputWrap');
-                
+
+                // 拖拽深度计数（避免子元素触发 dragleave 导致高亮闪烁）
+                let _dragDepth = 0;
+
                 uploaderInputWrap.addEventListener('click', (e) => {
                     e.stopPropagation();
                 });
-                
+
                 uploadZone.addEventListener('click', () => fileInput.click());
-                uploadZone.addEventListener('dragover', (e) => {
+
+                // 关键修复：在 window 级别阻止浏览器默认拖拽行为。
+                // 否则拖文件到页面任意处时，浏览器会直接打开文件（导航走），
+                // 导致 drop 事件不被页面捕获、表现为“拖拽无法导入”。
+                // 同时让整页任意位置松手都能导入，不局限于小上传框。
+                window.addEventListener('dragover', (e) => { e.preventDefault(); });
+                window.addEventListener('drop', (e) => {
                     e.preventDefault();
-                    uploadZone.classList.add('dragover');
-                });
-                uploadZone.addEventListener('dragleave', () => {
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                        this.handleFiles(e.dataTransfer.files);
+                    }
+                    _dragDepth = 0;
                     uploadZone.classList.remove('dragover');
                 });
-                uploadZone.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadZone.classList.remove('dragover');
-                    this.handleFiles(e.dataTransfer.files);
-                });
+
+                // 拖拽高亮（仅视觉反馈）
+                uploadZone.addEventListener('dragenter', (e) => { e.preventDefault(); _dragDepth++; uploadZone.classList.add('dragover'); });
+                uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+                uploadZone.addEventListener('dragleave', () => { _dragDepth = Math.max(0, _dragDepth - 1); if (_dragDepth === 0) uploadZone.classList.remove('dragover'); });
+
                 fileInput.addEventListener('change', (e) => {
                     this.handleFiles(e.target.files);
                     fileInput.value = '';
