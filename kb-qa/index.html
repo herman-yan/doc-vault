@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>员工客服知识库 - 宁家服务数字化运营</title>
+    <title>员工知识库问答系统 - 宁家服务数字化运营</title>
     <style>
         /* ========== 基础重置与主题（与 doc-vault 主站一致） ========== */
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -62,7 +62,7 @@
         .header-btn.ghost { color:#e57373; border-color:rgba(229,115,115,.35); }
         .header-btn.ghost:hover { background:rgba(229,115,115,.12); border-color:rgba(229,115,115,.6); }
 
-        /* ========== 资料库独立入口 ========== */
+        /* ========== 中央资料库独立入口 ========== */
         .vault-entry { display:flex;align-items:center;gap:16px;margin-top:24px;padding:18px 22px;background:var(--glass-bg);backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:var(--radius-lg);box-shadow:var(--glass-shadow);text-decoration:none;color:var(--text-primary);transition:all .3s;position:relative;overflow:hidden; }
         .vault-entry::before { content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gradient-success); }
         .vault-entry:hover { transform:translateY(-2px);background:var(--bg-card-hover);border-color:rgba(79,172,254,.35); }
@@ -213,7 +213,7 @@
             .stats-row { grid-template-columns:1fr 1fr; gap:10px; }
             .stat-num { font-size:22px; }
         }
-    /* ========== 客服问答区 ========== */
+    /* ========== 问答区 ========== */
     .qa-section { margin-top:28px; }
     .qa-hero { background:linear-gradient(135deg, rgba(79,172,254,.12) 0%, rgba(102,126,234,.08) 100%); border:1px solid rgba(79,172,254,.18); border-radius:var(--radius-xl); padding:34px 32px; text-align:center; box-shadow:var(--glass-shadow); position:relative; overflow:hidden; }
     .qa-hero::after { content:''; position:absolute; top:-60px; right:-60px; width:200px; height:200px; background:radial-gradient(circle, rgba(79,172,254,.25), transparent 70%); }
@@ -317,14 +317,14 @@
         <div class="logo-section">
             <a href="../" style="text-decoration:none;"><div class="logo-icon">📚</div></a>
             <div class="logo-text">
-                <h1>员工客服知识库</h1>
+                <h1>员工知识库问答系统</h1>
                 <p>Team Knowledge Base · 智能检索 · 协作沉淀</p>
             </div>
         </div>
         <div class="header-right">
             <button class="header-btn" onclick="openSettings()">⚙ 设置</button>
             <button class="header-btn" onclick="openUpload()">📥 上传文件</button>
-            <a href="../docs-vault/" target="_blank" rel="noopener" class="header-btn">🗂️ 资料库</a>
+            <a href="../docs-vault/" target="_blank" rel="noopener" class="header-btn">🗂️ 中央资料库</a>
             <button class="header-btn" onclick="expandAll()">📂 展开全部</button>
             <a href="../" class="header-btn">← 返回主站</a>
         </div>
@@ -338,21 +338,21 @@
         <div class="stat-card"><div class="stat-num" id="updateTime">今日</div><div class="stat-label">最近更新</div></div>
     </div>
 
-    <!-- 资料管理库独立入口 -->
+    <!-- 中央资料管理库独立入口 -->
     <a class="vault-entry" href="../docs-vault/" target="_blank" rel="noopener">
         <div class="vault-entry-ico">🗂️</div>
         <div class="vault-entry-main">
-            <div class="vault-entry-title">资料管理库</div>
+            <div class="vault-entry-title">中央资料管理库</div>
             <div class="vault-entry-desc">团队共享文档中心：分类上传、权限管控、云端协作检索。与知识库互补，集中管理需共享的正式资料。</div>
         </div>
         <div class="vault-entry-go">进入 →</div>
     </a>
 
-    <!-- 客服自主问答区 -->
+    <!-- 自主问答区 -->
     <section class="qa-section">
         <div class="qa-hero">
             <div class="qa-hero-title">向知识库提问，秒获答案</div>
-            <div class="qa-hero-sub">客服自主查询 · 内部文件可随时上传扩充 · 智能检索 / AI 生成 双模式</div>
+            <div class="qa-hero-sub">自主查询 · 内部文件可随时上传扩充 · 智能检索 / AI 生成 双模式</div>
             <div class="qa-box">
                 <span class="qa-icon">💬</span>
                 <input type="text" id="qaInput" placeholder="例如：这份资料里的关键要求是什么？" onkeydown="if(event.key==='Enter')askQuestion()">
@@ -425,7 +425,7 @@
             <div class="detail-close" onclick="closeUpload()">✕</div>
         </div>
         <div class="detail-body">
-            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">支持 <b>.txt / .md / .csv / .xlsx / .pdf</b>。上传后自动解析为知识条目，立即参与客服问答检索，并保存在本浏览器（IndexedDB，容量充足，可存大量文件）。</p>
+            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">支持 <b>.txt / .md / .csv / .xlsx / .pdf</b>。上传后自动解析为知识条目，立即参与问答检索，并保存在本浏览器（IndexedDB，容量充足，可存大量文件）。</p>
             <label class="upload-drop" id="uploadDrop">
                 <input type="file" id="uploadInput" multiple accept=".txt,.md,.csv,.xlsx,.xls,.pdf" style="display:none;" onchange="handleUploadFiles(this.files)">
                 <div class="upload-drop-inner">
@@ -718,7 +718,7 @@ function renderRetrieveAnswer(q, hits, box){
 async function askWithLLM(q, hits, box){
     const c = loadLLMConfig();
     const context = hits.map((h,i)=>'[资料'+(i+1)+'] '+h.entry.title+'\n'+(h.entry.content||h.entry.introduction||'').slice(0,1500)).join('\n\n');
-    const sys = '你是企业客服知识库助手。请仅依据下方「资料」回答用户问题，用简洁中文、分点说明；若资料不足请明确说明无法回答。\n\n资料：\n'+context;
+    const sys = '你是企业知识库问答助手。请仅依据下方「资料」回答用户问题，用简洁中文、分点说明；若资料不足请明确说明无法回答。\n\n资料：\n'+context;
     const url = c.base.replace(/\/$/,'') + '/chat/completions';
     const resp = await fetch(url, {
         method:'POST',
