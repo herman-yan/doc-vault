@@ -150,6 +150,10 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Mi
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       上传Excel
     </button>
+    <button class="upload-btn" onclick="downloadTemplate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+      下载模板
+    </button>
   </div>
   <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelUpload(this)">
 </div>
@@ -695,22 +699,81 @@ function showUploadStatus(msg, type) {
   if(type === 'success') setTimeout(() => { el.className = 'upload-status show info'; }, 8000);
 }
 
+// ===== 健壮的保内/保外识别（与 index.html 一致）=====
+function normHeader(h) {
+  return String(h == null ? '' : h).trim().replace(/\s+/g, '').toLowerCase();
+}
+const WN_SIG = ['编号','登记日期','维修类型','完成状态','责任工程师','gss工单号','工程师产值','中台备注','旧件返厂','申领物料','工单提交时间','建单日期','gss总费用','派工'];
+const NW_SIG = ['签约客户名称','报价单','分润','车牌号','车架号','维修状态','业务对接人','物流往返','宁德','实际业务毛利润','barcode号','产品pn','工单号','序号','城市'];
+const WN_STATUS = ['未派工','未开工','在修','已竣工','已结算','已结清','已终止'];
+const NW_STATUS = ['待客户确认','维修完成','关闭工单'];
+
 function detectSheetType(headers) {
-  // 检测列头判断保内还是保外
-  const wnKeys = ['编号','登记日期','维修类型','完成状态','责任工程师'];
-  const nwKeys = ['序号','城市','签约客户名称','维修状态','报价单总金额'];
-  let wnScore = 0, nwScore = 0;
-  headers.forEach(h => {
-    const hTrim = h.trim();
-    if(wnKeys.includes(hTrim)) wnScore++;
-    if(nwKeys.includes(hTrim)) nwScore++;
+  let wn = 0, nw = 0;
+  headers.map(normHeader).forEach(h => {
+    if (WN_SIG.some(k => h.includes(normHeader(k)))) wn++;
+    if (NW_SIG.some(k => h.includes(normHeader(k)))) nw++;
   });
-  if(wnScore >= 2 && wnScore > nwScore) return 'warranty';
-  if(nwScore >= 2 && nwScore > wnScore) return 'nonwarranty';
-  // fallback: 看是否包含特定关键字
-  if(headers.some(h => h.includes('完成状态'))) return 'warranty';
-  if(headers.some(h => h.includes('维修状态'))) return 'nonwarranty';
+  if (wn >= 2 && wn >= nw) return 'warranty';
+  if (nw >= 2 && nw > wn) return 'nonwarranty';
+  if (wn > 0 && nw === 0) return 'warranty';
+  if (nw > 0 && wn === 0) return 'nonwarranty';
   return null;
+}
+
+function findTypeCol(headers) {
+  for (const h of headers) {
+    const n = normHeader(h);
+    if (n.includes('类型') || n.includes('保修') || n.includes('保单') || n === '内外' || n.includes('保内保外')) return h;
+  }
+  return null;
+}
+
+function statusValue(row, headers) {
+  for (const h of headers) {
+    if (normHeader(h).includes('状态')) {
+      const v = String(row[h] == null ? '' : row[h]).trim();
+      if (v) return v;
+    }
+  }
+  return '';
+}
+
+function fillCount(mapped, defs) {
+  let c = 0;
+  for (const k in defs) {
+    const v = mapped[k];
+    if (v !== undefined && v !== '' && v !== defs[k]) c++;
+  }
+  return c;
+}
+
+function classifyRow(row, typeCol, headers) {
+  if (typeCol) {
+    const v = String(row[typeCol] == null ? '' : row[typeCol]).replace(/\s+/g, '');
+    if (/保内/.test(v) && !/保外/.test(v)) return 'warranty';
+    if (/保外/.test(v) && !/保内/.test(v)) return 'nonwarranty';
+  }
+  const sv = statusValue(row, headers);
+  if (WN_STATUS.includes(sv)) return 'warranty';
+  if (NW_STATUS.includes(sv)) return 'nonwarranty';
+  const wn = fillCount(mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS), WN_DEFAULTS);
+  const nw = fillCount(mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS), NW_DEFAULTS);
+  if (wn === 0 && nw === 0) return null;
+  return wn >= nw ? 'warranty' : 'nonwarranty';
+}
+
+function classifySheetRows(rows) {
+  const headers = Object.keys(rows[0] || {});
+  const sheetType = detectSheetType(headers);
+  const typeCol = findTypeCol(headers);
+  const wn = [], nw = [];
+  rows.forEach(r => {
+    const t = typeCol ? classifyRow(r, typeCol, headers) : (sheetType || classifyRow(r, null, headers));
+    if (t === 'warranty') wn.push(r);
+    else if (t === 'nonwarranty') nw.push(r);
+  });
+  return { wn, nw };
 }
 
 function mapRow(rawRow, columnMap, defaults) {
@@ -737,7 +800,7 @@ function handleExcelUpload(input) {
   const file = input.files[0];
   if(!file) return;
 
-  showUploadStatus('⏳ 正在读取 <b>' + file.name + '</b> ...', 'info');
+  showUploadStatus('⏳ 正在读取 <b>' + file.name + '</b> 并自动识别保内/保外 ...', 'info');
 
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -746,7 +809,7 @@ function handleExcelUpload(input) {
       const workbook = XLSX.read(data, {type:'array', cellDates:true});
 
       // 处理所有sheet
-      let totalWn = 0, totalNw = 0;
+      let totalWn = 0, totalNw = 0, skipped = 0;
       const newWnData = [], newNwData = [];
 
       for(const sheetName of workbook.SheetNames) {
@@ -754,65 +817,35 @@ function handleExcelUpload(input) {
         const jsonData = XLSX.utils.sheet_to_json(sheet, {defval:''});
         if(!jsonData.length) continue;
 
-        const headers = Object.keys(jsonData[0]);
-        const sheetType = detectSheetType(headers);
+        // 逐行分类（兼容整表保内/保外、单表混合、列头变体）
+        const { wn, nw } = classifySheetRows(jsonData);
 
-        if(sheetType === 'warranty') {
-          jsonData.forEach(row => {
-            const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
-            // 如果没有编号，自动生成
-            if(!mapped.id) mapped.id = 'WN-' + String(newWnData.length + 1).padStart(6,'0');
-            // 状态映射：确保状态值在合法枚举中
-            const validStatuses = ['未派工','未开工','在修','已竣工','已结算','已结清','已终止'];
-            if(!validStatuses.includes(mapped.status)) mapped.status = '未派工';
-            newWnData.push(mapped);
-          });
-          totalWn += jsonData.length;
-        } else if(sheetType === 'nonwarranty') {
-          jsonData.forEach(row => {
-            const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
-            if(!mapped.seq) mapped.seq = String(newNwData.length + 1);
-            const validStatuses = ['待客户确认','维修完成','关闭工单'];
-            if(!validStatuses.includes(mapped.status)) mapped.status = '待客户确认';
-            newNwData.push(mapped);
-          });
-          totalNw += jsonData.length;
-        } else {
-          // 无法自动识别，尝试模糊匹配
-          // 检查是否包含"保内"相关关键词
-          const hasWnHeaders = headers.some(h => h.includes('完成状态') || h.includes('责任工程师') || h.includes('维修类型'));
-          const hasNwHeaders = headers.some(h => h.includes('维修状态') || h.includes('签约客户') || h.includes('报价单'));
-          if(hasWnHeaders && !hasNwHeaders) {
-            jsonData.forEach(row => {
-              const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
-              if(!mapped.id) mapped.id = 'WN-' + String(newWnData.length + 1).padStart(6,'0');
-              const validStatuses = ['未派工','未开工','在修','已竣工','已结算','已结清','已终止'];
-              if(!validStatuses.includes(mapped.status)) mapped.status = '未派工';
-              newWnData.push(mapped);
-            });
-            totalWn += jsonData.length;
-          } else if(hasNwHeaders && !hasWnHeaders) {
-            jsonData.forEach(row => {
-              const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
-              if(!mapped.seq) mapped.seq = String(newNwData.length + 1);
-              const validStatuses = ['待客户确认','维修完成','关闭工单'];
-              if(!validStatuses.includes(mapped.status)) mapped.status = '待客户确认';
-              newNwData.push(mapped);
-            });
-            totalNw += jsonData.length;
-          }
-        }
+        wn.forEach(row => {
+          const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
+          if(!mapped.id) mapped.id = 'WN-' + String(WN_DATA.length + newWnData.length + 1).padStart(6,'0');
+          if(!WN_STATUS.includes(mapped.status)) mapped.status = '未派工';
+          newWnData.push(mapped);
+          totalWn++;
+        });
+        nw.forEach(row => {
+          const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
+          if(!mapped.seq) mapped.seq = String(NW_DATA.length + newNwData.length + 1);
+          if(!NW_STATUS.includes(mapped.status)) mapped.status = '待客户确认';
+          newNwData.push(mapped);
+          totalNw++;
+        });
+        skipped += (jsonData.length - wn.length - nw.length);
       }
 
       if(totalWn === 0 && totalNw === 0) {
-        showUploadStatus('⚠️ 未能识别数据类型，请确保Excel列头与保内/保外模板一致', 'error');
+        showUploadStatus('⚠️ 未能识别数据类型：请先点「📄 下载模板」对照列头，或确保包含保内/保外特征列（如 编号/责任工程师、签约客户/报价单）。', 'error');
         input.value = '';
         return;
       }
 
-      // 替换数据并重新渲染
-      if(totalWn > 0) WN_DATA = newWnData;
-      if(totalNw > 0) NW_DATA = newNwData;
+      // 追加到现有数据（不覆盖），再重新渲染
+      if(totalWn > 0) WN_DATA = WN_DATA.concat(newWnData);
+      if(totalNw > 0) NW_DATA = NW_DATA.concat(newNwData);
 
       initFilters();
       render();
@@ -822,6 +855,7 @@ function handleExcelUpload(input) {
       if(totalWn > 0) parts.push('保内 <span class="upload-badge">' + totalWn + ' 条</span>');
       if(totalNw > 0) parts.push('保外 <span class="upload-badge">' + totalNw + ' 条</span>');
       msg += ' ' + parts.join(' · ') + ' — 来自 <b>' + file.name + '</b>';
+      if (skipped > 0) msg += ' <span style="opacity:.8">（' + skipped + ' 行无法识别已跳过）</span>';
       showUploadStatus(msg, 'success');
 
     } catch(err) {
@@ -835,6 +869,28 @@ function handleExcelUpload(input) {
   reader.readAsArrayBuffer(file);
   // 清空input以便重复上传同一文件
   input.value = '';
+}
+
+// 生成并下载「保内 + 保外」导入模板（用 SheetJS 在浏览器端生成，无需联网）
+function downloadTemplate() {
+  try {
+    const wnHeaders = Object.keys(WN_COLUMN_MAP);
+    const nwHeaders = Object.keys(NW_COLUMN_MAP);
+    const wnSample = wnHeaders.map((h, i) =>
+      i === 0 ? 'WN-001' : i === 1 ? '2026-01-01' : i === 2 ? '示例客户A' : (i === 3 ? '张三' : (i === 7 ? '未派工' : (i === 8 ? '李工' : ''))));
+    const nwSample = nwHeaders.map((h, i) =>
+      i === 0 ? '1' : i === 1 ? '北京' : i === 2 ? 'BX-001' : (i === 3 ? '沪A12345' : (i === 14 ? '待客户确认' : '')));
+    const wsWn = XLSX.utils.aoa_to_sheet([wnHeaders, wnSample]);
+    const wsNw = XLSX.utils.aoa_to_sheet([nwHeaders, nwSample]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsWn, '保内工单');
+    XLSX.utils.book_append_sheet(wb, wsNw, '保外工单');
+    XLSX.writeFile(wb, '工单导入模板_保内保外.xlsx');
+    showUploadStatus('📄 已生成导入模板，请按模板整理后再次上传。', 'info');
+  } catch (err) {
+    console.error(err);
+    showUploadStatus('❌ 模板生成失败：' + err.message, 'error');
+  }
 }
 </script>
 </body>
