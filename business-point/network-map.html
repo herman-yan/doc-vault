@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>宁德时代 · 宁家服务 国内服务网络布局</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; background: #0f1620; color: #e6edf3; }
+  #map { width: 100%; height: 100vh; }
+
+  /* 顶部标题栏 */
+  .topbar {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; gap: 12px;
+    background: linear-gradient(180deg, rgba(15,22,32,0.96), rgba(15,22,32,0.78));
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(6px);
+  }
+  .topbar h1 { font-size: 17px; margin: 0; font-weight: 700; letter-spacing: .5px; }
+  .topbar h1 small { display: block; font-size: 11px; font-weight: 400; color: #8b98a8; margin-top: 2px; letter-spacing: 0; }
+
+  /* KPI 卡片 */
+  .kpis { display: flex; gap: 8px; flex-wrap: wrap; }
+  .kpi {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 6px 12px; min-width: 84px; text-align: center;
+  }
+  .kpi .num { font-size: 18px; font-weight: 800; line-height: 1.1; }
+  .kpi .lbl { font-size: 10.5px; color: #9aa7b6; margin-top: 2px; }
+  .kpi.r .num { color: #ff6b5e; }
+  .kpi.a .num { color: #4cc38a; }
+  .kpi.b .num { color: #ffb648; }
+  .kpi.c .num { color: #5aa9ff; }
+
+  /* 左侧图层面板 */
+  .panel {
+    position: absolute; top: 78px; left: 14px; z-index: 20; width: 268px;
+    background: rgba(18,26,38,0.94); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 14px; backdrop-filter: blur(8px);
+    max-height: calc(100vh - 100px); overflow-y: auto;
+  }
+  .panel h2 { font-size: 13px; margin: 0 0 10px; color: #c7d2dd; letter-spacing: .5px; }
+  .layer-row {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px; margin-bottom: 7px;
+    background: rgba(255,255,255,0.04); border-radius: 10px; cursor: pointer; border: 1px solid transparent;
+  }
+  .layer-row:hover { border-color: rgba(255,255,255,0.14); }
+  .layer-row input { width: 16px; height: 16px; accent-color: #5aa9ff; cursor: pointer; }
+  .swatch { width: 14px; height: 14px; border-radius: 4px; flex: 0 0 auto; }
+  .sw-r { background: #ff6b5e; }
+  .sw-b { background: #ffb648; }
+  .sw-a { background: #4cc38a; }
+  .sw-g { background: #7d8a99; }
+  .layer-row .meta { display: flex; flex-direction: column; }
+  .layer-row .meta .t { font-size: 13px; font-weight: 600; }
+  .layer-row .meta .s { font-size: 10.5px; color: #8b98a8; }
+
+  details.note { margin-top: 12px; font-size: 11.5px; color: #9aa7b6; }
+  details.note summary { cursor: pointer; color: #c7d2dd; font-weight: 600; margin-bottom: 6px; }
+  details.note ul { margin: 6px 0 0; padding-left: 16px; line-height: 1.6; }
+  details.note a { color: #5aa9ff; }
+
+  /* 右侧明细面板 */
+  .detail {
+    position: absolute; top: 78px; right: 14px; z-index: 20; width: 312px;
+    background: rgba(18,26,38,0.95); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 12px 12px 6px; backdrop-filter: blur(8px);
+    display: flex; flex-direction: column; max-height: calc(100vh - 100px);
+  }
+  .detail .dh { display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px; }
+  .detail .dh .title { font-size: 13px; color: #c7d2dd; font-weight: 700; letter-spacing:.5px; }
+  .detail .dh .cnt { font-size: 11px; color: #9aa7b6; }
+  #search {
+    width: 100%; padding: 7px 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04); color: #e6edf3; font-size: 12.5px; margin-bottom: 8px; outline: none;
+  }
+  #search::placeholder { color: #6f7c8c; }
+  .dlist { overflow-y: auto; padding-right: 3px; }
+  .dgroup-title {
+    font-size: 11.5px; color: #9aa7b6; font-weight: 700; margin: 10px 2px 5px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .dgroup-title .gtdot { width:9px; height:9px; border-radius:50%; }
+  .drow {
+    padding: 8px 10px; margin-bottom: 6px; border-radius: 9px; cursor: pointer;
+    background: rgba(255,255,255,0.035); border: 1px solid transparent; transition: background .12s, border-color .12s;
+  }
+  .drow:hover { background: rgba(90,169,255,0.10); border-color: rgba(90,169,255,0.28); }
+  .drow.active { background: rgba(90,169,255,0.18); border-color: #5aa9ff; }
+  .drow .dhead { display: flex; align-items: center; gap: 7px; }
+  .drow .dbadge {
+    font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; color: #fff; flex:0 0 auto;
+  }
+  .drow .dcity { font-size: 13.5px; font-weight: 700; }
+  .drow .dsub { font-size: 10.5px; color:#8b98a8; margin-left:auto; }
+  .drow .daddr { font-size: 11.5px; color: #b8c4d2; margin-top: 3px; line-height: 1.45; }
+  .drow .dmeta { font-size: 10.5px; color: #8b98a8; margin-top: 3px; display:flex; gap:8px; flex-wrap:wrap; }
+  .drow .dmeta b { color:#cdd8e4; font-weight:600; }
+  .drow.dim { opacity: .38; }
+
+  /* 底部图例 */
+  .legend {
+    position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 20;
+    background: rgba(18,26,38,0.92); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 9px 14px; font-size: 11.5px; display:flex; gap:16px;
+  }
+  .legend .row { display: flex; align-items: center; gap: 7px; }
+  .legend .dot { width: 12px; height: 12px; border-radius: 50%; }
+
+  /* 弹窗 */
+  .info { font-size: 13px; line-height: 1.7; color: #1b2733; max-width: 270px; }
+  .info .city { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+  .info .badge { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; color: #fff; margin-bottom: 6px; }
+  .info .kv { color: #45525f; }
+  .info .kv b { color: #1b2733; }
+  .info .stars { color: #ff8a00; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  .info .note { color:#5a6772; margin-top:4px; font-size:12px; }
+
+  .fallback {
+    position: absolute; inset: 0; z-index: 30; display: none;
+    align-items: center; justify-content: center; text-align: center; padding: 30px;
+    background: #0f1620; color: #c7d2dd;
+  }
+  .fallback div { max-width: 460px; }
+  .count-pill { background: rgba(90,169,255,.15); color:#9cc6ff; border:1px solid rgba(90,169,255,.3); border-radius:999px; padding:2px 9px; font-size:11px; }
+
+  .dlist::-webkit-scrollbar, .panel::-webkit-scrollbar { width: 7px; }
+  .dlist::-webkit-scrollbar-thumb, .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 4px; }
+</style>
+
+<!--
+  ============================================================
+  【部署必做】本页使用腾讯地图（合规要求）。上线前请把下方 <script> 里
+  key= 后面的「占位符」替换成你自己在腾讯位置服务申请的 Key：
+    1) 打开 https://lbs.qq.com → 控制台 → 应用管理 → 创建应用 → 添加 Key
+       （勾选 JavaScriptAPI，域名白名单填 herman-yan.github.io）
+    2) 复制申请到的 Key
+    3) 将下方 key=XXXX 整段替换为你的真实 Key，保存刷新即可显示底图
+  替换前地图瓦片不会显示，但网点数据列表仍可查看。本文件不内置任何可用密钥。
+  ============================================================
+-->
+<!-- 官方 CDN 加载 SDK（key 占位符需替换为你自己的腾讯地图 Key） -->
+<script src="https://map.qq.com/api/gljs?v=1.exp&key=34BBZ-MPLCQ-ULD5X-25P57-TZGKJ-Q4BBL"></script>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="topbar">
+    <h1>宁德时代 · 宁家服务 国内服务网络布局
+      <small>直营体验中心（含星级） · 直营规划/建设中 · 授权服务站 — 数据截至 2026-07 公开资料整理</small>
+    </h1>
+    <div class="kpis">
+      <div class="kpi r"><div class="num">7</div><div class="lbl">直营·已运营(城)</div></div>
+      <div class="kpi b"><div class="num">14</div><div class="lbl">直营·建设中(城)</div></div>
+      <div class="kpi a"><div class="num">806</div><div class="lbl">服务站(家)</div></div>
+      <div class="kpi a"><div class="num">25省80城</div><div class="lbl">授权覆盖</div></div>
+      <div class="kpi c"><div class="num">67</div><div class="lbl">备件仓(座)</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>图层 · 点击切换显示</h2>
+
+    <label class="layer-row">
+      <input type="checkbox" data-cat="direct_open" checked />
+      <span class="swatch sw-r"></span>
+      <span class="meta"><span class="t">直营体验中心 · 已运营</span><span class="s">7 城 · 门店级坐标</span></span>
+    </label>
+
+    <label class="layer-row">
+      <input type="checkbox" data-cat="direct_build" checked />
+      <span class="swatch sw-b"></span>
+      <span class="meta"><span class="t">直营 · 规划/建设中</span><span class="s">14 城 · 招募/在建</span></span>
+    </label>
+
+    <label class="layer-row">
+      <input type="checkbox" data-cat="auth" checked />
+      <span class="swatch sw-a"></span>
+      <span class="meta"><span class="t">授权服务站 · 已核实</span><span class="s">真实门店 · 含电话地址</span></span>
+    </label>
+
+    <label class="layer-row">
+      <input type="checkbox" data-cat="auth_est" checked />
+      <span class="swatch sw-g"></span>
+      <span class="meta"><span class="t">授权服务站 · 示意</span><span class="s">代表城市 · 覆盖 25 省 80 城</span></span>
+    </label>
+
+    <details class="note">
+      <summary>数据说明与口径</summary>
+      <ul>
+        <li><b>直营·已运营（7 城，门店级真实坐标）</b>：宁德、北京、上海、南京、武汉、重庆、合肥。其中宁德/北京/上海/南京为五星标准；武汉/重庆/合肥为既有直营店或新开业，官方未单独公布星级。坐标取自腾讯地图门店 POI。</li>
+        <li><b>直营·建设中（14 城）</b>：深圳、成都、杭州、苏州、西安、长沙、天津、郑州、东莞、无锡、宁波、青岛、长春（2026-01 时代车城已开），及<b>广州</b>（2026-02-25 白云区项目开工，分期建设中）。</li>
+        <li><b>授权服务站·已核实</b>：福州、东营、长沙、宁波、郑州、武汉等地已查到真实门店（含地址/电话/营业时间），为公开可查的真实落点。</li>
+        <li><b>授权服务站·示意</b>：宁德时代公开仅披露"国内 806 家服务站、112 家核心授权商、覆盖 25 省 80 城"（截至 2025-08），但 80 城名单未公开。灰色"示"点为<b>代表城市示意</b>，非穷举。</li>
+        <li>店铺统一按 0–5 星评级。海外（曼谷首店、荷兰/沙特/印尼规划）未纳入本"国内"视图。底图使用腾讯地图，需自备 Key（替换文件顶部占位符，详见文件顶部说明）。</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="detail">
+    <div class="dh">
+      <span class="title">网点明细</span>
+      <span class="cnt" id="detailCount"></span>
+    </div>
+    <input id="search" type="text" placeholder="搜索城市 / 地址关键词…" />
+    <div class="dlist" id="dlist"></div>
+  </div>
+
+  <div class="legend">
+    <div class="row"><span class="dot" style="background:#ff6b5e"></span> 直营已运营（★=五星）</div>
+    <div class="row"><span class="dot" style="background:#ffb648"></span> 直营规划/建设中</div>
+    <div class="row"><span class="dot" style="background:#4cc38a"></span> 授权已核实</div>
+    <div class="row"><span class="dot" style="background:#7d8a99"></span> 授权示意</div>
+  </div>
+
+  <div class="fallback" id="fallback">
+    <div>
+      <h2>地图底图未能加载</h2>
+      <p>本页使用腾讯地图（合规要求）。请打开 <code>network-map.html</code> 顶部，将 <code>key=</code> 后的占位符替换为你自己在腾讯位置服务（lbs.qq.com）申请的 Key，保存后刷新即可显示底图。未替换前仅显示网点数据列表，无地图瓦片。</p>
+      <p class="count-pill" id="fbcount"></p>
+    </div>
+  </div>
+
+<script>
+/* ===================== 数据 ===================== */
+// cat: direct_open=直营已运营, direct_build=直营规划/建设中, auth=授权已核实, auth_est=授权示意
+// real: 是否门店级真实 POI（含地址/电话）；est: 坐标是否按地址估算
+const STORES = [
+  // —— 直营体验中心 · 已运营（7 城，门店级真实坐标）——
+  { city:"宁德", lat:26.714284, lng:119.565181, cat:"direct_open", star:5, open:"2024-09 开业", addr:"福建省宁德市蕉城区漳湾镇创业路", phone:"", hours:"08:30-11:30, 13:30-17:30", rating:"4.2", real:true, est:false, note:"全国首家五星直营体验中心，约 3700㎡，规模最大、功能最全" },
+  { city:"北京", lat:39.816433, lng:116.533221, cat:"direct_open", star:5, open:"2025-08-08 开业", addr:"北京市大兴区荣华街道科创二街6号", phone:"", hours:"08:30-18:00", rating:"4.4", real:true, est:false, note:"华北旗舰直营体验中心（五星标准）" },
+  { city:"上海", lat:31.110616, lng:121.428398, cat:"direct_open", star:5, open:"2025-08-10 开业", addr:"上海市闵行区梅陇镇兴梅路398号6幢", phone:"", hours:"", rating:"3.7", real:true, est:false, note:"上海旗舰直营体验中心（五星标准），品牌一周年开业" },
+  { city:"南京", lat:32.107000, lng:118.878000, cat:"direct_open", star:5, open:"2025-01-09 开业", addr:"南京市栖霞区智谷大道93号 南京飞腾汽车产业园", phone:"", hours:"", rating:"", real:true, est:true, note:"华东首家直营体验中心，全国面积最大（近 6000㎡）" },
+  { city:"武汉", lat:30.474626, lng:114.170667, cat:"direct_open", star:null, open:"已运营", addr:"湖北省武汉市蔡甸区沌口街道车城大道129号", phone:"17702781474", hours:"08:30-17:30", rating:"4.0", real:true, est:false, note:"武汉直营体验中心（星级待官方公布）" },
+  { city:"重庆", lat:29.659844, lng:106.623395, cat:"direct_open", star:null, open:"2026-05-20 开业", addr:"重庆市两江新区回兴街道金锦支路22号B区B1栋B1-1", phone:"", hours:"", rating:"", real:true, est:false, note:"西南区域标杆旗舰直营站" },
+  { city:"合肥", lat:31.892237, lng:117.433075, cat:"direct_open", star:null, open:"已运营", addr:"安徽省合肥市肥东县包公大道与镇西路交口", phone:"15256517638", hours:"08:30-17:30", rating:"4.4", real:true, est:false, note:"合肥直营体验中心（星级待官方公布）" },
+
+  // —— 直营 · 规划/建设中（13 招募城 + 长春 + 广州，共 14 城）——
+  { city:"深圳", lat:22.543000, lng:114.058000, cat:"direct_build", star:null, open:"规划/建设中", addr:"深圳（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
+  { city:"成都", lat:30.572000, lng:104.067000, cat:"direct_build", star:null, open:"规划/建设中", addr:"成都（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
+  { city:"杭州", lat:30.274000, lng:120.155000, cat:"direct_build", star:null, open:"规划/建设中", addr:"杭州（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
+  { city:"苏州", lat:31.299000, lng:120.585000, cat:"direct_build", star:null, open:"规划/建设中", addr:"苏州（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
+  { city:"西安", lat:34.341000, lng:108.940000, cat:"direct_build", star:null, open:"规划/建设中", addr:"西安（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
+  { city:"长沙", lat:28.228000, lng:112.938000, cat:"direct_build", star:null, open:"规划/建设中", addr:"长沙（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
+  { city:"天津", lat:39.084000, lng:117.201000, cat:"direct_build", star:null, open:"规划/建设中", addr:"天津（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
+  { city:"郑州", lat:34.747000, lng:113.625000, cat:"direct_build", star:null, open:"规划/建设中", addr:"郑州（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
+  { city:"东莞", lat:23.021000, lng:113.752000, cat:"direct_build", star:null, open:"规划/建设中", addr:"东莞（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
+  { city:"无锡", lat:31.491000, lng:120.312000, cat:"direct_build", star:null, open:"规划/建设中", addr:"无锡（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
+  { city:"宁波", lat:29.868000, lng:121.544000, cat:"direct_build", star:null, open:"规划/建设中", addr:"宁波（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
+  { city:"青岛", lat:36.067000, lng:120.383000, cat:"direct_build", star:null, open:"规划/建设中", addr:"青岛（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
+  { city:"长春", lat:43.817000, lng:125.323000, cat:"direct_build", star:null, open:"2026-01-20 开业", addr:"吉林长春·时代车城", phone:"", hours:"", rating:"", real:false, est:false, note:"吉林直营布局，随时代车城新能源体验中心开业" },
+  { city:"广州", lat:23.160000, lng:113.230000, cat:"direct_build", star:null, open:"2026-02-25 开工（建设中）", addr:"广州市白云区松洲街增槎路1113号 广州日报印务中心", phone:"", hours:"", rating:"", real:true, est:true, note:"华南唯一直营项目，分期建设，总投资约 1 亿元" },
+
+  // —— 授权服务站 · 已核实（真实门店，含地址/电话）——
+  { city:"福州·仓山", lat:26.010251, lng:119.340890, cat:"auth", star:null, open:"运营中", addr:"福州市仓山区叶厦路15-3号", phone:"", hours:"08:30-17:30", rating:"4.1", real:true, est:false, note:"宁德时代宁家服务（福州仓山）授权服务中心" },
+  { city:"东营·润琳", lat:37.411807, lng:118.485865, cat:"auth", star:null, open:"运营中", addr:"东营市东营区胜园街道西四路934号5幢宁家服务站", phone:"18554736444", hours:"08:00-11:30, 13:00-18:00", rating:"4.1", real:true, est:false, note:"宁德时代宁家服务（东营润琳）授权服务中心" },
+  { city:"长沙·聚奥麓谷", lat:28.218000, lng:112.928000, cat:"auth", star:null, open:"运营中", addr:"长沙市岳麓区麓开路中梁云麓传奇北侧约170米", phone:"18773223841", hours:"", rating:"", real:true, est:true, note:"宁德时代授权服务中心（长沙聚奥麓谷店）" },
+  { city:"宁波", lat:29.858000, lng:121.562000, cat:"auth", star:null, open:"运营中", addr:"宁波市海曙区机场路藕池村小区西侧约170米", phone:"18762977932", hours:"", rating:"", real:true, est:true, note:"宁德时代授权服务中心（宁波）" },
+  { city:"郑州·中原", lat:34.742000, lng:113.608000, cat:"auth", star:null, open:"运营中", addr:"郑州市中原区珠江路2号", phone:"18903832199", hours:"", rating:"", real:true, est:true, note:"CATL 宁德时代郑州服务站" },
+  { city:"郑州·管城旗舰", lat:34.710000, lng:113.670000, cat:"auth", star:null, open:"运营中", addr:"郑州市管城回族区中心广场南路1511号", phone:"", hours:"", rating:"", real:true, est:true, note:"CATL 宁德时代（郑州售后旗舰站）" },
+  { city:"武汉·武昌", lat:30.518082, lng:114.290480, cat:"auth", star:null, open:"运营中", addr:"武汉市武昌区白沙洲街武金堤41号", phone:"", hours:"08:30-18:00", rating:"4.4", real:true, est:false, note:"湖北宇能通 CATL 宁德时代宁家服务授权服务中心" },
+  { city:"武汉·江汉", lat:30.626493, lng:114.252607, cat:"auth", star:null, open:"运营中", addr:"武汉市江汉区汉兴街常青三路65号", phone:"", hours:"", rating:"", real:true, est:false, note:"宁家服务-CATL 宁德时代后市场服务商" },
+
+  // —— 授权服务站 · 示意（代表城市，非穷举；实际覆盖 25 省 80 城）——
+  { city:"石家庄", lat:38.042000, lng:114.514000, cat:"auth_est", star:null, open:"代表城市", addr:"石家庄（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"太原", lat:37.870000, lng:112.548000, cat:"auth_est", star:null, open:"代表城市", addr:"太原（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"呼和浩特", lat:40.842000, lng:111.749000, cat:"auth_est", star:null, open:"代表城市", addr:"呼和浩特（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"沈阳", lat:41.805000, lng:123.431000, cat:"auth_est", star:null, open:"代表城市", addr:"沈阳（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"大连", lat:38.914000, lng:121.614000, cat:"auth_est", star:null, open:"代表城市", addr:"大连（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"哈尔滨", lat:45.803000, lng:126.535000, cat:"auth_est", star:null, open:"代表城市", addr:"哈尔滨（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"济南", lat:36.651000, lng:117.120000, cat:"auth_est", star:null, open:"代表城市", addr:"济南（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"南昌", lat:28.682000, lng:115.857000, cat:"auth_est", star:null, open:"代表城市", addr:"南昌（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"南宁", lat:22.817000, lng:108.366000, cat:"auth_est", star:null, open:"代表城市", addr:"南宁（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"海口", lat:20.044000, lng:110.199000, cat:"auth_est", star:null, open:"代表城市", addr:"海口（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"贵阳", lat:26.647000, lng:106.630000, cat:"auth_est", star:null, open:"代表城市", addr:"贵阳（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"昆明", lat:25.038000, lng:102.718000, cat:"auth_est", star:null, open:"代表城市", addr:"昆明（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"兰州", lat:36.061000, lng:103.835000, cat:"auth_est", star:null, open:"代表城市", addr:"兰州（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"西宁", lat:36.617000, lng:101.778000, cat:"auth_est", star:null, open:"代表城市", addr:"西宁（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"银川", lat:38.487000, lng:106.230000, cat:"auth_est", star:null, open:"代表城市", addr:"银川（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"乌鲁木齐", lat:43.825000, lng:87.616000, cat:"auth_est", star:null, open:"代表城市", addr:"乌鲁木齐（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
+  { city:"拉萨", lat:29.652000, lng:91.172000, cat:"auth_est", star:null, open:"代表城市", addr:"拉萨（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" }
+];
+
+/* ===================== 初始化 ===================== */
+function initMap() {
+  if (typeof TMap === 'undefined') {
+    document.getElementById('fallback').style.display = 'flex';
+    document.getElementById('fbcount').textContent =
+      '已嵌入数据：' + STORES.length + ' 个网点（直营已运营 ' +
+      STORES.filter(s=>s.cat==='direct_open').length + ' / 建设中 ' +
+      STORES.filter(s=>s.cat==='direct_build').length + ' / 授权已核实 ' +
+      STORES.filter(s=>s.cat==='auth').length + ' / 授权示意 ' +
+      STORES.filter(s=>s.cat==='auth_est').length + '）';
+    return;
+  }
+
+  const map = new TMap.Map('map', {
+    zoom: 5,
+    center: new TMap.LatLng(33.0, 113.0)
+  });
+
+  // 单个可复用信息窗，避免重复点击叠加
+  const infoWindow = new TMap.InfoWindow({ map: map, position: map.getCenter(), content: '' });
+
+  // 图标（SVG pin，运行时编码避免特殊字符问题）
+  function pin(color, label) {
+    const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='34' height='42' viewBox='0 0 34 42'>" +
+      "<path d='M17 1 C8 1 1 8 1 17 C1 29 17 41 17 41 C17 41 33 29 33 17 C33 8 26 1 17 1 Z' fill='" + color + "'/>" +
+      "<circle cx='17' cy='16' r='11.5' fill='#ffffff'/>" +
+      "<text x='17' y='20.5' font-size='11' text-anchor='middle' fill='" + color + "' font-family='sans-serif' font-weight='bold'>" + label + "</text>" +
+      "</svg>";
+    return 'data:image/svg+xml,' + encodeURIComponent(svg);
+  }
+
+  const styleDefs = {
+    direct5: { color:'#ff6b5e', label:'5★' },
+    direct:  { color:'#ff6b5e', label:'直营' },
+    build:   { color:'#ffb648', label:'建' },
+    auth:    { color:'#4cc38a', label:'授' },
+    authEst: { color:'#7d8a99', label:'示' }
+  };
+  const styles = {};
+  for (const k in styleDefs) {
+    styles[k] = new TMap.MarkerStyle({
+      width: 34, height: 42,
+      anchor: { x: 17, y: 42 },
+      src: pin(styleDefs[k].color, styleDefs[k].label)
+    });
+  }
+
+  function styleFor(s) {
+    if (s.cat === 'direct_open') return s.star >= 5 ? 'direct5' : 'direct';
+    if (s.cat === 'direct_build') return 'build';
+    if (s.cat === 'auth') return 'auth';
+    return 'authEst';
+  }
+
+  function infoHTML(s) {
+    const catName = s.cat === 'direct_open' ? '直营体验中心·已运营'
+                  : s.cat === 'direct_build' ? '直营·规划/建设中'
+                  : (s.cat === 'auth' ? '授权服务站·已核实' : '授权服务站·示意');
+    const catColor = s.cat === 'direct_open' ? '#ff6b5e' : s.cat === 'direct_build' ? '#ffb648' : (s.cat === 'auth' ? '#4cc38a' : '#7d8a99');
+    const stars = (s.star >= 1) ? "<div class='stars'>" + '★'.repeat(s.star) + " （" + s.star + "星）</div>" : "";
+    const phone = s.phone ? "<div class='kv'><b>电话：</b>" + s.phone + "</div>" : "";
+    const hours = s.hours ? "<div class='kv'><b>营业：</b>" + s.hours + "</div>" : "";
+    const rating = s.rating ? "<div class='kv'><b>评分：</b>" + s.rating + "</div>" : "";
+    const estTag = s.est ? " <span style='color:#c0743a'>（坐标按地址估算）</span>" : "";
+    return "<div class='info'>" +
+      "<div class='city'>" + s.city + "</div>" +
+      "<span class='badge' style='background:" + catColor + "'>" + catName + "</span><br/>" +
+      stars +
+      "<div class='kv'><b>状态：</b>" + s.open + estTag + "</div>" +
+      "<div class='kv'><b>地址：</b>" + s.addr + "</div>" +
+      phone + hours + rating +
+      "<div class='note'>" + s.note + "</div>" +
+      "</div>";
+  }
+
+  // 按分类建立图层（4 类）
+  const layerCats = ['direct_open','direct_build','auth','auth_est'];
+  const layers = {};
+  const idxById = {}; // geometry id -> STORES index
+  layerCats.forEach(cat => {
+    const geoms = STORES.map((s, i) => ({ s, i })).filter(o => o.s.cat === cat).map(o => {
+      const gid = cat + '_' + o.i;
+      idxById[gid] = o.i;
+      return {
+        id: gid,
+        styleId: styleFor(o.s),
+        position: new TMap.LatLng(o.s.lat, o.s.lng)
+      };
+    });
+    const layer = new TMap.MultiMarker({ map, styles, geometries: geoms });
+    layer.on('click', (e) => {
+      const i = idxById[e.geometry.id];
+      focusStore(i, true);
+    });
+    layers[cat] = layer;
+  });
+
+  // 飞行定位 + 弹窗 + 高亮列表
+  function focusStore(i, fromMap) {
+    const s = STORES[i];
+    const pos = new TMap.LatLng(s.lat, s.lng);
+    try { map.panTo(pos); } catch(err) { map.setCenter(pos); }
+    map.setZoom(13);
+    infoWindow.setPosition(pos);
+    infoWindow.setContent(infoHTML(s));
+    infoWindow.open();
+    // 高亮列表行
+    document.querySelectorAll('.drow').forEach(r => r.classList.remove('active'));
+    const row = document.querySelector('.drow[data-idx="' + i + '"]');
+    if (row) { row.classList.add('active'); row.scrollIntoView({ block: 'nearest' }); }
+  }
+
+  // 构建右侧明细列表
+  const groupMeta = {
+    direct_open: { title:'直营体验中心 · 已运营', color:'#ff6b5e' },
+    direct_build:{ title:'直营 · 规划/建设中', color:'#ffb648' },
+    auth:        { title:'授权服务站 · 已核实', color:'#4cc38a' },
+    auth_est:    { title:'授权服务站 · 示意', color:'#7d8a99' }
+  };
+  const dlist = document.getElementById('dlist');
+  function badgeFor(s) {
+    if (s.cat === 'direct_open') return s.star >= 5 ? { t:'5★', c:'#ff6b5e' } : { t:'直营', c:'#ff6b5e' };
+    if (s.cat === 'direct_build') return { t:'建', c:'#ffb648' };
+    if (s.cat === 'auth') return { t:'授', c:'#4cc38a' };
+    return { t:'示', c:'#7d8a99' };
+  }
+  function rowHTML(s, i) {
+    const b = badgeFor(s);
+    const sub = s.est ? '估算' : (s.real ? '已核实' : '');
+    const meta = [];
+    if (s.open) meta.push("<span><b>状态</b> " + s.open + "</span>");
+    if (s.rating) meta.push("<span><b>评分</b> " + s.rating + "</span>");
+    if (s.phone) meta.push("<span><b>电话</b> " + s.phone + "</span>");
+    return "<div class='drow' data-idx='" + i + "' data-cat='" + s.cat + "'>" +
+      "<div class='dhead'><span class='dbadge' style='background:" + b.c + "'>" + b.t + "</span>" +
+      "<span class='dcity'>" + s.city + "</span>" +
+      (sub ? "<span class='dsub'>" + sub + "</span>" : "") + "</div>" +
+      "<div class='daddr'>" + s.addr + "</div>" +
+      (meta.length ? "<div class='dmeta'>" + meta.join('') + "</div>" : "") +
+      "</div>";
+  }
+  function buildList() {
+    let html = '';
+    let total = 0;
+    layerCats.forEach(cat => {
+      const items = STORES.map((s,i)=>({s,i})).filter(o=>o.s.cat===cat);
+      if (!items.length) return;
+      total += items.length;
+      html += "<div class='dgroup-title'><span class='gtdot' style='background:" + groupMeta[cat].color + "'></span>" +
+              groupMeta[cat].title + " · " + items.length + "</div>";
+      items.forEach(o => { html += rowHTML(o.s, o.i); });
+    });
+    dlist.innerHTML = html;
+    document.getElementById('detailCount').textContent = '共 ' + total + ' 个网点';
+    dlist.querySelectorAll('.drow').forEach(row => {
+      row.addEventListener('click', () => focusStore(parseInt(row.dataset.idx, 10), false));
+    });
+  }
+  buildList();
+
+  // 搜索过滤（按城市/地址关键词）
+  document.getElementById('search').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    dlist.querySelectorAll('.drow').forEach(row => {
+      const txt = (row.textContent || '').toLowerCase();
+      row.style.display = (!q || txt.includes(q)) ? '' : 'none';
+    });
+    // 同时隐藏空分组标题
+    dlist.querySelectorAll('.dgroup-title').forEach(title => {
+      let n = title.nextElementSibling;
+      let anyVisible = false;
+      while (n && n.classList.contains('drow')) {
+        if (n.style.display !== 'none') anyVisible = true;
+        n = n.nextElementSibling;
+      }
+      title.style.display = anyVisible ? '' : 'none';
+    });
+  });
+
+  // 图层开关（同时控制地图标记与列表）
+  function applyLayer(cat, show) {
+    layers[cat].setMap(show ? map : null);
+    dlist.querySelectorAll('.drow[data-cat="' + cat + '"]').forEach(r => r.style.display = show ? '' : 'none');
+    dlist.querySelectorAll('.dgroup-title').forEach(title => {
+      if (title.textContent.indexOf(groupMeta[cat].title) === -1) return;
+      let n = title.nextElementSibling, anyVisible = false;
+      while (n && n.classList.contains('drow')) {
+        if (n.style.display !== 'none') anyVisible = true;
+        n = n.nextElementSibling;
+      }
+      title.style.display = anyVisible ? '' : 'none';
+    });
+  }
+  document.querySelectorAll('.layer-row input').forEach(cb => {
+    cb.addEventListener('change', () => applyLayer(cb.dataset.cat, cb.checked));
+  });
+}
+
+window.addEventListener('load', initMap);
+</script>
+</body>
+</html>

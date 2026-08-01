@@ -138,13 +138,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
     <small>商户网点 · 概念地图</small>
   </div>
   <div class="sidebar-nav">
+    <div class="nav-section">网络布局</div>
+    <a class="nav-item" href="#network-map">
+      <span class="icon">🗺️</span><span>网点网络布局</span>
+    </a>
     <div class="nav-section">概念地图</div>
     <a class="nav-item active" href="#concept-map">
       <span class="icon">🌱</span><span>概念地图成长</span>
     </a>
     <div class="nav-section">规划中</div>
     <a class="nav-item" href="#">
-      <span class="icon">🗺️</span><span>网点档案</span><span class="nav-badge building">建设中</span>
+      <span class="icon">🏪</span><span>网点档案</span><span class="nav-badge building">建设中</span>
     </a>
     <a class="nav-item" href="#">
       <span class="icon">📈</span><span>经营状态监控</span><span class="nav-badge building">建设中</span>
@@ -159,7 +163,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 <div class="main">
   <div class="page-header">
     <div>
-      <div class="page-title">商点管理 · 概念地图成长模块</div>
+      <div class="page-title">商点管理 · 网点网络 &amp; 概念地图</div>
       <div class="page-subtitle">宁德商点结合管理体系的全局概念地图，按 6 次迭代逐步生长呈现</div>
     </div>
     <a class="btn btn-outline" href="../index.html">← 返回系统首页</a>
@@ -201,6 +205,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
       <div class="tip"><b>连线 = 关联</b><br>两点之间的线表示概念间的关联，按起点类别着色</div>
       <div class="tip"><b>交互操作</b><br>滚轮缩放 / 拖拽节点 / 点击节点看详情，顶部筛选栏过滤类别</div>
       <div class="tip"><b>节点大小</b><br>关联越多的核心概念，圆点越大</div>
+    </div>
+  </div>
+
+  <!-- 网点网络布局地图 -->
+  <div class="card" id="network-map">
+    <div class="card-title">🗺️ 网点网络布局地图 <span class="badge badge-green">实时</span></div>
+    <div class="card-desc">宁德时代 · 宁家服务 国内服务网络布局：直营体验中心（含星级）、直营规划/建设中、授权服务站（已核实 + 代表城市示意）。左侧图层可切换显示，右侧为网点明细（可搜索、点击定位）。底图使用腾讯地图。</div>
+    <div class="map-wrap">
+      <iframe src="network-map.html" title="宁家服务国内网点网络布局地图" loading="lazy"></iframe>
+    </div>
+    <div class="map-foot">
+      <a class="map-link" href="network-map.html" target="_blank" rel="noopener">↗ 全屏打开地图</a>
+    </div>
+    <div class="tips">
+      <div class="tip"><b>红标 = 直营已运营</b><br>7 城门店级坐标，★ 表示五星标准</div>
+      <div class="tip"><b>橙标 = 直营建设中</b><br>14 城招募/在建（含广州、长春）</div>
+      <div class="tip"><b>绿标 = 授权已核实</b><br>公开可查真实门店，含地址电话</div>
+      <div class="tip"><b>灰标 = 授权示意</b><br>代表城市，实际覆盖 25 省 80 城</div>
     </div>
   </div>
 </div>
