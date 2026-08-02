@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<!-- v3 · 2026-08-02 · UI 完全独立于地图 SDK;即使地图加载失败,左侧复选框/搜索/列表/折叠面板都可用 -->
 <title>宁德时代 · 宁家服务 国内服务网络布局</title>
 <style>
   * { box-sizing: border-box; }
@@ -298,10 +302,154 @@ const STORES = [
   { city:"拉萨", lat:29.652000, lng:91.172000, cat:"auth_est", star:null, open:"代表城市", addr:"拉萨（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" }
 ];
 
-/* ===================== 初始化 ===================== */
+/* ===================== UI 交互（立即执行，不依赖地图 SDK） =====================
+   图层复选框 / 明细列表 / 搜索 / 折叠面板 全部在脚本解析时立即绑定。
+   即使腾讯地图 SDK 加载慢或失败，左侧面板依旧完整可用。 */
+
+const dlist = document.getElementById('dlist');
+const layerCats = ['direct_open','direct_build','auth','auth_est'];
+const groupMeta = {
+  direct_open: { title:'直营体验中心 · 已运营', color:'#ff6b5e' },
+  direct_build:{ title:'直营 · 规划/建设中', color:'#ffb648' },
+  auth:        { title:'授权服务站 · 已核实', color:'#4cc38a' },
+  auth_est:    { title:'授权服务站 · 示意', color:'#7d8a99' }
+};
+
+// 地图相关对象（地图加载后才存在）
+let map = null, infoWindow = null;
+const layers = {};
+
+function badgeFor(s) {
+  if (s.cat === 'direct_open') return s.star >= 5 ? { t:'5★', c:'#ff6b5e' } : { t:'直营', c:'#ff6b5e' };
+  if (s.cat === 'direct_build') return { t:'建', c:'#ffb648' };
+  if (s.cat === 'auth') return { t:'授', c:'#4cc38a' };
+  return { t:'示', c:'#7d8a99' };
+}
+function rowHTML(s, i) {
+  const b = badgeFor(s);
+  const sub = s.est ? '估算' : (s.real ? '已核实' : '');
+  const meta = [];
+  if (s.open) meta.push("<span><b>状态</b> " + s.open + "</span>");
+  if (s.rating) meta.push("<span><b>评分</b> " + s.rating + "</span>");
+  if (s.phone) meta.push("<span><b>电话</b> " + s.phone + "</span>");
+  return "<div class='drow' data-idx='" + i + "' data-cat='" + s.cat + "'>" +
+    "<div class='dhead'><span class='dbadge' style='background:" + b.c + "'>" + b.t + "</span>" +
+    "<span class='dcity'>" + s.city + "</span>" +
+    (sub ? "<span class='dsub'>" + sub + "</span>" : "") + "</div>" +
+    "<div class='daddr'>" + s.addr + "</div>" +
+    (meta.length ? "<div class='dmeta'>" + meta.join('') + "</div>" : "") +
+    "</div>";
+}
+function buildList() {
+  let html = '';
+  let total = 0;
+  layerCats.forEach(cat => {
+    const items = STORES.map((s,i)=>({s,i})).filter(o=>o.s.cat===cat);
+    if (!items.length) return;
+    total += items.length;
+    html += "<div class='dgroup-title'><span class='gtdot' style='background:" + groupMeta[cat].color + "'></span>" +
+            groupMeta[cat].title + " · " + items.length + "</div>";
+    items.forEach(o => { html += rowHTML(o.s, o.i); });
+  });
+  dlist.innerHTML = html;
+  document.getElementById('detailCount').textContent = '共 ' + total + ' 个网点';
+  dlist.querySelectorAll('.drow').forEach(row => {
+    row.addEventListener('click', () => focusStore(parseInt(row.dataset.idx, 10), false));
+  });
+}
+buildList();
+
+// 搜索过滤（按城市/地址关键词）
+document.getElementById('search').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  dlist.querySelectorAll('.drow').forEach(row => {
+    const txt = (row.textContent || '').toLowerCase();
+    row.style.display = (!q || txt.includes(q)) ? '' : 'none';
+  });
+  dlist.querySelectorAll('.dgroup-title').forEach(title => {
+    let n = title.nextElementSibling;
+    let anyVisible = false;
+    while (n && n.classList.contains('drow')) {
+      if (n.style.display !== 'none') anyVisible = true;
+      n = n.nextElementSibling;
+    }
+    title.style.display = anyVisible ? '' : 'none';
+  });
+});
+
+// 图层开关（地图未加载时仅控制列表，加载后同时控制地图标记）
+function applyLayer(cat, show) {
+  if (layers[cat]) layers[cat].setMap(show ? map : null);
+  dlist.querySelectorAll('.drow[data-cat="' + cat + '"]').forEach(r => r.style.display = show ? '' : 'none');
+  dlist.querySelectorAll('.dgroup-title').forEach(title => {
+    if (title.textContent.indexOf(groupMeta[cat].title) === -1) return;
+    let n = title.nextElementSibling, anyVisible = false;
+    while (n && n.classList.contains('drow')) {
+      if (n.style.display !== 'none') anyVisible = true;
+      n = n.nextElementSibling;
+    }
+    title.style.display = anyVisible ? '' : 'none';
+  });
+}
+document.querySelectorAll('.layer-row input').forEach(cb => {
+  cb.addEventListener('change', () => applyLayer(cb.dataset.cat, cb.checked));
+});
+
+// 飞行定位 + 弹窗（有地图时增强；列表高亮始终可用）
+function focusStore(i, fromMap) {
+  const s = STORES[i];
+  if (map) {
+    const pos = new TMap.LatLng(s.lat, s.lng);
+    try { map.panTo(pos); } catch(err) { map.setCenter(pos); }
+    map.setZoom(13);
+    infoWindow.setPosition(pos);
+    infoWindow.setContent(infoHTML(s));
+    infoWindow.open();
+  }
+  document.querySelectorAll('.drow').forEach(r => r.classList.remove('active'));
+  const row = document.querySelector('.drow[data-idx="' + i + '"]');
+  if (row) { row.classList.add('active'); row.scrollIntoView({ block: 'nearest' }); }
+}
+
+// 数据说明与口径 折叠面板（独立于地图，确保可点击）
+(function () {
+  const btn = document.getElementById('noteBtn');
+  const body = document.getElementById('noteBody');
+  if (!btn || !body) return;
+  btn.addEventListener('click', () => {
+    const isOpen = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!isOpen));
+    body.hidden = isOpen;
+  });
+})();
+
+// 弹窗内容（模块级，列表/地图点击均调用）
+function infoHTML(s) {
+  const catName = s.cat === 'direct_open' ? '直营体验中心·已运营'
+                : s.cat === 'direct_build' ? '直营·规划/建设中'
+                : (s.cat === 'auth' ? '授权服务站·已核实' : '授权服务站·示意');
+  const catColor = s.cat === 'direct_open' ? '#ff6b5e' : s.cat === 'direct_build' ? '#ffb648' : (s.cat === 'auth' ? '#4cc38a' : '#7d8a99');
+  const stars = (s.star >= 1) ? "<div class='stars'>" + '★'.repeat(s.star) + " （" + s.star + "星）</div>" : "";
+  const phone = s.phone ? "<div class='kv'><b>电话：</b>" + s.phone + "</div>" : "";
+  const hours = s.hours ? "<div class='kv'><b>营业：</b>" + s.hours + "</div>" : "";
+  const rating = s.rating ? "<div class='kv'><b>评分：</b>" + s.rating + "</div>" : "";
+  const estTag = s.est ? " <span style='color:#c0743a'>（坐标按地址估算）</span>" : "";
+  return "<div class='info'>" +
+    "<div class='city'>" + s.city + "</div>" +
+    "<span class='badge' style='background:" + catColor + "'>" + catName + "</span><br/>" +
+    stars +
+    "<div class='kv'><b>状态：</b>" + s.open + estTag + "</div>" +
+    "<div class='kv'><b>地址：</b>" + s.addr + "</div>" +
+    phone + hours + rating +
+    "<div class='note'>" + s.note + "</div>" +
+    "</div>";
+}
+
+/* ===================== 地图初始化（可选附加，失败不影响面板） ===================== */
 function initMap() {
   if (typeof TMap === 'undefined') {
-    document.getElementById('fallback').style.display = 'flex';
+    const fb = document.getElementById('fallback');
+    fb.style.display = 'flex';
     document.getElementById('fbcount').textContent =
       '已嵌入数据：' + STORES.length + ' 个网点（直营已运营 ' +
       STORES.filter(s=>s.cat==='direct_open').length + ' / 建设中 ' +
@@ -311,15 +459,9 @@ function initMap() {
     return;
   }
 
-  const map = new TMap.Map('map', {
-    zoom: 5,
-    center: new TMap.LatLng(33.0, 113.0)
-  });
+  map = new TMap.Map('map', { zoom: 5, center: new TMap.LatLng(33.0, 113.0) });
+  infoWindow = new TMap.InfoWindow({ map: map, position: map.getCenter(), content: '' });
 
-  // 单个可复用信息窗，避免重复点击叠加
-  const infoWindow = new TMap.InfoWindow({ map: map, position: map.getCenter(), content: '' });
-
-  // 图标（SVG pin，运行时编码避免特殊字符问题）
   function pin(color, label) {
     const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='34' height='42' viewBox='0 0 34 42'>" +
       "<path d='M17 1 C8 1 1 8 1 17 C1 29 17 41 17 41 C17 41 33 29 33 17 C33 8 26 1 17 1 Z' fill='" + color + "'/>" +
@@ -352,31 +494,8 @@ function initMap() {
     return 'authEst';
   }
 
-  function infoHTML(s) {
-    const catName = s.cat === 'direct_open' ? '直营体验中心·已运营'
-                  : s.cat === 'direct_build' ? '直营·规划/建设中'
-                  : (s.cat === 'auth' ? '授权服务站·已核实' : '授权服务站·示意');
-    const catColor = s.cat === 'direct_open' ? '#ff6b5e' : s.cat === 'direct_build' ? '#ffb648' : (s.cat === 'auth' ? '#4cc38a' : '#7d8a99');
-    const stars = (s.star >= 1) ? "<div class='stars'>" + '★'.repeat(s.star) + " （" + s.star + "星）</div>" : "";
-    const phone = s.phone ? "<div class='kv'><b>电话：</b>" + s.phone + "</div>" : "";
-    const hours = s.hours ? "<div class='kv'><b>营业：</b>" + s.hours + "</div>" : "";
-    const rating = s.rating ? "<div class='kv'><b>评分：</b>" + s.rating + "</div>" : "";
-    const estTag = s.est ? " <span style='color:#c0743a'>（坐标按地址估算）</span>" : "";
-    return "<div class='info'>" +
-      "<div class='city'>" + s.city + "</div>" +
-      "<span class='badge' style='background:" + catColor + "'>" + catName + "</span><br/>" +
-      stars +
-      "<div class='kv'><b>状态：</b>" + s.open + estTag + "</div>" +
-      "<div class='kv'><b>地址：</b>" + s.addr + "</div>" +
-      phone + hours + rating +
-      "<div class='note'>" + s.note + "</div>" +
-      "</div>";
-  }
-
   // 按分类建立图层（4 类）
-  const layerCats = ['direct_open','direct_build','auth','auth_est'];
-  const layers = {};
-  const idxById = {}; // geometry id -> STORES index
+  const idxById = {};
   layerCats.forEach(cat => {
     const geoms = STORES.map((s, i) => ({ s, i })).filter(o => o.s.cat === cat).map(o => {
       const gid = cat + '_' + o.i;
@@ -395,122 +514,14 @@ function initMap() {
     layers[cat] = layer;
   });
 
-  // 飞行定位 + 弹窗 + 高亮列表
-  function focusStore(i, fromMap) {
-    const s = STORES[i];
-    const pos = new TMap.LatLng(s.lat, s.lng);
-    try { map.panTo(pos); } catch(err) { map.setCenter(pos); }
-    map.setZoom(13);
-    infoWindow.setPosition(pos);
-    infoWindow.setContent(infoHTML(s));
-    infoWindow.open();
-    // 高亮列表行
-    document.querySelectorAll('.drow').forEach(r => r.classList.remove('active'));
-    const row = document.querySelector('.drow[data-idx="' + i + '"]');
-    if (row) { row.classList.add('active'); row.scrollIntoView({ block: 'nearest' }); }
-  }
-
-  // 构建右侧明细列表
-  const groupMeta = {
-    direct_open: { title:'直营体验中心 · 已运营', color:'#ff6b5e' },
-    direct_build:{ title:'直营 · 规划/建设中', color:'#ffb648' },
-    auth:        { title:'授权服务站 · 已核实', color:'#4cc38a' },
-    auth_est:    { title:'授权服务站 · 示意', color:'#7d8a99' }
-  };
-  const dlist = document.getElementById('dlist');
-  function badgeFor(s) {
-    if (s.cat === 'direct_open') return s.star >= 5 ? { t:'5★', c:'#ff6b5e' } : { t:'直营', c:'#ff6b5e' };
-    if (s.cat === 'direct_build') return { t:'建', c:'#ffb648' };
-    if (s.cat === 'auth') return { t:'授', c:'#4cc38a' };
-    return { t:'示', c:'#7d8a99' };
-  }
-  function rowHTML(s, i) {
-    const b = badgeFor(s);
-    const sub = s.est ? '估算' : (s.real ? '已核实' : '');
-    const meta = [];
-    if (s.open) meta.push("<span><b>状态</b> " + s.open + "</span>");
-    if (s.rating) meta.push("<span><b>评分</b> " + s.rating + "</span>");
-    if (s.phone) meta.push("<span><b>电话</b> " + s.phone + "</span>");
-    return "<div class='drow' data-idx='" + i + "' data-cat='" + s.cat + "'>" +
-      "<div class='dhead'><span class='dbadge' style='background:" + b.c + "'>" + b.t + "</span>" +
-      "<span class='dcity'>" + s.city + "</span>" +
-      (sub ? "<span class='dsub'>" + sub + "</span>" : "") + "</div>" +
-      "<div class='daddr'>" + s.addr + "</div>" +
-      (meta.length ? "<div class='dmeta'>" + meta.join('') + "</div>" : "") +
-      "</div>";
-  }
-  function buildList() {
-    let html = '';
-    let total = 0;
-    layerCats.forEach(cat => {
-      const items = STORES.map((s,i)=>({s,i})).filter(o=>o.s.cat===cat);
-      if (!items.length) return;
-      total += items.length;
-      html += "<div class='dgroup-title'><span class='gtdot' style='background:" + groupMeta[cat].color + "'></span>" +
-              groupMeta[cat].title + " · " + items.length + "</div>";
-      items.forEach(o => { html += rowHTML(o.s, o.i); });
-    });
-    dlist.innerHTML = html;
-    document.getElementById('detailCount').textContent = '共 ' + total + ' 个网点';
-    dlist.querySelectorAll('.drow').forEach(row => {
-      row.addEventListener('click', () => focusStore(parseInt(row.dataset.idx, 10), false));
-    });
-  }
-  buildList();
-
-  // 搜索过滤（按城市/地址关键词）
-  document.getElementById('search').addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase();
-    dlist.querySelectorAll('.drow').forEach(row => {
-      const txt = (row.textContent || '').toLowerCase();
-      row.style.display = (!q || txt.includes(q)) ? '' : 'none';
-    });
-    // 同时隐藏空分组标题
-    dlist.querySelectorAll('.dgroup-title').forEach(title => {
-      let n = title.nextElementSibling;
-      let anyVisible = false;
-      while (n && n.classList.contains('drow')) {
-        if (n.style.display !== 'none') anyVisible = true;
-        n = n.nextElementSibling;
-      }
-      title.style.display = anyVisible ? '' : 'none';
-    });
-  });
-
-  // 图层开关（同时控制地图标记与列表）
-  function applyLayer(cat, show) {
-    layers[cat].setMap(show ? map : null);
-    dlist.querySelectorAll('.drow[data-cat="' + cat + '"]').forEach(r => r.style.display = show ? '' : 'none');
-    dlist.querySelectorAll('.dgroup-title').forEach(title => {
-      if (title.textContent.indexOf(groupMeta[cat].title) === -1) return;
-      let n = title.nextElementSibling, anyVisible = false;
-      while (n && n.classList.contains('drow')) {
-        if (n.style.display !== 'none') anyVisible = true;
-        n = n.nextElementSibling;
-      }
-      title.style.display = anyVisible ? '' : 'none';
-    });
-  }
+  // 应用当前复选框状态（用户可能在地图加载前已切换图层）
   document.querySelectorAll('.layer-row input').forEach(cb => {
-    cb.addEventListener('change', () => applyLayer(cb.dataset.cat, cb.checked));
+    if (!cb.checked) applyLayer(cb.dataset.cat, false);
   });
-
-  // 折叠面板（数据说明与口径）的独立开关逻辑已移至脚本底部，不依赖地图初始化，确保任何情况下都可点击展开/收起。
 }
 
 window.addEventListener('load', initMap);
 
-/* ===================== 数据说明与口径 折叠面板（独立于地图，确保可点击） ===================== */
-(function () {
-  const btn = document.getElementById('noteBtn');
-  const body = document.getElementById('noteBody');
-  if (!btn || !body) return;
-  btn.addEventListener('click', () => {
-    const isOpen = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', String(!isOpen));
-    body.hidden = isOpen; // 当前展开 → 收起；当前收起 → 展开
-  });
-})();
 </script>
 </body>
 </html>
