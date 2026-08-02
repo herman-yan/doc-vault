@@ -57,13 +57,21 @@
   .layer-row .meta .t { font-size: 13px; font-weight: 600; }
   .layer-row .meta .s { font-size: 10.5px; color: #8b98a8; }
 
-  details.note { margin-top: 12px; font-size: 11.5px; color: #9aa7b6; }
-  details.note summary { cursor: pointer; color: #c7d2dd; font-weight: 600; margin-bottom: 6px; list-style: none; }
-  details.note summary::-webkit-details-marker { display: none; }
-  details.note summary::before { content: '▸'; display: inline-block; width: 14px; color: #5aa9ff; transition: transform .18s ease; }
-  details.note[open] > summary::before { transform: rotate(90deg); }
-  details.note ul { margin: 6px 0 0; padding-left: 16px; line-height: 1.6; }
-  details.note a { color: #5aa9ff; }
+  .note-toggle { margin-top: 12px; font-size: 11.5px; color: #9aa7b6; }
+  .note-head {
+    display: flex; align-items: center; gap: 7px; width: 100%; text-align: left;
+    cursor: pointer; font-family: inherit; font-size: 11.5px; font-weight: 600; color: #c7d2dd;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 9px 11px; margin: 0;
+  }
+  .note-head:hover { border-color: rgba(255,255,255,0.16); }
+  .note-head:focus-visible { outline: 2px solid #5aa9ff; outline-offset: 1px; }
+  .note-head .arrow { display: inline-block; color: #5aa9ff; font-size: 12px; transition: transform .18s ease; }
+  .note-head[aria-expanded="true"] .arrow { transform: rotate(90deg); }
+  .note-body { margin-top: 8px; padding-left: 2px; }
+  .note-body[hidden] { display: none; }
+  .note-body ul { margin: 6px 0 0; padding-left: 16px; line-height: 1.6; }
+  .note-body a { color: #5aa9ff; }
 
   /* 右侧明细面板 */
   .detail {
@@ -190,16 +198,20 @@
       <span class="meta"><span class="t">授权服务站 · 示意</span><span class="s">代表城市 · 覆盖 25 省 80 城</span></span>
     </label>
 
-    <details class="note">
-      <summary>数据说明与口径</summary>
-      <ul>
-        <li><b>直营·已运营（7 城，门店级真实坐标）</b>：宁德、北京、上海、南京、武汉、重庆、合肥。其中宁德/北京/上海/南京为五星标准；武汉/重庆/合肥为既有直营店或新开业，官方未单独公布星级。坐标取自腾讯地图门店 POI。</li>
-        <li><b>直营·建设中（14 城）</b>：深圳、成都、杭州、苏州、西安、长沙、天津、郑州、东莞、无锡、宁波、青岛、长春（2026-01 时代车城已开），及<b>广州</b>（2026-02-25 白云区项目开工，分期建设中）。</li>
-        <li><b>授权服务站·已核实</b>：福州、东营、长沙、宁波、郑州、武汉等地已查到真实门店（含地址/电话/营业时间），为公开可查的真实落点。</li>
-        <li><b>授权服务站·示意</b>：宁德时代公开仅披露"国内 806 家服务站、112 家核心授权商、覆盖 25 省 80 城"（截至 2025-08），但 80 城名单未公开。灰色"示"点为<b>代表城市示意</b>，非穷举。</li>
-        <li>店铺统一按 0–5 星评级。海外（曼谷首店、荷兰/沙特/印尼规划）未纳入本"国内"视图。底图使用腾讯地图，需自备 Key（替换文件顶部占位符，详见文件顶部说明）。</li>
-      </ul>
-    </details>
+    <div class="note-toggle">
+      <button type="button" id="noteBtn" class="note-head" aria-expanded="false" aria-controls="noteBody">
+        <span class="arrow">▸</span> 数据说明与口径
+      </button>
+      <div id="noteBody" class="note-body" hidden>
+        <ul>
+          <li><b>直营·已运营（7 城，门店级真实坐标）</b>：宁德、北京、上海、南京、武汉、重庆、合肥。其中宁德/北京/上海/南京为五星标准；武汉/重庆/合肥为既有直营店或新开业，官方未单独公布星级。坐标取自腾讯地图门店 POI。</li>
+          <li><b>直营·建设中（14 城）</b>：深圳、成都、杭州、苏州、西安、长沙、天津、郑州、东莞、无锡、宁波、青岛、长春（2026-01 时代车城已开），及<b>广州</b>（2026-02-25 白云区项目开工，分期建设中）。</li>
+          <li><b>授权服务站·已核实</b>：福州、东营、长沙、宁波、郑州、武汉等地已查到真实门店（含地址/电话/营业时间），为公开可查的真实落点。</li>
+          <li><b>授权服务站·示意</b>：宁德时代公开仅披露"国内 806 家服务站、112 家核心授权商、覆盖 25 省 80 城"（截至 2025-08），但 80 城名单未公开。灰色"示"点为<b>代表城市示意</b>，非穷举。</li>
+          <li>店铺统一按 0–5 星评级。海外（曼谷首店、荷兰/沙特/印尼规划）未纳入本"国内"视图。底图使用腾讯地图，需自备 Key（替换文件顶部占位符，详见文件顶部说明）。</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <div class="detail">
@@ -483,21 +495,22 @@ function initMap() {
     cb.addEventListener('change', () => applyLayer(cb.dataset.cat, cb.checked));
   });
 
-  // —— "数据说明与口径"折叠面板的 JS 兜底：确保点击 summary 一定切换 open ——
-  document.querySelectorAll('details.note > summary').forEach(sm => {
-    sm.addEventListener('click', (ev) => {
-      const d = sm.parentElement;
-      // 让浏览器原生 toggle 优先；若 1 帧后 open 状态未变化，则手动切换
-      requestAnimationFrame(() => {
-        if (typeof d.open === 'boolean' && d.open === d.defaultOpen) {
-          d.open = !d.open;
-        }
-      });
-    });
-  });
+  // 折叠面板（数据说明与口径）的独立开关逻辑已移至脚本底部，不依赖地图初始化，确保任何情况下都可点击展开/收起。
 }
 
 window.addEventListener('load', initMap);
+
+/* ===================== 数据说明与口径 折叠面板（独立于地图，确保可点击） ===================== */
+(function () {
+  const btn = document.getElementById('noteBtn');
+  const body = document.getElementById('noteBody');
+  if (!btn || !body) return;
+  btn.addEventListener('click', () => {
+    const isOpen = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!isOpen));
+    body.hidden = isOpen; // 当前展开 → 收起；当前收起 → 展开
+  });
+})();
 </script>
 </body>
 </html>
