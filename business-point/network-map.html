@@ -58,7 +58,10 @@
   .layer-row .meta .s { font-size: 10.5px; color: #8b98a8; }
 
   details.note { margin-top: 12px; font-size: 11.5px; color: #9aa7b6; }
-  details.note summary { cursor: pointer; color: #c7d2dd; font-weight: 600; margin-bottom: 6px; }
+  details.note summary { cursor: pointer; color: #c7d2dd; font-weight: 600; margin-bottom: 6px; list-style: none; }
+  details.note summary::-webkit-details-marker { display: none; }
+  details.note summary::before { content: '▸'; display: inline-block; width: 14px; color: #5aa9ff; transition: transform .18s ease; }
+  details.note[open] > summary::before { transform: rotate(90deg); }
   details.note ul { margin: 6px 0 0; padding-left: 16px; line-height: 1.6; }
   details.note a { color: #5aa9ff; }
 
@@ -478,6 +481,19 @@ function initMap() {
   }
   document.querySelectorAll('.layer-row input').forEach(cb => {
     cb.addEventListener('change', () => applyLayer(cb.dataset.cat, cb.checked));
+  });
+
+  // —— "数据说明与口径"折叠面板的 JS 兜底：确保点击 summary 一定切换 open ——
+  document.querySelectorAll('details.note > summary').forEach(sm => {
+    sm.addEventListener('click', (ev) => {
+      const d = sm.parentElement;
+      // 让浏览器原生 toggle 优先；若 1 帧后 open 状态未变化，则手动切换
+      requestAnimationFrame(() => {
+        if (typeof d.open === 'boolean' && d.open === d.defaultOpen) {
+          d.open = !d.open;
+        }
+      });
+    });
   });
 }
 
