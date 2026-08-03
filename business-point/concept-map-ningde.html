@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>概念地图 — 宁德商点结合</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1b2e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;overflow:hidden;height:100vh;color:#e8e6e3;user-select:none;-webkit-user-select:none}
+#graph-svg{width:100%;height:100%;display:block;position:absolute;top:0;left:0}
+
+/* 筛选栏 */
+#filter-bar{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:8px;background:rgba(26,27,46,0.92);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.1);border-radius:22px;padding:7px 16px;box-shadow:0 4px 24px rgba(0,0,0,0.4)}
+.filter-btn{padding:4px 14px;border-radius:14px;border:1.5px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.55);font-size:12.5px;cursor:pointer;transition:all 0.22s;letter-spacing:0.3px;font-family:inherit}
+.filter-btn:hover{color:#fff;border-color:rgba(255,255,255,0.3)}
+.filter-btn.active{color:#fff;font-weight:600}
+
+/* 搜索框 */
+#search-box{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:8px}
+#search-input{width:240px;padding:9px 16px 9px 34px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(26,27,46,0.9);backdrop-filter:blur(12px);color:#e8e6e3;font-size:13.5px;outline:none;font-family:inherit}
+#search-input:focus{border-color:rgba(116,185,255,0.5);box-shadow:0 0 0 3px rgba(116,185,255,0.08)}
+#search-input::placeholder{color:rgba(255,255,255,0.28)}
+#search-box::before{content:'\1F50D';position:absolute;left:12px;font-size:13px;pointer-events:none;opacity:0.4;z-index:1}
+#search-clear{display:none;background:none;border:none;color:rgba(255,255,255,0.35);font-size:17px;cursor:pointer;padding:3px 5px;line-height:1}
+#search-clear:hover{color:#fff}
+#search-count{font-size:11.5px;color:rgba(255,255,255,0.35);white-space:nowrap;min-width:40px}
+
+/* 图例 */
+#legend{position:absolute;bottom:80px;left:24px;z-index:20;background:rgba(26,27,46,0.9);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px}
+#legend-title{font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:9px;letter-spacing:1.2px;text-transform:uppercase}
+.legend-item{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px;color:rgba(255,255,255,0.65)}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.legend-hint{margin-top:10px;font-size:10px;color:rgba(255,255,255,0.22);letter-spacing:0.3px}
+
+/* Tooltip */
+#tooltip{position:fixed;display:none;z-index:100;background:rgba(30,31,50,0.96);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.14);border-radius:10px;padding:12px 16px;max-width:280px;pointer-events:none;box-shadow:0 8px 36px rgba(0,0,0,0.55);font-size:12px;line-height:1.55}
+#tooltip .tt-name{font-size:14.5px;font-weight:700;color:#fff;margin-bottom:3px}
+#tooltip .tt-cat{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px}
+#tooltip .tt-desc{font-size:11.5px;color:rgba(255,255,255,0.62);line-height:1.6}
+
+/* 详情面板 */
+#detail-panel{position:absolute;top:0;right:-420px;width:380px;height:100vh;z-index:30;background:rgba(26,27,46,0.95);backdrop-filter:blur(18px);border-left:1px solid rgba(255,255,255,0.07);padding:28px 22px;transition:right 0.38s cubic-bezier(0.22,1,0.36,1);overflow-y:auto;box-shadow:-4px 0 32px rgba(0,0,0,0.3)}
+#detail-panel.open{right:0}
+#detail-panel::-webkit-scrollbar{width:3px}
+#detail-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+#dp-close{position:absolute;top:16px;right:16px;background:none;border:none;color:rgba(255,255,255,0.3);font-size:22px;cursor:pointer;line-height:1;padding:4px 8px}
+#dp-close:hover{color:#fff}
+#dp-type-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:middle}
+#dp-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:5px;padding-right:30px;line-height:1.35}
+#dp-cat{font-size:12px;color:rgba(255,255,255,0.38);margin-bottom:15px;letter-spacing:0.4px}
+#dp-desc{font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.dp-section{font-size:10.5px;color:rgba(255,255,255,0.3);letter-spacing:1.1px;margin-bottom:9px;text-transform:uppercase}
+.dp-doc{padding:5px 10px;background:rgba(255,255,255,0.03);border-radius:6px;margin:3px 0;font-size:12px;color:rgba(255,255,255,0.48)}
+.dp-rel-item{display:flex;align-items:flex-start;gap:9px;padding:7px 10px;border-radius:7px;cursor:pointer;transition:background 0.18s;border:1px solid transparent;margin:2px 0}
+.dp-rel-item:hover{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08)}
+.rel-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.rel-info{display:flex;flex-direction:column;gap:2px}
+.rel-name{font-size:12.5px;color:rgba(255,255,255,0.8);font-weight:500}
+.rel-label{font-size:11px;color:rgba(255,255,255,0.33);line-height:1.4}
+
+/* 标题栏 */
+#title-bar{position:absolute;top:70px;left:50%;transform:translateX(-50%);z-index:10;text-align:center;pointer-events:none}
+#title-bar h1{font-size:14.5px;font-weight:600;color:rgba(255,255,255,0.32);letter-spacing:2px}
+
+/* 提示栏 */
+#hint-bar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;text-align:center;pointer-events:none;font-size:10.5px;color:rgba(255,255,255,0.15);letter-spacing:0.8px}
+</style>
+</head>
+<body>
+
+<svg id="graph-svg"></svg>
+
+<!-- 筛选栏 -->
+<div id="filter-bar"></div>
+
+<!-- 搜索框 -->
+<div id="search-box">
+  <input id="search-input" type="text" placeholder="搜索概念…" autocomplete="off" oninput="onSearch(this.value)">
+  <button id="search-clear" onclick="clearSearch()">&#x2715;</button>
+  <span id="search-count"></span>
+</div>
+
+<!-- 图例 -->
+<div id="legend"><div id="legend-title">图 例</div></div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<!-- 详情面板 -->
+<div id="detail-panel">
+  <button id="dp-close" onclick="closePanel()">&#x2715;</button>
+  <div id="dp-title"></div>
+  <div id="dp-cat"></div>
+  <div id="dp-desc"></div>
+  <div class="dp-section">&#x1F4C4; 文档来源</div>
+  <div id="dp-docs"></div>
+  <div style="margin-top:16px"><div class="dp-section">&#x1F517; 关联概念</div></div>
+  <div id="dp-relations"></div>
+</div>
+
+<!-- 标题 -->
+<div id="title-bar"><h1>概念地图</h1></div>
+
+<!-- 底部提示 -->
+<div id="hint-bar">拖拽节点 · 滚轮缩放 · 点击查看详情 · 搜索定位 · 筛选栏过滤类型</div>
+
+<script>
+// ========== 数据 ==========
+var CAT = {
+  role:      {label:'合作主体/角色', color:'#FF6B6B'},
+  principle: {label:'核心原则/理念', color:'#FFEAA7'},
+  mechanism: {label:'运作机制/流程', color:'#4ECDC4'},
+  rule:      {label:'制度规则/条款', color:'#45B7D1'},
+  obligation:{label:'权利义务/约束', color:'#96CEB4'}
+};
+
+function catColor(c) { return (CAT[c] || CAT.arch).color; }
+function catLabel(c) { return (CAT[c] || CAT.arch).label; }
+
+// ===== 【替换区域开始】将下方 rawNodes 替换为提取的概念数据 =====
+var rawNodes = [
+{id:'jiafang',label:'甲方·宁德时代',cat:'role',desc:'授权方与总部，拥有品牌/技术/授权管理权限，统筹管控、监督考核、制度制定。',docs:['商点结合三方合作协议','CATL国内服务代理商管理制度']},
+{id:'shang',label:'乙方·商',cat:'role',desc:'「商」级城市合作伙伴，已获商级运营授权，作为管理枢纽统筹区域点级合作方。',docs:['商点结合三方合作协议']},
+{id:'dian',label:'丙方·点',cat:'role',desc:'「点」级终端服务运营方，经乙推荐、甲审核备案，接受间接授权与乙方日常管理。',docs:['商点结合三方合作协议','商点结合制度宣讲']},
+{id:'wangluo',label:'网络分级',cat:'role',desc:'一级网络（特约站/特约检测站/星级服务站）与二级网络（合约站，由星级站设）；另有特约服务商、多授权站。',docs:['CATL国内服务代理商管理制度']},
+{id:'shangdianjiehe',label:'商点结合',cat:'principle',desc:'最新管理模式：一城一商、由「商」管理区域「点」，总部抓顶层、区域抓落地。',docs:['商点结合三方合作协议','商点结合制度宣讲']},
+{id:'yichengyishang',label:'一城一商',cat:'principle',desc:'每城设一个「商」级合作方，统筹该城服务网点覆盖。',docs:['商点结合制度宣讲']},
+{id:'guanliqinglianghua',label:'管理轻量化',cat:'principle',desc:'总部抓顶层规则管控、区域抓属地落地运营，分级负责、层层闭环。',docs:['商点结合制度宣讲']},
+{id:'fengxianzhuanyi',label:'风险转移',cat:'principle',desc:'商承担区域管理责任及部分连带责任，核心风控与品牌控制权仍归总部。',docs:['商点结合制度宣讲']},
+{id:'jiesuan',label:'结算体系',cat:'mechanism',desc:'保内工时：总部统一与商结算、商再与点结算，形成管理价差。',docs:['商点结合制度宣讲']},
+{id:'kaohe',label:'考核体系',cat:'mechanism',desc:'总部考核商、商考核点（GSS系统按月/季/年考核），责任传导机制。',docs:['商点结合制度宣讲','CATL国内服务代理商管理制度']},
+{id:'paidan',label:'派单模式',cat:'mechanism',desc:'存量维持原派单；新增点位按商报备方案执行，自动派单上线后同步切换。',docs:['商点结合制度宣讲']},
+{id:'peixun',label:'培训体系',cat:'mechanism',desc:'总部培训商、商培训点，能力层层下沉。',docs:['商点结合制度宣讲']},
+{id:'beijian',label:'备件体系',cat:'mechanism',desc:'商统筹自身及所辖全部点位备件，承担区域库存差异责任、可向点追偿。',docs:['商点结合制度宣讲']},
+{id:'zhaomu',label:'招募机制',cat:'mechanism',desc:'商招募点、总部审核确认（商初审、总部终审）。',docs:['商点结合制度宣讲']},
+{id:'tuichu',label:'退出机制',cat:'mechanism',desc:'违规冻结/整改逾期降撤；低绩效连续9月启动退网。',docs:['CATL国内服务代理商管理制度']},
+{id:'xingji',label:'星级钻级管理',cat:'mechanism',desc:'星级站一星至五星逐级评定；钻级年评看场地/销售/销售额，仅星级站参评。',docs:['CATL国内服务代理商管理制度']},
+{id:'jiameng',label:'加盟审批',cat:'mechanism',desc:'加盟审批、建站验收、星级评定、冻结解冻、退出全周期直管管控。',docs:['CATL国内服务代理商管理制度']},
+{id:'shouquanfenlei',label:'授权分类',cat:'mechanism',desc:'乘用车/商用车客车/重工/储能船舶；可单授权或多授权（独立团队考核）。',docs:['CATL国内服务代理商管理制度']},
+{id:'sanfangxieyi',label:'三方框架协议',cat:'rule',desc:'甲（宁德时代）/乙（商）/丙（点）三方共签的合作框架协议。',docs:['商点结合三方合作协议']},
+{id:'jianjie_shouquan',label:'间接授权',cat:'rule',desc:'点经乙获甲间接授权，权限非全业务且不超过甲对乙授权范围；期限不超乙剩余有效期。',docs:['商点结合三方合作协议']},
+{id:'fenji_chuzhi',label:'分级违规处置',cat:'rule',desc:'扣分/罚款/限量派单/停业冻结/撤站退网，总部向商下发、商整改点闭环。',docs:['CATL国内服务代理商管理制度','商点结合三方合作协议']},
+{id:'baozhengjin',label:'保证金制度',cat:'rule',desc:'服务商/点保证金直接支付总部统一管（特约站5万元），收款主体不变。',docs:['商点结合制度宣讲','CATL国内服务代理商管理制度']},
+{id:'baomi',label:'保密违约',cat:'rule',desc:'三方须履行保密义务，违约按协议追责。',docs:['商点结合三方合作协议']},
+{id:'lianjie',label:'廉洁条款',cat:'rule',desc:'入网签廉洁承诺书、年培不少于1次，严禁私自转让服务站、收费用。',docs:['CATL国内服务代理商管理制度']},
+{id:'fei_atz',label:'非甲方电池禁令',cat:'rule',desc:'严禁未经许可开展非公司品牌电池相关经营性、商业类活动。',docs:['商点结合制度宣讲']},
+{id:'yushou',label:'预收款禁令',cat:'rule',desc:'严禁商以任何名义、方式向点级合作方预收各类费用。',docs:['商点结合制度宣讲']},
+{id:'zhunru',label:'准入资质',cat:'rule',desc:'三类及以上机动车维修资质、场地功能区齐全、同属性站间距≥5KM、保证金凭证等。',docs:['CATL国内服务代理商管理制度']},
+{id:'lian_daizeren',label:'连带责任',cat:'obligation',desc:'商对丙方管理不当承担连带责任，可向点追偿。',docs:['商点结合三方合作协议']},
+{id:'zhanye_xianzhi',label:'展业限制',cat:'obligation',desc:'禁跨有直营站城市授权「点」；跨城点在该城有直营站后转回直营管理。',docs:['商点结合制度宣讲']},
+{id:'zhiying',label:'直营站',cat:'role',desc:'钻级最高形态服务站：场地≥2500㎡、销售团队10-15人、销售额2000w、返利10%；区别于商点结合网络形态。',docs:['CATL国内服务代理商管理制度']},
+{id:'zeren_chuandi',label:'责任传导',cat:'principle',desc:'总部考核商、商考核点，责任层层传导、整改闭环，提升效率。',docs:['商点结合制度宣讲']},
+{id:'pinpai_kongzhi',label:'品牌控制权',cat:'principle',desc:'核心风控与品牌控制权仍归总部，总部保留品牌最终审核权。',docs:['商点结合制度宣讲','商点结合三方合作协议']},
+{id:'guanli_shouyi',label:'管理收益机制',cat:'principle',desc:'总部统一与商结算、商再与点结算，形成管理价差，商凭管理责任获区域运营收益。',docs:['商点结合制度宣讲']},
+{id:'fuwu_zhan',label:'服务站类型',cat:'mechanism',desc:'特约站/特约检测站/星级服务站（一级）、合约站（二级由星级站下设）；多授权站（双授权并网）。',docs:['CATL国内服务代理商管理制度']},
+{id:'xingji_biaozhun',label:'星级评定标准',cat:'mechanism',desc:'一星至五星逐级升/降/保星动态管理；每年2月、8月两期评定，新入网≤一星。',docs:['CATL国内服务代理商管理制度']},
+{id:'zuanji',label:'钻级评定',cat:'mechanism',desc:'钻一/钻二/钻三/直营站，每年一次评定，看场地/销售/销售额/满意度。',docs:['CATL国内服务代理商管理制度']},
+{id:'kaohe_weidu',label:'考核维度(GSS)',cat:'mechanism',desc:'月度绩效8维：工具5/持证10/旧件10/培训5/及时15/维修时效20/响应15/一次通过20；月/季/年考核。',docs:['CATL国内服务代理商管理制度']},
+{id:'xitong',label:'系统支撑',cat:'mechanism',desc:'GSS（工单/结算/绩效）、COME（信息送达）、QIS（复判）、TMS（物流）支撑运营。',docs:['CATL国内服务代理商管理制度']},
+{id:'chengshi_fenlei',label:'城市分类',cat:'mechanism',desc:'A类（一线/省会）、B类（偏远省区）、C类（其余）；影响建站验收与星级标准。',docs:['CATL国内服务代理商管理制度']},
+{id:'weigui_fenji',label:'违规分级处置',cat:'rule',desc:'轻微（整改不追责）/一般（警告/限单/扣保证金≤50%）/严重（罚5-50万/撤站/没收保证金）。',docs:['商点结合三方合作协议','CATL国内服务代理商管理制度']},
+{id:'chufa_biaozhun',label:'处罚标准',cat:'rule',desc:'虚假报单2-10倍工单费；商业贿赂违约金最高30%；媒体负面1万/次；低绩效连续9月退网。',docs:['CATL国内服务代理商管理制度']},
+{id:'baozhengjin_fenji',label:'保证金分级',cat:'rule',desc:'特约站/点保证金5万元直付总部；新入网/续签/变更须缴，收款主体不变。',docs:['CATL国内服务代理商管理制度','商点结合三方合作协议','商点结合制度宣讲']},
+{id:'shouquan_xianzhi',label:'授权范围限制',cat:'rule',desc:'乙非全业务授权、不超甲范围；丙不超范围/不跨区；不得转授权/出借资质。',docs:['商点结合三方合作协议']},
+{id:'wuliao_guanli',label:'物料管理',cat:'rule',desc:'物料费含于服务费，建标准化出入库/月盘点≥1次/异常报告；配合突击盘点。',docs:['商点结合三方合作协议']},
+{id:'zhenggai',label:'整改闭环',cat:'obligation',desc:'甲通知乙→乙传丙→限期整改→不合格甲进一步处罚至撤资格。',docs:['商点结合三方合作协议','商点结合制度宣讲']},
+{id:'zhuiyang',label:'追偿机制',cat:'obligation',desc:'商对丙管理不当连带、可向丙追偿；保证金不足甲划扣结算款、向乙丙追偿。',docs:['商点结合三方合作协议']},
+{id:'kucun_goujia',label:'库存管理架构',cat:'mechanism',desc:'全球仓储组统筹规范与账务、服务支持组监督考核、区域库/中央仓承运、服务代理商为库存责任方。',docs:['CATL国内服务代理商库存管理制度']},
+{id:'beijian_fenlei',label:'备件分类',cat:'rule',desc:'保内/保外良品与旧件分区；带电体（NCM/LFP/EBK/PACK）与非带电体分存；一/二级风险品差异化存储。',docs:['CATL国内服务代理商库存管理制度']},
+{id:'jiujian_fanchang',label:'旧件返厂',cat:'mechanism',desc:'放电拍照→GSS填明细→月回退单→打包（一级新件包装/二级防爆箱）→出库物流，每月报未回退原因。',docs:['CATL国内服务代理商库存管理制度']},
+{id:'pandian',label:'盘点与差异',cat:'mechanism',desc:'日常动盘（差异72h确认）、月度盲盘；保内盘亏代理买赔、盘盈系统调、货损确认赔付。',docs:['CATL国内服务代理商库存管理制度']},
+{id:'baoyang_yujing',label:'维保预警',cat:'rule',desc:'小保养6月补电SOC35-40%、大保养12月均衡补电、EBK≥30天补电，防过放呆滞。',docs:['CATL国内服务代理商库存管理制度']},
+{id:'SAP',label:'账务系统SAP',cat:'mechanism',desc:'保内账务在SAP处理，赔付款后调账；与GSS配合完成盘盈/盘亏调整。',docs:['CATL国内服务代理商库存管理制度']},
+{id:'E_xuetang',label:'E学堂',cat:'mechanism',desc:'专用学习平台300元/账号/3年、L1免费；站长监管学习进度，考试任务发布。',docs:['CATL国内服务代理商培训管理制度']},
+{id:'renzheng_dengji',label:'认证等级(L1-L3)',cat:'rule',desc:'L1在线免费、L2线下有偿需电工证、L3深度故障分析；涵盖商用/乘用/ESS/船舶。',docs:['CATL国内服务代理商培训管理制度']},
+{id:'peixun_fenlei',label:'培训分类',cat:'rule',desc:'新员工/认证（技术/运营/关键岗）/复训（证书3年、前6月复审）/专项（N1线上/N2线下新产品）。',docs:['CATL国内服务代理商培训管理制度']},
+{id:'kaoshi_renzheng',label:'考试与上岗',cat:'rule',desc:'理论≥70%颁证、N2≥80%；一星需认证、三星关键岗取证、五星配≥400㎡培训基地。',docs:['CATL国内服务代理商培训管理制度']},
+{id:'zhengshu',label:'证书管理',cat:'rule',desc:'唯一编号、3年有效、到期前6月复审；转岗有效、离职失效、退出网络全部失效。',docs:['CATL国内服务代理商培训管理制度']},
+{id:'weichi_fa',label:'未持证处罚',cat:'rule',desc:'未持证/未培训降星、严重停派单、年1次重后果停账号重培、作弊零分罚1000元。',docs:['CATL国内服务代理商培训管理制度']},
+{id:'tyz',label:'特约站',cat:'mechanism',desc:'因客情保留或特批的服务站；保证金5万、按无星验收、不可转星级、授权1年、仅作维修需求物料。',docs:['CATL国内服务代理商管理制度']},
+{id:'tyjc',label:'特约检测站',cat:'mechanism',desc:'配基本功能区的特批检测站；基础检测/故障排查/程序更新/非开箱作业，诊断仪+专用电脑。',docs:['CATL国内服务代理商管理制度']},
+{id:'xjz',label:'星级服务站',cat:'mechanism',desc:'签约加盟的所有服务商，按一星至五星动态管理、可下设合约站（二网）。',docs:['CATL国内服务代理商管理制度']},
+{id:'hyz',label:'合约站(二级)',cat:'mechanism',desc:'星级站下设的二级网络；三类以上资质、由所属站培训运营担责、协议1年。',docs:['CATL国内服务代理商管理制度']},
+{id:'dsqz',label:'多授权站',cat:'mechanism',desc:'乘用车与商用车并网服务站；GSS账号共用、硬件人员独立、各授权单独评定。',docs:['CATL国内服务代理商管理制度']},
+{id:'pxcp',label:'乘用车授权',cat:'mechanism',desc:'授权范围含乘用车/微面/轻卡/皮卡/储能等。',docs:['CATL国内服务代理商管理制度']},
+{id:'sycp',label:'商用车授权',cat:'mechanism',desc:'授权范围含公交/重卡/工程机械/轮船/储能等。',docs:['CATL国内服务代理商管理制度']},
+{id:'zgcp',label:'重工授权',cat:'mechanism',desc:'授权范围含重卡/工程机械。',docs:['CATL国内服务代理商管理制度']},
+{id:'cncp',label:'储能授权',cat:'mechanism',desc:'授权范围全系，含乘用车/商用车/轮船等。',docs:['CATL国内服务代理商管理制度']},
+{id:'shengxing',label:'升星',cat:'rule',desc:'逐级提升不可跨级；新入网≤一星，6个月内满足一星自动升、次月生效。',docs:['CATL国内服务代理商管理制度']},
+{id:'jiangxing',label:'降星',cat:'rule',desc:'未达当前星级要求顺延下降；严重违规可立即降星+取消一年升星。',docs:['CATL国内服务代理商管理制度']},
+{id:'baoxing',label:'保星',cat:'rule',desc:'达标维持当前星级，升/降/保星动态管理。',docs:['CATL国内服务代理商管理制度']},
+{id:'wg_qing',label:'轻微违规',cat:'rule',desc:'3-7日整改不追责；逾期升为一般。',docs:['商点结合三方合作协议','CATL国内服务代理商管理制度']},
+{id:'wg_yiban',label:'一般违规',cat:'rule',desc:'警告/限单/扣保证金≤50%；7-15日整改，逾期升严重。',docs:['商点结合三方合作协议','CATL国内服务代理商管理制度']},
+{id:'wg_yanzhong',label:'严重违规',cat:'rule',desc:'罚5-50万、撤销授权/撤站、没收保证金。',docs:['商点结合三方合作协议','CATL国内服务代理商管理制度']},
+{id:'zuanyi',label:'钻一',cat:'mechanism',desc:'钻级最低档；场地≥700㎡，看销售额/满意度等运营指标年评。',docs:['CATL国内服务代理商管理制度']},
+{id:'zuaner',label:'钻二',cat:'mechanism',desc:'钻级中档；场地与运营指标要求高于钻一。',docs:['CATL国内服务代理商管理制度']},
+{id:'zuansan',label:'钻三',cat:'mechanism',desc:'钻级高档；场地/销售/团队要求更高，趋近直营站形态。',docs:['CATL国内服务代理商管理制度']},
+{id:'A_city',label:'A类城市',cat:'mechanism',desc:'一线/新一线/省会等；建站验收与星级标准取较高要求。',docs:['CATL国内服务代理商管理制度']},
+{id:'B_city',label:'B类城市',cat:'mechanism',desc:'西藏/青海/新疆等偏远省区；验收标准相对放宽。',docs:['CATL国内服务代理商管理制度']},
+{id:'C_city',label:'C类城市',cat:'mechanism',desc:'除A/B外的国内城市；验收标准居中。',docs:['CATL国内服务代理商管理制度']},
+{id:'GSS_sys',label:'GSS系统',cat:'mechanism',desc:'售后工单系统：报单/结算/旧件/工具录入/绩效，核心操作平台。',docs:['CATL国内服务代理商管理制度']},
+{id:'COME_sys',label:'COME系统',cat:'mechanism',desc:'信息送达与Ecare应用内反馈通道。',docs:['CATL国内服务代理商管理制度']},
+{id:'QIS_sys',label:'QIS系统',cat:'mechanism',desc:'故障复判接口，支撑工单判定。',docs:['CATL国内服务代理商管理制度']},
+{id:'TMS_sys',label:'TMS系统',cat:'mechanism',desc:'物流驳回系统，支撑备件调拨与旧件回退。',docs:['CATL国内服务代理商管理制度']},
+{id:'shang_chushen',label:'商初审',cat:'mechanism',desc:'商对拟推荐点级合作方开展初审（品牌/人员/场地/设备）。',docs:['商点结合三方合作协议','商点结合制度宣讲']},
+{id:'zongbu_zongshen',label:'总部终审',cat:'mechanism',desc:'总部对商推荐的点进行终审确认，审核备案。',docs:['商点结合三方合作协议','商点结合制度宣讲']},
+{id:'weixiu_zizhi',label:'维修资质',cat:'rule',desc:'三类及以上机动车维修经营资质（电气系统维修或综合小修）。',docs:['CATL国内服务代理商管理制度']},
+{id:'changdi',label:'场地要求',cat:'rule',desc:'接待/客休/车间/仓库齐全；距公共建筑≥50M或有物理分割。',docs:['CATL国内服务代理商管理制度']},
+{id:'zhanjiange',label:'站间距≥5KM',cat:'rule',desc:'同属性服务站建站直线距离≥5KM。',docs:['CATL国内服务代理商管理制度']},
+{id:'gss_baodan',label:'GSS·报单工单',cat:'mechanism',desc:'工单来源11种、服务类型13种，报单入口与工单创建。',docs:['CATL国内服务代理商管理制度']},
+{id:'gss_jiesuan',label:'GSS·结算',cat:'mechanism',desc:'保内工时结算与账期管理（超半年70%、超1年不结）。',docs:['CATL国内服务代理商管理制度']},
+{id:'gss_jiuxiu',label:'GSS·旧件回退',cat:'mechanism',desc:'每月旧件回退单创建、放电拍照打包、出库物流。',docs:['CATL国内服务代理商管理制度']},
+{id:'gss_jixiao',label:'GSS·绩效',cat:'mechanism',desc:'月度绩效8维录入、月/季/年考核统计。',docs:['CATL国内服务代理商管理制度']},
+{id:'gss_gongju',label:'GSS·工具管理',cat:'mechanism',desc:'诊断仪/专用电脑/工具信息录入与证书管理。',docs:['CATL国内服务代理商管理制度']},
+{id:'baonei_jiesuan',label:'保内工时结算',cat:'mechanism',desc:'总部按商星级统一结算、商再按点星级结算。',docs:['商点结合制度宣讲','商点结合三方合作协议']},
+{id:'guanli_chajia',label:'管理费价差',cat:'mechanism',desc:'甲付乙扣除乙丙后剩余=乙方管理费，商凭管理责任获区域收益。',docs:['商点结合制度宣讲']},
+{id:'paidan_cunliang',label:'存量派单',cat:'mechanism',desc:'存量服务商维持原派单模式。',docs:['商点结合制度宣讲']},
+{id:'paidan_xinzeng',label:'新增点位派单',cat:'mechanism',desc:'新增点位按商报备方案执行。',docs:['商点结合制度宣讲']},
+{id:'paidan_zidong',label:'自动派单',cat:'mechanism',desc:'自动派单系统上线后全量同步切换。',docs:['商点结合制度宣讲']},
+{id:'tui_weigui',label:'违规退网',cat:'mechanism',desc:'严重违规撤销授权、撤站退网。',docs:['CATL国内服务代理商管理制度','商点结合三方合作协议']},
+{id:'tui_diji',label:'低绩效退网',cat:'mechanism',desc:'低绩效全国后10%且<70分、连续9月启动退网。',docs:['CATL国内服务代理商管理制度']},
+{id:'tui_zhudong',label:'主动退出',cat:'mechanism',desc:'协议期满或三方协商提前30日书面通知解除。',docs:['商点结合三方合作协议']},
+{id:'L1',label:'L1认证',cat:'rule',desc:'在线自学免费，熟悉结构功能/维保规范，可报L2。',docs:['CATL国内服务代理商培训管理制度']},
+{id:'L2',label:'L2认证',cat:'rule',desc:'线下理论+实操有偿，需高/低压电工证，拆装与故障排查。',docs:['CATL国内服务代理商培训管理制度']},
+{id:'L3',label:'L3认证',cat:'rule',desc:'深度故障分析（报文/策略/特殊设备）。',docs:['CATL国内服务代理商培训管理制度']},
+{id:'chufa_koufen',label:'绩效扣分',cat:'rule',desc:'违规绩效扣分，处置手段之一。',docs:['CATL国内服务代理商管理制度']},
+{id:'chufa_fakuan',label:'现金处罚',cat:'rule',desc:'现金处罚/违约金（如商业贿赂最高30%总费用）。',docs:['CATL国内服务代理商管理制度','商点结合三方合作协议']},
+{id:'chufa_dongjie',label:'冻结停业',cat:'rule',desc:'整改冻结、停业整改、暂停/限量派单。',docs:['CATL国内服务代理商管理制度']},
+{id:'chufa_tuiwang',label:'撤站退网',cat:'rule',desc:'严重违规撤站退网、没收保证金。',docs:['CATL国内服务代理商管理制度','商点结合三方合作协议']},
+{id:'bzj_jiao',label:'保证金缴纳',cat:'rule',desc:'新入网/续签/变更须缴，点5万直付总部、收款主体不变。',docs:['CATL国内服务代理商管理制度','商点结合三方合作协议']},
+{id:'bzj_tui',label:'保证金退还',cat:'rule',desc:'期满无违约2月内无息退还；违约抵扣后剩余退。',docs:['商点结合三方合作协议']},
+{id:'bzj_dikou',label:'保证金抵扣',cat:'rule',desc:'违约抵扣、不足划扣结算款、向乙丙追偿。',docs:['商点结合三方合作协议']},
+{id:'fanxiu',label:'返修全流程质检',cat:'mechanism',desc:'CTP电池包R1/R2、保外、上门维修全覆盖；三级质检架构（自检→复检→终检）。',docs:['返修全流程质检机制SOP']},
+{id:'fx_jiedan',label:'接单报价确认',cat:'mechanism',desc:'维修需求接收、技术评估、报价生成与客户签字、GSS保外工单创建。',docs:['返修全流程质检机制SOP']},
+{id:'fx_wuliao',label:'物料筹备进场',cat:'mechanism',desc:'站内库存查询、缺料调拨、到货外观验收(IQC)、备件出库验证。',docs:['返修全流程质检机制SOP']},
+{id:'fx_chaijie',label:'拆解故障确认',cat:'mechanism',desc:'开箱初检、全工序拆解(冷冻/烘干)、故障复现确认。',docs:['返修全流程质检机制SOP']},
+{id:'fx_zhuanxiang',label:'专项维修作业',cat:'mechanism',desc:'R1维修(植钉/拉拔)、R2维修(模组均衡/气密)、保外增项管控、IPQC过程管控。',docs:['返修全流程质检机制SOP']},
+{id:'fx_wangong',label:'完工终检发货',cat:'mechanism',desc:'FQC完工检测、终检双签字放行、OQC包装物流。',docs:['返修全流程质检机制SOP']},
+{id:'fx_baodan',label:'系统报单结算',cat:'mechanism',desc:'全量资料上传、工单完善、备件与旧件录入。',docs:['返修全流程质检机制SOP']},
+{id:'fx_bihe',label:'审核闭环',cat:'mechanism',desc:'审核驳回整改、旧件处置对账、客户回访归档(保存3年)。',docs:['返修全流程质检机制SOP']},
+{id:'jiance_yiji',label:'操作自检(一级)',cat:'mechanism',desc:'操作人自检，承担60%质量责任。',docs:['返修全流程质检机制SOP']},
+{id:'jiance_erji',label:'组长复检(二级)',cat:'mechanism',desc:'组长复检，承担30%质量责任。',docs:['返修全流程质检机制SOP']},
+{id:'jiance_sanji',label:'质检终检(三级)',cat:'mechanism',desc:'质检终检，承担10%质量责任。',docs:['返修全流程质检机制SOP']},
+{id:'yipiao_foujue',label:'一票否决',cat:'rule',desc:'技术负责人对重大安全质量问题100%否决权。',docs:['返修全流程质检机制SOP']},
+{id:'IQC',label:'入厂质检IQC',cat:'mechanism',desc:'全检：外包装/壳体/条码/备件绝缘≥50MΩ，无破损一致。',docs:['返修全流程质检机制SOP']},
+{id:'IPQC',label:'过程质检IPQC',cat:'mechanism',desc:'工序全检+关键工序双人复核，不合格返工。',docs:['返修全流程质检机制SOP']},
+{id:'FQC',label:'成品终检FQC',cat:'mechanism',desc:'全项必检：气密/水密、绝缘≥50MΩ、容量≥95%、72h压降≤30mV。',docs:['返修全流程质检机制SOP']},
+{id:'OQC',label:'出厂质检OQC',cat:'mechanism',desc:'包装与发货核验全检，信息一致方可发。',docs:['返修全流程质检机制SOP']},
+{id:'buhege_qing',label:'轻微不合格',cat:'rule',desc:'4h内闭环整改。',docs:['返修全流程质检机制SOP']},
+{id:'buhege_yiban',label:'一般不合格',cat:'rule',desc:'24h内闭环。',docs:['返修全流程质检机制SOP']},
+{id:'buhege_yanzhong',label:'严重不合格',cat:'rule',desc:'72h报废/降级，严禁返工出厂。',docs:['返修全流程质检机制SOP']},
+{id:'zhiliang_mubiao',label:'质量目标',cat:'principle',desc:'一次交检合格率≥98%、返工率≤2%、投诉率≤0.5%、重大安全0、闭环率100%。',docs:['返修全流程质检机制SOP']},
+{id:'fx_paiban',label:'拆解排班准备',cat:'mechanism',desc:'拆解前排班合规，物料/点检表/工具齐全。',docs:['返修全流程质检机制SOP']},
+{id:'fx_kaixiang',label:'开箱初检',cat:'mechanism',desc:'外观、上位机读码、气密初检，每步拍照填表（IQC+过程）。',docs:['返修全流程质检机制SOP']},
+{id:'fx_quangongxu',label:'全工序拆解',cat:'mechanism',desc:'清洗/翻转/冷冻(-30℃±2℃)/烘干(绝缘≥50MΩ)/切割(平整≤0.01mm)，拍照留档。',docs:['返修全流程质检机制SOP']},
+{id:'fx_fuguangxian',label:'故障复现确认',cat:'mechanism',desc:'拆解后故障点与原方案一致，增项重评。',docs:['返修全流程质检机制SOP']}
+];
+// ===== rawNodes 替换区域结束 =====
+
+// ===== 【替换区域开始】将下方 rawEdges 替换为提取的关联数据 =====
+var rawEdges = [
+{s:'jiafang',t:'shang',label:'直接授权·签约（甲乙双边）'},
+{s:'shang',t:'dian',label:'直属管理·商管点'},
+{s:'jiafang',t:'dian',label:'间接授权·审核备案'},
+{s:'jiafang',t:'dian',label:'监督·违约处罚'},
+{s:'shangdianjiehe',t:'jiafang',label:'包含（甲方）'},
+{s:'shangdianjiehe',t:'shang',label:'包含（乙方）'},
+{s:'shangdianjiehe',t:'dian',label:'包含（丙方）'},
+{s:'shangdianjiehe',t:'yichengyishang',label:'驱动'},
+{s:'shangdianjiehe',t:'guanliqinglianghua',label:'驱动'},
+{s:'jiafang',t:'wangluo',label:'总部统筹管控'},
+{s:'shang',t:'wangluo',label:'商统管区域网络'},
+{s:'dian',t:'wangluo',label:'点位于网络末端'},
+{s:'jiesuan',t:'jiafang',label:'总部统与商结'},
+{s:'jiesuan',t:'shang',label:'总部→商结算'},
+{s:'jiesuan',t:'dian',label:'商→点结算'},
+{s:'kaohe',t:'shang',label:'总部考商'},
+{s:'kaohe',t:'dian',label:'商考点'},
+{s:'paidan',t:'dian',label:'派单到点'},
+{s:'peixun',t:'shang',label:'总部培商'},
+{s:'peixun',t:'dian',label:'商培点'},
+{s:'beijian',t:'shang',label:'商统筹区域备件'},
+{s:'beijian',t:'dian',label:'区域库存差异商担'},
+{s:'zhaomu',t:'shang',label:'商招募点'},
+{s:'zhaomu',t:'dian',label:'总部审核备案'},
+{s:'tuichu',t:'dian',label:'违规退网'},
+{s:'kaohe',t:'xingji',label:'星级钻级评定'},
+{s:'jiameng',t:'wangluo',label:'建站验收纳入'},
+{s:'jiameng',t:'zhunru',label:'准入审核'},
+{s:'shouquanfenlei',t:'shang',label:'商可多授权'},
+{s:'shouquanfenlei',t:'dian',label:'点按业务授权'},
+{s:'wangluo',t:'xingji',label:'星级站参评'},
+{s:'sanfangxieyi',t:'jiafang',label:'三方共签'},
+{s:'sanfangxieyi',t:'shang',label:'三方共签'},
+{s:'sanfangxieyi',t:'dian',label:'三方共签'},
+{s:'jianjie_shouquan',t:'shang',label:'乙授予非全业务'},
+{s:'jianjie_shouquan',t:'dian',label:'点经乙获甲授权'},
+{s:'fenji_chuzhi',t:'shang',label:'总部向商下发'},
+{s:'fenji_chuzhi',t:'dian',label:'商整改闭环'},
+{s:'baozhengjin',t:'jiafang',label:'总部统管'},
+{s:'baozhengjin',t:'dian',label:'点保证金直付总部'},
+{s:'lian_daizeren',t:'shang',label:'商对丙方连带'},
+{s:'zhanye_xianzhi',t:'dian',label:'禁跨直营城'},
+{s:'zhunru',t:'shang',label:'商准入条件'},
+{s:'zhunru',t:'dian',label:'点准入审核'},
+{s:'baomi',t:'sanfangxieyi',label:'协议保密条款'},
+{s:'lianjie',t:'shang',label:'入网签承诺'},
+{s:'fei_atz',t:'dian',label:'经营禁止'},
+{s:'yushou',t:'shang',label:'禁向点预收'},
+{s:'fenji_chuzhi',t:'baomi',label:'违规类型'},
+{s:'fenji_chuzhi',t:'lianjie',label:'违规类型'},
+{s:'fenji_chuzhi',t:'fei_atz',label:'违规类型'},
+{s:'fenji_chuzhi',t:'yushou',label:'违规类型'},
+{s:'guanliqinglianghua',t:'peixun',label:'驱动'},
+{s:'guanliqinglianghua',t:'paidan',label:'驱动'},
+{s:'guanliqinglianghua',t:'beijian',label:'驱动'},
+{s:'guanliqinglianghua',t:'zhaomu',label:'驱动'},
+{s:'fengxianzhuanyi',t:'lian_daizeren',label:'驱动'},
+{s:'yichengyishang',t:'shang',label:'每城一商'},
+{s:'shangdianjiehe',t:'shouquanfenlei',label:'授权体系'},
+{s:'zhiying',t:'jiafang',label:'总部直营'},
+{s:'zhiying',t:'wangluo',label:'区别于商点网络'},
+{s:'zhiying',t:'shouquanfenlei',label:'可多授权'},
+{s:'zeren_chuandi',t:'kaohe',label:'落实于考核'},
+{s:'pinpai_kongzhi',t:'fengxianzhuanyi',label:'构成风险体系'},
+{s:'pinpai_kongzhi',t:'shangdianjiehe',label:'总部把控'},
+{s:'guanli_shouyi',t:'jiesuan',label:'落实于结算'},
+{s:'fuwu_zhan',t:'wangluo',label:'构成网络'},
+{s:'xingji_biaozhun',t:'xingji',label:'细化标准'},
+{s:'zuanji',t:'xingji',label:'并行钻级'},
+{s:'kaohe_weidu',t:'kaohe',label:'考核指标'},
+{s:'xitong',t:'kaohe',label:'GSS支撑'},
+{s:'xitong',t:'jiesuan',label:'系统结算'},
+{s:'chengshi_fenlei',t:'zhunru',label:'影响准入验收'},
+{s:'weigui_fenji',t:'fenji_chuzhi',label:'细化分级'},
+{s:'chufa_biaozhun',t:'fenji_chuzhi',label:'处罚细则'},
+{s:'baozhengjin_fenji',t:'baozhengjin',label:'细化分级'},
+{s:'shouquan_xianzhi',t:'jianjie_shouquan',label:'授权边界'},
+{s:'wuliao_guanli',t:'beijian',label:'物料含于备件'},
+{s:'zhenggai',t:'fenji_chuzhi',label:'整改闭环'},
+{s:'zhuiyang',t:'lian_daizeren',label:'落实连带'},
+{s:'kucun_goujia',t:'beijian',label:'细化备件体系'},
+{s:'kucun_goujia',t:'xitong',label:'GSS操作'},
+{s:'kucun_goujia',t:'shang',label:'商承担区域库存'},
+{s:'beijian_fenlei',t:'beijian',label:'备件属性'},
+{s:'beijian_fenlei',t:'wuliao_guanli',label:'分区存放'},
+{s:'jiujian_fanchang',t:'beijian',label:'旧件流程'},
+{s:'pandian',t:'wuliao_guanli',label:'盘点落地'},
+{s:'pandian',t:'beijian',label:'差异责任'},
+{s:'baoyang_yujing',t:'wuliao_guanli',label:'维保周期'},
+{s:'SAP',t:'xitong',label:'保内账务'},
+{s:'E_xuetang',t:'xitong',label:'学习平台'},
+{s:'E_xuetang',t:'peixun',label:'E学堂支撑'},
+{s:'renzheng_dengji',t:'peixun',label:'认证层级'},
+{s:'peixun_fenlei',t:'peixun',label:'培训构成'},
+{s:'kaoshi_renzheng',t:'peixun',label:'上岗要求'},
+{s:'zhengshu',t:'peixun',label:'证书管理'},
+{s:'weichi_fa',t:'kaoshi_renzheng',label:'违规后果'},
+{s:'weichi_fa',t:'kaohe',label:'未持证降星'},
+{s:'tyz',t:'fuwu_zhan',label:'属一级网络'},
+{s:'tyz',t:'wangluo',label:'一级网络'},
+{s:'tyjc',t:'fuwu_zhan',label:'属一级网络'},
+{s:'tyjc',t:'wangluo',label:'一级网络'},
+{s:'xjz',t:'fuwu_zhan',label:'属一级网络'},
+{s:'xjz',t:'wangluo',label:'一级网络'},
+{s:'xjz',t:'hyz',label:'下设合约站'},
+{s:'hyz',t:'fuwu_zhan',label:'属二级网络'},
+{s:'hyz',t:'wangluo',label:'二级网络'},
+{s:'dsqz',t:'fuwu_zhan',label:'并网形态'},
+{s:'tyz',t:'baozhengjin_fenji',label:'保证金5万'},
+{s:'xjz',t:'xingji',label:'按星管理'},
+{s:'pxcp',t:'shouquanfenlei',label:'产品线'},
+{s:'sycp',t:'shouquanfenlei',label:'产品线'},
+{s:'zgcp',t:'shouquanfenlei',label:'产品线'},
+{s:'cncp',t:'shouquanfenlei',label:'产品线'},
+{s:'shengxing',t:'xingji_biaozhun',label:'升星规则'},
+{s:'jiangxing',t:'xingji_biaozhun',label:'降星规则'},
+{s:'baoxing',t:'xingji_biaozhun',label:'保星规则'},
+{s:'shengxing',t:'xingji',label:'驱动升星'},
+{s:'jiangxing',t:'tuichu',label:'严重可降撤'},
+{s:'wg_qing',t:'weigui_fenji',label:'轻微级'},
+{s:'wg_yiban',t:'weigui_fenji',label:'一般级'},
+{s:'wg_yanzhong',t:'weigui_fenji',label:'严重级'},
+{s:'wg_yanzhong',t:'fenji_chuzhi',label:'触发处置'},
+{s:'wg_qing',t:'zhenggai',label:'整改闭环'},
+{s:'zuanyi',t:'zuanji',label:'钻级档位'},
+{s:'zuaner',t:'zuanji',label:'钻级档位'},
+{s:'zuansan',t:'zuanji',label:'钻级档位'},
+{s:'zuansan',t:'zhiying',label:'趋近直营'},
+{s:'A_city',t:'chengshi_fenlei',label:'A类'},
+{s:'B_city',t:'chengshi_fenlei',label:'B类'},
+{s:'C_city',t:'chengshi_fenlei',label:'C类'},
+{s:'A_city',t:'xingji_biaozhun',label:'影响星级标准'},
+{s:'GSS_sys',t:'xitong',label:'核心系统'},
+{s:'COME_sys',t:'xitong',label:'信息通道'},
+{s:'QIS_sys',t:'xitong',label:'复判接口'},
+{s:'TMS_sys',t:'xitong',label:'物流系统'},
+{s:'GSS_sys',t:'jiesuan',label:'结算支撑'},
+{s:'GSS_sys',t:'kaohe',label:'绩效支撑'},
+{s:'TMS_sys',t:'jiujian_fanchang',label:'旧件物流'},
+{s:'weixiu_zizhi',t:'zhunru',label:'资质条件'},
+{s:'changdi',t:'zhunru',label:'场地条件'},
+{s:'zhanjiange',t:'zhunru',label:'间距条件'},
+{s:'shang_chushen',t:'zhaomu',label:'初审环节'},
+{s:'zongbu_zongshen',t:'zhaomu',label:'终审环节'},
+{s:'shang_chushen',t:'shang',label:'商执行'},
+{s:'zongbu_zongshen',t:'jiafang',label:'总部执行'},
+{s:'gss_baodan',t:'GSS_sys',label:'功能模块'},
+{s:'gss_jiesuan',t:'GSS_sys',label:'功能模块'},
+{s:'gss_jiuxiu',t:'GSS_sys',label:'功能模块'},
+{s:'gss_jixiao',t:'GSS_sys',label:'功能模块'},
+{s:'gss_gongju',t:'GSS_sys',label:'功能模块'},
+{s:'gss_jiesuan',t:'jiesuan',label:'结算执行'},
+{s:'gss_jiuxiu',t:'jiujian_fanchang',label:'旧件流程'},
+{s:'gss_jixiao',t:'kaohe_weidu',label:'绩效录入'},
+{s:'baonei_jiesuan',t:'jiesuan',label:'结算逻辑'},
+{s:'guanli_chajia',t:'jiesuan',label:'管理收益'},
+{s:'guanli_chajia',t:'guanli_shouyi',label:'落实收益'},
+{s:'paidan_cunliang',t:'paidan',label:'存量模式'},
+{s:'paidan_xinzeng',t:'paidan',label:'新增模式'},
+{s:'paidan_zidong',t:'paidan',label:'自动模式'},
+{s:'tui_weigui',t:'tuichu',label:'违规退出'},
+{s:'tui_diji',t:'tuichu',label:'低绩效退出'},
+{s:'tui_zhudong',t:'tuichu',label:'主动退出'},
+{s:'L1',t:'renzheng_dengji',label:'认证档'},
+{s:'L2',t:'renzheng_dengji',label:'认证档'},
+{s:'L3',t:'renzheng_dengji',label:'认证档'},
+{s:'L2',t:'E_xuetang',label:'需培训取证'},
+{s:'L1',t:'E_xuetang',label:'L1免费'},
+{s:'chufa_koufen',t:'fenji_chuzhi',label:'处置手段'},
+{s:'chufa_fakuan',t:'fenji_chuzhi',label:'处置手段'},
+{s:'chufa_dongjie',t:'fenji_chuzhi',label:'处置手段'},
+{s:'chufa_tuiwang',t:'fenji_chuzhi',label:'处置手段'},
+{s:'chufa_tuiwang',t:'wg_yanzhong',label:'严重处置'},
+{s:'bzj_jiao',t:'baozhengjin',label:'缴纳'},
+{s:'bzj_tui',t:'baozhengjin',label:'退还'},
+{s:'bzj_dikou',t:'baozhengjin',label:'抵扣追偿'},
+{s:'bzj_jiao',t:'baozhengjin_fenji',label:'分级缴纳'},
+{s:'fx_jiedan',t:'fanxiu',label:'阶段1'},
+{s:'fx_wuliao',t:'fanxiu',label:'阶段2'},
+{s:'fx_chaijie',t:'fanxiu',label:'阶段3'},
+{s:'fx_zhuanxiang',t:'fanxiu',label:'阶段4'},
+{s:'fx_wangong',t:'fanxiu',label:'阶段5'},
+{s:'fx_baodan',t:'fanxiu',label:'阶段6'},
+{s:'fx_bihe',t:'fanxiu',label:'阶段7'},
+{s:'jiance_yiji',t:'fanxiu',label:'一级质检'},
+{s:'jiance_erji',t:'fanxiu',label:'二级质检'},
+{s:'jiance_sanji',t:'fanxiu',label:'三级质检'},
+{s:'yipiao_foujue',t:'fanxiu',label:'否决机制'},
+{s:'IQC',t:'fx_wuliao',label:'入厂检验'},
+{s:'IPQC',t:'fx_zhuanxiang',label:'过程检验'},
+{s:'FQC',t:'fx_wangong',label:'成品检验'},
+{s:'OQC',t:'fx_wangong',label:'出厂检验'},
+{s:'buhege_qing',t:'IPQC',label:'闭环时限'},
+{s:'buhege_yiban',t:'IPQC',label:'闭环时限'},
+{s:'buhege_yanzhong',t:'IPQC',label:'闭环时限'},
+{s:'zhiliang_mubiao',t:'fanxiu',label:'核心目标'},
+{s:'fanxiu',t:'GSS_sys',label:'工单系统'},
+{s:'fanxiu',t:'beijian',label:'备件消耗'},
+{s:'fanxiu',t:'jiujian_fanchang',label:'旧件回退'},
+{s:'fx_wuliao',t:'kucun_goujia',label:'库存查询'},
+{s:'fx_baodan',t:'gss_baodan',label:'GSS报单'},
+{s:'fx_bihe',t:'jiujian_fanchang',label:'旧件处置'},
+{s:'fx_wangong',t:'kaohe',label:'质量考核'},
+{s:'fx_paiban',t:'fx_chaijie',label:'子步骤'},
+{s:'fx_kaixiang',t:'fx_chaijie',label:'子步骤'},
+{s:'fx_quangongxu',t:'fx_chaijie',label:'子步骤'},
+{s:'fx_fuguangxian',t:'fx_chaijie',label:'子步骤'},
+{s:'fx_kaixiang',t:'IQC',label:'初检含IQC'},
+{s:'fx_quangongxu',t:'IPQC',label:'过程质检'}
+];
+// ===== rawEdges 替换区域结束 =====
+
+// ========== 预处理 ==========
+var nodeMap = {};
+rawNodes.forEach(function(rn) { nodeMap[rn.id] = rn; });
+
+var degree = {};
+rawEdges.forEach(function(e) {
+  degree[e.s] = (degree[e.s] || 0) + 1;
+  degree[e.t] = (degree[e.t] || 0) + 1;
+});
+
+var nodes = rawNodes.map(function(rn) {
+  var d = degree[rn.id] || 0;
+  var catSize = { input: 11, external: 9, internal: 9, output: 8, practice: 8, arch: 7 };
+  var r = (catSize[rn.cat] || 7) + Math.min(d * 0.8, 10);
+  return { id: rn.id, label: rn.label, cat: rn.cat, desc: rn.desc, docs: rn.docs, r: Math.max(r, 6) };
+});
+
+var edges = rawEdges.map(function(re) {
+  var s = nodeMap[re.s], t = nodeMap[re.t];
+  if (s && t) return { source: re.s, target: re.t, label: re.label };
+  return null;
+}).filter(function(x) { return x !== null; });
+
+// ========== 类型筛选 ==========
+var allTypes = [];
+var typeSet = new Set();
+rawNodes.forEach(function(r) { typeSet.add(r.cat); });
+typeSet.forEach(function(t) { allTypes.push(t); });
+
+var activeFilters = new Set(allTypes);
+
+function renderFilterBar() {
+  var bar = document.getElementById('filter-bar');
+  bar.innerHTML = '';
+  allTypes.forEach(function(t) {
+    var btn = document.createElement('button');
+    btn.className = 'filter-btn' + (activeFilters.has(t) ? ' active' : '');
+    btn.style.borderColor = activeFilters.has(t) ? catColor(t) : 'rgba(255,255,255,0.12)';
+    btn.style.background = activeFilters.has(t) ? catColor(t) + '18' : 'transparent';
+    btn.style.color = activeFilters.has(t) ? '#fff' : 'rgba(255,255,255,0.55)';
+    btn.textContent = catLabel(t);
+    btn.onclick = function() { toggleFilter(t); };
+    bar.appendChild(btn);
+  });
+}
+
+function toggleFilter(type) {
+  if (activeFilters.has(type) && activeFilters.size > 1) activeFilters.delete(type);
+  else if (!activeFilters.has(type)) activeFilters.add(type);
+  renderFilterBar();
+  updateVisibility();
+}
+
+function updateVisibility() {
+  nodeSel.style('display', function(d) { return activeFilters.has(d.cat) ? null : 'none'; });
+  linkSel.style('display', function(d) {
+    var sId = typeof d.source === 'object' ? d.source.id : d.source;
+    var tId = typeof d.target === 'object' ? d.target.id : d.target;
+    var sNode = nodeMap[sId], tNode = nodeMap[tId];
+    if (sNode && activeFilters.has(sNode.cat) && tNode && activeFilters.has(tNode.cat)) return null;
+    return 'none';
+  });
+}
+
+// ========== 图例 ==========
+(function() {
+  var leg = document.getElementById('legend');
+  allTypes.forEach(function(t) {
+    var d = document.createElement('div');
+    d.className = 'legend-item';
+    d.innerHTML = '<span class="legend-dot" style="background:' + catColor(t) + '"></span>' + catLabel(t);
+    leg.appendChild(d);
+  });
+  var hint = document.createElement('div');
+  hint.className = 'legend-hint';
+  hint.textContent = '拖拽 · 滚轮缩放 · 点击查看';
+  leg.appendChild(hint);
+})();
+
+// ========== D3 力导向图 ==========
+var W = window.innerWidth, H = window.innerHeight;
+var svg = d3.select('#graph-svg')
+  .attr('width', W)
+  .attr('height', H);
+
+var gMain = svg.append('g').attr('class', 'main-group');
+var gLinks = gMain.append('g').attr('class', 'links');
+var gNodes = gMain.append('g').attr('class', 'nodes');
+
+// 缩放
+var zoomBehavior = d3.zoom()
+  .scaleExtent([0.12, 5])
+  .on('zoom', function(e) { gMain.attr('transform', e.transform); });
+svg.call(zoomBehavior);
+
+// 点击空白取消选中
+svg.on('click', function(e) {
+  if (e.target.tagName === 'svg' || e.target.classList.contains('main-group')) {
+    closePanel();
+    highlightNode(null);
+  }
+});
+
+// 力模拟
+function getCatFromEdge(endpoint) {
+  if (typeof endpoint === 'object' && endpoint !== null) return endpoint.cat;
+  var nd = nodeMap[endpoint];
+  return nd ? nd.cat : null;
+}
+
+var simulation = d3.forceSimulation(nodes)
+  .force('link', d3.forceLink(edges)
+    .id(function(d) { return d.id; })
+    .distance(function(d) {
+      var sCat = getCatFromEdge(d.source);
+      var tCat = getCatFromEdge(d.target);
+      if (sCat && tCat && sCat !== tCat) return 130;
+      return 88;
+    })
+    .strength(0.45)
+  )
+  .force('charge', d3.forceManyBody().strength(-260))
+  .force('center', d3.forceCenter(W / 2, H / 2))
+  .force('collide', d3.forceCollide().radius(function(d) { return d.r + 14; }));
+
+// 连线
+var linkSel = gLinks.selectAll('line')
+  .data(edges).enter().append('line')
+  .attr('stroke', '#d1cfc5')
+  .attr('stroke-opacity', 0.38)
+  .attr('stroke-width', 1)
+  .attr('stroke-linecap', 'round');
+
+// 边标签
+var linkLabelSel = gLinks.selectAll('text.edge-label')
+  .data(edges).enter().append('text')
+  .attr('class', 'edge-label')
+  .attr('font-size', '9px')
+  .attr('fill', 'rgba(255,255,255,0.4)')
+  .attr('text-anchor', 'middle')
+  .attr('pointer-events', 'none')
+  .text(function(d) { return d.label; })
+  .style('opacity', 0);
+
+// 节点组
+var nodeSel = gNodes.selectAll('g')
+  .data(nodes).enter().append('g')
+  .attr('class', 'node-group')
+  .style('cursor', 'pointer')
+  .call(d3.drag()
+    .on('start', dragStarted)
+    .on('drag', dragged)
+    .on('end', dragEnded)
+  );
+
+// 节点光圈（选中/关联高亮）
+nodeSel.append('circle')
+  .attr('class', 'glow')
+  .attr('r', function(d) { return d.r + 6; })
+  .attr('fill', 'none')
+  .attr('stroke', function(d) { return catColor(d.cat); })
+  .attr('stroke-width', 2)
+  .attr('stroke-opacity', 0);
+
+// 节点圆
+nodeSel.append('circle')
+  .attr('r', function(d) { return d.r; })
+  .attr('fill', function(d) { return catColor(d.cat); })
+  .attr('fill-opacity', 0.82)
+  .attr('stroke', function(d) { return catColor(d.cat); })
+  .attr('stroke-width', 1.5)
+  .attr('stroke-opacity', 0.3);
+
+// 节点标签
+nodeSel.append('text')
+  .text(function(d) {
+    var txt = d.label;
+    return txt.length > 7 ? txt.slice(0, 6) + '…' : txt;
+  })
+  .attr('dy', function(d) { return d.r + 14; })
+  .attr('text-anchor', 'middle')
+  .style('font-size', '10.5px')
+  .style('fill', 'rgba(255,255,255,0.6)')
+  .style('pointer-events', 'none')
+  .style('font-weight', function(d) { return (degree[d.id] || 0) >= 8 ? '600' : '400'; });
+
+// ========== 交互 ==========
+var selectedNode = null;
+var hoveredNode = null;
+
+// Hover
+nodeSel
+  .on('mouseover', function(e, d) {
+    hoveredNode = d;
+    var tt = document.getElementById('tooltip');
+    tt.style.display = 'block';
+    tt.innerHTML = '<div class="tt-name">' + d.label + '</div><div class="tt-cat">' + catLabel(d.cat) + '</div><div class="tt-desc">' + (d.desc || '') + '</div>';
+    if (!selectedNode) highlightNode(d.id);
+  })
+  .on('mousemove', function(e) {
+    var tt = document.getElementById('tooltip');
+    tt.style.left = (e.clientX + 16) + 'px';
+    tt.style.top = (e.clientY - 8) + 'px';
+  })
+  .on('mouseout', function() {
+    hoveredNode = null;
+    document.getElementById('tooltip').style.display = 'none';
+    if (!selectedNode) highlightNode(null);
+  });
+
+// 点击
+nodeSel.on('click', function(e, d) {
+  e.stopPropagation();
+  selectedNode = d;
+  showDetail(d);
+  highlightNode(d.id);
+  zoomToNode(d);
+});
+
+function highlightNode(nodeId) {
+  if (!nodeId) {
+    nodeSel.style('opacity', 1);
+    linkSel.attr('stroke', '#d1cfc5').attr('stroke-opacity', 0.38).attr('stroke-width', 1);
+    linkLabelSel.style('opacity', 0);
+    nodeSel.select('.glow').attr('stroke-opacity', 0);
+    return;
+  }
+  var connected = new Set([nodeId]);
+  edges.forEach(function(l) {
+    var sId = typeof l.source === 'object' ? l.source.id : l.source;
+    var tId = typeof l.target === 'object' ? l.target.id : l.target;
+    if (sId === nodeId) connected.add(tId);
+    if (tId === nodeId) connected.add(sId);
+  });
+  nodeSel.style('opacity', function(d) { return connected.has(d.id) ? 1 : 0.1; });
+  var hlColor = catColor((nodeMap[nodeId] || {}).cat || 'practice');
+  linkSel
+    .attr('stroke', function(l) {
+      var sId = typeof l.source === 'object' ? l.source.id : l.source;
+      var tId = typeof l.target === 'object' ? l.target.id : l.target;
+      return (sId === nodeId || tId === nodeId) ? hlColor : '#d1cfc5';
+    })
+    .attr('stroke-opacity', function(l) {
+      var sId = typeof l.source === 'object' ? l.source.id : l.source;
+      var tId = typeof l.target === 'object' ? l.target.id : l.target;
+      return (sId === nodeId || tId === nodeId) ? 0.85 : 0.06;
+    })
+    .attr('stroke-width', function(l) {
+      var sId = typeof l.source === 'object' ? l.source.id : l.source;
+      var tId = typeof l.target === 'object' ? l.target.id : l.target;
+      return (sId === nodeId || tId === nodeId) ? 2.2 : 0.6;
+    });
+  linkLabelSel.style('opacity', function(l) {
+    var sId = typeof l.source === 'object' ? l.source.id : l.source;
+    var tId = typeof l.target === 'object' ? l.target.id : l.target;
+    return (sId === nodeId || tId === nodeId) ? 1 : 0;
+  });
+  nodeSel.select('.glow').attr('stroke-opacity', 0);
+  nodeSel.filter(function(d) { return d.id === nodeId; })
+    .select('.glow')
+    .attr('stroke-opacity', 0.7);
+}
+
+function zoomToNode(d) {
+  var x = d.x || W / 2, y = d.y || H / 2;
+  var scale = 1.6;
+  var tx = W / 2 - x * scale, ty = H / 2 - y * scale;
+  svg.transition().duration(550).call(
+    zoomBehavior.transform,
+    d3.zoomIdentity.translate(tx, ty).scale(scale)
+  );
+}
+
+// 详情面板
+function showDetail(d) {
+  var panel = document.getElementById('detail-panel');
+  panel.classList.add('open');
+  document.getElementById('dp-title').innerHTML =
+    '<span id="dp-type-dot" style="background:' + catColor(d.cat) + '"></span>' + d.label;
+  document.getElementById('dp-cat').textContent = catLabel(d.cat);
+  document.getElementById('dp-desc').textContent = d.desc || '';
+  var docsDiv = document.getElementById('dp-docs');
+  docsDiv.innerHTML = '';
+  (d.docs || []).forEach(function(doc) {
+    var el = document.createElement('div');
+    el.className = 'dp-doc';
+    el.textContent = '\uD83D\uDCC4 ' + doc;
+    docsDiv.appendChild(el);
+  });
+  var relDiv = document.getElementById('dp-relations');
+  relDiv.innerHTML = '';
+  var rels = [];
+  edges.forEach(function(l) {
+    var sId = typeof l.source === 'object' ? l.source.id : l.source;
+    var tId = typeof l.target === 'object' ? l.target.id : l.target;
+    if (sId === d.id) rels.push({ id: tId, label: l.label });
+    if (tId === d.id) rels.push({ id: sId, label: l.label });
+  });
+  rels.forEach(function(rel) {
+    var other = nodeMap[rel.id];
+    if (!other) return;
+    var item = document.createElement('div');
+    item.className = 'dp-rel-item';
+    item.innerHTML = '<span class="rel-dot" style="background:' + catColor(other.cat) + '"></span><div class="rel-info"><span class="rel-name">' + other.label + '</span><span class="rel-label">' + rel.label + '</span></div>';
+    item.onclick = (function(rel) {
+      return function(e) {
+        e.stopPropagation();
+        var target = nodes.find(function(n) { return n.id === rel.id; });
+        if (target) {
+          selectedNode = target;
+          showDetail(target);
+          highlightNode(target.id);
+          zoomToNode(target);
+        }
+      };
+    })(rel);
+    relDiv.appendChild(item);
+  });
+}
+
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('open');
+  selectedNode = null;
+  highlightNode(null);
+}
+
+// ========== 搜索 ==========
+var searchQuery = '';
+window.onSearch = function(val) {
+  searchQuery = val.trim();
+  var cl = document.getElementById('search-clear');
+  cl.style.display = searchQuery ? 'inline' : 'none';
+  if (!searchQuery) {
+    nodeSel.style('opacity', 1);
+    linkSel.attr('stroke-opacity', 0.38);
+    linkLabelSel.style('opacity', 0);
+    document.getElementById('search-count').textContent = '';
+    return;
+  }
+  var q = searchQuery.toLowerCase();
+  var matchCount = 0;
+  nodeSel
+    .style('opacity', function(d) {
+      var match = d.id.toLowerCase().indexOf(q) >= 0 || d.label.toLowerCase().indexOf(q) >= 0 || (d.desc || '').toLowerCase().indexOf(q) >= 0;
+      if (match) matchCount++;
+      return match ? 1 : 0.06;
+    });
+  linkSel.attr('stroke-opacity', function(d) {
+    var sId = typeof d.source === 'object' ? d.source.id : d.source;
+    var tId = typeof d.target === 'object' ? d.target.id : d.target;
+    var sMatch = sId.toLowerCase().indexOf(q) >= 0 || (nodeMap[sId] && nodeMap[sId].label.toLowerCase().indexOf(q) >= 0);
+    var tMatch = tId.toLowerCase().indexOf(q) >= 0 || (nodeMap[tId] && nodeMap[tId].label.toLowerCase().indexOf(q) >= 0);
+    return (sMatch && tMatch) ? 0.5 : 0.04;
+  });
+  document.getElementById('search-count').textContent = matchCount + '/' + nodes.length;
+  var firstMatch = nodes.find(function(n) {
+    return n.id.toLowerCase().indexOf(q) >= 0 || n.label.toLowerCase().indexOf(q) >= 0;
+  });
+  if (firstMatch && firstMatch.x !== undefined) zoomToNode(firstMatch);
+};
+
+window.clearSearch = function() {
+  document.getElementById('search-input').value = '';
+  onSearch('');
+};
+
+// ========== 拖拽 ==========
+function dragStarted(e, d) {
+  if (!e.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x; d.fy = d.y;
+}
+function dragged(e, d) {
+  d.fx = e.x; d.fy = e.y;
+}
+function dragEnded(e, d) {
+  if (!e.active) simulation.alphaTarget(0);
+  d.fx = null; d.fy = null;
+}
+
+// ========== Tick ==========
+simulation.on('tick', function() {
+  linkSel
+    .attr('x1', function(d) { return d.source.x; })
+    .attr('y1', function(d) { return d.source.y; })
+    .attr('x2', function(d) { return d.target.x; })
+    .attr('y2', function(d) { return d.target.y; });
+  linkLabelSel
+    .attr('x', function(d) { return (d.source.x + d.target.x) / 2; })
+    .attr('y', function(d) { return (d.source.y + d.target.y) / 2 - 4; });
+  nodeSel.attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+});
+
+// ========== Resize ==========
+var ro = new ResizeObserver(function() {
+  W = window.innerWidth; H = window.innerHeight;
+  d3.select('#graph-svg').attr('width', W).attr('height', H);
+  simulation.force('center', d3.forceCenter(W / 2, H / 2));
+  simulation.alpha(0.05).restart();
+});
+ro.observe(document.body);
+
+// ========== 初始化 ==========
+renderFilterBar();
+
+console.log('\uD83C\uDFAF 概念地图已就绪 — D3.js 力导向图引擎');
+</script>
+</body>
+</html>

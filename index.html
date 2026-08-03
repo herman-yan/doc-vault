@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宁家服务数字化运营系统</title>
+
+    <!-- 专业网页字体：Inter（英文/数字）+ 思源黑体 Noto Sans SC（中文） -->
+    <link rel="preconnect" href="https://fonts.googleapis.cn" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin>
+    <link href="https://fonts.googleapis.cn/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================================
+           设计系统 · 宁家服务数字化运营系统
+           风格：企业级运营控制台（浅色 / 商务 / 克制配色）
+           ============================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            /* 品牌色 —— 深海军蓝 */
+            --brand:        #0E2A47;
+            --brand-2:      #15395B;
+            --brand-line:   #1E4A7A;
+
+            /* 功能强调色（克制、专业） */
+            --c-blue:   #2563EB;   /* 服务运营 */
+            --c-teal:   #0D9488;   /* 经营拓展 */
+            --c-indigo: #5B5BD6;   /* 数据洞察 */
+            --c-green:  #15803D;   /* 知识协同 */
+            --c-amber:  #D97706;   /* 人员招聘 */
+
+            /* 状态色 */
+            --st-online:   #15803D;
+            --st-building: #B45309;
+
+            /* 中性色 */
+            --bg:      #F4F6FB;
+            --bg-soft: #EEF2F8;
+            --card:    #FFFFFF;
+            --border:  #E5E9F1;
+            --border-2:#DCE2EC;
+            --text:    #1F2A3A;
+            --text-2:  #5B6B82;
+            --text-3:  #93A1B5;
+
+            --shadow-sm: 0 1px 2px rgba(16,32,64,.05);
+            --shadow:    0 1px 3px rgba(16,32,64,.06), 0 10px 28px rgba(16,32,64,.06);
+            --shadow-lg: 0 4px 12px rgba(16,32,64,.08), 0 18px 42px rgba(16,32,64,.10);
+
+            --radius: 14px;
+            --radius-sm: 10px;
+
+            /* 字体栈：英文/数字 Inter，中文 思源黑体，逐级回退到系统字体 */
+            --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont,
+                         "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            font-family: var(--font-sans);
+            font-weight: 400;
+            background-color: var(--bg);
+            /* 极淡的点阵纹理，增加质感但不喧宾夺主 */
+            background-image: radial-gradient(rgba(16,42,71,.035) 1px, transparent 1px);
+            background-size: 22px 22px;
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+        }
+
+        a { color: inherit; text-decoration: none; }
+        svg { display: block; }
+
+        /* ===================== 顶部品牌栏 ===================== */
+        .topbar {
+            background: linear-gradient(120deg, var(--brand) 0%, var(--brand-2) 100%);
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 1px 0 rgba(255,255,255,.06), 0 6px 22px rgba(14,42,71,.18);
+        }
+        .topbar-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 28px;
+            height: 66px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+        .brand-chip {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 7px 15px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,.16), 0 3px 10px rgba(14,42,71,.28);
+            flex-shrink: 0;
+            line-height: 0;
+        }
+        .brand-logo {
+            height: 34px; width: auto; display: block;
+            object-fit: contain;
+        }
+        .brand-divider {
+            width: 1px; height: 28px;
+            background: rgba(255,255,255,.20);
+            flex-shrink: 0;
+        }
+        .brand-text { min-width: 0; }
+        .brand-name {
+            font-size: 16.5px; font-weight: 600; letter-spacing: .4px;
+            white-space: nowrap;
+        }
+        .brand-sub {
+            font-size: 11.5px; color: rgba(255,255,255,.62);
+            white-space: nowrap; margin-top: 1px;
+        }
+
+        .topbar-right { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+        .sys-status {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 12.5px; color: rgba(255,255,255,.78);
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: 999px;
+            background: rgba(255,255,255,.05);
+        }
+        .sys-status .dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #34D399;
+            box-shadow: 0 0 0 3px rgba(52,211,153,.22);
+        }
+        .admin-chip {
+            display: flex; align-items: center; gap: 10px;
+            padding: 5px 14px 5px 6px;
+            border: 1px solid rgba(255,255,255,.16);
+            border-radius: 999px;
+            background: rgba(255,255,255,.06);
+            cursor: pointer;
+            transition: background .2s ease, border-color .2s ease;
+            font: inherit; color: #fff;
+        }
+        .admin-chip:hover { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.30); }
+        .admin-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,.16);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .admin-avatar svg { width: 18px; height: 18px; color: #fff; }
+        .admin-meta { display: flex; flex-direction: column; line-height: 1.25; text-align: left; }
+        .admin-name { font-size: 13px; font-weight: 600; }
+        .admin-role { font-size: 10.5px; color: rgba(255,255,255,.6); }
+
+        /* ===================== 主体容器 ===================== */
+        .container { max-width: 1280px; margin: 0 auto; padding: 30px 28px 0; }
+
+        .page-head {
+            display: flex; align-items: flex-end; justify-content: space-between;
+            gap: 20px; margin-bottom: 26px; flex-wrap: wrap;
+        }
+        .page-kicker {
+            font-size: 11.5px; font-weight: 600; letter-spacing: 2px;
+            color: var(--c-blue); text-transform: uppercase; margin-bottom: 6px;
+        }
+        .page-title { font-size: 25px; font-weight: 700; letter-spacing: .6px; color: var(--brand); }
+        .page-aside { text-align: right; }
+        .page-date {
+            font-size: 15px; font-weight: 600; color: var(--text);
+            font-variant-numeric: tabular-nums;
+        }
+        .page-tip { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+        /* ===================== KPI 概览 ===================== */
+        .section-label {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 13px; font-weight: 600; color: var(--text-2);
+            letter-spacing: .5px; margin: 8px 0 16px;
+        }
+        .section-label::before {
+            content: ""; width: 3px; height: 14px; border-radius: 2px;
+            background: var(--c-blue);
+        }
+
+        .kpi-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+            margin-bottom: 34px;
+        }
+        .kpi {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+        }
+        .kpi::before {
+            content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+            background: var(--c, var(--c-blue));
+        }
+        .kpi:hover { box-shadow: var(--shadow); transform: translateY(-3px); border-color: var(--border-2); }
+        .kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .kpi-ico {
+            width: 42px; height: 42px; border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--c) 12%, #fff);
+            color: var(--c);
+        }
+        .kpi-ico svg { width: 22px; height: 22px; }
+        .kpi-tag {
+            font-size: 11px; font-weight: 600; color: var(--c);
+            background: color-mix(in srgb, var(--c) 10%, #fff);
+            padding: 3px 9px; border-radius: 999px;
+        }
+        .kpi-label { font-size: 13px; color: var(--text-2); }
+        .kpi-value {
+            font-size: 32px; font-weight: 700; color: var(--text);
+            line-height: 1.1; margin: 4px 0 12px;
+            font-variant-numeric: tabular-nums; letter-spacing: -.5px;
+        }
+        .kpi-value small { font-size: 15px; font-weight: 600; color: var(--text-3); margin-left: 3px; }
+        .kpi-foot {
+            display: flex; gap: 14px; padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 12px; color: var(--text-3);
+        }
+        .kpi-foot b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+        /* ===================== 模块分组 ===================== */
+        .group { margin-bottom: 30px; }
+        .group-head {
+            display: flex; align-items: center; gap: 13px;
+            padding-bottom: 12px; margin-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .group-ico {
+            width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--c) 14%, #fff);
+            color: var(--c);
+        }
+        .group-ico svg { width: 20px; height: 20px; }
+        .group-titles { min-width: 0; }
+        .group-title { font-size: 16.5px; font-weight: 700; color: var(--brand); letter-spacing: .5px; }
+        .group-desc { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+        .group-count {
+            margin-left: auto; align-self: center;
+            font-size: 12px; font-weight: 600; color: var(--text-2);
+            background: var(--bg-soft); border: 1px solid var(--border);
+            border-radius: 999px; padding: 4px 12px; white-space: nowrap;
+        }
+
+        .module-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 22px 18px;
+            box-shadow: var(--shadow-sm);
+            display: flex; flex-direction: column;
+            cursor: pointer;
+            transition: box-shadow .22s ease, transform .22s ease, border-color .22s ease;
+            position: relative;
+            min-height: 158px;
+        }
+        .card::after {
+            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+            background: var(--c);
+            border-radius: 0 0 var(--radius) var(--radius);
+            transform: scaleX(0); transform-origin: left;
+            transition: transform .25s ease;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+            border-color: color-mix(in srgb, var(--c) 45%, var(--border));
+        }
+        .card:hover::after { transform: scaleX(1); }
+        .card-ico {
+            width: 46px; height: 46px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--c) 12%, #fff);
+            color: var(--c);
+            margin-bottom: 14px;
+        }
+        .card-ico svg { width: 24px; height: 24px; }
+        .card-title { font-size: 15.5px; font-weight: 600; color: var(--text); letter-spacing: .3px; }
+        .card-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.6; margin-top: 6px; flex: 1; }
+        .card-foot {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 14px;
+        }
+        .pill {
+            font-size: 11.5px; font-weight: 600; padding: 4px 11px; border-radius: 999px;
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .pill-on { color: var(--st-online); background: rgba(21,128,61,.10); }
+        .pill-bd { color: var(--st-building); background: rgba(180,83,9,.10); }
+        .card-arrow {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1px solid var(--border-2);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-3); font-size: 15px;
+            transition: all .22s ease;
+        }
+        .card:hover .card-arrow {
+            background: var(--c); border-color: var(--c); color: #fff;
+            transform: translateX(3px);
+        }
+        .card--lock { cursor: not-allowed; }
+        .card--lock:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--border); }
+        .card--lock .card-arrow { color: var(--text-3); }
+        .card--lock:hover .card-arrow { background: transparent; border-color: var(--border-2); color: var(--text-3); transform: none; }
+
+        /* ===================== 动态 & 公告 ===================== */
+        .news {
+            display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px;
+            margin: 38px 0 10px;
+        }
+        .panel {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow-sm);
+            padding: 22px 24px;
+        }
+        .panel-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .panel-title { font-size: 15px; font-weight: 700; color: var(--brand); letter-spacing: .3px; }
+        .panel-more { font-size: 12px; color: var(--text-3); cursor: pointer; }
+        .panel-more:hover { color: var(--c-blue); }
+
+        .timeline { margin-top: 8px; }
+        .tl-item { display: flex; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+        .tl-item:last-child { border-bottom: none; }
+        .tl-date {
+            width: 46px; flex-shrink: 0; text-align: right;
+            font-size: 12px; font-weight: 600; color: var(--text-2);
+            font-variant-numeric: tabular-nums; padding-top: 1px;
+        }
+        .tl-rail { position: relative; width: 12px; flex-shrink: 0; display: flex; justify-content: center; }
+        .tl-rail::before {
+            content: ""; position: absolute; top: 4px; width: 9px; height: 9px; border-radius: 50%;
+            background: var(--c-blue); box-shadow: 0 0 0 3px rgba(37,99,235,.14);
+        }
+        .tl-rail::after {
+            content: ""; position: absolute; top: 13px; bottom: -16px; width: 1.5px;
+            background: var(--border);
+        }
+        .tl-item:last-child .tl-rail::after { display: none; }
+        .tl-body { flex: 1; min-width: 0; }
+        .tl-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+        .tl-text b { color: var(--c-blue); font-weight: 600; }
+        .tl-tag {
+            display: inline-block; font-size: 11px; font-weight: 600;
+            color: var(--text-2); background: var(--bg-soft);
+            padding: 2px 9px; border-radius: 6px; margin-top: 7px;
+        }
+
+        .anno-item {
+            padding: 13px 0; border-bottom: 1px solid var(--border);
+            display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+            transition: padding-left .2s ease;
+        }
+        .anno-item:last-child { border-bottom: none; }
+        .anno-item:hover { padding-left: 6px; }
+        .anno-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-indigo); margin-top: 6px; flex-shrink: 0; }
+        .anno-main { flex: 1; min-width: 0; }
+        .anno-title { font-size: 13.5px; color: var(--text); line-height: 1.5; display: flex; align-items: center; gap: 7px; }
+        .anno-new {
+            font-size: 10px; font-weight: 700; color: #fff; background: #DC2626;
+            border-radius: 4px; padding: 1px 5px; flex-shrink: 0;
+        }
+        .anno-date { font-size: 11.5px; color: var(--text-3); margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+        /* ===================== 页脚 ===================== */
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid var(--border);
+            background: #fff;
+        }
+        .footer-inner {
+            max-width: 1280px; margin: 0 auto; padding: 22px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 14px; flex-wrap: wrap;
+            font-size: 12px; color: var(--text-3);
+        }
+        .footer strong { color: var(--text-2); font-weight: 600; }
+
+        /* ===================== 弹窗 ===================== */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(14,42,71,.5);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; visibility: hidden;
+            transition: opacity .25s ease, visibility .25s ease;
+        }
+        .overlay.active { opacity: 1; visibility: visible; }
+        .modal {
+            background: #fff; border-radius: 18px; padding: 32px;
+            width: 92%; max-width: 380px; text-align: center;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(10px) scale(.97); transition: transform .25s ease;
+        }
+        .overlay.active .modal { transform: translateY(0) scale(1); }
+        .modal-ico {
+            width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 18px;
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--c-amber, #B45309) 14%, #fff);
+            color: var(--c-amber, #B45309);
+        }
+        .modal-ico svg { width: 30px; height: 30px; }
+        .modal h3 { font-size: 18px; color: var(--brand); margin-bottom: 10px; }
+        .modal p { font-size: 13.5px; color: var(--text-2); line-height: 1.65; margin-bottom: 22px; }
+        .modal-btn {
+            width: 100%; padding: 12px 0; border: none; border-radius: 10px;
+            background: var(--c-blue); color: #fff; font-size: 14px; font-weight: 600;
+            cursor: pointer; font-family: inherit;
+            transition: background .2s ease, transform .15s ease;
+        }
+        .modal-btn:hover { background: #1D4ED8; transform: translateY(-1px); }
+
+        /* 钉钉弹窗 */
+        .ding-ico {
+            width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px;
+            background: linear-gradient(135deg, #2575FB 0%, #1EAEFF 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 22px rgba(37,117,251,.35);
+        }
+        .ding-ico svg { width: 30px; height: 30px; color: #fff; }
+        .ding-sub { font-size: 12.5px; color: var(--text-3); margin: 4px 0 12px; }
+        .ding-btn {
+            display: block; width: 100%; padding: 12px 0; border-radius: 10px;
+            background: linear-gradient(135deg, #2575FB 0%, #1EAEFF 100%);
+            color: #fff; font-size: 15px; font-weight: 600; margin-bottom: 12px;
+            box-shadow: 0 6px 18px rgba(37,117,251,.32);
+            transition: transform .15s ease;
+        }
+        .ding-btn:hover { transform: translateY(-2px); }
+
+        /* ===================== 响应式 ===================== */
+        @media (max-width: 1080px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .module-grid { grid-template-columns: repeat(2, 1fr); }
+            .news { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            .topbar-inner { height: auto; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+            .sys-status { display: none; }
+            .container { padding: 22px 16px 0; }
+            .kpi-grid, .module-grid { grid-template-columns: 1fr; }
+            .page-aside { text-align: left; }
+            .page-head { align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===================== 顶部品牌栏 ===================== -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <div class="brand-chip">
+                    <img class="brand-logo" src="assets/logo.png" alt="宁家服务">
+                </div>
+                <span class="brand-divider"></span>
+                <div class="brand-text">
+                    <div class="brand-name">数字化运营系统</div>
+                    <div class="brand-sub">新能源电池售后服务 · 综合运营管理平台</div>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="sys-status"><span class="dot"></span>系统运行正常</div>
+                <button class="admin-chip" onclick="openDingtalk()" title="点击通过钉钉联系系统管理员">
+                    <span class="admin-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="3.4"/>
+                            <path d="M5.5 19a6.5 6.5 0 0 1 13 0"/>
+                        </svg>
+                    </span>
+                    <span class="admin-meta">
+                        <span class="admin-name">系统管理员</span>
+                        <span class="admin-role">点击通过钉钉联系</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================== 主体 ===================== -->
+    <main class="container">
+
+        <!-- 页头 -->
+        <div class="page-head">
+            <div>
+                <div class="page-kicker">Operations Console</div>
+                <h1 class="page-title">运营工作台 · 系统总览</h1>
+            </div>
+            <div class="page-aside">
+                <div class="page-date" id="currentTime">—</div>
+                <div class="page-tip">业务数据每日 00:00 自动汇总更新</div>
+            </div>
+        </div>
+
+        <!-- KPI 概览 -->
+        <div class="section-label">核心指标概览</div>
+        <section class="kpi-grid">
+            <!-- 今日工单 -->
+            <article class="kpi" style="--c:var(--c-blue)">
+                <div class="kpi-top">
+                    <div class="kpi-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="8" y="3" width="8" height="3" rx="1"/>
+                            <path d="M9 5H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                            <path d="M9 13.5l1.6 1.6L13 12"/>
+                        </svg>
+                    </div>
+                    <span class="kpi-tag">实时</span>
+                </div>
+                <div class="kpi-label">今日工单总数</div>
+                <div class="kpi-value">28</div>
+                <div class="kpi-foot">
+                    <span><b>8</b> 待处理</span>
+                    <span><b>12</b> 进行中</span>
+                    <span><b>8</b> 已完成</span>
+                </div>
+            </article>
+
+            <!-- 库存预警 -->
+            <article class="kpi" style="--c:var(--c-teal)">
+                <div class="kpi-top">
+                    <div class="kpi-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/>
+                            <path d="M3 8l9 5 9-5"/>
+                            <path d="M12 13v8"/>
+                        </svg>
+                    </div>
+                    <span class="kpi-tag">预警</span>
+                </div>
+                <div class="kpi-label">库存预警数量</div>
+                <div class="kpi-value">5</div>
+                <div class="kpi-foot">
+                    <span><b>3</b> 库存不足</span>
+                    <span><b>2</b> 临期预警</span>
+                </div>
+            </article>
+
+            <!-- 进行中项目 -->
+            <article class="kpi" style="--c:var(--c-indigo)">
+                <div class="kpi-top">
+                    <div class="kpi-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="5" height="16" rx="1.2"/>
+                            <rect x="10" y="4" width="5" height="10" rx="1.2"/>
+                            <rect x="17" y="4" width="5" height="13" rx="1.2"/>
+                        </svg>
+                    </div>
+                    <span class="kpi-tag">进行中</span>
+                </div>
+                <div class="kpi-label">进行中的项目</div>
+                <div class="kpi-value">12</div>
+                <div class="kpi-foot">
+                    <span><b>5</b> 本周新增</span>
+                    <span><b>3</b> 本周完成</span>
+                </div>
+            </article>
+
+            <!-- 新能源市占率 -->
+            <article class="kpi" style="--c:var(--c-green)">
+                <div class="kpi-top">
+                    <div class="kpi-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 17l6-6 4 4 8-8"/>
+                            <path d="M17 7h4v4"/>
+                        </svg>
+                    </div>
+                    <span class="kpi-tag">均值</span>
+                </div>
+                <div class="kpi-label">新能源平均市占率</div>
+                <div class="kpi-value">55.3<small>%</small></div>
+                <div class="kpi-foot">
+                    <span>全省均值</span>
+                    <span><b>31</b> 省覆盖</span>
+                </div>
+            </article>
+        </section>
+
+        <div class="module-grid">
+            <a class="card" style="--c:var(--c-blue)" href="https://herman-yan.github.io/doc-vault/work-order/">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="8" y="3" width="8" height="3" rx="1"/>
+                        <path d="M9 5H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                        <path d="M9 13.5l1.6 1.6L13 12"/>
+                    </svg>
+                </div>
+                <div class="card-title">服务站工单管理系统</div>
+                <div class="card-desc">保内 / 保外工单流转，多站点统一管理，实时追踪处理进度</div>
+                <div class="card-foot">
+                    <span class="pill pill-on">已上线</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <div class="card card--lock" style="--c:var(--c-blue)" onclick="showBuildingModal()">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/>
+                    </svg>
+                </div>
+                <div class="card-title">维修技术管理系统</div>
+                <div class="card-desc">故障案例库、维修手册、技术培训课程统一管理</div>
+                <div class="card-foot">
+                    <span class="pill pill-bd">建设中</span>
+                    <span class="card-arrow">🔒</span>
+                </div>
+            </div>
+
+            <a class="card" style="--c:var(--c-blue)" href="https://herman-yan.github.io/doc-vault/warehouse/">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/>
+                        <path d="M3 8l9 5 9-5"/>
+                        <path d="M12 13v8"/>
+                    </svg>
+                </div>
+                <div class="card-title">库存管理系统</div>
+                <div class="card-desc">工程师订货、库房出入库、旧件回收，物料目录由台账与指标清单提炼</div>
+                <div class="card-foot">
+                    <span class="pill pill-on">已上线</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <a class="card" style="--c:var(--c-blue)" href="https://herman-yan.github.io/doc-vault/sales-system/">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                </div>
+                <div class="card-title">返修业务管理系统</div>
+                <div class="card-desc">CTP 返修进度追踪，客户资源管理，业务数据分析</div>
+                <div class="card-foot">
+                    <span class="pill pill-on">已上线</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <a class="card" style="--c:var(--c-teal)" href="https://herman-yan.github.io/doc-vault/business-point/">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l1-4h16l1 4"/>
+                        <path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/>
+                        <path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/>
+                    </svg>
+                </div>
+                <div class="card-title">商点管理系统</div>
+                <div class="card-desc">商户网点体系与概念地图：商点结合全局概念地图成长模块，多网点统一运营监控</div>
+                <div class="card-foot">
+                    <span class="pill pill-on">已上线</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <a class="card" style="--c:var(--c-indigo)" href="https://herman-yan.github.io/doc-vault/sentiment-log/">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12h4l3 8 4-16 3 8h4"/>
+                    </svg>
+                </div>
+                <div class="card-title">舆情监控日志</div>
+                <div class="card-desc">每日行业舆情自动汇总，风险预警与来源追踪，结果云端自动存储</div>
+                <div class="card-foot">
+                    <span class="pill pill-on">已上线</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <a class="card" style="--c:var(--c-indigo)" href="https://herman-yan.github.io/doc-vault/sentiment-log/nev.html">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 17l6-6 4 4 8-8"/>
+                        <path d="M17 7h4v4"/>
+                    </svg>
+                </div>
+                <div class="card-title">新能源市占率看板</div>
+                <div class="card-desc">各省市月度新能源渗透率监测，地图、排行与趋势多维呈现</div>
+                <div class="card-foot">
+                    <span class="pill pill-on">已上线</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <a class="card" style="--c:var(--c-green)" href="https://herman-yan.github.io/doc-vault/kb-qa/">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5c-2-1.5-5-1.5-7 0v14c2-1.5 5-1.5 7 0 2-1.5 5-1.5 7 0V5c-2-1.5-5-1.5-7 0z"/>
+                        <path d="M12 5v14"/>
+                    </svg>
+                </div>
+                <div class="card-title">员工知识库问答系统</div>
+                <div class="card-desc">团队知识集中管理，全文检索与分类浏览，问答式知识沉淀与协作共享</div>
+                <div class="card-foot">
+                    <span class="pill pill-on">已上线</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <a class="card" style="--c:var(--c-green)" href="https://herman-yan.github.io/doc-vault/project-board/">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="5" height="16" rx="1.2"/>
+                        <rect x="10" y="4" width="5" height="10" rx="1.2"/>
+                        <rect x="17" y="4" width="5" height="13" rx="1.2"/>
+                    </svg>
+                </div>
+                    <div class="card-title">增值业务管理系统</div>
+                    <div class="card-desc">项目进度追踪、任务分配、里程碑管理</div>
+                    <div class="card-foot">
+                        <span class="pill pill-on">已上线</span>
+                        <span class="card-arrow">→</span>
+                    </div>
+                </a>
+
+            <a class="card" style="--c:var(--c-amber)" href="https://herman-yan.github.io/doc-vault/recruit/">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="8" r="3.2"/>
+                        <path d="M3.6 19a5.4 5.4 0 0 1 10.8 0"/>
+                        <path d="M18 7.5v6M15 10.5h6"/>
+                    </svg>
+                </div>
+                <div class="card-title">人员招聘管理</div>
+                <div class="card-desc">企业主账号与招聘子账号协同，岗位与简历统一入库，AI 智能人岗匹配</div>
+                <div class="card-foot">
+                    <span class="pill pill-on">已上线</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+            </div>
+<!-- ===================== 动态 & 公告 ===================== -->
+        <section class="news">
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-title">最近动态</div>
+                    <div class="panel-more">查看全部</div>
+                </div>
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-date">07-27</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text"><b>中央资料管理库</b> 整合进员工知识库问答系统，首页入口合并；知识库内新增独立跳转入口直达资料库</div>
+                            <span class="tl-tag">系统更新</span>
+                        </div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-date">07-27</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text">业务系统模块取消分类，所有功能模块合并为统一卡片网格，去除子分组标题</div>
+                            <span class="tl-tag">系统更新</span>
+                        </div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-date">07-17</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text">首页完成专业化改版，功能模块统一为卡片网格</div>
+                            <span class="tl-tag">系统更新</span>
+                        </div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-date">07-16</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text"><b>新能源电车市占率看板</b> 上线，覆盖 31 个省级行政区月度渗透率</div>
+                            <span class="tl-tag">数据上线</span>
+                        </div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-date">07-15</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text">舆情监控日志改版完成，新增风险等级统计与原文来源追踪</div>
+                            <span class="tl-tag">功能更新</span>
+                        </div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-date">07-10</div>
+                        <div class="tl-rail"></div>
+                        <div class="tl-body">
+                            <div class="tl-text"><b>员工知识库问答系统</b> 完成更名，支持本地文件上传与全文检索</div>
+                            <span class="tl-tag">功能上线</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head">
+                    <div class="panel-title">系统公告</div>
+                </div>
+                <div class="anno-item">
+                    <span class="anno-dot"></span>
+                    <div class="anno-main">
+                        <div class="anno-title">商点管理系统已上线：概念地图成长模块开放<span class="anno-new">NEW</span></div>
+                        <div class="anno-date">2026-07-17</div>
+                    </div>
+                </div>
+                <div class="anno-item">
+                    <span class="anno-dot"></span>
+                    <div class="anno-main">
+                        <div class="anno-title">新能源电车市占率看板已发布（入口：数据洞察）</div>
+                        <div class="anno-date">2026-07-16</div>
+                    </div>
+                </div>
+                <div class="anno-item">
+                    <span class="anno-dot"></span>
+                    <div class="anno-main">
+                        <div class="anno-title">舆情监控日志已接入行业资讯原文链接</div>
+                        <div class="anno-date">2026-07-15</div>
+                    </div>
+                </div>
+                <div class="anno-item">
+                    <span class="anno-dot"></span>
+                    <div class="anno-main">
+                        <div class="anno-title">系统支持本地存储扩容，上传文档不受浏览器容量限制</div>
+                        <div class="anno-date">2026-07-10</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===================== 页脚 ===================== -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div>© 2026 <strong>宁家服务数字化运营系统</strong> · 新能源电池售后服务综合管理平台</div>
+            <div>系统版本 v2.0 · 数据每日自动汇总 · 技术支持：数字化运营组</div>
+        </div>
+    </footer>
+
+    <!-- 建设中弹窗 -->
+    <div class="overlay" id="buildingModal">
+        <div class="modal" style="--c-amber:#B45309">
+            <div class="modal-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+                    <path d="M12 3v4"/>
+                </svg>
+            </div>
+            <h3>模块建设中</h3>
+            <p>该功能模块正在紧张开发中，<br>预计近期上线，敬请期待！</p>
+            <button class="modal-btn" onclick="closeModal()">知道了</button>
+        </div>
+    </div>
+
+    <!-- 钉钉联系弹窗 -->
+    <div class="overlay" id="dingtalkModal">
+        <div class="modal">
+            <div class="ding-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="3.4"/>
+                    <path d="M5.5 19a6.5 6.5 0 0 1 13 0"/>
+                </svg>
+            </div>
+            <h3>系统管理员</h3>
+            <p class="ding-sub">宁家服务数字化运营系统 · 负责人</p>
+            <p style="margin-bottom:14px">如遇到系统问题或需要支持，欢迎通过钉钉直接联系我，点击按钮即可打开我的钉钉名片。</p>
+            <a class="ding-btn" href="https://n.dingtalk.com/dingding/dd-card-view/index/index.html?cardId=CARD-SV0-xYiLYOomqGnIJsqp0SsYHqKmf%2BP%2BYzhlwfIHV1a%2BYIw%3D" target="_blank" rel="noopener">💬 在钉钉联系我</a>
+            <button class="modal-btn" onclick="closeDingtalk()" style="background:var(--bg-soft);color:var(--text-2)">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        /* 时间显示 */
+        function pad(n){ return String(n).padStart(2,'0'); }
+        function updateTime(){
+            const d = new Date();
+            const wk = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+            document.getElementById('currentTime').textContent =
+                `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${wk}`;
+        }
+        updateTime(); setInterval(updateTime, 1000);
+
+        /* 弹窗控制 */
+        function showBuildingModal(){ document.getElementById('buildingModal').classList.add('active'); }
+        function closeModal(){ document.getElementById('buildingModal').classList.remove('active'); }
+        function openDingtalk(){ document.getElementById('dingtalkModal').classList.add('active'); }
+        function closeDingtalk(){ document.getElementById('dingtalkModal').classList.remove('active'); }
+
+        document.getElementById('buildingModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+        document.getElementById('dingtalkModal').addEventListener('click', function(e){ if(e.target===this) closeDingtalk(); });
+        document.addEventListener('keydown', function(e){
+            if(e.key === 'Escape'){ closeModal(); closeDingtalk(); }
+        });
+    </script>
+</body>
+</html>

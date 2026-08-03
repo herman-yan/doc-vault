@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "password": {
+    "hash": "930cd030bf5b2c96a66db11611de923ebd5c1a6cea33082fd0501bd2c25a9837",
+    "salt": "001ade089654491410f0a1b9f7a91aaf"
+  },
+  "documents": [],
+  "lastUpdated": ""
+}

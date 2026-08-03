@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新能源电车市占率 · 各省市月度监测 - 舆情监控</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="nev-embed.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --bg:#0f1626; --bg2:#131d33; --card:rgba(255,255,255,.04); --card2:rgba(255,255,255,.06);
+    --border:rgba(255,255,255,.10); --txt:#eaf0fb; --txt2:rgba(234,240,251,.66); --muted:rgba(234,240,251,.4);
+    --accent:#39d98a; --accent2:#4facfe; --grad:linear-gradient(135deg,#4facfe 0%,#39d98a 100%);
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,rgba(79,172,254,.12),transparent),var(--bg);
+    color:var(--txt); min-height:100vh; padding:26px 18px 70px;
+  }
+  .container{max-width:1100px;margin:0 auto;}
+  .back{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--txt2);text-decoration:none;margin-bottom:14px;}
+  .back:hover{color:var(--accent2);}
+  .head{display:flex;align-items:center;gap:16px;margin-bottom:6px;}
+  .head .ic{width:52px;height:52px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 6px 22px rgba(57,217,138,.32);flex-shrink:0;}
+  .head h1{font-size:22px;font-weight:750;letter-spacing:.3px;}
+  .head .sub{font-size:12.5px;color:var(--txt2);margin-top:3px;}
+  .head .sub b{color:var(--accent);}
+
+  .ctl{display:flex;align-items:center;gap:14px;margin:16px 0 18px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;}
+  .ctl-label{font-size:13px;color:var(--txt2);}
+  .month-sel{
+    background:var(--bg2);color:var(--txt);border:1px solid var(--border);border-radius:10px;
+    padding:8px 14px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;outline:none;
+  }
+  .month-sel:hover{border-color:var(--accent2);}
+  .pill{font-size:12px;color:var(--txt2);background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;}
+  .pill b{color:var(--accent);}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden;}
+  .kpi::before{content:"";position:absolute;left:0;top:0;width:3px;height:100%;background:var(--grad);opacity:.8;}
+  .kpi .v{font-size:24px;font-weight:780;font-variant-numeric:tabular-nums;line-height:1.1;}
+  .kpi .v small{font-size:13px;font-weight:600;color:var(--txt2);margin-left:2px;}
+  .kpi .l{font-size:12px;color:var(--txt2);margin-top:5px;}
+  .kpi .d{font-size:11.5px;margin-top:4px;font-variant-numeric:tabular-nums;}
+  .up{color:var(--accent);} .down{color:#ff7b72;}
+
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-bottom:16px;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 16px 8px;}
+  .panel h3{font-size:14.5px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:7px;}
+  .panel h3 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+  .panel .hint{font-size:11.5px;color:var(--muted);margin-bottom:8px;}
+  #map{width:100%;height:440px;}
+  #bar{width:100%;height:440px;}
+  #trend{width:100%;height:360px;}
+
+  .note{font-size:11.5px;color:var(--muted);margin-top:14px;line-height:1.6;text-align:center;}
+  .err{padding:50px 20px;text-align:center;color:var(--txt2);}
+
+  /* 近期增长趋势省市 */
+  .growth-list{display:flex;flex-direction:column;gap:9px;margin-top:6px;}
+  .growth-item{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;}
+  .growth-rank{width:24px;height:24px;border-radius:50%;background:var(--grad);color:#06251a;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .growth-name{font-size:14px;font-weight:600;flex:1;}
+  .growth-val{font-size:13px;color:var(--txt2);font-variant-numeric:tabular-nums;}
+  .growth-delta{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;min-width:66px;text-align:right;}
+  .growth-delta.up{color:var(--accent);} .growth-delta.down{color:#ff7b72;}
+
+  /* 宁德时代最近业务动态 */
+  .catl-list{display:flex;flex-direction:column;gap:11px;margin-top:6px;}
+  .catl-day{background:var(--card2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+  .catl-day > summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:12px 15px;font-size:13.5px;font-weight:700;user-select:none;}
+  .catl-day > summary::-webkit-details-marker{display:none;}
+  .catl-day > summary:hover{background:rgba(255,255,255,.03);}
+  .catl-day .cnt{font-size:11.5px;font-weight:700;color:var(--accent);background:rgba(57,217,138,.12);border-radius:20px;padding:2px 9px;}
+  .catl-day .arrow{margin-left:auto;color:var(--txt2);transition:transform .2s;font-size:11px;}
+  .catl-day[open] .arrow{transform:rotate(90deg);}
+  .catl-day .day-body{padding:2px 15px 12px;}
+  .catl-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--border);}
+  .catl-cat{display:inline-block;font-size:10.5px;font-weight:700;color:var(--accent);background:rgba(57,217,138,.12);border-radius:6px;padding:1px 7px;margin-bottom:5px;flex-shrink:0;}
+  .catl-text{font-size:12.5px;line-height:1.65;color:var(--txt2);}
+  .catl-loading{padding:30px;text-align:center;color:var(--txt2);font-size:13px;}
+@media(max-width:880px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    .grid{grid-template-columns:1fr;}
+    .head h1{font-size:20px;}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="back" href="index.html">← 返回舆情监控日志</a>
+
+  <div class="head">
+    <div class="ic">🔋</div>
+    <div>
+      <h1>新能源电车市占率 · 各省市月度监测</h1>
+      <div class="sub">省级行政区新能源乘用车零售渗透率 · 舆情监控子模块 · 数据口径：<b id="srcNote">示例数据</b></div>
+    </div>
+  </div>
+
+  <div class="ctl" id="ctl" style="display:none">
+    <span class="ctl-label">选择月份</span>
+    <select id="monthSel" class="month-sel"></select>
+    <span class="pill">共 <b id="mCount">0</b> 个月 · <b id="pCount">0</b> 个地区</span>
+  </div>
+
+  <div id="errBox"></div>
+
+  <div id="app" style="display:none">
+    <div class="kpis" id="kpis"></div>
+
+    <div class="grid">
+      <div class="panel">
+        <h3><span class="dot"></span>省份地图分布</h3>
+        <div class="hint">颜色越深，当月新能源市占率越高（点击省份可在下方趋势中对比）</div>
+        <div id="map"></div>
+      </div>
+      <div class="panel">
+        <h3><span class="dot"></span>市占率 Top 10</h3>
+        <div class="hint">当月排名前十的省级行政区</div>
+        <div id="bar"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3><span class="dot"></span>趋势走势</h3>
+      <div class="hint">默认展示当月排名前 8 地区，点击图例可切换显隐；点击地图省份可加入对比</div>
+      <div id="trend"></div>
+    </div>
+
+    <div class="panel">
+      <h3><span class="dot"></span>近期增长趋势较多的省市</h3>
+      <div class="hint">按当月市占率较上月增长（pp）排序 · 与上方月份选择联动</div>
+      <div class="growth-list" id="growth"></div>
+    </div>
+
+    <div class="panel">
+      <h3><span class="dot"></span>宁德时代最近业务动态</h3>
+      <div class="hint">来源：舆情监控日报 · 近一个月（逐日提取含「宁德时代」的动态，已标注日期）</div>
+      <div class="catl-list" id="catl"><div class="catl-loading">加载中…</div></div>
+    </div>
+
+    <div class="note" id="footNote"></div>
+  </div>
+</div>
+
+<script>
+const EMBED = window.NEV_EMBEDDED;
+let MODEL = null;
+let MONTHS = [], PROV = [], UNIT = '%';
+let cur = 0;
+let mapChart, barChart, trendChart;
+let mapReady = false;
+const TREND_DEFAULT = 8;
+let trendPicks = null; // null => 自动(前N)
+
+function shortName(n){ return n.replace(/省$/,'').replace(/市$/,'').replace(/自治区$/,'').replace(/回族|壮族|维吾尔/,''); }
+function fmt(v){ return (v==null)?'—':(Number(v).toFixed(1)); }
+
+async function init(){
+  try{
+    const r = await fetch('nev-share.json?t='+Date.now());
+    if(r.ok) MODEL = await r.json();
+  }catch(e){}
+  if(!MODEL && EMBED) MODEL = EMBED;
+  if(!MODEL){ document.getElementById('errBox').innerHTML='<div class="err">⚠️ 数据加载失败，请确认 nev-share.json 存在。</div>'; return; }
+
+  MONTHS = MODEL.months || [];
+  PROV = (MODEL.data || []).map(d=>({name:d.name, region:d.region, values:d.values}));
+  UNIT = MODEL.unit || '%';
+  document.getElementById('srcNote').textContent = (MODEL.source||'示例数据');
+  document.getElementById('footNote').textContent = '数据说明：'+ (MODEL.source||'示例数据') + '。本页为纯前端可视化，数据来自 nev-share.json，可随时替换更新。';
+
+  cur = MONTHS.length - 1;
+
+  // 月份下拉
+  const sel = document.getElementById('monthSel');
+  sel.innerHTML = MONTHS.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+  sel.value = cur;
+  sel.addEventListener('change', e=> setMonth(+e.target.value));
+
+  document.getElementById('mCount').textContent = MONTHS.length;
+  document.getElementById('pCount').textContent = PROV.length;
+  document.getElementById('ctl').style.display='flex';
+  document.getElementById('app').style.display='block';
+
+  mapChart = echarts.init(document.getElementById('map'),'dark');
+  barChart = echarts.init(document.getElementById('bar'),'dark');
+  trendChart = echarts.init(document.getElementById('trend'),'dark');
+  window.addEventListener('resize', ()=>{ mapChart.resize(); barChart.resize(); trendChart.resize(); });
+
+  loadMap();
+  renderKPI(); renderBar(); renderTrend();
+  renderGrowth(); renderCatl();
+}
+
+function setMonth(m){
+  cur = Math.max(0, Math.min(MONTHS.length-1, m));
+  document.getElementById('monthSel').value = cur;
+  renderKPI(); renderMap(); renderBar(); renderTrend(); renderGrowth();
+}
+
+// ---------- KPI ----------
+function renderKPI(){
+  const vals = PROV.map(p=>p.values[cur]);
+  const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+  let maxI=0, minI=0;
+  PROV.forEach((p,i)=>{ if(p.values[cur]>PROV[maxI].values[cur]) maxI=i; if(p.values[cur]<PROV[minI].values[cur]) minI=i; });
+  let deltaTxt='', deltaCls='';
+  if(cur>0){
+    const prevAvg = PROV.map(p=>p.values[cur-1]).reduce((a,b)=>a+b,0)/PROV.length;
+    const d = avg - prevAvg;
+    deltaCls = d>=0?'up':'down';
+    deltaTxt = (d>=0?'▲ ':'▼ ')+Math.abs(d).toFixed(1)+' pp 环比';
+  }
+  const over50 = PROV.filter(p=>p.values[cur]>50).length;
+  const cards = [
+    { v:fmt(avg), unit:'%', l:'全国均值（'+MONTHS[cur]+'）', d:deltaTxt, dc:deltaCls },
+    { v:PROV[maxI].name.replace(/省|市|自治区|回族|壮族|维吾尔/g,''), unit:'', l:'市占率最高', d:fmt(PROV[maxI].values[cur])+'%', dc:'' },
+    { v:PROV[minI].name.replace(/省|市|自治区|回族|壮族|维吾尔/g,''), unit:'', l:'市占率最低', d:fmt(PROV[minI].values[cur])+'%', dc:'' },
+    { v:over50, unit:'', l:'超 50% 地区数', d:'/ 共 '+PROV.length+' 个', dc:'' }
+  ];
+  document.getElementById('kpis').innerHTML = cards.map(c=>`
+    <div class="kpi">
+      <div class="v">${c.v}<small>${c.unit}</small></div>
+      <div class="l">${c.l}</div>
+      <div class="d ${c.dc}">${c.d}</div>
+    </div>`).join('');
+}
+
+// ---------- 地图（同域名 geoJSON 优先，外网兜底） ----------
+function loadMap(){
+  const tryLoad = (url) => fetch(url).then(r=>{ if(!r.ok) throw new Error(''+r.status); return r.json(); });
+  tryLoad('china-geo.json')
+    .catch(()=> tryLoad('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json'))
+    .then(geo=>{
+      echarts.registerMap('china', geo);
+      mapReady = true;
+      mapChart.on('click', p=>{
+        const hit = PROV.find(x=> x.name===p.name || shortName(x.name)===p.name);
+        if(hit) toggleTrendPick(hit.name);
+      });
+      renderMap();
+    })
+    .catch(err=>{
+      document.getElementById('map').innerHTML = '<div class="err" style="padding:40px 10px">⚠️ 地图底图加载失败。<br>'+err.message+'</div>';
+    });
+}
+function renderMap(){
+  if(!mapReady) return;
+  const data = PROV.map(p=>({ name:p.name, value:p.values[cur] }));
+  const maxV = Math.max(...data.map(d=>d.value));
+  const minV = Math.min(...data.map(d=>d.value));
+  // 已选中对比的省份高亮描边
+  const picked = trendPicks || trendSeriesNames();
+  mapChart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{ trigger:'item', formatter:p=> p.value!=null ? `${p.name}<br/>市占率：<b>${p.value.toFixed(1)}%</b>` : p.name },
+    visualMap:{ min:Math.max(0,minV-3), max:maxV+1, left:14, bottom:14,
+      text:['高','低'], calculable:true, itemHeight:120,
+      inRange:{ color:['#e8f6ee','#9fe9c4','#39d98a','#1f9d63','#0c5b39'] }, textStyle:{color:'#cfe'} },
+    series:[{
+      type:'map', map:'china', roam:false, label:{ show:false },
+      emphasis:{ label:{show:false}, itemStyle:{ areaColor:'#ffd166' } },
+      itemStyle:{ borderColor:'rgba(255,255,255,.25)', borderWidth:.6, areaColor:'#1d2942' },
+      data: data.map(d=>({ ...d, itemStyle: picked.includes(d.name) ? { borderColor:'#fff', borderWidth:1.4 } : {} }))
+    }]
+  });
+}
+
+// ---------- Top 10 条形 ----------
+function renderBar(){
+  const ranked = PROV.map(p=>({name:p.name, v:p.values[cur]})).sort((a,b)=>b.v-a.v).slice(0,10);
+  barChart.setOption({
+    backgroundColor:'transparent',
+    grid:{left:8,right:48,top:10,bottom:6,containLabel:true},
+    tooltip:{ trigger:'axis', axisPointer:{type:'shadow'}, formatter:p=>`${p[0].name}<br/>市占率：<b>${p[0].value.toFixed(1)}%</b>` },
+    xAxis:{ type:'value', axisLabel:{formatter:'{value}%', color:'#9fb'}, splitLine:{lineStyle:{color:'rgba(255,255,255,.07)'}} },
+    yAxis:{ type:'category', inverse:true, data:ranked.map(d=>shortName(d.name)),
+      axisLabel:{color:'#dfe'}, axisTick:{show:false}, axisLine:{lineStyle:{color:'rgba(255,255,255,.15)'}} },
+    series:[{
+      type:'bar', data:ranked.map(d=>+d.v.toFixed(1)), barWidth:'58%',
+      itemStyle:{ borderRadius:[0,6,6,0], color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#4facfe'},{offset:1,color:'#39d98a'}]) },
+      label:{ show:true, position:'right', formatter:'{c}%', color:'#dfe', fontSize:11 }
+    }]
+  });
+}
+
+// ---------- 趋势折线 ----------
+function trendSeriesNames(){
+  if(trendPicks && trendPicks.length) return trendPicks.slice();
+  return PROV.map(p=>({name:p.name, v:p.values[cur]})).sort((a,b)=>b.v-a.v).slice(0,TREND_DEFAULT).map(d=>d.name);
+}
+function toggleTrendPick(name){
+  if(!trendPicks) trendPicks = trendSeriesNames();
+  const i = trendPicks.indexOf(name);
+  if(i>=0) trendPicks.splice(i,1); else trendPicks.push(name);
+  if(trendPicks.length===0) trendPicks=null;
+  renderTrend();
+  if(mapReady) renderMap();
+}
+function renderTrend(){
+  const names = trendSeriesNames();
+  const palette = ['#39d98a','#4facfe','#ffb454','#ff7b9c','#b78cff','#5ad0e0','#f5d76e','#8de08d','#e07b54','#6fb1ff'];
+  const series = names.map((nm,idx)=>{
+    const p = PROV.find(x=>x.name===nm);
+    return {
+      name:shortName(nm), type:'line', smooth:true, symbol:'circle', symbolSize:5,
+      lineStyle:{width:2, color:palette[idx%palette.length]},
+      itemStyle:{color:palette[idx%palette.length]},
+      data: p ? p.values.map(v=>+v.toFixed(1)) : []
+    };
+  });
+  trendChart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{ trigger:'axis' },
+    legend:{ type:'scroll', top:0, textStyle:{color:'#cfe', fontSize:11}, data:names.map(n=>shortName(n)) },
+    grid:{left:8,right:18,top:34,bottom:6,containLabel:true},
+    xAxis:{ type:'category', boundaryGap:false, data:MONTHS, axisLabel:{color:'#9fb', fontSize:10, rotate:MONTHS.length>14?30:0}, axisLine:{lineStyle:{color:'rgba(255,255,255,.15)'}} },
+    yAxis:{ type:'value', axisLabel:{formatter:'{value}%', color:'#9fb'}, splitLine:{lineStyle:{color:'rgba(255,255,255,.07)'}} },
+    series
+  }, true);
+}
+
+// ---------- 近期增长趋势较多的省市 ----------
+function renderGrowth(){
+  const box = document.getElementById('growth');
+  if(cur<=0){ box.innerHTML = '<div class="catl-loading">暂无上月数据可对比</div>'; return; }
+  const arr = PROV.map(p=>({
+    name:p.name, last:p.values[cur], prev:p.values[cur-1], d:p.values[cur]-p.values[cur-1]
+  })).sort((a,b)=>b.d-a.d).slice(0,8);
+  box.innerHTML = arr.map((p,i)=>{
+    const up = p.d>=0;
+    return `<div class="growth-item">
+      <div class="growth-rank">${i+1}</div>
+      <div class="growth-name">${shortName(p.name)}</div>
+      <div class="growth-val">${fmt(p.last)}%</div>
+      <div class="growth-delta ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(p.d).toFixed(1)} pp</div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- 宁德时代最近业务动态 ----------
+async function renderCatl(){
+  const box = document.getElementById('catl');
+  try{
+    const r = await fetch('sentiment-data.json?t='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const logs = await r.json();
+    // 近一个月：以最新日报日期往前 30 天为截止
+    const dates = logs.map(x=>x.log_date).filter(Boolean).sort();
+    let cutoff = null;
+    if(dates.length){ const d = new Date(dates[dates.length-1]); d.setDate(d.getDate()-30); cutoff = d.toISOString().slice(0,10); }
+    const byDay = {};
+    logs.forEach(x=>{
+      if(cutoff && x.log_date && x.log_date < cutoff) return;
+      const hit = (x.items||[]).filter(it=>(it.text||'').includes('宁德时代'));
+      if(hit.length){
+        (byDay[x.log_date]=byDay[x.log_date]||[]).push(...hit.map(it=>({cat:it.category, text:it.text})));
+      } else {
+        const s = (x.title||'')+(x.summary||'');
+        if(s.includes('宁德时代')) (byDay[x.log_date]=byDay[x.log_date]||[]).push({ cat:'日报综述', text:(x.summary||'').replace(/\s+/g,' ') });
+      }
+    });
+    const days = Object.keys(byDay).sort((a,b)=> b.localeCompare(a));
+    const total = days.reduce((a,d)=> a + byDay[d].length, 0);
+    if(!days.length){ box.innerHTML = '<div class="catl-loading">近一个月暂无宁德时代业务动态</div>'; return; }
+    box.innerHTML = days.map((day,i)=>`
+      <details class="catl-day" ${i===0?'open':''}>
+        <summary><span>${day}</span><span class="cnt">${byDay[day].length} 条</span><span class="arrow">▶</span></summary>
+        <div class="day-body">
+          ${byDay[day].map(it=>`
+            <div class="catl-item">
+              ${it.cat?`<span class="catl-cat">${it.cat}</span>`:''}
+              <div class="catl-text">${it.text}</div>
+            </div>`).join('')}
+        </div>
+      </details>`).join('') + `<div class="catl-loading" style="padding:14px">近一个月共 ${total} 条宁德时代相关动态 · 点击日期展开</div>`;
+  }catch(e){
+    box.innerHTML = '<div class="catl-loading">⚠️ 宁德时代动态加载失败：'+e.message+'</div>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

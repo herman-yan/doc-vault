@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人员招聘管理 · 宁家服务数字化运营</title>
+<style>
+/* ============ 主题变量 ============ */
+* { margin:0; padding:0; box-sizing:border-box; }
+:root, html[data-theme="dark"] {
+  --bg:#0f172a; --bg-2:#111c33; --bg-grad-1:#1e3a5f; --bg-grad-2:#3b2a5f;
+  --text:#e8eefc; --text-2:rgba(232,238,252,.74); --text-muted:rgba(232,238,252,.5);
+  --glass-bg:rgba(255,255,255,.06); --glass-bg-2:rgba(255,255,255,.09);
+  --border:rgba(255,255,255,.12); --border-strong:rgba(255,255,255,.2);
+  --shadow:0 8px 32px rgba(0,0,0,.42); --shadow-sm:0 2px 10px rgba(0,0,0,.3);
+  --brand:#F59E0B; --brand-2:#D97706; --brand-soft:rgba(245,158,11,.16); --brand-line:rgba(245,158,11,.4);
+  --ok:#34D399; --warn:#FBBF24; --bad:#F87171; --info:#60A5FA;
+  --score-hi:#34D399; --score-mid:#FBBF24; --score-lo:#F87171;
+}
+html[data-theme="light"] {
+  --bg:#eef2f8; --bg-2:#e3e9f3; --bg-grad-1:#cfe0f5; --bg-grad-2:#e6dcf5;
+  --text:#16223a; --text-2:#46566f; --text-muted:#8294ad;
+  --glass-bg:rgba(255,255,255,.72); --glass-bg-2:rgba(255,255,255,.92);
+  --border:rgba(16,32,64,.1); --border-strong:rgba(16,32,64,.18);
+  --shadow:0 8px 30px rgba(16,32,64,.14); --shadow-sm:0 2px 8px rgba(16,32,64,.1);
+  --brand:#D97706; --brand-2:#B45309; --brand-soft:rgba(217,119,6,.12); --brand-line:rgba(217,119,6,.35);
+  --ok:#059669; --warn:#B45309; --bad:#DC2626; --info:#2563EB;
+  --score-hi:#059669; --score-mid:#B45309; --score-lo:#DC2626;
+}
+html { -webkit-text-size-adjust:100%; }
+body {
+  font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  background:var(--bg); color:var(--text); min-height:100vh; line-height:1.6;
+  transition:background .35s ease, color .35s ease;
+}
+a { color:var(--brand); text-decoration:none; }
+button { font-family:inherit; cursor:pointer; }
+input,select,textarea { font-family:inherit; }
+
+/* ============ 背景装饰 ============ */
+.bg { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+.bg::before, .bg::after { content:''; position:absolute; border-radius:50%; filter:blur(90px); opacity:.32; }
+.bg::before { width:480px; height:480px; background:var(--bg-grad-1); top:-160px; right:-120px; }
+.bg::after  { width:420px; height:420px; background:var(--bg-grad-2); bottom:-140px; left:-120px; }
+
+/* ============ 布局 ============ */
+.app { position:relative; z-index:1; display:flex; min-height:100vh; }
+.sidebar {
+  width:240px; flex-shrink:0; padding:22px 16px; border-right:1px solid var(--border);
+  background:var(--glass-bg); backdrop-filter:blur(14px); display:flex; flex-direction:column; gap:6px;
+  position:sticky; top:0; height:100vh; transition:transform .3s ease;
+}
+.brand { display:flex; align-items:center; gap:12px; padding:6px 8px 18px; }
+.brand-ic { width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 4px 14px var(--brand-soft); }
+.brand-txt h1 { font-size:16px; font-weight:700; letter-spacing:.3px; }
+.brand-txt p { font-size:11px; color:var(--text-muted); }
+.nav-item { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:12px; color:var(--text-2);
+  font-size:14px; font-weight:500; transition:all .2s; border:1px solid transparent; }
+.nav-item:hover { background:var(--glass-bg-2); color:var(--text); }
+.nav-item.active { background:var(--brand-soft); color:var(--brand); border-color:var(--brand-line); }
+.nav-item svg { width:18px; height:18px; flex-shrink:0; }
+.nav-spacer { flex:1; }
+.nav-user { padding:12px 14px; border-radius:12px; background:var(--glass-bg-2); border:1px solid var(--border); }
+.nav-user .nm { font-size:13px; font-weight:600; }
+.nav-user .rl { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+.main { flex:1; min-width:0; display:flex; flex-direction:column; }
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:18px 28px; gap:16px;
+  border-bottom:1px solid var(--border); background:var(--glass-bg); backdrop-filter:blur(14px); position:sticky; top:0; z-index:5; }
+.topbar h2 { font-size:19px; font-weight:700; }
+.topbar .sub { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.topbar-actions { display:flex; align-items:center; gap:10px; }
+.icon-btn { width:40px; height:40px; border-radius:11px; border:1px solid var(--border); background:var(--glass-bg-2);
+  color:var(--text); display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.icon-btn:hover { border-color:var(--brand-line); color:var(--brand); }
+.icon-btn svg { width:19px; height:19px; }
+.menu-btn { display:none; }
+.content { padding:26px 28px 60px; flex:1; }
+
+/* ============ 卡片 / 通用 ============ */
+.card { background:var(--glass-bg); backdrop-filter:blur(12px); border:1px solid var(--border);
+  border-radius:18px; box-shadow:var(--shadow); padding:22px; }
+.card-h { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:12px; }
+.card-h h3 { font-size:16px; font-weight:700; }
+.btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:11px; font-size:13px;
+  font-weight:600; border:1px solid var(--border); background:var(--glass-bg-2); color:var(--text); transition:all .2s; }
+.btn:hover { border-color:var(--brand-line); transform:translateY(-1px); }
+.btn svg { width:16px; height:16px; }
+.btn-primary { background:linear-gradient(135deg,var(--brand),var(--brand-2)); color:#fff; border:none;
+  box-shadow:0 4px 14px var(--brand-soft); }
+.btn-primary:hover { filter:brightness(1.06); }
+.btn-ghost { background:transparent; }
+.btn-danger { color:var(--bad); border-color:var(--bad); }
+.btn-danger:hover { background:var(--bad); color:#fff; }
+.btn-sm { padding:6px 11px; font-size:12px; border-radius:9px; }
+.row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.muted { color:var(--text-muted); }
+.pill { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:20px; font-size:11px; font-weight:600; }
+.pill-open { background:var(--brand-soft); color:var(--brand); }
+.pill-closed { background:rgba(148,163,184,.18); color:var(--text-2); }
+.pill-ok { background:rgba(52,211,153,.16); color:var(--ok); }
+.pill-off { background:rgba(248,113,113,.16); color:var(--bad); }
+
+/* ============ 仪表盘统计 ============ */
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:22px; }
+.stat { background:var(--glass-bg); backdrop-filter:blur(12px); border:1px solid var(--border); border-radius:16px;
+  padding:20px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.stat .lbl { font-size:13px; color:var(--text-muted); }
+.stat .num { font-size:34px; font-weight:800; margin-top:6px; letter-spacing:-1px; }
+.stat .ic { position:absolute; right:16px; top:16px; width:34px; height:34px; border-radius:10px;
+  background:var(--brand-soft); color:var(--brand); display:flex; align-items:center; justify-content:center; }
+.stat .ic svg { width:18px; height:18px; }
+
+/* ============ 表格 ============ */
+.tbl-wrap { overflow-x:auto; border-radius:14px; }
+table { width:100%; border-collapse:collapse; font-size:13.5px; }
+th,td { text-align:left; padding:13px 14px; border-bottom:1px solid var(--border); white-space:nowrap; }
+th { font-size:12px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.4px; }
+tbody tr { transition:background .15s; }
+tbody tr:hover { background:var(--glass-bg-2); }
+td.wrap { white-space:normal; max-width:280px; }
+.skills { display:flex; flex-wrap:wrap; gap:5px; }
+.skill-tag { padding:3px 9px; border-radius:7px; font-size:11px; background:var(--brand-soft); color:var(--brand); }
+.empty { text-align:center; padding:46px; color:var(--text-muted); font-size:14px; }
+.actions { display:flex; gap:8px; }
+
+/* ============ 表单 / Modal ============ */
+.modal-overlay { position:fixed; inset:0; background:rgba(5,10,20,.6); backdrop-filter:blur(6px); z-index:50;
+  display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.show { display:flex; }
+.modal { background:var(--bg-2); border:1px solid var(--border); border-radius:20px; width:100%; max-width:560px;
+  max-height:88vh; overflow:auto; box-shadow:var(--shadow); animation:pop .25s ease; }
+@keyframes pop { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+.modal-h { display:flex; align-items:center; justify-content:space-between; padding:20px 22px; border-bottom:1px solid var(--border); }
+.modal-h h3 { font-size:17px; font-weight:700; }
+.modal-b { padding:20px 22px; display:grid; gap:15px; }
+.modal-f { padding:16px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+.field { display:flex; flex-direction:column; gap:6px; }
+.field label { font-size:12.5px; color:var(--text-2); font-weight:500; }
+.field input, .field select, .field textarea { padding:11px 13px; border-radius:11px; border:1px solid var(--border);
+  background:var(--glass-bg); color:var(--text); font-size:14px; outline:none; transition:border .2s; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color:var(--brand); }
+.field textarea { resize:vertical; min-height:80px; }
+.field .hint { font-size:11px; color:var(--text-muted); }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+
+/* 权限矩阵 */
+.perms { display:grid; gap:10px; }
+.perm-row { display:grid; grid-template-columns:120px repeat(2,1fr); gap:8px; align-items:center; font-size:13px; }
+.perm-row.head { font-size:11px; color:var(--text-muted); font-weight:600; }
+.perm-chk { display:flex; align-items:center; justify-content:center; }
+.perm-chk input { width:17px; height:17px; accent-color:var(--brand); }
+
+/* ============ 匹配 ============ */
+.mt-controls { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px; }
+.mt-controls .field { min-width:240px; }
+.match-list { display:grid; gap:14px; }
+.match-card { background:var(--glass-bg); backdrop-filter:blur(12px); border:1px solid var(--border); border-radius:16px;
+  padding:18px 20px; box-shadow:var(--shadow-sm); display:flex; gap:18px; align-items:flex-start; }
+.score-badge { flex-shrink:0; width:64px; height:64px; border-radius:16px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; font-weight:800; font-size:22px; color:#fff; }
+.score-badge small { font-size:10px; font-weight:600; opacity:.9; }
+.sb-hi { background:linear-gradient(135deg,var(--score-hi),#059669); }
+.sb-mid { background:linear-gradient(135deg,var(--score-mid),#B45309); }
+.sb-lo { background:linear-gradient(135deg,var(--score-lo),#B91C1C); }
+.match-body { flex:1; min-width:0; }
+.match-title { font-size:15px; font-weight:700; margin-bottom:4px; }
+.match-meta { font-size:12px; color:var(--text-muted); margin-bottom:10px; }
+.reasons { display:flex; flex-direction:column; gap:6px; }
+.reason { font-size:12.5px; color:var(--text-2); display:flex; gap:8px; align-items:flex-start; }
+.reason::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--brand); margin-top:7px; flex-shrink:0; }
+.reason.llm { color:var(--info); font-style:italic; }
+
+/* ============ 登录 ============ */
+.login-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; z-index:1; }
+.login-card { width:100%; max-width:420px; background:var(--glass-bg); backdrop-filter:blur(16px); border:1px solid var(--border);
+  border-radius:22px; box-shadow:var(--shadow); padding:34px 32px; }
+.login-brand { display:flex; align-items:center; gap:13px; margin-bottom:6px; }
+.login-brand .brand-ic { width:46px; height:46px; }
+.login-card h2 { font-size:21px; font-weight:700; margin-top:18px; }
+.login-card .desc { font-size:13px; color:var(--text-muted); margin:6px 0 22px; }
+.login-card .field { margin-bottom:15px; }
+.login-toggle { display:flex; align-items:center; justify-content:space-between; margin:4px 0 18px; font-size:12.5px; color:var(--text-2); }
+.link-btn { background:none; border:none; color:var(--brand); font-size:12.5px; font-weight:600; }
+.login-err { background:rgba(248,113,113,.14); color:var(--bad); border-radius:10px; padding:10px 13px; font-size:13px; margin-bottom:14px; }
+.tabs { display:flex; gap:6px; background:var(--glass-bg-2); padding:5px; border-radius:13px; margin-bottom:20px; }
+.tab { flex:1; text-align:center; padding:9px; border-radius:9px; font-size:13px; font-weight:600; color:var(--text-2); border:none; background:none; transition:all .2s; }
+.tab.active { background:var(--brand); color:#fff; box-shadow:0 3px 10px var(--brand-soft); }
+
+/* ============ Toast ============ */
+.toast-wrap { position:fixed; top:20px; right:20px; z-index:100; display:flex; flex-direction:column; gap:10px; }
+.toast { background:var(--bg-2); border:1px solid var(--border); border-radius:12px; padding:13px 18px; font-size:13.5px;
+  box-shadow:var(--shadow); animation:slidein .25s ease; max-width:340px; }
+.toast.ok { border-left:3px solid var(--ok); }
+.toast.err { border-left:3px solid var(--bad); }
+@keyframes slidein { from{transform:translateX(40px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+/* ============ 响应式 ============ */
+@media (max-width:860px){
+  .sidebar { position:fixed; left:0; top:0; z-index:40; transform:translateX(-100%); width:260px; }
+  .sidebar.open { transform:translateX(0); box-shadow:var(--shadow); }
+  .menu-btn { display:flex; }
+  .content { padding:18px 16px 50px; }
+  .topbar { padding:14px 16px; }
+  .grid2 { grid-template-columns:1fr; }
+  .backdrop { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:35; display:none; }
+  .backdrop.show { display:block; }
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+<!-- ============ 主应用骨架 ============ -->
+<div id="app" style="display:none;">
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0"/><path d="M18 7.5v6M15 10.5h6"/></svg>
+        </div>
+        <div class="brand-txt"><h1>人员招聘管理</h1><p>AI 人岗匹配</p></div>
+      </div>
+      <a class="nav-item" data-view="dashboard" href="#/dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg> 仪表盘</a>
+      <a class="nav-item" data-view="jobs" href="#/jobs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> 岗位管理</a>
+      <a class="nav-item" data-view="resumes" href="#/resumes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg> 简历管理</a>
+      <a class="nav-item" data-view="match" href="#/match">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9 2.2.9-5.5-4-3.9 5.5-.8z"/></svg> AI 匹配</a>
+      <a class="nav-item" data-view="accounts" href="#/accounts" id="nav-accounts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0"/><path d="M16 11a3 3 0 1 0 0-6M20.5 19a5 5 0 0 0-3.5-4.8"/></svg> 子账号</a>
+      <div class="nav-spacer"></div>
+      <div class="nav-user">
+        <div class="nm" id="nav-username">—</div>
+        <div class="rl" id="nav-role">—</div>
+        <button class="link-btn" id="btn-logout" style="margin-top:8px;">退出登录</button>
+      </div>
+    </aside>
+    <div class="backdrop" id="backdrop"></div>
+    <div class="main">
+      <div class="topbar">
+        <div class="row" style="gap:12px;">
+          <button class="icon-btn menu-btn" id="menu-btn" aria-label="菜单">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <div><h2 id="page-title">仪表盘</h2><div class="sub" id="page-sub"></div></div>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" id="theme-btn" aria-label="主题切换">
+            <svg id="theme-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 登录 ============ -->
+<div id="login" class="login-wrap" style="display:none;">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0"/><path d="M18 7.5v6M15 10.5h6"/></svg>
+      </div>
+      <div class="brand-txt"><h1>人员招聘管理</h1><p>AI 智能人岗匹配</p></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tab-login" data-mode="login">登录</button>
+      <button class="tab" id="tab-register" data-mode="register">注册企业</button>
+    </div>
+    <div id="login-err" class="login-err" style="display:none;"></div>
+    <div class="field">
+      <label>用户名</label>
+      <input id="f-username" placeholder="如 demo" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>密码</label>
+      <input id="f-password" type="password" placeholder="至少 6 位" autocomplete="current-password">
+    </div>
+    <div class="field" id="reg-extra" style="display:none;">
+      <label>企业名称</label>
+      <input id="f-enterprise" placeholder="如 演示科技有限公司">
+    </div>
+    <div class="field" id="reg-extra2" style="display:none;">
+      <label>显示名称（可选）</label>
+      <input id="f-display" placeholder="如 王经理">
+    </div>
+    <button class="btn btn-primary" id="btn-auth" style="width:100%;justify-content:center;padding:12px;">登录</button>
+    <div class="login-toggle">
+      <span>后端地址（API Base）</span>
+      <button class="link-btn" id="btn-api">配置</button>
+    </div>
+    <div class="field" id="api-field" style="display:none;">
+      <input id="f-api" placeholder="http://localhost:8787">
+      <span class="hint">默认 http://localhost:8787。部署后改为你的后端域名。</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Modal ============ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-h"><h3 id="modal-title">标题</h3><button class="icon-btn" id="modal-x"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="modal-b" id="modal-body"></div>
+    <div class="modal-f" id="modal-foot"></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+"use strict";
+// ============ 持久化状态 ============
+const LS = { token:'recruit_token', api:'recruit_api', theme:'recruit_theme', account:'recruit_account' };
+const state = {
+  token: localStorage.getItem(LS.token) || '',
+  apiBase: localStorage.getItem(LS.api) || 'http://localhost:8787',
+  theme: localStorage.getItem(LS.theme) || 'system',
+  account: (()=>{ try{ return JSON.parse(localStorage.getItem(LS.account)||'null'); }catch{ return null; } })(),
+};
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+
+// ============ 主题 ============
+function applyTheme(){
+  const t = state.theme;
+  const dark = t==='dark' || (t==='system' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+}
+function cycleTheme(){
+  const order=['light','dark','system']; const next=order[(order.indexOf(state.theme)+1)%3];
+  state.theme=next; localStorage.setItem(LS.theme,next); applyTheme(); toast('主题：'+({light:'浅色',dark:'深色',system:'跟随系统'}[next]));
+}
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(state.theme==='system') applyTheme(); });
+
+// ============ API ============
+async function api(method, path, body){
+  const url = state.apiBase.replace(/\/$/,'') + path;
+  const headers = { 'Content-Type':'application/json' };
+  if(state.token) headers['Authorization'] = 'Bearer ' + state.token;
+  const res = await fetch(url, { method, headers, body: body?JSON.stringify(body):undefined });
+  let data = {}; try{ data = await res.json(); }catch{}
+  if(res.status===401){ logout(); throw new Error('登录已过期，请重新登录'); }
+  if(!res.ok) throw new Error(data.error || ('请求失败 ('+res.status+')'));
+  return data;
+}
+
+// ============ Toast ============
+function toast(msg, type='ok'){
+  const el=document.createElement('div'); el.className='toast '+type; el.textContent=msg;
+  $('#toasts').appendChild(el); setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); },2600);
+}
+
+// ============ 路由 / 视图 ============
+const VIEWS = {
+  dashboard:{ t:'仪表盘', s:'企业招聘数据概览', render:renderDashboard },
+  jobs:{ t:'岗位管理', s:'发布与维护招聘职位', render:renderJobs },
+  resumes:{ t:'简历管理', s:'候选人简历库', render:renderResumes },
+  match:{ t:'AI 匹配', s:'岗位与简历智能人岗匹配', render:renderMatch },
+  accounts:{ t:'子账号', s:'招聘专员账号与权限', render:renderAccounts },
+};
+const PAGE_SUB = {
+  dashboard:'企业招聘数据概览', jobs:'发布与维护招聘职位',
+  resumes:'候选人简历库', match:'岗位与简历智能人岗匹配', accounts:'招聘专员账号与权限',
+};
+function currentView(){
+  const h = location.hash.replace(/^#\/?/,'');
+  return VIEWS[h] ? h : 'dashboard';
+}
+async function route(){
+  if(!state.token){ showLogin(); return; }
+  showApp();
+  const v = currentView();
+  $('#page-title').textContent = VIEWS[v].t;
+  $('#page-sub').textContent = PAGE_SUB[v];
+  $$('.nav-item').forEach(n=> n.classList.toggle('active', n.dataset.view===v));
+  $('#content').innerHTML = '<div class="empty">加载中…</div>';
+  try { await VIEWS[v].render($('#content')); }
+  catch(e){ $('#content').innerHTML = '<div class="empty">加载失败：'+e.message+'</div>'; }
+}
+
+// ============ 登录态 ============
+function showLogin(){
+  $('#app').style.display='none'; $('#login').style.display='flex';
+}
+function showApp(){
+  $('#login').style.display='none'; $('#app').style.display='block';
+  $('#nav-username').textContent = state.account?.display_name || state.account?.username || '—';
+  $('#nav-role').textContent = state.account?.role==='owner' ? '企业主账号' : '招聘子账号';
+  // 子账号无 subaccounts.read 时隐藏子账号入口
+  const canAcct = state.account?.role==='owner' || (state.account?.permissions?.subaccounts||[]).includes('read');
+  $('#nav-accounts').style.display = canAcct ? '' : 'none';
+}
+
+// ============ 仪表盘 ============
+async function renderDashboard(root){
+  const [jobs,resumes,hist] = await Promise.all([
+    api('GET','/api/jobs').catch(()=>({items:[]})),
+    api('GET','/api/resumes').catch(()=>({items:[]})),
+    api('GET','/api/match/history').catch(()=>({items:[]})),
+  ]);
+  const jc=jobs.items.length, rc=resumes.items.length, mc=hist.items.length;
+  const openJ = jobs.items.filter(j=>j.status==='open').length;
+  const stats = [
+    {lbl:'在招岗位',num:openJ,ic:'briefcase'},
+    {lbl:'简历总数',num:rc,ic:'users'},
+    {lbl:'历史匹配',num:mc,ic:'spark'},
+    {lbl:'岗位总数',num:jc,ic:'list'},
+  ];
+  const icMap={briefcase:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    users:'<circle cx="9" cy="8" r="3.2"/><path d="M3.6 19a5.4 5.4 0 0 1 10.8 0"/>',
+    spark:'<path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9 2.2.9-5.5-4-3.9 5.5-.8z"/>',
+    list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'};
+  root.innerHTML = `
+    <div class="stats">
+      ${stats.map(s=>`<div class="stat"><div class="lbl">${s.lbl}</div><div class="num">${s.num}</div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icMap[s.ic]}</svg></div></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>快速开始</h3></div>
+      <div class="row">
+        <button class="btn btn-primary" onclick="location.hash='#/jobs'">+ 新增岗位</button>
+        <button class="btn btn-primary" onclick="location.hash='#/resumes'">+ 录入简历</button>
+        <button class="btn" onclick="location.hash='#/match'">运行 AI 匹配</button>
+        ${state.account?.role==='owner'?'<button class="btn" onclick="location.hash=\'#/accounts\'">管理子账号</button>':''}
+      </div>
+      <p class="muted" style="margin-top:16px;font-size:13px;">提示：匹配引擎默认使用本地加权打分（技能 40% / 经验 20% / 学历 15% / 城市 10% / 文本 15%），零外部依赖。后端配置 <code>OPENROUTER_API_KEY</code> 后自动叠加 LLM 语义校准。</p>
+    </div>`;
+}
+
+// ============ 岗位 ============
+async function renderJobs(root){
+  const canWrite = state.account?.role==='owner' || (state.account?.permissions?.jobs||[]).includes('write');
+  const { items } = await api('GET','/api/jobs');
+  let html = `<div class="card"><div class="card-h"><h3>岗位列表（${items.length}）</h3>${canWrite?'<button class="btn btn-primary" id="add-job"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新增岗位</button>':''}</div>`;
+  if(!items.length){ html += '<div class="empty">暂无岗位，点击右上角新增。</div></div>'; root.innerHTML=html; return; }
+  html += `<div class="tbl-wrap"><table><thead><tr><th>职位</th><th>部门</th><th>地点</th><th>学历</th><th>经验</th><th>技能</th><th>薪资</th><th>状态</th>${canWrite?'<th>操作</th>':''}</tr></thead><tbody>`;
+  for(const j of items){
+    html += `<tr>
+      <td><b>${esc(j.title)}</b></td><td>${esc(j.department||'—')}</td><td>${esc(j.location||'—')}</td>
+      <td>${esc(j.education||'—')}</td><td>${j.experience_min||0}+ 年</td>
+      <td><div class="skills">${(j.skills||[]).map(s=>`<span class="skill-tag">${esc(s)}</span>`).join('')||'—'}</div></td>
+      <td>${esc(j.salary||'—')}</td>
+      <td><span class="pill ${j.status==='open'?'pill-open':'pill-closed'}">${j.status==='open'?'招聘中':'已关闭'}</span></td>
+      ${canWrite?`<td><div class="actions"><button class="btn btn-sm" onclick="editJob('${j.id}')">编辑</button><button class="btn btn-sm btn-danger" onclick="delJob('${j.id}')">删除</button></div></td>`:''}
+    </tr>`;
+  }
+  html += '</tbody></table></div></div>';
+  root.innerHTML = html;
+  if(canWrite) $('#add-job').onclick = ()=>jobForm(null);
+}
+function jobForm(id){
+  const j = id ? null : {};
+  const fields = `
+    <div class="field"><label>职位名称 *</label><input id="j-title" value="${id&&j?esc(j.title):''}"></div>
+    <div class="grid2">
+      <div class="field"><label>部门</label><input id="j-dept" value="${id&&j?esc(j.department):''}"></div>
+      <div class="field"><label>工作地点</label><input id="j-loc" value="${id&&j?esc(j.location):''}"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>学历要求</label><input id="j-edu" placeholder="本科 / 大专 / 硕士" value="${id&&j?esc(j.education):''}"></div>
+      <div class="field"><label>经验要求（年）</label><input id="j-exp" type="number" min="0" value="${id&&j?(j.experience_min||0):0}"></div>
+    </div>
+    <div class="field"><label>技能要求（逗号分隔）</label><input id="j-skills" placeholder="JavaScript, React, TypeScript" value="${id&&j?(j.skills||[]).join(', '):''}"><span class="hint">多个技能用中文/英文逗号分隔</span></div>
+    <div class="field"><label>薪资范围</label><input id="j-salary" placeholder="20-35K" value="${id&&j?esc(j.salary):''}"></div>
+    <div class="field"><label>状态</label><select id="j-status"><option value="open" ${id&&j&&j.status==='open'?'selected':''}>招聘中</option><option value="closed" ${id&&j&&j.status==='closed'?'selected':''}>已关闭</option></select></div>
+    <div class="field"><label>职位描述</label><textarea id="j-desc" placeholder="岗位职责、要求…">${id&&j?esc(j.description):''}</textarea></div>`;
+  openModal(id?'编辑岗位':'新增岗位', fields, [
+    {label: id?'保存':'创建', cls:'btn-primary', fn: async()=>{
+      const payload = {
+        title: $('#j-title').value.trim(),
+        department: $('#j-dept').value.trim(),
+        location: $('#j-loc').value.trim(),
+        education: $('#j-edu').value.trim(),
+        experience_min: Number($('#j-exp').value)||0,
+        skills: splitSkills($('#j-skills').value),
+        salary: $('#j-salary').value.trim(),
+        status: $('#j-status').value,
+        description: $('#j-desc').value.trim(),
+      };
+      if(!payload.title){ toast('职位名称必填','err'); return; }
+      try{
+        if(id) await api('PUT','/api/jobs/'+id, payload);
+        else await api('POST','/api/jobs', payload);
+        toast(id?'已保存':'岗位已创建'); closeModal(); renderJobs($('#content'));
+      }catch(e){ toast(e.message,'err'); }
+    }},
+    {label:'取消', cls:'btn-ghost', fn:closeModal},
+  ]);
+  if(id){ api('GET','/api/jobs/'+id).then(({item})=>{ const j=item;
+    $('#j-title').value=j.title; $('#j-dept').value=j.department||''; $('#j-loc').value=j.location||'';
+    $('#j-edu').value=j.education||''; $('#j-exp').value=j.experience_min||0; $('#j-skills').value=(j.skills||[]).join(', ');
+    $('#j-salary').value=j.salary||''; $('#j-status').value=j.status||'open'; $('#j-desc').value=j.description||'';
+  }).catch(()=>{}); }
+}
+window.editJob = (id)=>jobForm(id);
+window.delJob = async(id)=>{
+  if(!confirm('确认删除该岗位？')) return;
+  try{ await api('DELETE','/api/jobs/'+id); toast('已删除'); renderJobs($('#content')); }catch(e){ toast(e.message,'err'); }
+};
+
+// ============ 简历 ============
+async function renderResumes(root){
+  const canWrite = state.account?.role==='owner' || (state.account?.permissions?.resumes||[]).includes('write');
+  const { items } = await api('GET','/api/resumes');
+  let html = `<div class="card"><div class="card-h"><h3>简历库（${items.length}）</h3>${canWrite?'<button class="btn btn-primary" id="add-res"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>录入简历</button>':''}</div>`;
+  if(!items.length){ html += '<div class="empty">暂无简历，点击右上角录入。</div></div>'; root.innerHTML=html; return; }
+  html += `<div class="tbl-wrap"><table><thead><tr><th>姓名</th><th>地点</th><th>学历</th><th>经验</th><th>技能</th><th>期望薪资</th><th>来源</th>${canWrite?'<th>操作</th>':''}</tr></thead><tbody>`;
+  for(const r of items){
+    html += `<tr>
+      <td><b>${esc(r.candidate_name||'未命名')}</b></td><td>${esc(r.location||'—')}</td><td>${esc(r.education||'—')}</td>
+      <td>${r.experience_years||0} 年</td>
+      <td><div class="skills">${(r.skills||[]).map(s=>`<span class="skill-tag">${esc(s)}</span>`).join('')||'—'}</div></td>
+      <td>${esc(r.expected_salary||'—')}</td><td>${esc(r.source||'—')}</td>
+      ${canWrite?`<td><div class="actions"><button class="btn btn-sm" onclick="editResume('${r.id}')">编辑</button><button class="btn btn-sm btn-danger" onclick="delResume('${r.id}')">删除</button></div></td>`:''}
+    </tr>`;
+  }
+  html += '</tbody></table></div></div>';
+  root.innerHTML = html;
+  if(canWrite) $('#add-res').onclick = ()=>resumeForm(null);
+}
+function resumeForm(id){
+  const fields = `
+    <div class="grid2">
+      <div class="field"><label>姓名 *</label><input id="r-name" value="${id?'':''}"></div>
+      <div class="field"><label>期望薪资</label><input id="r-sal" placeholder="28K"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>电话</label><input id="r-phone"></div>
+      <div class="field"><label>邮箱</label><input id="r-email" type="email"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>地点</label><input id="r-loc" placeholder="上海"></div>
+      <div class="field"><label>学历</label><input id="r-edu" placeholder="本科"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>经验（年）</label><input id="r-exp" type="number" min="0" value="0"></div>
+      <div class="field"><label>来源</label><input id="r-src" placeholder="内推 / 猎头 / 主动投递"></div>
+    </div>
+    <div class="field"><label>技能（逗号分隔）</label><input id="r-skills" placeholder="JavaScript, React, TypeScript"><span class="hint">多个技能用逗号分隔</span></div>
+    <div class="field"><label>个人摘要</label><textarea id="r-sum" placeholder="工作亮点、项目经验…"></textarea></div>`;
+  openModal(id?'编辑简历':'录入简历', fields, [
+    {label:id?'保存':'录入', cls:'btn-primary', fn: async()=>{
+      const payload = {
+        candidate_name: $('#r-name').value.trim(),
+        phone: $('#r-phone').value.trim(), email: $('#r-email').value.trim(),
+        location: $('#r-loc').value.trim(), education: $('#r-edu').value.trim(),
+        experience_years: Number($('#r-exp').value)||0,
+        skills: splitSkills($('#r-skills').value),
+        expected_salary: $('#r-sal').value.trim(), summary: $('#r-sum').value.trim(),
+        source: $('#r-src').value.trim(),
+      };
+      if(!payload.candidate_name){ toast('姓名必填','err'); return; }
+      try{
+        if(id) await api('PUT','/api/resumes/'+id, payload);
+        else await api('POST','/api/resumes', payload);
+        toast(id?'已保存':'简历已录入'); closeModal(); renderResumes($('#content'));
+      }catch(e){ toast(e.message,'err'); }
+    }},
+    {label:'取消', cls:'btn-ghost', fn:closeModal},
+  ]);
+  if(id) api('GET','/api/resumes/'+id).then(({item})=>{ const r=item;
+    $('#r-name').value=r.candidate_name||''; $('#r-sal').value=r.expected_salary||''; $('#r-phone').value=r.phone||'';
+    $('#r-email').value=r.email||''; $('#r-loc').value=r.location||''; $('#r-edu').value=r.education||'';
+    $('#r-exp').value=r.experience_years||0; $('#r-src').value=r.source||''; $('#r-skills').value=(r.skills||[]).join(', ');
+    $('#r-sum').value=r.summary||'';
+  }).catch(()=>{});
+}
+window.editResume = (id)=>resumeForm(id);
+window.delResume = async(id)=>{
+  if(!confirm('确认删除该简历？')) return;
+  try{ await api('DELETE','/api/resumes/'+id); toast('已删除'); renderResumes($('#content')); }catch(e){ toast(e.message,'err'); }
+};
+
+// ============ AI 匹配 ============
+async function renderMatch(root){
+  const [jobs, resumes] = await Promise.all([api('GET','/api/jobs').catch(()=>({items:[]})), api('GET','/api/resumes').catch(()=>({items:[]}))]);
+  root.innerHTML = `
+    <div class="card">
+      <div class="card-h"><h3>智能人岗匹配</h3></div>
+      <div class="mt-controls">
+        <div class="field"><label>匹配模式</label><select id="m-mode">
+          <option value="job">按岗位 → 找简历</option>
+          <option value="resume">按简历 → 找岗位</option>
+        </select></div>
+        <div class="field" id="m-job-wrap"><label>选择岗位</label><select id="m-job">${jobs.items.map(j=>`<option value="${j.id}">${esc(j.title)}（${esc(j.location||'')}）</option>`).join('')||'<option>暂无岗位</option>'}</select></div>
+        <div class="field" id="m-res-wrap" style="display:none;"><label>选择简历</label><select id="m-res">${resumes.items.map(r=>`<option value="${r.id}">${esc(r.candidate_name||'未命名')}（${esc(r.location||'')}）</option>`).join('')||'<option>暂无简历</option>'}</select></div>
+        <button class="btn btn-primary" id="m-run" style="height:42px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9 2.2.9-5.5-4-3.9 5.5-.8z"/></svg>运行匹配</button>
+      </div>
+      <div id="m-result"><div class="empty">选择条件后点击「运行匹配」。</div></div>
+    </div>`;
+  $('#m-mode').onchange = (e)=>{ const j=e.target.value==='job'; $('#m-job-wrap').style.display=j?'':'none'; $('#m-res-wrap').style.display=j?'none':''; };
+  $('#m-run').onclick = async()=>{
+    const mode=$('#m-mode').value;
+    const body = mode==='job' ? { job_id: $('#m-job').value } : { resume_id: $('#m-res').value };
+    $('#m-result').innerHTML = '<div class="empty">匹配中…</div>';
+    try{
+      const { results } = await api('POST','/api/match', body);
+      if(!results.length){ $('#m-result').innerHTML='<div class="empty">暂无可匹配对象。</div>'; return; }
+      const topName = mode==='job' ? results[0].resume.candidate_name : results[0].job.title;
+      $('#m-result').innerHTML = `<p class="muted" style="margin-bottom:14px;font-size:13px;">共匹配 ${results.length} 条，按契合度降序。最佳匹配：<b style="color:var(--brand)">${esc(topName)}</b></p><div class="match-list">${results.map(r=>matchCard(r,mode)).join('')}</div>`;
+    }catch(e){ $('#m-result').innerHTML = '<div class="empty">匹配失败：'+e.message+'</div>'; }
+  };
+}
+function matchCard(r, mode){
+  const sc = r.score; const cls = sc>=75?'sb-hi':sc>=50?'sb-mid':'sb-lo';
+  const name = mode==='job' ? (r.resume.candidate_name||'未命名') : r.job.title;
+  const meta = mode==='job'
+    ? `${esc(r.resume.location||'—')} · ${esc(r.resume.education||'—')} · ${r.resume.experience_years||0} 年`
+    : `${esc(r.job.department||'—')} · ${esc(r.job.location||'—')} · ${r.job.experience_min||0}+ 年`;
+  return `<div class="match-card">
+    <div class="score-badge ${cls}">${sc}<small>分</small></div>
+    <div class="match-body">
+      <div class="match-title">${esc(name)}</div>
+      <div class="match-meta">${meta}</div>
+      <div class="reasons">${(r.reasons||[]).map(rs=>`<div class="reason ${rs.startsWith('AI 语义')?'llm':''}">${esc(rs)}</div>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+// ============ 子账号 ============
+async function renderAccounts(root){
+  if(state.account?.role!=='owner'){
+    // 子账号仅当拥有 subaccounts.read 才可见（已在导航隐藏）；此处主账号专属
+  }
+  const { accounts } = await api('GET','/api/accounts');
+  const me = state.account.id;
+  let html = `<div class="card"><div class="card-h"><h3>账号列表（${accounts.length}）</h3>
+    <button class="btn btn-primary" id="add-acc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新建子账号</button></div>`;
+  html += `<div class="tbl-wrap"><table><thead><tr><th>用户名</th><th>显示名</th><th>角色</th><th>岗位</th><th>简历</th><th>匹配</th><th>子账号</th><th>状态</th><th>操作</th></tr></thead><tbody>`;
+  for(const a of accounts){
+    const p = a.permissions||{};
+    const ck=(arr,act)=> (arr||[]).includes(act)?'✓':'—';
+    html += `<tr>
+      <td><b>${esc(a.username)}</b></td><td>${esc(a.display_name||'—')}</td>
+      <td>${a.role==='owner'?'<span class="pill pill-open">主账号</span>':'<span class="pill pill-closed">招聘专员</span>'}</td>
+      <td>${ck(p.jobs,'read')}/${ck(p.jobs,'write')}</td>
+      <td>${ck(p.resumes,'read')}/${ck(p.resumes,'write')}</td>
+      <td>${ck(p.matches,'read')}/${ck(p.matches,'run')}</td>
+      <td>${ck(p.subaccounts,'read')}/${ck(p.subaccounts,'write')}</td>
+      <td><span class="pill ${a.active?'pill-ok':'pill-off'}">${a.active?'启用':'停用'}</span></td>
+      <td>${a.id===me?'<span class="muted">当前</span>':`<div class="actions"><button class="btn btn-sm" onclick="editAcc('${a.id}')">权限</button><button class="btn btn-sm btn-danger" onclick="delAcc('${a.id}')">删除</button></div>`}</td>
+    </tr>`;
+  }
+  html += '</tbody></table></div></div>';
+  root.innerHTML = html;
+  $('#add-acc').onclick = ()=>accForm(null);
+}
+function accForm(id){
+  const PERMS=[['jobs','岗位'],['resumes','简历'],['matches','匹配'],['subaccounts','子账号']];
+  const matrix = PERMS.map(([k,label])=>{
+    const act2 = k==='matches' ? 'run' : 'write';
+    const lbl2 = k==='matches' ? '运行' : '管理';
+    return `<div class="perm-row"><div>${label}</div>
+      <div class="perm-chk"><input type="checkbox" data-p="${k}" data-a="read"></div>
+      <div class="perm-chk"><input type="checkbox" data-p="${k}" data-a="${act2}"></div></div>`;
+  }).join('');
+  const fields = `
+    <div class="grid2">
+      <div class="field"><label>用户名 *</label><input id="a-user"></div>
+      <div class="field"><label>显示名</label><input id="a-disp"></div>
+    </div>
+    <div class="field"><label>初始密码 *（至少 6 位）</label><input id="a-pass" type="password"></div>
+    <div class="field"><label>权限配置</label>
+      <div class="perms">
+        <div class="perm-row head"><div>模块</div><div style="text-align:center">查看</div><div style="text-align:center">管理 / 运行</div></div>
+        ${matrix}
+      </div>
+      <span class="hint">招聘专员默认仅「查看」；勾选「管理/运行」即放开写或执行权限。子账号模块仅主账号可配置。</span>
+    </div>`;
+  openModal(id?'编辑子账号权限':'新建子账号', fields, [
+    {label:id?'保存':'创建', cls:'btn-primary', fn: async()=>{
+      const perms={jobs:[],resumes:[],matches:[],subaccounts:[]};
+      $$('input[data-p]').forEach(cb=>{ if(cb.checked) perms[cb.dataset.p].push(cb.dataset.a); });
+      const payload = { permissions: perms };
+      if(!id){
+        payload.username=$('#a-user').value.trim(); payload.password=$('#a-pass').value;
+        payload.display_name=$('#a-disp').value.trim();
+        if(!payload.username||!payload.password){ toast('用户名与密码必填','err'); return; }
+        if(payload.password.length<6){ toast('密码至少 6 位','err'); return; }
+      }
+      try{
+        if(id) await api('PATCH','/api/accounts/'+id, payload);
+        else await api('POST','/api/accounts', payload);
+        toast(id?'权限已更新':'子账号已创建'); closeModal(); renderAccounts($('#content'));
+      }catch(e){ toast(e.message,'err'); }
+    }},
+    {label:'取消', cls:'btn-ghost', fn:closeModal},
+  ]);
+  if(id) api('GET','/api/accounts').then(({accounts})=>{ const a=accounts.find(x=>x.id===id); if(!a) return;
+    $('#a-disp').value=a.display_name||''; const p=a.permissions||{};
+    $$('input[data-p]').forEach(cb=>{ cb.checked=(p[cb.dataset.p]||[]).includes(cb.dataset.a); });
+  }).catch(()=>{});
+}
+window.editAcc = (id)=>accForm(id);
+window.delAcc = async(id)=>{
+  if(!confirm('确认删除该子账号？其创建的岗位/简历保留。')) return;
+  try{ await api('DELETE','/api/accounts/'+id); toast('已删除'); renderAccounts($('#content')); }catch(e){ toast(e.message,'err'); }
+};
+
+// ============ Modal 工具 ============
+function openModal(title, bodyHtml, buttons){
+  $('#modal-title').textContent = title;
+  $('#modal-body').innerHTML = bodyHtml;
+  const foot = $('#modal-foot'); foot.innerHTML='';
+  (buttons||[]).forEach(b=>{ const el=document.createElement('button'); el.className='btn '+(b.cls||''); el.textContent=b.label; el.onclick=b.fn; foot.appendChild(el); });
+  $('#modal').classList.add('show');
+}
+function closeModal(){ $('#modal').classList.remove('show'); }
+$('#modal-x').onclick = closeModal;
+$('#modal').onclick = (e)=>{ if(e.target.id==='modal') closeModal(); };
+
+// ============ 工具 ============
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function splitSkills(s){ return String(s||'').split(/[,，、]/).map(x=>x.trim()).filter(Boolean); }
+
+// ============ 登录 / 注册 ============
+let authMode='login';
+$('#tab-login').onclick = ()=>setMode('login');
+$('#tab-register').onclick = ()=>setMode('register');
+function setMode(m){
+  authMode=m;
+  $('#tab-login').classList.toggle('active', m==='login');
+  $('#tab-register').classList.toggle('active', m==='register');
+  $('#reg-extra').style.display = m==='register'?'':'none';
+  $('#reg-extra2').style.display = m==='register'?'':'none';
+  $('#btn-auth').textContent = m==='login'?'登录':'注册并创建企业';
+  $('#login-err').style.display='none';
+}
+$('#btn-api').onclick = ()=>{ const f=$('#api-field'); f.style.display=f.style.display==='none'?'':'none'; $('#f-api').value=state.apiBase; };
+$('#f-api').onchange = ()=>{ state.apiBase=$('#f-api').value.trim()||'http://localhost:8787'; localStorage.setItem(LS.api,state.apiBase); };
+$('#btn-auth').onclick = async()=>{
+  const username=$('#f-username').value.trim(), password=$('#f-password').value;
+  $('#login-err').style.display='none';
+  try{
+    let data;
+    if(authMode==='login'){ data=await api('POST','/api/auth/login',{username,password}); }
+    else{
+      const enterprise_name=$('#f-enterprise').value.trim();
+      if(!enterprise_name){ return err('请填写企业名称'); }
+      data=await api('POST','/api/auth/register',{username,password,enterprise_name,display_name:$('#f-display').value.trim()});
+    }
+    state.token=data.token; state.account=data.account;
+    localStorage.setItem(LS.token,data.token); localStorage.setItem(LS.account,JSON.stringify(data.account));
+    toast('欢迎，'+ (data.account.display_name||data.account.username));
+    route();
+  }catch(e){ err(e.message); }
+};
+function err(m){ const e=$('#login-err'); e.textContent=m; e.style.display='block'; }
+function logout(){ state.token=''; state.account=null; localStorage.removeItem(LS.token); localStorage.removeItem(LS.account); showLogin(); }
+
+// ============ 主题 / 菜单 / 退出 ============
+$('#theme-btn').onclick = cycleTheme;
+$('#btn-logout').onclick = logout;
+$('#menu-btn').onclick = ()=>{ $('#sidebar').classList.toggle('open'); $('#backdrop').classList.toggle('show'); };
+$('#backdrop').onclick = ()=>{ $('#sidebar').classList.remove('open'); $('#backdrop').classList.remove('show'); };
+
+// ============ 启动 ============
+window.addEventListener('hashchange', route);
+if(state.token){ route(); } else { showLogin(); }
+</script>
+</body>
+</html>
