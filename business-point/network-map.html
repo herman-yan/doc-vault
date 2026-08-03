@@ -179,25 +179,25 @@
     <h2>图层 · 点击切换显示</h2>
 
     <label class="layer-row">
-      <input type="checkbox" data-cat="direct_open" checked />
+      <input type="checkbox" id="cb-direct_open" data-cat="direct_open" checked />
       <span class="swatch sw-r"></span>
       <span class="meta"><span class="t">直营体验中心 · 已运营</span><span class="s">7 城 · 门店级坐标</span></span>
     </label>
 
     <label class="layer-row">
-      <input type="checkbox" data-cat="direct_build" checked />
+      <input type="checkbox" id="cb-direct_build" data-cat="direct_build" checked />
       <span class="swatch sw-b"></span>
       <span class="meta"><span class="t">直营 · 规划/建设中</span><span class="s">14 城 · 招募/在建</span></span>
     </label>
 
     <label class="layer-row">
-      <input type="checkbox" data-cat="auth" checked />
+      <input type="checkbox" id="cb-auth" data-cat="auth" checked />
       <span class="swatch sw-a"></span>
       <span class="meta"><span class="t">授权服务站 · 已核实</span><span class="s">真实门店 · 含电话地址</span></span>
     </label>
 
     <label class="layer-row">
-      <input type="checkbox" data-cat="auth_est" checked />
+      <input type="checkbox" id="cb-auth_est" data-cat="auth_est" checked />
       <span class="swatch sw-g"></span>
       <span class="meta"><span class="t">授权服务站 · 示意</span><span class="s">代表城市 · 覆盖 25 省 80 城</span></span>
     </label>
@@ -391,9 +391,22 @@ function applyLayer(cat, show) {
     title.style.display = anyVisible ? '' : 'none';
   });
 }
-document.querySelectorAll('.layer-row input').forEach(cb => {
-  cb.addEventListener('change', () => applyLayer(cb.dataset.cat, cb.checked));
-});
+// 图层开关（双保险：click 事件委托 + input change），任何浏览器都不会失灵
+const layerPanel = document.querySelector('.panel');
+if (layerPanel) {
+  layerPanel.addEventListener('click', (ev) => {
+    const row = ev.target.closest('.layer-row');
+    if (!row) return;
+    const cb = row.querySelector('input[data-cat]');
+    if (!cb) return;
+    // 浏览器原生 toggle 后，change 事件可能稍后才触发；这里直接读最新状态应用
+    setTimeout(() => applyLayer(cb.dataset.cat, cb.checked), 0);
+  });
+  // change 事件兜底
+  layerPanel.querySelectorAll('.layer-row input[data-cat]').forEach(cb => {
+    cb.addEventListener('change', () => applyLayer(cb.dataset.cat, cb.checked));
+  });
+}
 
 // 飞行定位 + 弹窗（有地图时增强；列表高亮始终可用）
 function focusStore(i, fromMap) {
@@ -515,7 +528,7 @@ function initMap() {
   });
 
   // 应用当前复选框状态（用户可能在地图加载前已切换图层）
-  document.querySelectorAll('.layer-row input').forEach(cb => {
+  document.querySelectorAll('.layer-row input[data-cat]').forEach(cb => {
     if (!cb.checked) applyLayer(cb.dataset.cat, false);
   });
 }
