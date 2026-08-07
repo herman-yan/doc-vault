@@ -19,6 +19,9 @@
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;padding:26px 20px 60px}
 .container{max-width:1180px;margin:0 auto}
+@media(min-width:1280px){.container{max-width:1280px}}
+@media(min-width:1600px){.container{max-width:1520px}}
+@media(min-width:1920px){.container{max-width:1840px}}
 .back-link{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text-secondary);text-decoration:none;margin-bottom:14px}
 .back-link:hover{color:#4facfe}
 .page-header{display:flex;align-items:center;gap:16px;margin-bottom:6px}
@@ -49,8 +52,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
 .btn.danger{color:#ff6b5b;border-color:var(--red-bd)}
 .table-wrap{background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;overflow:hidden;overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:11px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}
-th{background:rgba(255,255,255,.04);color:var(--text-secondary);font-weight:600;font-size:12px;position:sticky;top:0}
+td{padding:11px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);white-space:normal;word-break:break-word;vertical-align:top}
+th{background:rgba(255,255,255,.04);color:var(--text-secondary);font-weight:600;font-size:12px;position:sticky;top:0;white-space:nowrap}
 tbody tr:hover{background:rgba(255,255,255,.03)}
 .row-warn{background:rgba(255,165,2,.07)}
 .row-danger{background:rgba(231,76,60,.08)}
