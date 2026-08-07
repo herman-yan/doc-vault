@@ -309,6 +309,8 @@
         .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
         .pill-on { color: var(--st-online); background: rgba(21,128,61,.10); }
         .pill-bd { color: var(--st-building); background: rgba(180,83,9,.10); }
+        .pill-lock { color: var(--st-building); background: rgba(180,83,9,.12); border: 1px solid rgba(180,83,9,.35); }
+        .pill-lock::before { display: none; }
         .card-arrow {
             width: 30px; height: 30px; border-radius: 50%;
             border: 1px solid var(--border-2);
@@ -641,7 +643,7 @@
                 <div class="card-title">库存管理系统</div>
                 <div class="card-desc">工程师订货、库房出入库、旧件回收，物料目录由台账与指标清单提炼</div>
                 <div class="card-foot">
-                    <span class="pill pill-on">已上线</span>
+                    <span class="pill pill-lock">🔒 建设中</span>
                     <span class="card-arrow">→</span>
                 </div>
             </a>
@@ -672,7 +674,7 @@
                 <div class="card-title">商点管理系统</div>
                 <div class="card-desc">商户网点体系与概念地图：商点结合全局概念地图成长模块，多网点统一运营监控</div>
                 <div class="card-foot">
-                    <span class="pill pill-on">已上线</span>
+                    <span class="pill pill-lock">🔒 建设中</span>
                     <span class="card-arrow">→</span>
                 </div>
             </a>
@@ -747,6 +749,23 @@
                 </div>
                 <div class="card-title">人员招聘管理</div>
                 <div class="card-desc">企业主账号与招聘子账号协同，岗位与简历统一入库，AI 智能人岗匹配</div>
+                <div class="card-foot">
+                    <span class="pill pill-on">已上线</span>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <a class="card" style="--c:var(--c-blue)" href="https://herman-yan.github.io/doc-vault/cett/">
+                <div class="card-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="13" rx="2"/>
+                        <path d="M3 9h18"/>
+                        <path d="M9 21h6"/>
+                        <path d="M12 17v4"/>
+                    </svg>
+                </div>
+                <div class="card-title">CETT 官网</div>
+                <div class="card-desc">宁德时代官方授权 · 北京直营新能源服务官网，品牌展示与一站式车生活</div>
                 <div class="card-foot">
                     <span class="pill pill-on">已上线</span>
                     <span class="card-arrow">→</span>
