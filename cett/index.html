@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北京宁家服务直营门店 | 宁德时代官方授权 · 立足北京 · 联动全国</title>
+    <meta name="description" content="北京宁家服务直营门店是宁德时代官方授权的新能源汽车服务中心，以北京为直营基地，面向全国提供电池检测、维保、回收等核心业务，并拓展充电桩安装、车辆美容、车险代理、上门快修、企业车队托管等一站式服务。">
+    <style>
+    .ico { display:inline-block; width:1em; height:1em; fill:none; stroke:currentColor;
+        stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-0.15em; flex-shrink:0; }
+    .svg-sprite { position:absolute; width:0; height:0; overflow:hidden; }
+    :root {
+        --primary: #062a6e;
+        --primary-2: #003a8c;
+        --primary-3: #1a5fc4;
+        --accent: #0050b3;
+        --accent-2: #2f80ed;
+        --accent-soft: #e8f1fd;
+        --ice: #bcd6f5;
+        --white: #ffffff;
+        --gray-50: #f5f8fc;
+        --gray-100: #eaf0f7;
+        --gray-200: #dde6f1;
+        --gray-400: #6b7686;
+        --gray-500: #46505f;
+        --gray-700: #16202e;
+        --radius: 14px;
+        --radius-lg: 22px;
+        --shadow-sm: 0 2px 8px rgba(6,42,110,0.06);
+        --shadow: 0 10px 30px rgba(6,42,110,0.10);
+        --shadow-lg: 0 24px 60px rgba(6,42,110,0.16);
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+        --maxw: 1240px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 96px; font-size: 16px; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+        color: var(--gray-700); line-height: 1.75;
+        background: var(--white); overflow-x: clip;
+        -webkit-font-smoothing: antialiased;
+    }
+    /* ===== 自定义闪电光标 ===== */
+    html { cursor: url('images/cursor-bolt.png') 22 26, auto; }
+    * { cursor: url('images/cursor-bolt.png') 22 26, auto !important; }
+    .news-carousel, .news-carousel * { cursor: grab !important; }
+    .news-carousel.dragging, .news-carousel.dragging * { cursor: grabbing !important; }
+    ::selection { background: var(--accent); color: #fff; }
+
+    /* ===== scroll progress ===== */
+    .progress-bar { position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2)); z-index: 2000; transition: width 0.1s linear; }
+
+    /* ===== NAV (Tesla-style, transparent over hero) ===== */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+        background: transparent; transition: all 0.4s var(--ease); padding: 0 2rem; }
+    nav.scrolled { background: rgba(255,255,255,0.96); backdrop-filter: blur(14px) saturate(180%);
+        box-shadow: 0 1px 0 rgba(6,42,110,0.08); }
+    .nav-inner { max-width: var(--maxw); margin: 0 auto; display: flex; align-items: center;
+        justify-content: space-between; min-height: 64px; height: auto; }
+    .nav-brand { text-decoration: none; display: inline-flex; align-items: center;
+        color: #fff; transition: color 0.4s; line-height: 1; }
+    .nav-brand-word { font-size: 1.55rem; font-weight: 800; letter-spacing: 5.5px; line-height: 1;
+        background: linear-gradient(135deg, #d6ecff 0%, #ffffff 20%, #a8cce8 40%, #ffffff 62%, #7eb8e8 100%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 14px rgba(255,255,255,0.8)) drop-shadow(0 0 32px rgba(160,210,255,0.45));
+        animation: cettShine 2.6s ease-in-out infinite;
+        transition: filter 0.4s; }
+    @keyframes cettShine {
+        0%, 100% { filter: drop-shadow(0 0 12px rgba(255,255,255,0.7)) drop-shadow(0 0 26px rgba(170,215,255,0.32)); }
+        50% { filter: drop-shadow(0 0 24px rgba(255,255,255,1)) drop-shadow(0 0 52px rgba(190,230,255,0.65)); }
+    }
+    nav.scrolled .nav-brand { color: #4a5568; }
+    nav.scrolled .nav-brand-word {
+        background: none; -webkit-background-clip: border-box; background-clip: border-box;
+        -webkit-text-fill-color: currentColor; color: #4a5568;
+        filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08)); animation: none; }
+    .nav-links { display: flex; list-style: none; gap: 2.4rem; align-items: center; }
+    .nav-links a { text-decoration: none; color: rgba(255,255,255,0.92); font-size: 0.92rem; font-weight: 500;
+        transition: color 0.3s; position: relative; padding: 4px 0; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px;
+        background: #fff; transform: scaleX(0); transform-origin: center; transition: transform 0.3s var(--ease); }
+    nav.scrolled .nav-links a { color: var(--gray-500); }
+    nav.scrolled .nav-links a::after { background: var(--accent); }
+    .nav-links a:hover { color: #fff; }
+    nav.scrolled .nav-links a:hover { color: var(--accent); }
+    .nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+    .nav-links a.active { color: #fff; }
+    nav.scrolled .nav-links a.active { color: var(--accent); }
+    .nav-btn { color: rgba(255,255,255,0.92) !important; font-size: 0.92rem; font-weight: 600; padding: 4px 0;
+        position: relative; transition: color 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+    .nav-btn::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px;
+        background: #fff; transform: scaleX(0); transform-origin: center; transition: transform 0.3s var(--ease); }
+    nav.scrolled .nav-btn { color: var(--gray-500) !important; }
+    nav.scrolled .nav-btn::after { background: var(--accent); }
+    .nav-btn:hover, .nav-btn.active { color: #fff !important; }
+    nav.scrolled .nav-btn:hover, nav.scrolled .nav-btn.active { color: var(--accent) !important; }
+    .nav-btn:hover::after, .nav-btn.active::after { transform: scaleX(1); }
+    .nav-btn .ico { width: 14px; height: 14px; stroke-width: 2.5; vertical-align: -2px; }
+    .nav-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: #fff; cursor: pointer;
+        transition: color 0.4s; }
+    nav.scrolled .nav-toggle { color: var(--primary); }
+    @media (max-width: 1150px) {
+        .nav-links { gap: 1.6rem; }
+        .nav-links a { font-size: 0.86rem; }
+    }
+    @media (max-width: 920px) {
+        .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(14px) saturate(180%); flex-direction: column; padding: 0.4rem 1.35rem 0.8rem; gap: 0;
+            box-shadow: 0 14px 34px rgba(6,42,110,0.14); border-top: 1px solid rgba(6,42,110,0.06); }
+        .nav-links.active { display: flex; }
+        .nav-links li { width: 100%; border-bottom: 1px solid rgba(6,42,110,0.07); }
+        .nav-links li:last-child { border-bottom: none; }
+        .nav-links a { color: var(--gray-700); display: flex; align-items: center; gap: 10px; padding: 15px 2px; font-size: 1rem;
+            width: 100%; }
+        .nav-links a.active { color: var(--accent); }
+        .nav-links a::after { display: none; }
+        .nav-btn { color: var(--gray-700) !important; }
+        .nav-toggle { display: block; padding: 6px; }
+    }
+
+    /* ===== generic section ===== */
+    section { position: relative; }
+    .container { max-width: var(--maxw); margin: 0 auto; padding: 0 2rem; }
+    .section-pad { padding: 120px 0; }
+    .section-tag { display: inline-block; font-size: 0.85rem; font-weight: 600; color: var(--accent);
+        letter-spacing: 3px; text-transform: uppercase; margin-bottom: 1.1rem; }
+    .section-title { font-size: clamp(1.9rem, 4vw, 3rem); font-weight: 800; color: var(--primary);
+        letter-spacing: -0.5px; line-height: 1.25; }
+    .section-subtitle { font-size: 1.1rem; color: var(--gray-500); margin-top: 1rem; max-width: 640px; }
+    .center { text-align: center; }
+    .center .section-subtitle { margin-left: auto; margin-right: auto; }
+    @media (max-width: 768px) { .section-pad { padding: 78px 0; } }
+
+    /* ===== HERO (image) ===== */
+    .hero { min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden;
+        background: url('images/hero-energy.jpg') center/cover no-repeat;
+        padding-top: 96px; padding-bottom: 40px; }
+    .hero::before { content:''; position:absolute; inset:0; z-index:1;
+        background: linear-gradient(180deg, rgba(6,42,110,0.78) 0%, rgba(6,42,110,0.55) 40%, rgba(6,42,110,0.75) 100%); }
+    .hero-blob, .hero-grid-lines { display: none; }
+    .hero-layout { display: flex; justify-content: center; position: relative; z-index: 2; width: 100%; }
+    .hero-content { max-width: 880px; text-align: center; }
+    .hero-title { font-size: clamp(2.4rem, 5.5vw, 4.2rem); font-weight: 800; color: #fff; line-height: 1.12;
+        letter-spacing: -1px; margin: 0.2rem 0 1.6rem; text-shadow: 0 4px 24px rgba(0,0,0,0.35); }
+    .hero-title .grad { background: linear-gradient(120deg, #ffffff, #a8c8f0); -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-desc { font-size: 1.12rem; color: rgba(255,255,255,0.86); margin: 0 auto 2.4rem; max-width: 720px; line-height: 1.85; }
+    .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .btn { display: inline-flex; align-items: center; gap: 9px; padding: 15px 34px; border-radius: 40px;
+        font-size: 1rem; font-weight: 600; text-decoration: none; cursor: pointer; transition: all 0.3s var(--ease); border: none; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); background: var(--primary-2); }
+    .hero .btn-outline { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.55); }
+    .hero .btn-outline:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.12); transform: translateY(-2px); }
+    .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid rgba(6,42,110,0.22); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); transform: translateY(-2px); }
+    .hero-stats { display: flex; gap: 2.8rem; margin: 4rem auto 0; padding-top: 2.2rem; border-top: 1px solid rgba(255,255,255,0.18); justify-content: center; flex-wrap: wrap; }
+    .hero-stat h3 { font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 800; color: #fff; line-height: 1; }
+    .hero-stat p { font-size: 0.82rem; color: rgba(255,255,255,0.7); margin-top: 6px; }
+    .scroll-hint { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 3;
+        color: rgba(255,255,255,0.7); font-size: 0.75rem; letter-spacing: 2px; display: flex; flex-direction: column;
+        align-items: center; gap: 8px; }
+    .scroll-hint .mouse { width: 22px; height: 36px; border: 2px solid rgba(255,255,255,0.4); border-radius: 12px; position: relative; }
+    .scroll-hint .mouse::after { content: ''; position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+        width: 3px; height: 7px; border-radius: 2px; background: #fff; animation: wheel 1.6s ease-in-out infinite; }
+    @keyframes wheel { 0%{opacity:0;transform:translate(-50%,0)} 40%{opacity:1} 100%{opacity:0;transform:translate(-50%,12px)} }
+    @media (max-width: 900px) { .hero-stats { gap:1.4rem; } }
+    @media (max-width: 768px) { .hero-stats { margin-top:2.6rem; } }
+
+    /* ===== HERO spotlight (cursor follow) ===== */
+    .hero-spotlight { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0;
+        background: radial-gradient(460px circle at var(--mx, 50%) var(--my, 35%),
+            rgba(150,190,255,0.32), rgba(120,170,255,0.10) 38%, transparent 62%);
+        transition: opacity 0.5s ease; }
+    .hero:hover .hero-spotlight { opacity: 1; }
+    @media (hover: none) { .hero-spotlight { display: none; } }
+
+    /* ===== BRAND BAND (light) ===== */
+    .brand { background: var(--gray-50); color: var(--gray-700); padding: 64px 0; }
+    .brand-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 2rem; text-align: center; }
+    .brand-label { color: var(--gray-400); font-size: 0.85rem; letter-spacing: 3px; margin-bottom: 2rem; text-transform: uppercase; }
+    .brand-logos { display: flex; justify-content: center; align-items: center; gap: 1.4rem; flex-wrap: wrap; }
+    .brand-item { display: flex; align-items: center; gap: 12px; padding: 1rem 1.8rem;
+        background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+    .brand-item .ico { font-size: 1.6rem; color: var(--accent); }
+    .brand-item span { font-weight: 600; font-size: 0.95rem; color: var(--gray-700); }
+    .brand-note { margin: 2.2rem auto 0; color: var(--gray-500); font-size: 0.95rem; max-width: 760px; line-height: 1.85; }
+
+    /* ===== H-SCROLL (core services, light) ===== */
+    .hscroller { position: relative; background: linear-gradient(180deg, #eef4fc, #e3eefb 50%, #eef4fc); height: 400vh; }
+    .hscroller-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    .hscroll-head { position: absolute; top: 120px; left: 0; right: 0; text-align: center; z-index: 5; padding: 0 2rem; }
+    .hscroll-head .section-tag { color: var(--accent); margin-bottom: 0.8rem; }
+    .hscroll-head h2 { color: var(--primary); font-size: clamp(1.6rem, 3.5vw, 2.6rem); font-weight: 800; letter-spacing: -0.5px; }
+    .hscroll-progress { position: absolute; bottom: 56px; left: 50%; transform: translateX(-50%); width: min(420px, 70vw);
+        height: 4px; border-radius: 4px; background: rgba(6,42,110,0.1); z-index: 5; }
+    .hscroll-progress span { display: block; height: 100%; width: 0%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+    .hscroll-hint { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); color: var(--gray-400);
+        font-size: 0.72rem; letter-spacing: 2px; z-index: 5; }
+    .hscroller-track { display: flex; align-items: flex-start; gap: 2rem; height: 100%; padding: 270px 8vw 120px; will-change: transform; }
+    .hpanel { flex: 0 0 auto; width: 46vw; max-width: 560px; min-height: 42vh;
+        background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+        display: flex; flex-direction: column; overflow: hidden;
+        transition: border-color 0.4s, box-shadow 0.4s, transform 0.4s; }
+    .hpanel:hover { border-color: var(--accent); box-shadow: var(--shadow); transform: translateY(-4px); }
+    .hpanel-image { position: relative; height: 170px; overflow: hidden; flex-shrink: 0; }
+    .hpanel-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hpanel-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0) 55%); }
+    .hpanel-idx { position: absolute; top: 0.8rem; right: 1.2rem; font-size: 4.5rem; font-weight: 800; line-height: 1;
+        color: rgba(255,255,255,0.55); letter-spacing: -2px; z-index: 2; }
+    .hpanel-body { padding: 1.8rem 2.2rem 2.2rem; display: flex; flex-direction: column; flex: 1; }
+    .hpanel-icon { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, var(--accent), var(--primary-2));
+        display: flex; align-items: center; justify-content: center; margin-bottom: 1.2rem;
+        box-shadow: 0 10px 24px rgba(0,80,179,0.22); }
+    .hpanel-icon .ico { font-size: 1.6rem; color: #fff; }
+    .hpanel h3 { font-size: 1.5rem; color: var(--primary); font-weight: 700; margin-bottom: 1rem; }
+    .hpanel p { color: var(--gray-500); font-size: 0.98rem; line-height: 1.8; flex: 1; }
+    .hpanel-tag { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin-top: 1.6rem;
+        font-size: 0.72rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 5px 12px; border-radius: 6px; }
+    @media (max-width: 900px) { .hpanel { width: 82vw; min-height: 38vh; } .hpanel-body { padding: 1.6rem 1.8rem 1.8rem; } .hscroll-head { top: 100px; } .hscroller-track { padding-top: 240px; } }
+    @media (max-width: 560px) { .hpanel { width: 86vw; min-height: 34vh; } .hpanel-image { height: 150px; } .hpanel-idx { font-size: 3.4rem; top: 0.6rem; right: 1rem; } .hscroller-track { padding-top: 230px; } .hscroll-head { top: 92px; } }
+
+    /* ===== ABOUT (light) ===== */
+    .about { background: var(--white); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4.5rem; align-items: stretch; }
+    .about-image { position: relative; border-radius: var(--radius-lg); min-height: 440px; overflow: hidden;
+        background: linear-gradient(135deg, #e8f1fd, #d4e6fb); }
+    .about-image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .about-image-badge { position: absolute; bottom: 1.8rem; right: 1.8rem; background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px); border-radius: var(--radius); padding: 1.4rem 1.8rem; box-shadow: var(--shadow-lg); text-align: center; }
+    .about-image-badge h3 { font-size: 2rem; color: var(--accent); line-height: 1; }
+    .about-image-badge p { font-size: 0.74rem; color: var(--gray-400); margin-top: 4px; }
+    .about-text p { color: var(--gray-500); margin-bottom: 1.1rem; font-size: 1.02rem; }
+    .about-features { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; margin-top: 2rem; }
+    .about-feat { display: flex; gap: 12px; align-items: flex-start; padding: 1.1rem 1.2rem; background: var(--gray-50);
+        border: 1px solid var(--gray-100); border-radius: var(--radius); transition: all 0.3s var(--ease); }
+    .about-feat:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: var(--shadow-sm); }
+    .about-feat .ico { color: var(--accent); font-size: 1.5rem; margin-top: 2px; }
+    .about-feat h4 { font-size: 0.95rem; color: var(--primary); margin-bottom: 3px; }
+    .about-feat p { font-size: 0.82rem; color: var(--gray-400); margin: 0; }
+    @media (max-width: 860px) { .about-grid { grid-template-columns: 1fr; gap: 2.5rem; } .about-features { grid-template-columns: 1fr; } }
+
+    /* ===== STATS COUNTERS (light) ===== */
+    .stats { background: var(--gray-50); color: var(--gray-700); padding: 100px 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center; }
+    .stat-item h3 { font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 800; line-height: 1;
+        background: linear-gradient(120deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-item p { margin-top: 0.8rem; color: var(--gray-500); font-size: 0.95rem; }
+    @media (max-width: 760px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 2.5rem 1rem; } }
+
+    /* ===== MALL (light) ===== */
+    .mall { background: var(--gray-50); }
+    .mall-tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2.6rem; flex-wrap: wrap; }
+    .mall-tab { display: inline-flex; align-items: center; gap: 8px; padding: 13px 32px; border-radius: 40px;
+        border: 1px solid var(--gray-200); background: #fff; color: var(--gray-500); font-size: 0.95rem; font-weight: 600;
+        cursor: pointer; transition: all 0.3s var(--ease); font-family: inherit; }
+    .mall-tab .ico { font-size: 1rem; }
+    .mall-tab:hover { border-color: var(--accent); color: var(--accent); }
+    .mall-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 8px 22px rgba(0,80,179,0.28); }
+    .mall-panel { display: none; }
+    .mall-panel.active { display: block; animation: mallFade 0.45s var(--ease); }
+    @keyframes mallFade { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    .mall-cat-desc { text-align: center; color: var(--gray-400); margin-bottom: 2.4rem; font-size: 0.98rem; }
+    .mall-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem; }
+    .mall-card { background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius-lg); overflow: hidden;
+        transition: all 0.4s var(--ease); display: flex; flex-direction: column; }
+    .mall-card:hover { border-color: var(--accent); box-shadow: var(--shadow-lg); transform: translateY(-6px); }
+    .mall-card-ico { height: 92px;
+        display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+        background: linear-gradient(145deg, rgba(6,42,110,0.78), rgba(0,80,179,0.72)); }
+    .mall-card-ico .ico-bg { position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; z-index: 0; }
+    .mall-card-ico::before { content: ''; position: absolute; inset: 0;
+        background: linear-gradient(145deg, rgba(6,42,110,0.28), rgba(0,80,179,0.16)); z-index: 1; }
+    .mall-card-ico::after { content: ''; position: absolute; inset: 0;
+        background: radial-gradient(120% 120% at 50% 0%, rgba(255,255,255,0.10), transparent 55%); z-index: 1; }
+    .mall-card-ico .ico-wrap { width: 52px; height: 52px; border-radius: 15px;
+        background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.22);
+        display: flex; align-items: center; justify-content: center; position: relative; z-index: 2;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.18), inset 0 1px 1px rgba(255,255,255,0.25);
+        transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease); }
+    .mall-card-ico .ico { font-size: 1.5rem; color: #fff; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
+    .mall-card:hover .mall-card-ico .ico-wrap { transform: translateY(-5px) scale(1.06);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.22), inset 0 1px 1px rgba(255,255,255,0.3); }
+    .mall-card-body { padding: 1.6rem; flex: 1; display: flex; flex-direction: column; }
+    .mall-card-body h4 { font-size: 1.05rem; color: var(--primary); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 8px; }
+    .mall-pill { font-size: 0.62rem; font-weight: 600; padding: 2px 9px; border-radius: 5px; background: var(--accent); color: #fff; }
+    .mall-pill.new { background: var(--accent-soft); color: var(--accent); }
+    .mall-pill.hot { background: #e8503a; }
+    .mall-card-body p { font-size: 0.85rem; color: var(--gray-400); line-height: 1.65; flex: 1; }
+    .mall-card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 1.2rem;
+        padding-top: 1rem; border-top: 1px solid var(--gray-100); }
+    .mall-price { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+    .mall-more { font-size: 0.82rem; color: var(--primary); text-decoration: none; font-weight: 600; transition: color 0.3s; }
+    .mall-more:hover { color: var(--accent); }
+    @media (max-width: 880px) { .mall-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .mall-grid { grid-template-columns: 1fr; } }
+
+    /* ===== ADVANTAGES (light) ===== */
+    .advantages { background: var(--white); }
+    .adv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.6rem; }
+    .adv-card { text-align: center; padding: 2.8rem 1.6rem; background: var(--gray-50); border: 1px solid var(--gray-100);
+        border-radius: var(--radius-lg); transition: all 0.4s var(--ease); }
+    .adv-card:hover { border-color: var(--accent); box-shadow: var(--shadow); transform: translateY(-6px); }
+    .adv-icon { width: 66px; height: 66px; margin: 0 auto 1.3rem; background: linear-gradient(135deg, var(--accent-soft), #fff);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .adv-icon .ico { font-size: 1.9rem; color: var(--accent); }
+    .adv-card h3 { font-size: 1.1rem; color: var(--primary); margin-bottom: 0.6rem; }
+    .adv-card p { font-size: 0.86rem; color: var(--gray-400); }
+    @media (max-width: 880px) { .adv-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .adv-grid { grid-template-columns: 1fr; } }
+
+    /* ===== APPOINTMENT (light) ===== */
+    .appointment { background: linear-gradient(180deg, #eef4fc, #e3eefb); color: var(--gray-700); position: relative; overflow: hidden; }
+    .appointment .blob-1 { background: radial-gradient(circle, rgba(0,80,179,0.12), transparent 70%); opacity: 0.5; }
+    .appointment-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 4rem; align-items: center; position: relative; z-index: 2; }
+    .app-left h2 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.25; letter-spacing: -0.5px; color: var(--primary); }
+    .app-left > p { color: var(--gray-500); font-size: 1.1rem; margin: 1.2rem 0 2.4rem; }
+    .app-ways { display: flex; flex-direction: column; gap: 1rem; }
+    .app-way { display: flex; align-items: center; gap: 1rem; background: #fff;
+        border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.2rem 1.6rem; transition: all 0.3s var(--ease); }
+    .app-way:hover { background: var(--accent-soft); border-color: var(--accent); transform: translateX(5px); }
+    .app-way .ico { font-size: 1.5rem; color: var(--accent); width: 34px; text-align: center; }
+    .app-way .aw-text strong { display: block; font-size: 1rem; color: var(--gray-700); }
+    .app-way .aw-text span { font-size: 0.78rem; color: var(--gray-400); }
+    .app-card { background: #fff; border-radius: var(--radius-lg); padding: 2.6rem; box-shadow: var(--shadow-lg); }
+    .app-card h3 { color: var(--primary); font-size: 1.35rem; }
+    .app-card .sub { font-size: 0.85rem; color: var(--gray-400); margin: 0.4rem 0 1.8rem; }
+    .app-field { margin-bottom: 1.2rem; }
+    .app-field label { display: block; font-size: 0.85rem; color: var(--gray-500); margin-bottom: 0.4rem; font-weight: 500; }
+    .app-field input, .app-field select, .app-field textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--gray-200);
+        border-radius: var(--radius); font-size: 0.92rem; font-family: inherit; transition: border-color 0.3s; background: var(--gray-50); }
+    .app-field input:focus, .app-field select:focus, .app-field textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
+    .app-submit { width: 100%; background: var(--accent); color: #fff; border: none; padding: 15px; border-radius: var(--radius);
+        font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s var(--ease); margin-top: 0.5rem; }
+    .app-submit:hover { background: var(--primary-2); }
+    .app-note { font-size: 0.76rem; color: var(--gray-400); text-align: center; margin-top: 1rem; }
+    @media (max-width: 860px) { .appointment-grid { grid-template-columns: 1fr; gap: 2.6rem; } }
+
+    /* ===== NEWS CAROUSEL (white) ===== */
+    .news { background: #fff; }
+    .news-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 2.4rem; flex-wrap: wrap; }
+    .news-hint { font-size: 0.8rem; color: var(--gray-400); display: inline-flex; align-items: center; gap: 6px; }
+    .news-carousel { display: flex; gap: 1.6rem; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 2px 18px;
+        cursor: grab; scrollbar-width: none; }
+    .news-carousel::-webkit-scrollbar { display: none; }
+    .news-carousel.dragging { cursor: grabbing; scroll-snap-type: none; }
+    .news-card { flex: 0 0 360px; scroll-snap-align: start; background: #fff; border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg); overflow: hidden; transition: all 0.4s var(--ease); }
+    .news-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
+    .news-img { height: 188px; position: relative; overflow: hidden; }
+    .news-img-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+    .news-img::before { content: ''; position: absolute; inset: 0; z-index: 1;
+        background: linear-gradient(180deg, rgba(6,42,110,0.35) 0%, rgba(6,42,110,0.08) 50%, rgba(255,255,255,0.92) 100%); }
+    .news-img .ico-wrap { position: absolute; z-index: 2; width: 52px; height: 52px; border-radius: 16px;
+        background: rgba(255,255,255,0.16); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center;
+        bottom: 0.9rem; right: 0.9rem; }
+    .news-img .ico { font-size: 1.6rem; color: #fff; }
+    .news-tag { position: absolute; top: 1rem; left: 1rem; background: var(--accent); color: #fff; font-size: 0.74rem;
+        padding: 4px 13px; border-radius: 40px; font-weight: 600; z-index: 2; }
+    .news-body { padding: 1.6rem; }
+    .news-date { font-size: 0.8rem; color: var(--gray-400); margin-bottom: 0.5rem; }
+    .news-body h3 { font-size: 1.05rem; color: var(--primary); margin-bottom: 0.7rem; line-height: 1.5; }
+    .news-body p { font-size: 0.85rem; color: var(--gray-400); line-height: 1.6;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    @media (max-width: 560px) { .news-card { flex-basis: 84vw; } }
+
+    /* ===== MINI APP GUIDE (light) ===== */
+    .miniapp { background: var(--gray-50); color: var(--gray-700); }
+    .miniapp-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 3.5rem; align-items: center; }
+    .miniapp .section-subtitle { color: var(--gray-500); margin: 0; }
+    .miniapp-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin: 2.2rem 0 1.8rem; }
+    .miniapp-points { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
+    .miniapp-points li { display: flex; align-items: center; gap: 12px; color: var(--gray-700); font-size: 0.96rem; }
+    .miniapp-points .ico { color: var(--accent); font-size: 1.2rem; }
+    .miniapp-qr { text-align: center; }
+    .qr-box { display: inline-block; padding: 18px; background: #fff; border-radius: 22px; box-shadow: var(--shadow-lg); }
+    .qr-box svg { display: block; border-radius: 12px; }
+    .qr-cap { margin-top: 1.1rem; font-weight: 600; color: var(--primary); font-size: 1.05rem; }
+    .qr-note { margin-top: 0.5rem; font-size: 0.75rem; color: var(--gray-400); }
+    .float-mini { position: fixed; right: 28px; bottom: 92px; display: flex; align-items: center; gap: 7px;
+        background: var(--accent); color: #fff; padding: 11px 17px; border-radius: 30px; font-size: 0.85rem;
+        font-weight: 600; text-decoration: none; box-shadow: var(--shadow-lg); z-index: 1500;
+        transition: all 0.3s var(--ease); }
+    .float-mini:hover { transform: translateY(-3px); background: var(--primary-2); }
+    .float-mini .ico { width: 1.15rem; height: 1.15rem; }
+    @media (max-width: 860px) { .miniapp-grid { grid-template-columns: 1fr; } }
+
+    /* ===== FOOTER (dark, grounding) ===== */
+    footer { background: #061637; color: rgba(255,255,255,0.6); padding: 64px 0 30px; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.4fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-brand h3 { color: #fff; font-size: 1.25rem; margin-bottom: 0.6rem; }
+    .footer-brand p { font-size: 0.9rem; line-height: 1.8; margin-bottom: 1.4rem; color: rgba(255,255,255,0.55); }
+    .footer-social { display: flex; gap: 0.8rem; }
+    .footer-social a { width: 40px; height: 40px; background: rgba(255,255,255,0.08); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.6); transition: all 0.3s var(--ease); }
+    .footer-social a:hover { background: var(--accent); color: #fff; transform: translateY(-3px); }
+    .footer-col h4 { color: #fff; font-size: 1rem; margin-bottom: 1.2rem; }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 0.7rem; }
+    .footer-col ul li a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+    .footer-col ul li a:hover { color: var(--ice); }
+    .footer-contact li { display: flex; gap: 10px; align-items: flex-start; color: rgba(255,255,255,0.55); font-size: 0.88rem; margin-bottom: 0.8rem; }
+    .footer-contact li .ico { color: var(--ice); margin-top: 4px; width: 18px; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; display: flex;
+        justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; }
+    .footer-bottom-links { display: flex; gap: 1.5rem; }
+    .footer-bottom-links a { color: rgba(255,255,255,0.4); text-decoration: none; transition: color 0.3s; }
+    .footer-bottom-links a:hover { color: rgba(255,255,255,0.8); }
+    @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+
+    /* ===== back to top ===== */
+    .to-top { position: fixed; right: 28px; bottom: 28px; width: 52px; height: 52px; border-radius: 50%;
+        background: var(--accent); color: #fff; border: none; cursor: pointer; display: flex; align-items: center;
+        justify-content: center; font-size: 1.3rem; box-shadow: var(--shadow-lg); opacity: 0; transform: translateY(20px);
+        pointer-events: none; transition: all 0.4s var(--ease); z-index: 1500; }
+    .to-top.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .to-top:hover { background: var(--primary-2); transform: translateY(-3px); }
+
+    /* ===== REVEAL ===== */
+    .reveal { opacity: 0; transform: translateY(38px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } .hero-blob { animation: none; } }
+
+    /* ===== MOBILE ENHANCEMENTS (beautiful on phones) ===== */
+    @media (max-width: 768px) {
+        .container { padding: 0 1.35rem; }
+        nav { padding: 0 1.35rem; }
+        .nav-inner { min-height: 60px; }
+
+        .section-pad { padding: 72px 0; }
+        .section-title { font-size: clamp(1.55rem, 6.6vw, 2.1rem); line-height: 1.3; }
+        .section-subtitle { font-size: 1rem; line-height: 1.75; }
+
+        /* HERO */
+        .hero { padding-top: 78px; padding-bottom: 56px; min-height: 92vh; }
+        .hero-content { max-width: 100%; }
+        .hero-title { font-size: clamp(2rem, 9vw, 3rem); letter-spacing: -0.5px; margin-bottom: 1.1rem; }
+        .hero-desc { font-size: 1rem; margin-bottom: 2rem; padding: 0 0.15rem; }
+        .hero-btns { flex-direction: column; gap: 0.85rem; width: 100%; max-width: 340px; margin: 0 auto; }
+        .hero-btns .btn { width: 100%; justify-content: center; padding: 15px 24px; }
+        .hero-stats { gap: 1.4rem 1.6rem; width: 100%; padding-top: 1.8rem; margin-top: 2.6rem; }
+        .hero-stat { min-width: 86px; }
+        .hero-stat h3 { font-size: clamp(1.5rem, 7.5vw, 2rem); }
+        .scroll-hint { bottom: 14px; }
+
+        /* BRAND BAND */
+        .brand { padding: 46px 0; }
+        .brand-item { padding: 0.85rem 1.2rem; }
+
+        /* H-SCROLL core services */
+        .hscroll-head { top: 78px; }
+        .hscroller-track { padding-top: 162px; align-items: flex-start; }
+        .hpanel { width: 86vw; min-height: 34vh; padding: 2rem 1.6rem; }
+        .hpanel-idx { font-size: 3.2rem; }
+
+        /* ABOUT */
+        .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+        .about-features { grid-template-columns: 1fr; gap: 1rem; }
+        .about-feature { padding: 1.4rem 1.4rem; }
+
+        /* STATS */
+        .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 2.2rem 1rem; }
+
+        /* MALL */
+        .mall-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .mall-card-ico { height: 76px; }
+        .mall-card-body { padding: 1rem 1rem 1.2rem; }
+        .mall-card-body h4 { font-size: 0.95rem; }
+        .mall-card-body p { font-size: 0.8rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .mall-card-foot { margin-top: 0.9rem; padding-top: 0.8rem; }
+
+        /* ADVANTAGES */
+        .adv-grid { grid-template-columns: 1fr; gap: 1.1rem; }
+        .adv-card { padding: 1.6rem 1.4rem; }
+
+        /* APPOINTMENT */
+        .appointment-grid { grid-template-columns: 1fr; gap: 2rem; }
+        .appointment-info h2 { font-size: 1.7rem; }
+
+        /* NEWS */
+        .news-card { flex-basis: 84vw; }
+        .news-card-body { padding: 1.4rem 1.4rem 1.6rem; }
+
+        /* MINIAPP (guide to mini program, mobile-first) */
+        .miniapp-grid { grid-template-columns: 1fr; gap: 2.2rem; }
+        .miniapp-actions { flex-direction: column; gap: 0.85rem; }
+        .miniapp-actions .btn { width: 100%; justify-content: center; }
+        .miniapp-qr { order: -1; }
+        .qr-box { padding: 14px; border-radius: 18px; max-width: 220px; }
+
+        /* FOOTER */
+        .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem 1.4rem; }
+        .footer-bottom { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+    }
+
+    @media (max-width: 480px) {
+        .container { padding: 0 1.1rem; }
+        nav { padding: 0 1.1rem; }
+        .hero-title { font-size: clamp(1.85rem, 10vw, 2.5rem); }
+        .hero-stats { gap: 1rem 1.1rem; }
+        .hero-stat { min-width: 72px; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .mall-grid { grid-template-columns: 1fr; }
+        .footer-grid { grid-template-columns: 1fr; }
+        .float-mini { right: 16px; bottom: 84px; padding: 11px 14px; font-size: 0.85rem; }
+        .to-top { right: 16px; bottom: 16px; width: 46px; height: 46px; font-size: 1.1rem; }
+    }
+
+</style>
+</head>
+<body>
+    <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <symbol id="ico-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+            <symbol id="ico-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+            <symbol id="ico-award" viewBox="0 0 24 24"><path d="M12 3l2.5 5 5.5.5-4 4 1.2 5.5L12 15l-5.2 3 1.2-5.5-4-4 5.5-.5z"/></symbol>
+            <symbol id="ico-bars" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></symbol>
+            <symbol id="ico-calendar-check" viewBox="0 0 24 24"><path d="M16 2v4M8 2v4M4 10h16M9 16l2 2 4-4M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></symbol>
+            <symbol id="ico-battery-half" viewBox="0 0 24 24"><path d="M3 8h13v8H3zM19 11v2M6 11v2M9 11v2"/></symbol>
+            <symbol id="ico-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+            <symbol id="ico-book" viewBox="0 0 24 24"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4zM5 4v14"/></symbol>
+            <symbol id="ico-book-open-reader" viewBox="0 0 24 24"><path d="M12 6c-2-1-5-1-7 0v12c2-1 5-1 7 0 2-1 5-1 7 0V6c-2-1-5-1-7 0zM12 6v12"/></symbol>
+            <symbol id="ico-building" viewBox="0 0 24 24"><path d="M5 21V5h9v16M14 9h4a2 2 0 0 1 2 2v10M8 8h2M8 12h2M8 16h2"/></symbol>
+            <symbol id="ico-car-battery" viewBox="0 0 24 24"><path d="M4 8h13v8H4zM19 11v2M7 11v2M11 11v2"/></symbol>
+            <symbol id="ico-car-on" viewBox="0 0 24 24"><path d="M3 13l2-5h14l2 5v4H3zM7 17v2M17 17v2M6 15h12"/></symbol>
+            <symbol id="ico-certificate" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM9 8h6M9 12h6M9 16h3"/></symbol>
+            <symbol id="ico-chalkboard-user" viewBox="0 0 24 24"><path d="M3 5h18v10H3zM8 20l-1-4M14 20h-4M12 20v-4"/></symbol>
+            <symbol id="ico-charging-station" viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M13 11l-3 5h3l-2 4M7 8h5"/></symbol>
+            <symbol id="ico-clock" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2"/></symbol>
+            <symbol id="ico-diagram-project" viewBox="0 0 24 24"><path d="M5 4h6v6H5zM13 14h6v6h-6zM8 10v3a3 3 0 0 0 3 3h3M8 10"/></symbol>
+            <symbol id="ico-file-contract" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM9 8h6M9 12h6M9 16h4"/></symbol>
+            <symbol id="ico-graduation-cap" viewBox="0 0 24 24"><path d="M2 9l10-4 10 4-10 4zM6 11v4c0 1 3 2 6 2s6-1 6-2v-4M17 12l5-2"/></symbol>
+            <symbol id="ico-handshake-angle" viewBox="0 0 24 24"><path d="M4 13c2-2 4-2 6 0l3 3c2 2 4 2 6 0M14 8l-3 3M7 9l4 3c1 1 1 2 0 3"/></symbol>
+            <symbol id="ico-headset" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2M4 14H3v4h3M21 14h-1v4h3M4 18a2 2 0 0 0 2 2h1"/></symbol>
+            <symbol id="ico-helmet-safety" viewBox="0 0 24 24"><path d="M3 16a9 9 0 0 1 18 0zM3 16h18M9 16v-3a3 3 0 0 1 6 0v3"/></symbol>
+            <symbol id="ico-house-chimney-user" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v9h5v-5h4v5h5v-9"/></symbol>
+            <symbol id="ico-industry" viewBox="0 0 24 24"><path d="M3 21V9l6 4V9l6 4V9l6 4v8zM3 21h18"/></symbol>
+            <symbol id="ico-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14zM5 19c4-4 8-6 11-7"/></symbol>
+            <symbol id="ico-location-crosshairs" viewBox="0 0 24 24"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11zM12 8a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+            <symbol id="ico-location-dot" viewBox="0 0 24 24"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11zM12 8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></symbol>
+            <symbol id="ico-magnifying-glass-chart" viewBox="0 0 24 24"><path d="M11 11a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM11 1v10M1 11h10M16 16l6 6M15 15v4M17 17h4"/></symbol>
+            <symbol id="ico-microchip" viewBox="0 0 24 24"><path d="M7 7h10v10H7zM10 4v3M14 4v3M10 17v3M14 17v3M4 10h3M4 14h3M17 10h3M17 14h3"/></symbol>
+            <symbol id="ico-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2 1a11 11 0 0 0 5 5l1-2 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></symbol>
+            <symbol id="ico-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M7 8h10v4a5 5 0 0 1-10 0zM12 17v4"/></symbol>
+            <symbol id="ico-ranking-star" viewBox="0 0 24 24"><path d="M12 3l2.5 5 5.5.5-4 4 1.2 5.5L12 15l-5.2 3 1.2-5.5-4-4 5.5-.5zM5 21h14"/></symbol>
+            <symbol id="ico-recycle" viewBox="0 0 24 24"><path d="M8 20l-4-6 5-1M20 9l-4-6 5-1M9 4l4 1 2 4M5 14l5 1 1-4M16 13l4 6-5 1M7 11l5-1"/></symbol>
+            <symbol id="ico-road-circle-check" viewBox="0 0 24 24"><path d="M9 21L7 3h10l-2 18M12 8v2M12 13v2M16 12l2 2 3-3"/></symbol>
+            <symbol id="ico-screwdriver-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3l3 3-7 7-3-3zM3 21l4-4M18 11l3 3"/></symbol>
+            <symbol id="ico-shield-halved" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6zM12 3v18"/></symbol>
+            <symbol id="ico-shield-heart" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6zM12 11.5l-2 2a2.5 2.5 0 0 0 4 0z"/></symbol>
+            <symbol id="ico-spray-can-sparkles" viewBox="0 0 24 24"><path d="M9 8h4v11H9zM10 4h2v4h-2zM14 6l1-2M16 9l2-1M16 13l2 0"/></symbol>
+            <symbol id="ico-tags" viewBox="0 0 24 24"><path d="M3 12l8-8h7v7l-8 8zM7 8a1 1 0 1 0 0-.1M14 14l5 5"/></symbol>
+            <symbol id="ico-tiktok" viewBox="0 0 24 24"><path d="M14 3v9a3 3 0 1 1-3-3M14 3c1 2 3 3 5 3M14 7c-1 2-1 5 1 7"/></symbol>
+            <symbol id="ico-truck-medical" viewBox="0 0 24 24"><path d="M2 6h11v9H2zM13 9h4l3 3v3h-7M6 18a2 2 0 1 0 0-.1M17 18a2 2 0 1 0 0-.1M8 9v3M6.5 10.5h3"/></symbol>
+            <symbol id="ico-users" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M22 20a6 6 0 0 0-4-5"/></symbol>
+            <symbol id="ico-wave-square" viewBox="0 0 24 24"><path d="M2 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0"/></symbol>
+            <symbol id="ico-weixin" viewBox="0 0 24 24"><path d="M9 4C5.5 4 3 6.2 3 9c0 1.7.9 3.1 2.3 4L4.5 16l3-1.6c.7.2 1.5.3 2.3.3M15 9c-3 0-5.5 2-5.5 4.5S12 18 15 18s5.5-2 5.5-4.5S18 9 15 9z"/></symbol>
+            <symbol id="ico-weibo" viewBox="0 0 24 24"><path d="M3 10c0-4 4-7 8-7s8 3 8 7-4 7-8 7c-1 0-2 0-3-.3L4 18l1-3c-1.5-.8-2-2.5-2-5z"/></symbol>
+            <symbol id="ico-wrench" viewBox="0 0 24 24"><path d="M14 7a4 4 0 0 1-5 5l-6 6 2 2 6-6a4 4 0 0 1 5-5l-2-2zM14 7l-2-2"/></symbol>
+    </svg>
+
+    <div class="progress-bar" id="progressBar"></div>
+
+<!-- NAVIGATION -->
+<nav id="navbar">
+    <div class="nav-inner">
+        <a href="#home" class="nav-brand" aria-label="CETT 宁家服务">
+            <span class="nav-brand-word">CETT</span>
+        </a>
+        <button class="nav-toggle" id="navToggle" aria-label="菜单"><svg class="ico" aria-hidden="true"><use href="#ico-bars"></use></svg></button>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#home" data-spy="home">首页</a></li>
+            <li><a href="#about" data-spy="about">门店介绍</a></li>
+            <li><a href="#core" data-spy="core">核心业务</a></li>
+            <li><a href="#mall" data-spy="mall">宁家商城</a></li>
+            <li><a href="#advantages" data-spy="advantages">门店优势</a></li>
+            <li><a href="#appointment" class="nav-btn" data-spy="appointment"><svg class="ico" aria-hidden="true"><use href="#ico-calendar-check"></use></svg> 预约到店</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+    <div class="hero-spotlight"></div>
+    <div class="hero-blob blob-1" data-parallax="0.25"></div>
+    <div class="hero-blob blob-2" data-parallax="-0.18"></div>
+    <div class="hero-blob blob-3" data-parallax="0.12"></div>
+    <div class="hero-grid-lines"></div>
+    <div class="container">
+        <div class="hero-layout">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    立足北京 · 联动全国<br><span class="grad">新能源服务管家</span>
+                </h1>
+                <p class="hero-desc">
+                    北京宁家服务直营门店，依托宁德时代全球领先动力电池技术与原厂配件保障，为全国新能源车主提供电池检测、维保、回收等官方服务，并拓展充电、美容、车险、上门快修等一站式服务（北京直营门店 + 全国上门/寄修）。
+                </p>
+                <div class="hero-btns">
+                    <a href="#appointment" class="btn btn-primary">立即预约到店 <svg class="ico" aria-hidden="true"><use href="#ico-arrow-right"></use></svg></a>
+                    <a href="#core" class="btn btn-outline">探索核心服务</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat"><h3>8,000+</h3><p>累计服务车主</p></div>
+                    <div class="hero-stat"><h3>全国</h3><p>业务覆盖范围</p></div>
+                    <div class="hero-stat"><h3>8小时</h3><p>一般故障修复</p></div>
+                    <div class="hero-stat"><h3>100%</h3><p>原厂授权技师</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="#core" class="scroll-hint" aria-label="向下滚动">
+        <span class="mouse"></span>
+        <span>SCROLL</span>
+    </a>
+</section>
+
+<!-- BRAND BAND -->
+<section class="brand">
+    <div class="brand-inner reveal">
+        <div class="brand-label">品牌授权与供应链支持</div>
+        <div class="brand-logos">
+            <div class="brand-item"><svg class="ico" aria-hidden="true"><use href="#ico-industry"></use></svg><span>宁德时代 CATL</span></div>
+            <div class="brand-item"><svg class="ico" aria-hidden="true"><use href="#ico-leaf"></use></svg><span>邦普循环 Brunp</span></div>
+            <div class="brand-item"><svg class="ico" aria-hidden="true"><use href="#ico-certificate"></use></svg><span>24 项行业标准</span></div>
+        </div>
+        <p class="brand-note">
+            北京宁家服务直营门店严格遵循宁德时代技术体系与质量标准，配备自研检测、诊断、维修专业设备，使用原厂配件与官方质保，让全国车主享受与全球统一的高品质服务。
+        </p>
+    </div>
+</section>
+
+<!-- CORE SERVICES — HORIZONTAL SCROLL -->
+<section class="hscroller" id="core">
+    <div class="hscroller-sticky">
+        <div class="hscroll-head">
+            <div class="section-tag">核心业务 · 宁德授权</div>
+            <h2>电池全生命周期官方服务</h2>
+        </div>
+        <div class="hscroller-track" id="hTrack">
+            <div class="hpanel">
+                <div class="hpanel-image">
+                    <img src="images/core-1.jpg" alt="电池检测与诊断" loading="lazy">
+                    <div class="hpanel-idx">01</div>
+                </div>
+                <div class="hpanel-body">
+                    <div class="hpanel-icon"><svg class="ico" aria-hidden="true"><use href="#ico-magnifying-glass-chart"></use></svg></div>
+                    <h3>电池检测与诊断</h3>
+                    <p>45 项线上分析 + 28 项线下检测的专业电池健康评估体系，及时发现隐患、延长电池寿命、保障行车安全，并支持二手车电池状态评估。</p>
+                    <span class="hpanel-tag"><svg class="ico" aria-hidden="true"><use href="#ico-shield-halved"></use></svg> 宁德官方授权</span>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="hpanel-image">
+                    <img src="images/core-2.jpg" alt="电池维保与返修" loading="lazy">
+                    <div class="hpanel-idx">02</div>
+                </div>
+                <div class="hpanel-body">
+                    <div class="hpanel-icon"><svg class="ico" aria-hidden="true"><use href="#ico-wrench"></use></svg></div>
+                    <h3>电池维保与返修</h3>
+                    <p>CTP 结构电池包低成本返修方案，采用原厂配件、34 道精细工序无尘作业。一般故障 8 小时修复，疑难故障 72 小时修复。</p>
+                    <span class="hpanel-tag"><svg class="ico" aria-hidden="true"><use href="#ico-shield-halved"></use></svg> 宁德官方授权</span>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="hpanel-image">
+                    <img src="images/core-3.jpg" alt="电池回收与循环经济" loading="lazy">
+                    <div class="hpanel-idx">03</div>
+                </div>
+                <div class="hpanel-body">
+                    <div class="hpanel-icon"><svg class="ico" aria-hidden="true"><use href="#ico-recycle"></use></svg></div>
+                    <h3>电池回收与循环经济</h3>
+                    <p>依托邦普循环全球领先供应链，提供"72 小时极速回收"与退役电池绿色处理，返修再制造、梯次利用或再生材料处理。</p>
+                    <span class="hpanel-tag"><svg class="ico" aria-hidden="true"><use href="#ico-shield-halved"></use></svg> 宁德官方授权</span>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="hpanel-image">
+                    <img src="images/core-4.jpg" alt="技术培训与认证" loading="lazy">
+                    <div class="hpanel-idx">04</div>
+                </div>
+                <div class="hpanel-body">
+                    <div class="hpanel-icon"><svg class="ico" aria-hidden="true"><use href="#ico-graduation-cap"></use></svg></div>
+                    <h3>技术培训与认证</h3>
+                    <p>提供新能源三电系统维修技术培训与认证，面向门店技师与行业从业者，赋能全国新能源后市场人才成长。</p>
+                    <span class="hpanel-tag"><svg class="ico" aria-hidden="true"><use href="#ico-shield-halved"></use></svg> 宁德官方授权</span>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="hpanel-image">
+                    <img src="images/core-5.jpg" alt="二手车交易支持" loading="lazy">
+                    <div class="hpanel-idx">05</div>
+                </div>
+                <div class="hpanel-body">
+                    <div class="hpanel-icon"><svg class="ico" aria-hidden="true"><use href="#ico-car-on"></use></svg></div>
+                    <h3>二手车交易支持</h3>
+                    <p>提供专业电池状态评估方案，为全国二手车交易提供权威技术支持，买卖更透明、车辆更保值。</p>
+                    <span class="hpanel-tag"><svg class="ico" aria-hidden="true"><use href="#ico-shield-halved"></use></svg> 宁德官方授权</span>
+                </div>
+            </div>
+            <div class="hpanel">
+                <div class="hpanel-image">
+                    <img src="images/core-6.jpg" alt="电池保险服务" loading="lazy">
+                    <div class="hpanel-idx">06</div>
+                </div>
+                <div class="hpanel-body">
+                    <div class="hpanel-icon"><svg class="ico" aria-hidden="true"><use href="#ico-shield-heart"></use></svg></div>
+                    <h3>电池保险服务</h3>
+                    <p>创新电池保险方案，覆盖使用与意外场景，为全国新能源车主提供全周期安心保障。</p>
+                    <span class="hpanel-tag"><svg class="ico" aria-hidden="true"><use href="#ico-shield-halved"></use></svg> 宁德官方授权</span>
+                </div>
+            </div>
+        </div>
+        <div class="hscroll-progress"><span id="hProgress"></span></div>
+        <div class="hscroll-hint">向下滚动 · 横向浏览六大服务 →</div>
+    </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about section-pad" id="about">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-image reveal">
+                <img src="images/store-beijing.jpg" alt="宁家服务北京直营门店外景" loading="lazy">
+                <div class="about-image-badge">
+                    <h3>北京</h3>
+                    <p>宁德时代官方授权直营门店 · 联动全国</p>
+                </div>
+            </div>
+            <div class="about-text reveal">
+                <div class="section-tag">门店介绍</div>
+                <h2 class="section-title">宁德时代官方授权，北京直营 · 服务全国</h2>
+                <p>
+                    北京宁家服务直营门店是宁德时代官方授权的北京地区直营服务中心。我们共享宁家服务全球领先的服务体系——覆盖 88 个国家、超 1300 家服务站点，将主机厂级的技术与标准带到全国车主身边，以北京直营门店作为服务中枢。
+                </p>
+                <p>
+                    在电池检测、维保、回收等官方核心业务之外，门店结合全国车主需求，拓展了充电桩安装运维、车辆美容精洗、车险代理、上门快修、企业车队托管等多元化服务，打造"一辆车全生命周期"的一站式服务驿站。
+                </p>
+                <div class="about-features">
+                    <div class="about-feat">
+                        <svg class="ico" aria-hidden="true"><use href="#ico-microchip"></use></svg>
+                        <div><h4>原厂技术</h4><p>宁德时代电池技术直营落地</p></div>
+                    </div>
+                    <div class="about-feat">
+                        <svg class="ico" aria-hidden="true"><use href="#ico-shield-halved"></use></svg>
+                        <div><h4>原厂配件</h4><p>官方质保，CTP 低成本返修</p></div>
+                    </div>
+                    <div class="about-feat">
+                        <svg class="ico" aria-hidden="true"><use href="#ico-location-dot"></use></svg>
+                        <div><h4>直营门店</h4><p>北京基地，全国响应</p></div>
+                    </div>
+                    <div class="about-feat">
+                        <svg class="ico" aria-hidden="true"><use href="#ico-handshake-angle"></use></svg>
+                        <div><h4>拓展服务</h4><p>充电/美容/车险/上门快修</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STATS COUNTERS -->
+<section class="stats">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item reveal"><h3 data-count="88" data-suffix="">0</h3><p>服务国家与地区</p></div>
+            <div class="stat-item reveal"><h3 data-count="1300" data-suffix="+">0</h3><p>全球服务站点</p></div>
+            <div class="stat-item reveal"><h3 data-count="8000" data-suffix="+">0</h3><p>累计服务车主</p></div>
+            <div class="stat-item reveal"><h3 data-count="100" data-suffix="%">0</h3><p>原厂授权技师</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- NING MALL -->
+<section class="mall section-pad" id="mall">
+    <div class="container">
+        <div class="center reveal">
+            <div class="section-tag">宁家商城</div>
+            <h2 class="section-title">一站式新能源生活与服务平台</h2>
+            <p class="section-subtitle">
+                汇聚生活服务、教研培训、专业设备三大板块，面向全国新能源车主与服务商，提供可在线了解、到店体验的全链条业务。所有项目均可在门店咨询办理。
+            </p>
+        </div>
+
+        <div class="mall-tabs" id="mallTabs">
+            <button class="mall-tab active" data-cat="life"><svg class="ico" aria-hidden="true"><use href="#ico-house-chimney-user"></use></svg> 生活服务</button>
+            <button class="mall-tab" data-cat="edu"><svg class="ico" aria-hidden="true"><use href="#ico-graduation-cap"></use></svg> 教研培训</button>
+            <button class="mall-tab" data-cat="equip"><svg class="ico" aria-hidden="true"><use href="#ico-screwdriver-wrench"></use></svg> 设备工具</button>
+        </div>
+
+        <!-- 生活服务 -->
+        <div class="mall-panel active" data-cat="life">
+            <p class="mall-cat-desc">围绕车主日常用车与养车需求，提供便捷、透明、官方背书的生活服务，到店或上门均可办理。</p>
+            <div class="mall-grid">
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-1.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-charging-station"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>充电服务 <span class="mall-pill hot">热销</span></h4>
+                        <p>家用充电桩勘测安装、公共充电权益包，一站式解决全国车主充电与续航焦虑。</p>
+                        <div class="mall-card-foot"><span class="mall-price">咨询报价</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-2.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-spray-can-sparkles"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>车辆美容养护</h4>
+                        <p>新能源专属车身、内饰精洗与漆面养护，无伤清洁工艺，焕新每一程。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 99 起</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-3.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-file-contract"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>车险代理续保</h4>
+                        <p>新能源车专属保险方案对比与代理投保，帮车主选对、买省、理赔快。</p>
+                        <div class="mall-card-foot"><span class="mall-price">免费比价</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-4.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-truck-medical"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>上门快修取送 <span class="mall-pill new">新品</span></h4>
+                        <p>全国主要城市移动服务车上门，小故障现场快修，支持上门取送车，免去到店等待。</p>
+                        <div class="mall-card-foot"><span class="mall-price">咨询报价</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-5.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-road-circle-check"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>道路救援</h4>
+                        <p>搭电、拖车、应急充电等 7×24 小时道路救援服务，出行更安心。</p>
+                        <div class="mall-card-foot"><span class="mall-price">会员专享</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-6.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-car-battery"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>电池健康年检</h4>
+                        <p>年度电池健康评估套餐，出具权威检测报告，提前发现隐患、延长寿命。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 199</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-7.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-building"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>企业车队托管</h4>
+                        <p>面向企业、网约车与物流车队的电池维保、能耗管理与年度体检套餐。</p>
+                        <div class="mall-card-foot"><span class="mall-price">定制方案</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-8.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-users"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>车主会员社群</h4>
+                        <p>专属会员权益、车主活动与养车课堂，构建全国新能源车主朋友圈。</p>
+                        <div class="mall-card-foot"><span class="mall-price">免费加入</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-9.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-battery-half"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>电池租赁 / 换电</h4>
+                        <p>提供电池租赁与灵活换电方案，降低购车门槛，出行更无负担。</p>
+                        <div class="mall-card-foot"><span class="mall-price">咨询报价</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 教研培训 -->
+        <div class="mall-panel" data-cat="edu">
+            <p class="mall-cat-desc">面向技师、门店与行业从业者，提供宁德时代体系内的培训、认证与教研资源，赋能新能源后市场人才。</p>
+            <div class="mall-grid">
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-10.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-microchip"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>三电维修认证 <span class="mall-pill hot">热门</span></h4>
+                        <p>电池、电机、电控系统维修专项认证课程，理论与实操结合，考核通过颁发证书。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 3,800</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-11.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-magnifying-glass-chart"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>电池检测专项培训</h4>
+                        <p>电池健康评估、诊断设备操作与报告解读专项培训，快速上手专业检测。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 2,600</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-12.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-ranking-star"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>技师等级认证</h4>
+                        <p>初级 / 中级 / 高级技师分级认证体系，助力职业晋升与门店资质提升。</p>
+                        <div class="mall-card-foot"><span class="mall-price">分级收费</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-13.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-chalkboard-user"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>门店运营研修班</h4>
+                        <p>面向门店管理者，涵盖服务流程、客户运营与供应链管理的高阶研修。</p>
+                        <div class="mall-card-foot"><span class="mall-price">定制报价</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-14.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-book-open-reader"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>新能源技术公开课</h4>
+                        <p>定期面向车主与爱好者的免费技术公开课，电池养护、安全用车一站学。</p>
+                        <div class="mall-card-foot"><span class="mall-price">免费</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-15.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-book"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>教材与标准手册</h4>
+                        <p>宁德时代体系培训教材、维修标准与作业指导书，正版授权、持续更新。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备工具 -->
+        <div class="mall-panel" data-cat="equip">
+            <p class="mall-cat-desc">严选原厂及高品质专业设备工具，支持到店采购、同城配送与上门安装调试。</p>
+            <div class="mall-grid">
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-16.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-diagram-project"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>电池诊断仪 <span class="mall-pill hot">热销</span></h4>
+                        <p>宁德时代体系电池故障诊断与数据读取专用设备，精准定位电池隐患。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-17.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-plug"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>交流 / 直流充电桩</h4>
+                        <p>家用 7kW 交流桩与商用直流快充设备，原厂品质，含安装与质保。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-18.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-bolt"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>绝缘耐压检测仪</h4>
+                        <p>高压系统绝缘与耐压安全检测设备，维修作业必备安全防护工具。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-19.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-screwdriver-wrench"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>专用维修工装</h4>
+                        <p>CTP 电池包拆解、模组更换专用工装夹具，确保维修精度与安全。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-20.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-helmet-safety"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>安全防护装备</h4>
+                        <p>绝缘手套、护目镜、防护服等高压作业 PPE 套装，符合安全作业规范。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card reveal">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-21.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-wave-square"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>超声导波检测仪 <span class="mall-pill new">新品</span></h4>
+                        <p>无需拆包即可完成电池内部损伤无损检测，精准定位、避免二次伤害。</p>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- MINI APP GUIDE -->
+<section class="miniapp section-pad" id="miniapp">
+    <div class="container">
+        <div class="miniapp-grid">
+            <div class="miniapp-text reveal">
+                <div class="section-tag">宁家服务小程序</div>
+                <h2 class="section-title">商城随身带 · 服务一键约</h2>
+                <p class="section-subtitle">微信搜索"北京宁家服务"或扫码进入小程序，随时随地浏览宁家商城三大板块、查看服务详情、在线预约到店——把新能源服务装进口袋。</p>
+                <div class="miniapp-actions">
+                    <a href="#mall" class="btn btn-primary">浏览宁家商城 →</a>
+                    <a href="#appointment" class="btn btn-outline">立即预约到店</a>
+                </div>
+                <ul class="miniapp-points">
+                    <li><svg class="ico" aria-hidden="true"><use href="#ico-house-chimney-user"></use></svg> 生活服务 / 教研培训 / 设备工具 全上线</li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#ico-clock"></use></svg> 在线预约到店，门店主动联系确认</li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#ico-weixin"></use></svg> 业务覆盖全国，异地也可在线咨询办理</li>
+                </ul>
+            </div>
+            <div class="miniapp-qr reveal">
+                <div class="qr-box"><svg viewBox="0 0 264 264" width="220" height="220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="宁家服务小程序码（示例占位）"><rect width="264" height="264" fill="#ffffff"/><rect x="32" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="40" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="72" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="112" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="144" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="216" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="32" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="40" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="40" width="8" height="8" fill="#0a0f1c"/><rect x="104" y="40" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="40" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="40" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="40" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="40" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="40" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="40" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="48" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="104" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="56" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="64" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="112" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="144" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="72" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="40" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="72" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="144" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="216" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="80" width="8" height="8" fill="#0a0f1c"/><rect x="112" y="88" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="88" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="88" width="8" height="8" fill="#0a0f1c"/><rect x="40" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="72" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="88" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="112" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="144" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="168" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="96" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="104" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="104" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="104" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="104" width="8" height="8" fill="#0a0f1c"/><rect x="112" y="104" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="104" width="8" height="8" fill="#0a0f1c"/><rect x="216" y="104" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="104" width="8" height="8" fill="#0a0f1c"/><rect x="40" y="112" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="112" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="112" width="8" height="8" fill="#0a0f1c"/><rect x="88" y="112" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="112" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="112" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="112" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="112" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="112" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="88" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="104" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="120" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="112" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="128" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="136" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="136" width="8" height="8" fill="#0a0f1c"/><rect x="72" y="136" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="136" width="8" height="8" fill="#0a0f1c"/><rect x="104" y="136" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="136" width="8" height="8" fill="#0a0f1c"/><rect x="144" y="136" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="136" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="136" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="40" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="88" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="104" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="144" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="144" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="168" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="152" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="160" width="8" height="8" fill="#0a0f1c"/><rect x="112" y="160" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="160" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="160" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="160" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="160" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="160" width="8" height="8" fill="#0a0f1c"/><rect x="216" y="160" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="168" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="168" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="168" width="8" height="8" fill="#0a0f1c"/><rect x="144" y="168" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="168" width="8" height="8" fill="#0a0f1c"/><rect x="168" y="168" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="168" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="168" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="40" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="72" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="144" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="176" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="104" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="216" y="184" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="216" y="192" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="104" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="216" y="200" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="104" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="152" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="168" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="200" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="216" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="208" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="216" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="216" width="8" height="8" fill="#0a0f1c"/><rect x="96" y="216" width="8" height="8" fill="#0a0f1c"/><rect x="120" y="216" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="216" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="216" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="216" width="8" height="8" fill="#0a0f1c"/><rect x="184" y="216" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="216" width="8" height="8" fill="#0a0f1c"/><rect x="32" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="40" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="48" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="56" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="64" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="72" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="80" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="112" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="128" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="136" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="160" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="168" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="176" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="192" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="208" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="216" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="224" y="224" width="8" height="8" fill="#0a0f1c"/><rect x="104.0" y="104.0" width="56" height="56" rx="14" fill="#ffffff"/><rect x="104.0" y="104.0" width="56" height="56" rx="14" fill="none" stroke="#2f6bff" stroke-width="3"/><text x="132.0" y="144.0" font-size="38" text-anchor="middle" fill="#2f6bff" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">宁</text></svg></div>
+                <p class="qr-cap">微信扫一扫 · 进入宁家服务小程序</p>
+                <p class="qr-note">* 示意图，小程序上线后请替换为真实小程序码</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ADVANTAGES -->
+<section class="advantages section-pad" id="advantages">
+    <div class="container">
+        <div class="center reveal">
+            <div class="section-tag">门店优势</div>
+            <h2 class="section-title">为什么选择宁家服务</h2>
+        </div>
+        <div class="adv-grid">
+            <div class="adv-card reveal">
+                <div class="adv-icon"><svg class="ico" aria-hidden="true"><use href="#ico-award"></use></svg></div>
+                <h3>原厂授权</h3>
+                <p>宁德时代官方直营授权，技师持证、配件原厂、质保官方。</p>
+            </div>
+            <div class="adv-card reveal">
+                <div class="adv-icon"><svg class="ico" aria-hidden="true"><use href="#ico-location-crosshairs"></use></svg></div>
+                <h3>快速响应</h3>
+                <p>北京直营门店 + 全国上门/寄修网络，快速响应，预约到店零排队。</p>
+            </div>
+            <div class="adv-card reveal">
+                <div class="adv-icon"><svg class="ico" aria-hidden="true"><use href="#ico-tags"></use></svg></div>
+                <h3>价格透明</h3>
+                <p>官方统一价目，检测报告可视化，维修项目与费用一目了然。</p>
+            </div>
+            <div class="adv-card reveal">
+                <div class="adv-icon"><svg class="ico" aria-hidden="true"><use href="#ico-headset"></use></svg></div>
+                <h3>无忧售后</h3>
+                <p>服务项目全程可追溯，专属客服跟进，维保记录云端留存。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- APPOINTMENT -->
+<section class="appointment section-pad" id="appointment">
+    <div class="blob-1"></div>
+    <div class="container">
+        <div class="appointment-grid">
+            <div class="app-left reveal">
+                <h2>预约到店<br>开启您的专属服务</h2>
+                <p>留下您的联系方式，门店顾问将在 1 个工作日内与您确认服务时间。也可直接拨打门店热线或添加微信预约。</p>
+                <div class="app-ways">
+                    <div class="app-way">
+                        <svg class="ico" aria-hidden="true"><use href="#ico-phone"></use></svg>
+                        <div class="aw-text"><strong>门店热线：010-8888-6677</strong><span>周一至周日 9:00–19:00</span></div>
+                    </div>
+                    <div class="app-way">
+                        <svg class="ico" aria-hidden="true"><use href="#ico-weixin"></use></svg>
+                        <div class="aw-text"><strong>微信预约：NING_BJ_Service</strong><span>扫码添加门店顾问，随时咨询</span></div>
+                    </div>
+                    <div class="app-way">
+                        <svg class="ico" aria-hidden="true"><use href="#ico-location-dot"></use></svg>
+                        <div class="aw-text"><strong>门店地址：北京经济技术开发区科创二街6号</strong><span>北京经开区核心区 · 服务联动全国</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-card reveal">
+                <h3>在线预约表单</h3>
+                <p class="sub">填写以下信息，我们将尽快与您联系</p>
+                <form onsubmit="return submitForm(event)">
+                    <div class="app-field">
+                        <label>您的称呼 *</label>
+                        <input type="text" placeholder="如：张先生" required>
+                    </div>
+                    <div class="app-field">
+                        <label>联系电话 *</label>
+                        <input type="tel" placeholder="请输入手机号" required>
+                    </div>
+                    <div class="app-field">
+                        <label>意向服务</label>
+                        <select>
+                            <option>电池检测与诊断</option>
+                            <option>电池维保与返修</option>
+                            <option>电池回收</option>
+                            <option>充电桩安装</option>
+                            <option>车辆美容精洗</option>
+                            <option>车险代理咨询</option>
+                            <option>上门快修</option>
+                            <option>企业车队托管</option>
+                            <option>其他 / 不确定</option>
+                        </select>
+                    </div>
+                    <div class="app-field">
+                        <label>备注（车型 / 需求）</label>
+                        <textarea rows="3" placeholder="如：比亚迪汉 EV，想做电池健康检测"></textarea>
+                    </div>
+                    <button type="submit" class="app-submit">提交预约</button>
+                    <p class="app-note">提交即表示同意门店与您联系，信息仅用于预约服务</p>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- NEWS -->
+<section class="news section-pad" id="news">
+    <div class="container">
+        <div class="news-head reveal">
+            <div>
+                <div class="section-tag">门店动态</div>
+                <h2 class="section-title">门店动态 · 联动全国</h2>
+            </div>
+            <span class="news-hint"><svg class="ico" aria-hidden="true" style="font-size:1rem;width:1rem;"><use href="#ico-arrow-right"></use></svg> 左右拖动浏览更多</span>
+        </div>
+        <div class="news-carousel" id="newsCarousel">
+            <div class="news-card">
+                <div class="news-img">
+                    <img class="news-img-bg" src="images/news-1.jpg" alt="家用充电桩安装" loading="lazy">
+                    <div class="news-tag">新业务</div>
+                    <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-charging-station"></use></svg></div>
+                </div>
+                <div class="news-body">
+                    <div class="news-date">2026年7月</div>
+                    <h3>北京门店上线家用充电桩安装服务</h3>
+                    <p>即日起，车主可在门店预约充电桩勘测与安装，专业团队上门施工，享一年质保。</p>
+                </div>
+            </div>
+            <div class="news-card">
+                <div class="news-img">
+                    <img class="news-img-bg" src="images/news-2.jpg" alt="新能源车主养车课堂" loading="lazy">
+                    <div class="news-tag">活动</div>
+                    <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-users"></use></svg></div>
+                </div>
+                <div class="news-body">
+                    <div class="news-date">2026年6月</div>
+                    <h3>首期"新能源车主养车课堂"圆满举办</h3>
+                    <p>门店邀请宁德时代认证工程师，为车主讲解电池养护常识，现场免费电池健康快检。</p>
+                </div>
+            </div>
+            <div class="news-card">
+                <div class="news-img">
+                    <img class="news-img-bg" src="images/news-3.jpg" alt="宁家服务门店升级" loading="lazy">
+                    <div class="news-tag">品牌</div>
+                    <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-bolt"></use></svg></div>
+                </div>
+                <div class="news-body">
+                    <div class="news-date">2026年5月</div>
+                    <h3>宁家服务全球网络突破 88 国，北京门店同步升级</h3>
+                    <p>依托宁德时代全球体系，直营门店引入超声导波无损检测设备，维修更精准高效。</p>
+                </div>
+            </div>
+            <div class="news-card">
+                <div class="news-img">
+                    <img class="news-img-bg" src="images/news-4.jpg" alt="全国上门快修服务" loading="lazy">
+                    <div class="news-tag">服务</div>
+                    <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-truck-medical"></use></svg></div>
+                </div>
+                <div class="news-body">
+                    <div class="news-date">2026年4月</div>
+                    <h3>全国上门快修网络正式开通</h3>
+                    <p>移动服务车覆盖全国主要城市，小故障现场快修、上门取送，让服务触手可及。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand reveal">
+                <h3>北京宁家服务直营门店</h3>
+                <p>宁德时代官方授权的新能源汽车服务中心，立足北京，联动全国——以宁德时代官方授权直营门店为基地，为全国车主提供电池官方服务与一站式车生活拓展服务。</p>
+                <div class="footer-social">
+                    <a href="#" title="微信"><svg class="ico" aria-hidden="true"><use href="#ico-weixin"></use></svg></a>
+                    <a href="#" title="微博"><svg class="ico" aria-hidden="true"><use href="#ico-weibo"></use></svg></a>
+                    <a href="#" title="抖音"><svg class="ico" aria-hidden="true"><use href="#ico-tiktok"></use></svg></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>核心业务</h4>
+                <ul>
+                    <li><a href="#core">电池检测诊断</a></li>
+                    <li><a href="#core">电池维保返修</a></li>
+                    <li><a href="#core">电池回收</a></li>
+                    <li><a href="#core">技术培训认证</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>宁家商城</h4>
+                <ul>
+                    <li><a href="#mall">生活服务</a></li>
+                    <li><a href="#mall">教研培训</a></li>
+                    <li><a href="#mall">设备工具</a></li>
+                    <li><a href="#mall">会员权益</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>门店信息</h4>
+                <ul class="footer-contact">
+                    <li><svg class="ico" aria-hidden="true"><use href="#ico-location-dot"></use></svg><span>北京经济技术开发区科创二街6号</span></li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#ico-phone"></use></svg><span>010-8888-6677</span></li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#ico-weixin"></use></svg><span>NING_BJ_Service</span></li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#ico-clock"></use></svg><span>周一至周日 9:00–19:00</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>© 2024-2026 北京宁家服务有限公司 · 宁德时代官方授权直营门店 · 业务覆盖全国</div>
+            <div class="footer-bottom-links">
+                <a href="#">隐私政策</a>
+                <a href="#">服务条款</a>
+                <a href="#">法律声明</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+<a href="#miniapp" class="float-mini" aria-label="宁家服务小程序"><svg class="ico" aria-hidden="true"><use href="#ico-weixin"></use></svg><span>小程序</span></a>
+<button class="to-top" id="toTop" aria-label="回到顶部"><svg class="ico" aria-hidden="true" style="width:1.3rem;height:1.3rem;"><use href="#ico-arrow-up"></use></svg></button>
+
+<script>
+    // ---- nav scrolled state + progress bar ----
+    const navbar = document.getElementById('navbar');
+    const progressBar = document.getElementById('progressBar');
+    const toTop = document.getElementById('toTop');
+    function onScrollGlobal() {
+        const y = window.scrollY;
+        navbar.classList.toggle('scrolled', y > 50);
+        const docH = document.documentElement.scrollHeight - window.innerHeight;
+        progressBar.style.width = (docH > 0 ? (y / docH) * 100 : 0) + '%';
+        toTop.classList.toggle('show', y > 600);
+    }
+
+    // ---- hero cursor spotlight ----
+    const heroEl = document.querySelector('.hero');
+    const heroSpot = document.querySelector('.hero-spotlight');
+    if (heroEl && heroSpot && window.matchMedia('(hover: hover)').matches) {
+        let raf = null, mx = 0, my = 0;
+        heroEl.addEventListener('mousemove', (e) => {
+            const rect = heroEl.getBoundingClientRect();
+            mx = e.clientX - rect.left;
+            my = e.clientY - rect.top;
+            if (!raf) raf = requestAnimationFrame(() => {
+                heroSpot.style.setProperty('--mx', mx + 'px');
+                heroSpot.style.setProperty('--my', my + 'px');
+                raf = null;
+            });
+        });
+    }
+
+    // ---- mobile nav ----
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+    navToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => navLinks.classList.remove('active'));
+    });
+
+    // ---- scrollspy ----
+    const spyLinks = document.querySelectorAll('.nav-links a[data-spy]');
+    const spyMap = {};
+    spyLinks.forEach(a => spyMap[a.dataset.spy] = a);
+    const spyObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting && spyMap[e.target.id]) {
+                spyLinks.forEach(l => l.classList.remove('active'));
+                spyMap[e.target.id].classList.add('active');
+            }
+        });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    ['home','about','core','mall','advantages','appointment'].forEach(id => {
+        const el = document.getElementById(id); if (el) spyObserver.observe(el);
+    });
+
+    // ---- horizontal scroll (core services) ----
+    const hscroller = document.querySelector('.hscroller');
+    const hTrack = document.getElementById('hTrack');
+    const hProgress = document.getElementById('hProgress');
+    function setHScrollHeight() {
+        if (!hscroller || !hTrack) return;
+        const maxX = Math.max(0, hTrack.scrollWidth - window.innerWidth);
+        hscroller.style.height = (maxX + window.innerHeight) + 'px';
+    }
+    function onScrollH() {
+        if (!hscroller || !hTrack) return;
+        const rect = hscroller.getBoundingClientRect();
+        const total = hscroller.offsetHeight - window.innerHeight;
+        let progress = (-rect.top) / total;
+        progress = Math.max(0, Math.min(1, progress));
+        const maxX = Math.max(0, hTrack.scrollWidth - window.innerWidth);
+        hTrack.style.transform = 'translateX(' + (-progress * maxX) + 'px)';
+        if (hProgress) hProgress.style.width = (progress * 100) + '%';
+    }
+
+    // ---- parallax hero blobs ----
+    const parallaxEls = document.querySelectorAll('[data-parallax]');
+    function onParallax() {
+        const y = window.scrollY;
+        parallaxEls.forEach(el => {
+            const f = parseFloat(el.dataset.parallax);
+            el.style.transform = 'translateY(' + (y * f) + 'px)';
+        });
+    }
+
+    window.addEventListener('scroll', () => {
+        onScrollGlobal(); onScrollH(); onParallax();
+    }, { passive: true });
+    window.addEventListener('resize', () => { setHScrollHeight(); onScrollH(); });
+    window.addEventListener('load', () => { setHScrollHeight(); onScrollH(); });
+    onScrollGlobal(); setHScrollHeight(); onScrollH();
+
+    // ---- reveal on scroll ----
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+        // stagger inside shared parent
+        const siblings = Array.from(el.parentElement.querySelectorAll(':scope > .reveal'));
+        const idx = siblings.indexOf(el);
+        if (idx > 0) el.style.transitionDelay = (idx * 0.08) + 's';
+        revealObserver.observe(el);
+    });
+
+    // ---- counters ----
+    const counters = document.querySelectorAll('[data-count]');
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (!e.isIntersecting) return;
+            const el = e.target;
+            const target = parseInt(el.dataset.count, 10);
+            const suffix = el.dataset.suffix || '';
+            const dur = 1600; const start = performance.now();
+            function tick(now) {
+                const t = Math.min(1, (now - start) / dur);
+                const eased = 1 - Math.pow(1 - t, 3);
+                el.textContent = Math.round(target * eased).toLocaleString('en-US') + suffix;
+                if (t < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+            counterObserver.unobserve(el);
+        });
+    }, { threshold: 0.5 });
+    counters.forEach(c => counterObserver.observe(c));
+
+    // ---- mall tabs ----
+    const mallTabs = document.getElementById('mallTabs');
+    if (mallTabs) {
+        mallTabs.querySelectorAll('.mall-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const cat = tab.dataset.cat;
+                mallTabs.querySelectorAll('.mall-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.mall-panel').forEach(p => p.classList.toggle('active', p.dataset.cat === cat));
+            });
+        });
+    }
+
+    // ---- news drag carousel ----
+    const carousel = document.getElementById('newsCarousel');
+    if (carousel) {
+        let isDown = false, startX = 0, startScroll = 0, moved = false;
+        carousel.addEventListener('mousedown', (e) => { isDown = true; moved = false; startX = e.pageX; startScroll = carousel.scrollLeft; carousel.classList.add('dragging'); });
+        window.addEventListener('mouseup', () => { isDown = false; carousel.classList.remove('dragging'); });
+        window.addEventListener('mousemove', (e) => { if (!isDown) return; const dx = e.pageX - startX; if (Math.abs(dx) > 5) moved = true; carousel.scrollLeft = startScroll - dx; });
+        carousel.addEventListener('click', (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); } }, true);
+        // wheel: translate vertical wheel to horizontal scroll when hovering
+        carousel.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { carousel.scrollLeft += e.deltaY; e.preventDefault(); }
+        }, { passive: false });
+    }
+
+    // ---- back to top ----
+    toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    // ---- form ----
+    function submitForm(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('.app-submit');
+        btn.textContent = '预约已提交 ✓';
+        btn.style.background = 'var(--accent)';
+        setTimeout(() => {
+            alert('感谢您的预约！门店顾问将在 1 个工作日内与您联系。\n（演示页面：实际提交请接入后端或表单服务）');
+            e.target.reset();
+            btn.textContent = '提交预约';
+            btn.style.background = '';
+        }, 600);
+        return false;
+    }
+</script>
+</body>
+</html>
