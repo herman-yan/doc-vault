@@ -296,6 +296,14 @@
     .mall-price { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
     .mall-more { font-size: 0.82rem; color: var(--primary); text-decoration: none; font-weight: 600; transition: color 0.3s; }
     .mall-more:hover { color: var(--accent); }
+    .mall-card.real .mall-card-ico { height: 152px; background: #f3f6fb; }
+    .mall-card.real .mall-card-ico .ico-bg { object-fit: contain; padding: 14px; }
+    .mall-card.real .mall-card-ico::before,
+    .mall-card.real .mall-card-ico::after { display: none; }
+    .mall-card.real .mall-card-ico .ico-wrap { width: 42px; height: 42px; border-radius: 12px; top: 12px; left: 12px; position: absolute; z-index: 3; }
+    .mall-card.real .mall-card-ico .ico { font-size: 1.15rem; }
+    .mall-specs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0.7rem 0 0; }
+    .mall-specs span { font-size: 0.66rem; color: var(--gray-500); background: var(--gray-100); border: 1px solid var(--gray-200); padding: 2px 8px; border-radius: 20px; }
     @media (max-width: 880px) { .mall-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 520px) { .mall-grid { grid-template-columns: 1fr; } }
 
@@ -927,55 +935,67 @@
         </div>
 
         <!-- 设备工具 -->
-        <div class="mall-panel" data-cat="equip">
-            <p class="mall-cat-desc">严选原厂及高品质专业设备工具，支持到店采购、同城配送与上门安装调试。</p>
+                <div class="mall-panel" data-cat="equip">
+            <p class="mall-cat-desc">宁家商城官方在售硬件，原厂品质、全国联保，支持到店体验与上门安装调试。</p>
             <div class="mall-grid">
-                <div class="mall-card reveal">
-                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-16.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-diagram-project"></use></svg></div></div>
+                <div class="mall-card real reveal">
+                    <div class="mall-card-ico">
+                        <img class="ico-bg" src="images/mall-chargo.png" alt="CharGo 移动充电机器人">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-charging-station"></use></svg></div>
+                    </div>
                     <div class="mall-card-body">
-                        <h4>电池诊断仪 <span class="mall-pill hot">热销</span></h4>
-                        <p>宁德时代体系电池故障诊断与数据读取专用设备，精准定位电池隐患。</p>
-                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                        <h4>CharGo 移动充电机器人 <span class="mall-pill hot">热销</span></h4>
+                        <p>移动式充储检一体机器人，搭载高性能磷酸铁锂电池与智能云服务，为商业综合体、社区园区、高速服务区等场景提供灵活的移动充电与储能服务。</p>
+                        <div class="mall-specs"><span>65kWh</span><span>55kW</span><span>IP55</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 179,000 / 台</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
                     </div>
                 </div>
-                <div class="mall-card reveal">
-                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-17.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-plug"></use></svg></div></div>
+                <div class="mall-card real reveal">
+                    <div class="mall-card-ico">
+                        <img class="ico-bg" src="images/mall-cnte.png" alt="时代星云 移动电源">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-car-battery"></use></svg></div>
+                    </div>
                     <div class="mall-card-body">
-                        <h4>交流 / 直流充电桩</h4>
-                        <p>家用 7kW 交流桩与商用直流快充设备，原厂品质，含安装与质保。</p>
-                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                        <h4>时代星云 移动电源</h4>
+                        <p>由时代星云出品的小容量便携式储能电源，户外供电与应急电力随身带，出行、露营、救援多场景适用。</p>
+                        <div class="mall-specs"><span>65Wh</span><span>600W</span><span>550W</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 3,288 / 台</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
                     </div>
                 </div>
-                <div class="mall-card reveal">
-                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-18.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-bolt"></use></svg></div></div>
+                <div class="mall-card real reveal">
+                    <div class="mall-card-ico">
+                        <img class="ico-bg" src="images/mall-portable.png" alt="便携电源">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-plug"></use></svg></div>
+                    </div>
                     <div class="mall-card-body">
-                        <h4>绝缘耐压检测仪</h4>
-                        <p>高压系统绝缘与耐压安全检测设备，维修作业必备安全防护工具。</p>
-                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                        <h4>便携电源</h4>
+                        <p>大输出便携储能电源，满足车载、户外作业与应急用电需求，轻巧易携、即插即用。</p>
+                        <div class="mall-specs"><span>1100Wh</span><span>1600W</span><span>100W</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 18,999 / 台</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
                     </div>
                 </div>
-                <div class="mall-card reveal">
-                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-19.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-screwdriver-wrench"></use></svg></div></div>
+                <div class="mall-card real reveal">
+                    <div class="mall-card-ico">
+                        <img class="ico-bg" src="images/mall-storage.png" alt="移动储能系统">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-bolt"></use></svg></div>
+                    </div>
                     <div class="mall-card-body">
-                        <h4>专用维修工装</h4>
-                        <p>CTP 电池包拆解、模组更换专用工装夹具，确保维修精度与安全。</p>
-                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                        <h4>移动储能系统</h4>
+                        <p>大容量移动储能系统，为场站、户外活动与应急保电提供稳定可靠的电力支撑，灵活部署。</p>
+                        <div class="mall-specs"><span>1069kWh</span><span>400kW</span><span>IP21</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 35,999 / 台</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
                     </div>
                 </div>
-                <div class="mall-card reveal">
-                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-20.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-helmet-safety"></use></svg></div></div>
-                    <div class="mall-card-body">
-                        <h4>安全防护装备</h4>
-                        <p>绝缘手套、护目镜、防护服等高压作业 PPE 套装，符合安全作业规范。</p>
-                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                <div class="mall-card real reveal">
+                    <div class="mall-card-ico">
+                        <img class="ico-bg" src="images/mall-cover.png" alt="电池防护盖">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-shield-halved"></use></svg></div>
                     </div>
-                </div>
-                <div class="mall-card reveal">
-                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-21.jpg" alt="" aria-hidden="true"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-wave-square"></use></svg></div></div>
                     <div class="mall-card-body">
-                        <h4>超声导波检测仪 <span class="mall-pill new">新品</span></h4>
-                        <p>无需拆包即可完成电池内部损伤无损检测，精准定位、避免二次伤害。</p>
-                        <div class="mall-card-foot"><span class="mall-price">¥ 咨询</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                        <h4>电池防护盖</h4>
+                        <p>专为动力电池设计的加厚防护盖，含镁强化、抗撕裂性能优异，提升电池包耐久与安全防护。</p>
+                        <div class="mall-specs"><span>2.0mm</span><span>镁含量 4-6%</span><span>3100kg/cm²</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">咨询报价</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
                     </div>
                 </div>
             </div>
