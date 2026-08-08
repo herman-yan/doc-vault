@@ -302,11 +302,8 @@
     .mall-card.real .mall-card-ico::after { display: none; }
     .mall-card.real .mall-card-ico .ico-wrap { width: 42px; height: 42px; border-radius: 12px; top: 12px; left: 12px; position: absolute; z-index: 3; }
     .mall-card.real .mall-card-ico .ico { font-size: 1.15rem; }
-    /* icon-only card (no product photo available) */
-    .mall-card.real.mall-card--oil .mall-card-ico { display: flex; align-items: center; justify-content: center; }
-    .mall-card.real.mall-card--oil .mall-card-ico .ico-wrap { position: static; width: 62px; height: 62px; border-radius: 17px;
-        background: linear-gradient(135deg, #06427a, #0050b3); border: 1px solid rgba(255,255,255,0.28); }
-    .mall-card.real.mall-card--oil .mall-card-ico .ico { font-size: 1.8rem; }
+    /* 保养耗材卡片与设备工具完全对齐（无产品图时以小图标占位） */
+    .mall-card.real.mall-card--oil .mall-card-ico .ico-wrap { background: linear-gradient(135deg, #06427a, #0050b3); }
     .mall-subtitle { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin: 1.8rem 0 1.1rem;
         display: flex; align-items: center; gap: 9px; }
     .mall-subtitle::before { content: ''; width: 4px; height: 18px; border-radius: 3px; background: var(--accent); }
@@ -808,6 +805,7 @@
             <button class="mall-tab active" data-cat="life"><svg class="ico" aria-hidden="true"><use href="#ico-house-chimney-user"></use></svg> 生活服务</button>
             <button class="mall-tab" data-cat="edu"><svg class="ico" aria-hidden="true"><use href="#ico-graduation-cap"></use></svg> 教研培训</button>
             <button class="mall-tab" data-cat="equip"><svg class="ico" aria-hidden="true"><use href="#ico-screwdriver-wrench"></use></svg> 设备工具</button>
+            <button class="mall-tab" data-cat="consumable"><svg class="ico" aria-hidden="true"><use href="#ico-oil-can"></use></svg> 保养耗材</button>
         </div>
 
         <!-- 生活服务 -->
@@ -1024,51 +1022,55 @@
                     </div>
                 </div>
 
-                <h4 class="mall-subtitle">保养耗材</h4>
-                <div class="mall-grid">
-                    <div class="mall-card real reveal mall-card--oil">
-                        <div class="mall-card-ico">
-                            <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-oil-can"></use></svg></div>
-                        </div>
-                        <div class="mall-card-body">
-                            <h4>生物基全合成发动机油 SQ C3 5W-30</h4>
-                            <p>混合动力 / 燃油车型专用全合成汽油发动机油，抑制低速早燃、提升燃油经济性，较普通机油抗磨保护提升约 2 倍。</p>
-                            <div class="mall-specs"><span>5W-30</span><span>SQ C3</span><span>4L×12瓶/箱</span></div>
-                            <div class="mall-card-foot"><span class="mall-price">¥ 2,256 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
-                        </div>
+            </div>
+        </div>
+
+        <!-- 保养耗材 -->
+        <div class="mall-panel" data-cat="consumable">
+            <p class="mall-cat-desc">宁家商城官方保养耗材，适配新能源与燃油车日常养护，原厂品质、全国联保。</p>
+            <div class="mall-grid">
+                <div class="mall-card real reveal mall-card--oil">
+                    <div class="mall-card-ico">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-oil-can"></use></svg></div>
                     </div>
-                    <div class="mall-card real reveal mall-card--oil">
-                        <div class="mall-card-ico">
-                            <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-oil-can"></use></svg></div>
-                        </div>
-                        <div class="mall-card-body">
-                            <h4>生物基全合成发动机油 SQ C5 0W-20</h4>
-                            <p>低粘度全合成机油，燃油经济性提升；凸轮轴综合抗磨提升约 2 倍；活塞气环、油环双保护，节油效率高达 4.3%。</p>
-                            <div class="mall-specs"><span>0W-20</span><span>SQ C5</span><span>4L×6瓶/箱</span></div>
-                            <div class="mall-card-foot"><span class="mall-price">¥ 1,410 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
-                        </div>
+                    <div class="mall-card-body">
+                        <h4>生物基全合成发动机油 SQ C3 5W-30</h4>
+                        <p>混合动力 / 燃油车型专用全合成汽油发动机油，抑制低速早燃、提升燃油经济性，较普通机油抗磨保护提升约 2 倍。</p>
+                        <div class="mall-specs"><span>5W-30</span><span>SQ C3</span><span>4L×12瓶/箱</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 2,256 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
                     </div>
-                    <div class="mall-card real reveal mall-card--oil">
-                        <div class="mall-card-ico">
-                            <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-droplet"></use></svg></div>
-                        </div>
-                        <div class="mall-card-body">
-                            <h4>全合成制动液 DOT4+ (HZY4)</h4>
-                            <p>电动车 / 燃油车兼容全合成制动液，传导灵敏度提升约 20%，湿平衡沸点全兼容，刹车响应灵敏、材料兼容性佳。</p>
-                            <div class="mall-specs"><span>DOT4+</span><span>HZY4</span><span>1L×12瓶/箱</span></div>
-                            <div class="mall-card-foot"><span class="mall-price">¥ 420 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
-                        </div>
+                </div>
+                <div class="mall-card real reveal mall-card--oil">
+                    <div class="mall-card-ico">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-oil-can"></use></svg></div>
                     </div>
-                    <div class="mall-card real reveal mall-card--oil">
-                        <div class="mall-card-ico">
-                            <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-droplet"></use></svg></div>
-                        </div>
-                        <div class="mall-card-body">
-                            <h4>新能源车制动液 DOT4</h4>
-                            <p>专为新能源车研发，优异的高温抗气阻性保障制动平稳安全；低温流动性好，防腐蚀保护出色，延长制动系统寿命。</p>
-                            <div class="mall-specs"><span>DOT4</span><span>1L×16瓶/箱</span><span>新能源专用</span></div>
-                            <div class="mall-card-foot"><span class="mall-price">¥ 1,184 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
-                        </div>
+                    <div class="mall-card-body">
+                        <h4>生物基全合成发动机油 SQ C5 0W-20</h4>
+                        <p>低粘度全合成机油，燃油经济性提升；凸轮轴综合抗磨提升约 2 倍；活塞气环、油环双保护，节油效率高达 4.3%。</p>
+                        <div class="mall-specs"><span>0W-20</span><span>SQ C5</span><span>4L×6瓶/箱</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 1,410 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card real reveal mall-card--oil">
+                    <div class="mall-card-ico">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-droplet"></use></svg></div>
+                    </div>
+                    <div class="mall-card-body">
+                        <h4>全合成制动液 DOT4+ (HZY4)</h4>
+                        <p>电动车 / 燃油车兼容全合成制动液，传导灵敏度提升约 20%，湿平衡沸点全兼容，刹车响应灵敏、材料兼容性佳。</p>
+                        <div class="mall-specs"><span>DOT4+</span><span>HZY4</span><span>1L×12瓶/箱</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 420 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+                <div class="mall-card real reveal mall-card--oil">
+                    <div class="mall-card-ico">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-droplet"></use></svg></div>
+                    </div>
+                    <div class="mall-card-body">
+                        <h4>新能源车制动液 DOT4</h4>
+                        <p>专为新能源车研发，优异的高温抗气阻性保障制动平稳安全；低温流动性好，防腐蚀保护出色，延长制动系统寿命。</p>
+                        <div class="mall-specs"><span>DOT4</span><span>1L×16瓶/箱</span><span>新能源专用</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 1,184 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
                     </div>
                 </div>
             </div>
@@ -1084,13 +1086,13 @@
             <div class="miniapp-text reveal">
                 <div class="section-tag">宁家服务小程序</div>
                 <h2 class="section-title">商城随身带 · 服务一键约</h2>
-                <p class="section-subtitle">微信搜索"北京宁家服务"或扫码进入小程序，随时随地浏览宁家商城三大板块、查看服务详情、在线预约到店——把新能源服务装进口袋。</p>
+                <p class="section-subtitle">微信搜索"北京宁家服务"或扫码进入小程序，随时随地浏览宁家商城四大板块、查看服务详情、在线预约到店——把新能源服务装进口袋。</p>
                 <div class="miniapp-actions">
                     <a href="#mall" class="btn btn-primary">浏览宁家商城 →</a>
                     <a href="#appointment" class="btn btn-outline">立即预约到店</a>
                 </div>
                 <ul class="miniapp-points">
-                    <li><svg class="ico" aria-hidden="true"><use href="#ico-house-chimney-user"></use></svg> 生活服务 / 教研培训 / 设备工具 全上线</li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#ico-house-chimney-user"></use></svg> 生活服务 / 教研培训 / 设备工具 / 保养耗材 全上线</li>
                     <li><svg class="ico" aria-hidden="true"><use href="#ico-clock"></use></svg> 在线预约到店，门店主动联系确认</li>
                     <li><svg class="ico" aria-hidden="true"><use href="#ico-weixin"></use></svg> 业务覆盖全国，异地也可在线咨询办理</li>
                 </ul>
@@ -1288,6 +1290,7 @@
                     <li><a href="#mall">生活服务</a></li>
                     <li><a href="#mall">教研培训</a></li>
                     <li><a href="#mall">设备工具</a></li>
+                    <li><a href="#mall">保养耗材</a></li>
                     <li><a href="#mall">会员权益</a></li>
                 </ul>
             </div>
