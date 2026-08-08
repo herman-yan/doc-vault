@@ -302,6 +302,14 @@
     .mall-card.real .mall-card-ico::after { display: none; }
     .mall-card.real .mall-card-ico .ico-wrap { width: 42px; height: 42px; border-radius: 12px; top: 12px; left: 12px; position: absolute; z-index: 3; }
     .mall-card.real .mall-card-ico .ico { font-size: 1.15rem; }
+    /* icon-only card (no product photo available) */
+    .mall-card.real.mall-card--oil .mall-card-ico { display: flex; align-items: center; justify-content: center; }
+    .mall-card.real.mall-card--oil .mall-card-ico .ico-wrap { position: static; width: 62px; height: 62px; border-radius: 17px;
+        background: linear-gradient(135deg, #06427a, #0050b3); border: 1px solid rgba(255,255,255,0.28); }
+    .mall-card.real.mall-card--oil .mall-card-ico .ico { font-size: 1.8rem; }
+    .mall-subtitle { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin: 1.8rem 0 1.1rem;
+        display: flex; align-items: center; gap: 9px; }
+    .mall-subtitle::before { content: ''; width: 4px; height: 18px; border-radius: 3px; background: var(--accent); }
     .mall-specs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0.7rem 0 0; }
     .mall-specs span { font-size: 0.66rem; color: var(--gray-500); background: var(--gray-100); border: 1px solid var(--gray-200); padding: 2px 8px; border-radius: 20px; }
     @media (max-width: 880px) { .mall-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -570,6 +578,8 @@
             <symbol id="ico-weixin" viewBox="0 0 24 24"><path d="M9 4C5.5 4 3 6.2 3 9c0 1.7.9 3.1 2.3 4L4.5 16l3-1.6c.7.2 1.5.3 2.3.3M15 9c-3 0-5.5 2-5.5 4.5S12 18 15 18s5.5-2 5.5-4.5S18 9 15 9z"/></symbol>
             <symbol id="ico-weibo" viewBox="0 0 24 24"><path d="M3 10c0-4 4-7 8-7s8 3 8 7-4 7-8 7c-1 0-2 0-3-.3L4 18l1-3c-1.5-.8-2-2.5-2-5z"/></symbol>
             <symbol id="ico-wrench" viewBox="0 0 24 24"><path d="M14 7a4 4 0 0 1-5 5l-6 6 2 2 6-6a4 4 0 0 1 5-5l-2-2zM14 7l-2-2"/></symbol>
+            <symbol id="ico-oil-can" viewBox="0 0 24 24"><path d="M6 9h9v10a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zM9 5h3v4H9zM15 8l4-3v6M15 11h4"/></symbol>
+            <symbol id="ico-droplet" viewBox="0 0 24 24"><path d="M12 3s6 6 6 11a6 6 0 0 1-12 0c0-5 6-11 6-11zM9.5 14a2.5 2.5 0 0 0 2.5 2.5"/></symbol>
     </svg>
 
     <div class="progress-bar" id="progressBar"></div>
@@ -1011,6 +1021,54 @@
                         <p>专为动力电池设计的加厚防护盖，含镁强化、抗撕裂性能优异，提升电池包耐久与安全防护。</p>
                         <div class="mall-specs"><span>2.0mm</span><span>镁含量 4-6%</span><span>3100kg/cm²</span></div>
                         <div class="mall-card-foot"><span class="mall-price">咨询报价</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
+
+                <h4 class="mall-subtitle">保养耗材</h4>
+                <div class="mall-grid">
+                    <div class="mall-card real reveal mall-card--oil">
+                        <div class="mall-card-ico">
+                            <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-oil-can"></use></svg></div>
+                        </div>
+                        <div class="mall-card-body">
+                            <h4>生物基全合成发动机油 SQ C3 5W-30</h4>
+                            <p>混合动力 / 燃油车型专用全合成汽油发动机油，抑制低速早燃、提升燃油经济性，较普通机油抗磨保护提升约 2 倍。</p>
+                            <div class="mall-specs"><span>5W-30</span><span>SQ C3</span><span>4L×12瓶/箱</span></div>
+                            <div class="mall-card-foot"><span class="mall-price">¥ 2,256 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                        </div>
+                    </div>
+                    <div class="mall-card real reveal mall-card--oil">
+                        <div class="mall-card-ico">
+                            <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-oil-can"></use></svg></div>
+                        </div>
+                        <div class="mall-card-body">
+                            <h4>生物基全合成发动机油 SQ C5 0W-20</h4>
+                            <p>低粘度全合成机油，燃油经济性提升；凸轮轴综合抗磨提升约 2 倍；活塞气环、油环双保护，节油效率高达 4.3%。</p>
+                            <div class="mall-specs"><span>0W-20</span><span>SQ C5</span><span>4L×6瓶/箱</span></div>
+                            <div class="mall-card-foot"><span class="mall-price">¥ 1,410 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                        </div>
+                    </div>
+                    <div class="mall-card real reveal mall-card--oil">
+                        <div class="mall-card-ico">
+                            <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-droplet"></use></svg></div>
+                        </div>
+                        <div class="mall-card-body">
+                            <h4>全合成制动液 DOT4+ (HZY4)</h4>
+                            <p>电动车 / 燃油车兼容全合成制动液，传导灵敏度提升约 20%，湿平衡沸点全兼容，刹车响应灵敏、材料兼容性佳。</p>
+                            <div class="mall-specs"><span>DOT4+</span><span>HZY4</span><span>1L×12瓶/箱</span></div>
+                            <div class="mall-card-foot"><span class="mall-price">¥ 420 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                        </div>
+                    </div>
+                    <div class="mall-card real reveal mall-card--oil">
+                        <div class="mall-card-ico">
+                            <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-droplet"></use></svg></div>
+                        </div>
+                        <div class="mall-card-body">
+                            <h4>新能源车制动液 DOT4</h4>
+                            <p>专为新能源车研发，优异的高温抗气阻性保障制动平稳安全；低温流动性好，防腐蚀保护出色，延长制动系统寿命。</p>
+                            <div class="mall-specs"><span>DOT4</span><span>1L×16瓶/箱</span><span>新能源专用</span></div>
+                            <div class="mall-card-foot"><span class="mall-price">¥ 1,184 / 箱</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                        </div>
                     </div>
                 </div>
             </div>
