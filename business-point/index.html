@@ -128,30 +128,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
   .tips { grid-template-columns: 1fr; }
 }
 </style>
-<style id="gateStyle">
-#pageGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#1a1a2e;padding:20px}
-.gate-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:34px 32px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.45)}
-.gate-ico{font-size:42px;margin-bottom:12px}
-.gate-title{font-size:22px;font-weight:700;margin-bottom:6px}
-.gate-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:22px;line-height:1.6}
-.gate-input{padding:11px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:14px;width:100%;outline:none;box-sizing:border-box}
-.gate-input:focus{border-color:#4facfe}
-.gate-btn{margin-top:14px;padding:11px 18px;border-radius:10px;background:linear-gradient(135deg,#4facfe,#00f2fe);border:none;color:#06283d;font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:all .15s}
-.gate-btn:hover{box-shadow:0 6px 18px rgba(79,172,254,.4)}
-.gate-err{color:#ff6b5b;font-size:12px;margin-top:10px;min-height:14px;visibility:hidden}
-</style>
 </head>
 <body>
-<div id="pageGate">
-  <div class="gate-card">
-    <div class="gate-ico">🚧</div>
-    <div class="gate-title">系统建设中</div>
-    <div class="gate-sub">本模块正在开发，暂未对外开放。<br>请输入访问密码以进入预览。</div>
-    <input id="gatePwd" class="gate-input" type="password" placeholder="请输入访问密码" autocomplete="off">
-    <button id="gateBtn" class="gate-btn">进入预览</button>
-    <div id="gateErr" class="gate-err"></div>
-  </div>
-</div>
 
 <!-- Sidebar -->
 <div class="sidebar">
@@ -265,24 +243,5 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
   </div>
 </div>
 
-<script>
-(function(){
-  var KEY='docv_gate_auth', PWD='ningjia123';
-  var gate=document.getElementById('pageGate');
-  var inp=document.getElementById('gatePwd');
-  var btn=document.getElementById('gateBtn');
-  var err=document.getElementById('gateErr');
-  function open(){ gate.style.display='none'; document.body.style.overflow=''; }
-  if(localStorage.getItem(KEY)==='1'){ open(); return; }
-  gate.style.display='flex';
-  function tryAuth(){
-    if(inp.value===PWD){ localStorage.setItem(KEY,'1'); open(); }
-    else { err.textContent='密码错误，请重试'; err.style.visibility='visible'; inp.value=''; inp.focus(); }
-  }
-  btn.addEventListener('click',tryAuth);
-  inp.addEventListener('keydown',function(e){ if(e.key==='Enter') tryAuth(); });
-  inp.focus();
-})();
-</script>
 </body>
 </html>
