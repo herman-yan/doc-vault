@@ -136,8 +136,24 @@
 
     /* ===== HERO (image) ===== */
     .hero { min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden;
-        background: url('images/hero-energy.jpg') center/cover no-repeat;
         padding-top: 96px; padding-bottom: 40px; }
+    /* ---- hero image carousel ---- */
+    .hero-slides { position:absolute; inset:0; z-index:0; pointer-events:none; }
+    .hero-slide { position:absolute; inset:0; opacity:0; transition:opacity 1.4s ease; background-position:center; background-size:cover; background-repeat:no-repeat; transform:scale(1); }
+    .hero-slide.active { opacity:1; animation:heroZoom 8s linear forwards; }
+    @keyframes heroZoom { from { transform:scale(1); } to { transform:scale(1.06); } }
+    .hero-dots { position:absolute; bottom:86px; left:50%; transform:translateX(-50%); z-index:4; display:flex; gap:10px; }
+    .hero-dot { width:10px; height:10px; border-radius:50%; border:1px solid rgba(255,255,255,.55); background:transparent; cursor:pointer; transition:all .3s; padding:0; }
+    .hero-dot.active { background:#fff; border-color:#fff; transform:scale(1.15); }
+    .hero-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:4; width:44px; height:44px; border-radius:50%; border:1px solid rgba(255,255,255,.35); background:rgba(0,0,0,.15); color:#fff; font-size:1.4rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .3s; backdrop-filter:blur(4px); }
+    .hero-arrow:hover { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.7); }
+    .hero-arrow-prev { left:24px; }
+    .hero-arrow-next { right:24px; }
+    @media (max-width:768px) {
+        .hero-arrow { display:none; }
+        .hero-dots { bottom:78px; gap:8px; }
+        .hero-dot { width:8px; height:8px; }
+    }
     .hero::before { content:''; position:absolute; inset:0; z-index:1;
         background: linear-gradient(180deg, rgba(6,42,110,0.78) 0%, rgba(6,42,110,0.55) 40%, rgba(6,42,110,0.75) 100%); }
     .hero-blob, .hero-grid-lines { display: none; }
@@ -601,6 +617,18 @@
 
 <!-- HERO -->
 <section class="hero" id="home">
+    <div class="hero-slides" aria-label="首页轮播">
+        <div class="hero-slide active" style="background-image:url('images/hero-energy.jpg')" aria-hidden="false"></div>
+        <div class="hero-slide" style="background-image:url('images/hero-offshore.jpg')" aria-hidden="true"></div>
+        <div class="hero-slide" style="background-image:url('images/hero-solar.jpg')" aria-hidden="true"></div>
+    </div>
+    <div class="hero-dots" role="tablist" aria-label="轮播指示器">
+        <button class="hero-dot active" data-index="0" aria-label="第1张" role="tab" aria-selected="true"></button>
+        <button class="hero-dot" data-index="1" aria-label="第2张" role="tab" aria-selected="false"></button>
+        <button class="hero-dot" data-index="2" aria-label="第3张" role="tab" aria-selected="false"></button>
+    </div>
+    <button class="hero-arrow hero-arrow-prev" aria-label="上一张">&#8249;</button>
+    <button class="hero-arrow hero-arrow-next" aria-label="下一张">&#8250;</button>
     <div class="hero-spotlight"></div>
     <div class="hero-blob blob-1" data-parallax="0.25"></div>
     <div class="hero-blob blob-2" data-parallax="-0.18"></div>
@@ -1487,6 +1515,41 @@
         }, 600);
         return false;
     }
+
+    // ---- hero image carousel ----
+    (function(){
+        const slides = document.querySelectorAll('.hero-slide');
+        const dots = document.querySelectorAll('.hero-dot');
+        const prevBtn = document.querySelector('.hero-arrow-prev');
+        const nextBtn = document.querySelector('.hero-arrow-next');
+        if (!slides.length) return;
+        let current = 0;
+        let timer = null;
+        const delay = 6000;
+        function go(n) {
+            slides[current].classList.remove('active');
+            slides[current].setAttribute('aria-hidden','true');
+            dots[current].classList.remove('active');
+            dots[current].setAttribute('aria-selected','false');
+            current = (n + slides.length) % slides.length;
+            slides[current].classList.add('active');
+            slides[current].setAttribute('aria-hidden','false');
+            dots[current].classList.add('active');
+            dots[current].setAttribute('aria-selected','true');
+        }
+        function next() { go(current + 1); }
+        function prev() { go(current - 1); }
+        // 只保留一个定时器，避免叠加导致卡顿/加速
+        function start() { if (timer) clearInterval(timer); timer = setInterval(next, delay); }
+        function stop() { if (timer) { clearInterval(timer); timer = null; } }
+        function jump(i) { stop(); go(i); start(); }
+        dots.forEach((d, i) => d.addEventListener('click', () => jump(i)));
+        if (prevBtn) prevBtn.addEventListener('click', () => jump(current - 1));
+        if (nextBtn) nextBtn.addEventListener('click', () => jump(current + 1));
+        // 不再因鼠标悬停/触摸而暂停，保证首屏持续稳定轮换
+        start();
+    })();
+
 </script>
 </body>
 </html>
