@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>合同里程碑跟踪与提醒</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --bg-soft: #161c24;
+    --bg-card: #1c242e;
+    --bg-input: #11161d;
+    --border: #2a3441;
+    --border-soft: #222b36;
+    --text: #e6edf3;
+    --text-dim: #9aa7b4;
+    --text-faint: #6b7785;
+    --accent: #4f9cf9;
+    --accent-soft: #1d3a5f;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --orange: #e3823c;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+    --radius: 10px;
+    --shadow: 0 4px 16px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  header.topbar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 22px;
+    background: linear-gradient(180deg, #182230, #121821);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar h1 { font-size: 17px; margin: 0; font-weight: 650; letter-spacing: .5px; }
+  .topbar .logo { font-size: 20px; }
+  .topbar .spacer { flex: 1; }
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: .15s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); background: #202b38; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .btn.primary:hover { background: #3d8ae8; }
+  .btn.ghost { background: transparent; }
+  .btn.sm { padding: 5px 10px; font-size: 12px; }
+  .btn.danger { border-color: #5a2a2a; color: #ff8a82; }
+  .btn.danger:hover { background: #2a1818; border-color: var(--red); }
+
+  /* reminder banner */
+  .reminder-banner {
+    background: linear-gradient(90deg, #3a2b12, #2a2113);
+    border-bottom: 1px solid var(--yellow);
+    padding: 10px 22px;
+    display: none;
+    align-items: center; gap: 14px;
+    font-size: 13px;
+  }
+  .reminder-banner.show { display: flex; }
+  .reminder-banner .count {
+    background: var(--yellow); color: #1a1305; font-weight: 700;
+    border-radius: 20px; padding: 2px 10px; font-size: 12px;
+  }
+  .reminder-banner .items { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .reminder-banner a { color: var(--yellow); cursor: pointer; text-decoration: underline; }
+
+  /* stats bar */
+  .statsbar { display: flex; gap: 12px; padding: 16px 22px; flex-wrap: wrap; }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border-soft);
+    border-radius: var(--radius); padding: 12px 16px; min-width: 130px; flex: 1;
+  }
+  .stat .num { font-size: 24px; font-weight: 700; }
+  .stat .lbl { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .stat.red .num { color: var(--red); }
+  .stat.orange .num { color: var(--orange); }
+  .stat.green .num { color: var(--green); }
+  .stat.blue .num { color: var(--blue); }
+
+  /* tabs */
+  .tabs { display: flex; gap: 4px; padding: 0 22px; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 10px 16px; cursor: pointer; color: var(--text-dim);
+    border-bottom: 2px solid transparent; font-size: 13px; user-select: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+
+  .view { display: none; padding: 20px 22px; }
+  .view.active { display: block; }
+
+  /* contract cards */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .toolbar input, .toolbar select {
+    background: var(--bg-input); border: 1px solid var(--border); color: var(--text);
+    padding: 7px 10px; border-radius: 8px; font-size: 13px;
+  }
+  .contract-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border-soft);
+    border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow);
+  }
+  .card .chead { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .card .cname { font-size: 15px; font-weight: 650; }
+  .card .cmeta { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--accent-soft); color: var(--blue); margin-right: 4px; }
+  .tag.amt { background: #1d3326; color: var(--green); }
+  .ms-list { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; }
+  .ms {
+    display: flex; align-items: center; gap: 10px; padding: 7px 0;
+    border-bottom: 1px solid var(--border-soft); font-size: 13px;
+  }
+  .ms:last-child { border-bottom: none; }
+  .ms .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .ms .msbody { flex: 1; min-width: 0; }
+  .ms .mstitle { font-weight: 500; }
+  .ms .msdate { font-size: 11px; color: var(--text-faint); }
+  .ms .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .badge.overdue { background: #3a1c1c; color: #ff8a82; }
+  .badge.due { background: #3a2a12; color: #ffc266; }
+  .badge.up { background: #16303f; color: #79c0ff; }
+  .badge.done { background: #16301f; color: #7ee2a0; }
+  .ms .mstools { display: flex; gap: 6px; }
+  .iconbtn { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px; padding: 2px 4px; border-radius: 4px; }
+  .iconbtn:hover { color: var(--text); background: #202b38; }
+  .filechip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--blue); background: #132236; border: 1px solid #1d3a5f; padding: 2px 8px; border-radius: 8px; cursor: pointer; margin-top: 8px; }
+  .filechip:hover { background: #182a44; }
+
+  /* upcoming dashboard */
+  .kanban { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .kcard {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-left-width: 4px;
+    border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow);
+  }
+  .kcard.overdue { border-left-color: var(--red); }
+  .kcard.due { border-left-color: var(--orange); }
+  .kcard.up { border-left-color: var(--blue); }
+  .kcard .kcontract { font-size: 12px; color: var(--text-dim); }
+  .kcard .ktitle { font-size: 15px; font-weight: 600; margin: 4px 0; }
+  .kcard .kcount { font-size: 26px; font-weight: 800; }
+  .kcard.overdue .kcount { color: var(--red); }
+  .kcard.due .kcount { color: var(--orange); }
+  .kcard.up .kcount { color: var(--blue); }
+  .kcard .kunit { font-size: 13px; color: var(--text-dim); font-weight: 400; }
+  .kcard .kdate { font-size: 12px; color: var(--text-faint); margin-top: 6px; }
+  .kcard .kremind { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+
+  /* timeline */
+  .timeline-wrap { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 16px; }
+  .tl-row { display: flex; align-items: center; margin-bottom: 14px; min-width: 720px; }
+  .tl-label { width: 180px; flex-shrink: 0; font-size: 12px; color: var(--text-dim); padding-right: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tl-track { flex: 1; position: relative; height: 30px; }
+
+  /* stats */
+  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+  .chart-box { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 16px; }
+  .chart-box h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; font-size: 12px; color: var(--text-dim); }
+  .legend .li { display: flex; align-items: center; gap: 6px; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* modal */
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
+    align-items: flex-start; justify-content: center; z-index: 100; padding: 40px 16px; overflow-y: auto;
+  }
+  .modal-mask.show { display: flex; }
+  .modal {
+    background: var(--bg-soft); border: 1px solid var(--border); border-radius: 14px;
+    width: 100%; max-width: 640px; box-shadow: var(--shadow); padding: 22px;
+  }
+  .modal h2 { margin: 0 0 16px; font-size: 17px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; }
+  .field input, .field select, .field textarea {
+    width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+    color: var(--text); padding: 9px 11px; border-radius: 8px; font-size: 13px; font-family: inherit;
+  }
+  .field textarea { resize: vertical; min-height: 56px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ms-edit { border: 1px solid var(--border-soft); border-radius: 10px; padding: 12px; margin-bottom: 10px; background: var(--bg-card); }
+  .ms-edit .ms-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--text-dim); }
+  .ms-edit .grid3 { display: grid; grid-template-columns: 1fr 110px 90px; gap: 8px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+  .empty { color: var(--text-faint); text-align: center; padding: 50px 20px; font-size: 13px; }
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--bg-card); border: 1px solid var(--accent); color: var(--text);
+    padding: 10px 18px; border-radius: 10px; box-shadow: var(--shadow); z-index: 200;
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .hint { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+  .perm-note { font-size: 12px; color: var(--orange); margin-left: 10px; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <span class="logo">📑</span>
+  <h1>合同里程碑跟踪与提醒</h1>
+  <span class="spacer"></span>
+  <button class="btn ghost sm" id="btnPerm">🔔 启用桌面提醒</button>
+  <button class="btn primary" id="btnAdd">＋ 新增合同</button>
+</header>
+
+<div class="reminder-banner" id="reminderBanner">
+  <span class="count" id="reminderCount">0</span>
+  <span class="items" id="reminderItems"></span>
+  <a id="reminderGoto">查看临近看板 →</a>
+  <span class="spacer" style="flex:1"></span>
+  <button class="btn sm ghost" id="reminderClose">知道了</button>
+</div>
+
+<div class="statsbar" id="statsbar"></div>
+
+<div class="tabs">
+  <div class="tab active" data-view="contracts">📁 合同列表</div>
+  <div class="tab" data-view="upcoming">⏰ 临近到期看板</div>
+  <div class="tab" data-view="timeline">📈 时间轴 / 甘特</div>
+  <div class="tab" data-view="stats">📊 统计图表</div>
+</div>
+
+<div class="view active" id="view-contracts">
+  <div class="toolbar">
+    <input type="text" id="searchInput" placeholder="搜索合同名称 / 对方 / 节点…" style="min-width:240px" />
+    <select id="filterCat"><option value="">全部类别</option></select>
+    <select id="filterStatus">
+      <option value="">全部状态</option>
+      <option value="overdue">已逾期</option>
+      <option value="due">即将到期</option>
+      <option value="upcoming">未到期</option>
+      <option value="done">已完成</option>
+    </select>
+  </div>
+  <div class="contract-grid" id="contractGrid"></div>
+</div>
+
+<div class="view" id="view-upcoming">
+  <div class="toolbar"><span class="hint">按剩余天数排序，优先展示最紧急的节点。点击「完成」可标记节点已办。</span></div>
+  <div class="kanban" id="kanban"></div>
+</div>
+
+<div class="view" id="view-timeline">
+  <div class="toolbar"><span class="hint">横轴为日期，圆点为上传日，菱形为里程碑节点到期日。可横向滚动。</span></div>
+  <div class="timeline-wrap" id="timeline"></div>
+</div>
+
+<div class="view" id="view-stats">
+  <div class="charts" id="charts"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal">
+    <h2 id="modalTitle">新增合同</h2>
+    <input type="hidden" id="f_id" />
+    <div class="grid2">
+      <div class="field">
+        <label>合同名称 *</label>
+        <input type="text" id="f_name" placeholder="如：XX 采购合同" />
+      </div>
+      <div class="field">
+        <label>类别</label>
+        <input type="text" id="f_category" list="catList" placeholder="如：采购 / 服务 / 租赁" />
+        <datalist id="catList"></datalist>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>对方 / 相对方</label>
+        <input type="text" id="f_party" placeholder="甲方 / 乙方名称" />
+      </div>
+      <div class="field">
+        <label>合同金额（元）</label>
+        <input type="number" id="f_amount" placeholder="可选" min="0" />
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>上传时间 *</label>
+        <input type="date" id="f_uploadDate" />
+      </div>
+      <div class="field">
+        <label>附件（合同资料）</label>
+        <input type="file" id="f_file" />
+        <div class="hint" id="f_fileHint"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>关键里程碑节点</label>
+      <div id="msContainer"></div>
+      <button class="btn sm" id="btnAddMs" type="button">＋ 添加里程碑节点</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" id="btnCancel" type="button">取消</button>
+      <button class="btn primary" id="btnSave" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============ 数据层：IndexedDB ============ */
+const DB_NAME = "contractTracker";
+const DB_VER = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains("contracts")) {
+        const store = d.createObjectStore("contracts", { keyPath: "id" });
+        store.createIndex("uploadDate", "uploadDate", { unique: false });
+      }
+    };
+    req.onsuccess = () => { db = req.result; resolve(db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function getAllContracts() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("contracts", "readonly");
+    const req = tx.objectStore("contracts").getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+function putContract(c) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("contracts", "readwrite");
+    tx.objectStore("contracts").put(c);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+function deleteContract(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("contracts", "readwrite");
+    tx.objectStore("contracts").delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+/* ============ 工具函数 ============ */
+const $ = (sel) => document.querySelector(sel);
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+};
+const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
+const fmtDate = (s) => s || "—";
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const fmtMoney = (n) => (n == null || isNaN(n) || n === "") ? "" : "¥" + Number(n).toLocaleString("zh-CN");
+
+function statusOf(ms, today) {
+  if (ms.done) return "done";
+  const left = daysBetween(today, ms.dueDate);
+  if (left < 0) return "overdue";
+  if (left <= (ms.remindDays || 0)) return "due";
+  return "upcoming";
+}
+const STATUS_COLOR = { overdue: "var(--red)", due: "var(--orange)", upcoming: "var(--blue)", done: "var(--green)" };
+const STATUS_LABEL = { overdue: "已逾期", due: "即将到期", upcoming: "未到期", done: "已完成" };
+
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+/* ============ 状态 ============ */
+let contracts = [];
+let activeView = "contracts";
+
+/* ============ 渲染：统计条 ============ */
+function renderStats() {
+  const today = todayStr();
+  let total = contracts.length, msAll = 0, overdue = 0, due = 0, upcoming = 0, done = 0, amtSum = 0;
+  contracts.forEach(c => {
+    (c.milestones || []).forEach(m => {
+      msAll++;
+      const st = statusOf(m, today);
+      if (st === "overdue") overdue++;
+      else if (st === "due") due++;
+      else if (st === "upcoming") upcoming++;
+      else done++;
+    });
+    if (c.amount) amtSum += Number(c.amount);
+  });
+  const boxes = [
+    { num: total, lbl: "合同总数", cls: "blue" },
+    { num: msAll, lbl: "里程碑节点", cls: "" },
+    { num: due, lbl: "即将到期", cls: "orange" },
+    { num: overdue, lbl: "已逾期", cls: "red" },
+    { num: done, lbl: "已完成", cls: "green" },
+    { num: fmtMoney(amtSum).replace("¥","¥"), lbl: "合同金额合计", cls: "green" },
+  ];
+  $("#statsbar").innerHTML = boxes.map(b =>
+    `<div class="stat ${b.cls}"><div class="num">${esc(b.num)}</div><div class="lbl">${esc(b.lbl)}</div></div>`
+  ).join("");
+}
+
+/* ============ 渲染：合同列表 ============ */
+function renderContracts() {
+  const today = todayStr();
+  const q = $("#searchInput").value.trim().toLowerCase();
+  const cat = $("#filterCat").value;
+  const st = $("#filterStatus").value;
+
+  // category options
+  const cats = [...new Set(contracts.map(c => c.category).filter(Boolean))].sort();
+  const cur = $("#filterCat").value;
+  $("#filterCat").innerHTML = '<option value="">全部类别</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  $("#filterCat").value = cur;
+  $("#catList").innerHTML = cats.map(c => `<option value="${esc(c)}"></option>`).join("");
+
+  let list = contracts.filter(c => {
+    if (cat && c.category !== cat) return false;
+    if (q) {
+      const hay = (c.name + " " + (c.party||"") + " " + (c.milestones||[]).map(m=>m.title).join(" ")).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (st) {
+      const ms = (c.milestones||[]);
+      if (!ms.length) return false;
+      const has = ms.some(m => statusOf(m, today) === st);
+      if (!has) return false;
+    }
+    return true;
+  });
+  // sort: overdue/due first
+  const rank = { overdue: 0, due: 1, upcoming: 2, done: 3 };
+  list.sort((a,b) => {
+    const sa = Math.min(...(a.milestones||[]).map(m=>rank[statusOf(m,today)]), 9);
+    const sb = Math.min(...(b.milestones||[]).map(m=>rank[statusOf(m,today)]), 9);
+    return sa - sb;
+  });
+
+  const grid = $("#contractGrid");
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty">${contracts.length ? "没有匹配的合同。" : "还没有合同，点击右上角「＋ 新增合同」开始吧。"}</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(c => {
+    const ms = (c.milestones||[]).map(m => {
+      const stt = statusOf(m, today);
+      const left = daysBetween(today, m.dueDate);
+      const leftTxt = m.done ? "已完成" : (left < 0 ? `逾期 ${Math.abs(left)} 天` : `剩 ${left} 天`);
+      return `<div class="ms">
+        <span class="dot" style="background:${STATUS_COLOR[stt]}"></span>
+        <div class="msbody">
+          <div class="mstitle">${esc(m.title)}</div>
+          <div class="msdate">到期 ${fmtDate(m.dueDate)} · 提前 ${esc(m.remindDays||0)} 天提醒</div>
+        </div>
+        <span class="badge ${stt}">${leftTxt}</span>
+        <div class="mstools">
+          ${m.done ? "" : `<button class="iconbtn" title="标记完成" data-done="${c.id}|${m.id}">✓</button>`}
+          <button class="iconbtn" title="删除节点" data-delms="${c.id}|${m.id}">🗑</button>
+        </div>
+      </div>`;
+    }).join("");
+    const fileChip = c.file ? `<div class="filechip" data-dl="${c.id}">📎 ${esc(c.file.name)} (${(c.file.size/1024).toFixed(0)} KB) ↓</div>` : "";
+    return `<div class="card">
+      <div class="chead">
+        <div>
+          <div class="cname">${esc(c.name)}</div>
+          <div class="cmeta">上传 ${fmtDate(c.uploadDate)}${c.party?` · ${esc(c.party)}`:""}</div>
+          <div style="margin-top:6px">
+            ${c.category?`<span class="tag">${esc(c.category)}</span>`:""}
+            ${c.amount?`<span class="tag amt">${fmtMoney(c.amount)}</span>`:""}
+          </div>
+          ${fileChip}
+        </div>
+        <div class="mstools">
+          <button class="iconbtn" title="编辑" data-edit="${c.id}">✏️</button>
+          <button class="iconbtn" title="删除合同" data-del="${c.id}">🗑</button>
+        </div>
+      </div>
+      <div class="ms-list">${ms || '<div class="hint">暂无里程碑节点</div>'}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ============ 渲染：临近看板 ============ */
+function renderUpcoming() {
+  const today = todayStr();
+  let items = [];
+  contracts.forEach(c => (c.milestones||[]).forEach(m => {
+    if (m.done) return;
+    const left = daysBetween(today, m.dueDate);
+    const stt = statusOf(m, today);
+    items.push({ c, m, left, stt });
+  }));
+  items.sort((a,b) => a.left - b.left);
+  const kb = $("#kanban");
+  if (!items.length) { kb.innerHTML = `<div class="empty">没有待办节点 🎉 所有里程碑都已完成或未设置。</div>`; return; }
+  kb.innerHTML = items.map(it => {
+    const cls = it.stt === "overdue" ? "overdue" : it.stt === "due" ? "due" : "up";
+    const countTxt = it.left < 0 ? Math.abs(it.left) : it.left;
+    const unit = it.left < 0 ? "天前到期" : "天剩";
+    return `<div class="kcard ${cls}">
+      <div class="kcontract">${esc(it.c.name)}</div>
+      <div class="ktitle">${esc(it.m.title)}</div>
+      <div class="kcount">${countTxt}<span class="kunit"> ${unit}</span></div>
+      <div class="kdate">到期日：${fmtDate(it.m.dueDate)}</div>
+      <div class="kremind">提前 ${esc(it.m.remindDays||0)} 天提醒 · ${STATUS_LABEL[it.stt]}</div>
+      <div style="margin-top:10px"><button class="btn sm" data-done="${it.c.id}|${it.m.id}">标记完成</button></div>
+    </div>`;
+  }).join("");
+}
+
+/* ============ 渲染：时间轴 ============ */
+function renderTimeline() {
+  const today = todayStr();
+  const allDates = [];
+  contracts.forEach(c => {
+    if (c.uploadDate) allDates.push(c.uploadDate);
+    (c.milestones||[]).forEach(m => { if (m.dueDate) allDates.push(m.dueDate); });
+  });
+  const wrap = $("#timeline");
+  if (!allDates.length) { wrap.innerHTML = `<div class="empty">暂无数据，添加合同与里程碑后此处显示时间轴。</div>`; return; }
+
+  let min = allDates.slice().sort()[0];
+  let max = allDates.slice().sort().reverse()[0];
+  // pad range
+  min = new Date(Date.parse(min) - 20*86400000).toISOString().slice(0,10);
+  max = new Date(Date.parse(max) + 20*86400000).toISOString().slice(0,10);
+  const span = Math.max(1, daysBetween(min, max));
+  const xOf = (d) => ((daysBetween(min, d) / span) * 100);
+
+  // month ticks
+  const ticks = [];
+  let cur = new Date(min + "T00:00:00");
+  while (cur.toISOString().slice(0,10) <= max) {
+    if (cur.getDate() === 1 || ticks.length === 0) {
+      ticks.push({ d: cur.toISOString().slice(0,10), x: xOf(cur.toISOString().slice(0,10)), label: `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,"0")}` });
+    }
+    cur.setMonth(cur.getMonth()+1);
+  }
+
+  const rows = contracts.map(c => {
+    const uploadX = c.uploadDate ? xOf(c.uploadDate) : null;
+    const ms = (c.milestones||[]).map(m => {
+      const stt = statusOf(m, today);
+      const x = m.dueDate ? xOf(m.dueDate) : 0;
+      return `<div title="${esc(m.title)}（${fmtDate(m.dueDate)}）" style="position:absolute;left:${x}%;top:7px;transform:translateX(-50%);
+        width:14px;height:14px;background:${STATUS_COLOR[stt]};transform:translateX(-50%) rotate(45deg);border:2px solid var(--bg-card);cursor:pointer"></div>`;
+    }).join("");
+    const uploadDot = uploadX != null ? `<div title="上传日 ${fmtDate(c.uploadDate)}" style="position:absolute;left:${uploadX}%;top:9px;transform:translateX(-50%);width:10px;height:10px;border-radius:50%;background:var(--text-faint);border:2px solid var(--bg-card)"></div>` : "";
+    return `<div class="tl-row">
+      <div class="tl-label" title="${esc(c.name)}">${esc(c.name)}</div>
+      <div class="tl-track" style="background:linear-gradient(90deg,transparent,var(--border-soft) 1px) repeat-x;background-size:${100/ticks.length}% 100%">
+        ${uploadDot}${ms}
+      </div>
+    </div>`;
+  }).join("");
+
+  wrap.innerHTML = `<div style="position:relative;min-width:720px">
+    <div style="display:flex;margin-left:180px;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:8px">
+      ${ticks.map(t=>`<div style="flex:1;font-size:11px;color:var(--text-faint)">${t.label}</div>`).join("")}
+    </div>
+    ${rows}
+    <div style="display:flex;align-items:center;gap:16px;margin-top:14px;font-size:12px;color:var(--text-dim)">
+      <span>● 上传日</span>
+      <span style="color:var(--red)">◆ 已逾期</span>
+      <span style="color:var(--orange)">◆ 即将到期</span>
+      <span style="color:var(--blue)">◆ 未到期</span>
+      <span style="color:var(--green)">◆ 已完成</span>
+    </div>
+  </div>`;
+}
+
+/* ============ 渲染：统计图表（手写 SVG） ============ */
+function donutSVG(data, size = 170) {
+  const total = data.reduce((s,d)=>s+d.value,0);
+  if (total === 0) return `<svg width="${size}" height="${size}"><text x="${size/2}" y="${size/2}" fill="var(--text-faint)" font-size="13" text-anchor="middle" dominant-baseline="middle">无数据</text></svg>`;
+  const r = size/2 - 16, cx = size/2, cy = size/2, C = 2*Math.PI*r;
+  let off = 0;
+  const segs = data.map(d => {
+    const len = (d.value/total)*C;
+    const seg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="22" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    off += len; return seg;
+  }).join("");
+  return `<svg width="${size}" height="${size}">${segs}
+    <text x="${cx}" y="${cy-6}" fill="var(--text)" font-size="22" font-weight="700" text-anchor="middle">${total}</text>
+    <text x="${cx}" y="${cy+14}" fill="var(--text-dim)" font-size="11" text-anchor="middle">总计</text></svg>`;
+}
+function barSVG(data, w = 300, h = 180) {
+  if (!data.length || data.every(d=>!d.value)) return `<svg width="${w}" height="${h}"><text x="${w/2}" y="${h/2}" fill="var(--text-faint)" font-size="13" text-anchor="middle">无数据</text></svg>`;
+  const max = Math.max(...data.map(d=>d.value), 1);
+  const padL = 10, padB = 28, padT = 10;
+  const bw = (w - padL*2) / data.length;
+  const bars = data.map((d,i) => {
+    const bh = (d.value/max) * (h - padB - padT);
+    const x = padL + i*bw + bw*0.15;
+    const y = h - padB - bh;
+    const label = d.label.length > 6 ? d.label.slice(0,6)+"…" : d.label;
+    return `<rect x="${x}" y="${y}" width="${bw*0.7}" height="${bh}" rx="4" fill="${d.color||'var(--accent)'}"/>
+      <text x="${x+bw*0.35}" y="${y-4}" fill="var(--text)" font-size="11" text-anchor="middle">${d.value}</text>
+      <text x="${x+bw*0.35}" y="${h-10}" fill="var(--text-dim)" font-size="10" text-anchor="middle">${esc(label)}</text>`;
+  }).join("");
+  return `<svg width="${w}" height="${h}">${bars}</svg>`;
+}
+
+function renderStats_charts() {
+  const today = todayStr();
+  // category pie
+  const catMap = {};
+  contracts.forEach(c => { const k = c.category||"未分类"; catMap[k]=(catMap[k]||0)+1; });
+  const palette = ["#4f9cf9","#3fb950","#d29922","#bc8cff","#e3823c","#f85149","#58a6ff","#79c0ff"];
+  const catData = Object.entries(catMap).map(([k,v],i)=>({label:k,value:v,color:palette[i%palette.length]}));
+
+  // status bar
+  let overdue=0,due=0,upcoming=0,done=0;
+  contracts.forEach(c=>(c.milestones||[]).forEach(m=>{const s=statusOf(m,today);if(s==="overdue")overdue++;else if(s==="due")due++;else if(s==="upcoming")upcoming++;else done++;}));
+  const statusData = [
+    {label:"已逾期",value:overdue,color:"#f85149"},
+    {label:"即将到期",value:due,color:"#e3823c"},
+    {label:"未到期",value:upcoming,color:"#58a6ff"},
+    {label:"已完成",value:done,color:"#3fb950"},
+  ];
+
+  // amount top5 bar
+  const amtData = contracts.filter(c=>c.amount).map(c=>({label:c.name,value:Number(c.amount)}))
+    .sort((a,b)=>b.value-a.value).slice(0,5)
+    .map(d=>({label:d.label,value:d.value,color:"#3fb950"}));
+
+  const legendHTML = (data) => `<div class="legend">${data.map(d=>`<span class="li"><span class="sw" style="background:${d.color}"></span>${esc(d.label)} (${d.value})</span>`).join("")}</div>`;
+
+  $("#charts").innerHTML = `
+    <div class="chart-box">
+      <h3>合同类别分布</h3>
+      ${donutSVG(catData)}
+      ${legendHTML(catData)}
+    </div>
+    <div class="chart-box">
+      <h3>里程碑状态分布</h3>
+      ${barSVG(statusData)}
+      ${legendHTML(statusData)}
+    </div>
+    <div class="chart-box">
+      <h3>合同金额 Top 5</h3>
+      ${amtData.length ? barSVG(amtData.map(d=>({...d,label:d.label.slice(0,5)}))) : '<div class="empty">暂无金额数据</div>'}
+      ${amtData.length ? legendHTML(amtData.map(d=>({label:d.label,value:fmtMoney(d.value).replace("¥","¥")}))) : ""}
+    </div>`;
+}
+
+/* ============ 提醒引擎 ============ */
+function checkReminders() {
+  const today = todayStr();
+  const due = [];
+  contracts.forEach(c => (c.milestones||[]).forEach(m => {
+    if (m.done) return;
+    const left = daysBetween(today, m.dueDate);
+    const remindDays = m.remindDays || 0;
+    if (left <= remindDays && left >= -30) {
+      const last = m.lastRemindedAt ? m.lastRemindedAt.slice(0,10) : null;
+      if (last !== today) due.push({ c, m, left });
+    }
+  }));
+  if (due.length) {
+    $("#reminderCount").textContent = due.length;
+    $("#reminderItems").textContent = due.slice(0,3).map(d => `${d.c.name} · ${d.m.title}（${d.left<0?`逾期${Math.abs(d.left)}天`:`剩${d.left}天`}）`).join("；") + (due.length>3?` 等 ${due.length} 项`:"");
+    $("#reminderBanner").classList.add("show");
+    // desktop notification (once per day per milestone)
+    if (Notification && Notification.permission === "granted") {
+      due.forEach(d => {
+        const leftTxt = d.left < 0 ? `已逾期 ${Math.abs(d.left)} 天` : `还剩 ${d.left} 天`;
+        try { new Notification("合同里程碑提醒", { body: `${d.c.name} · ${d.m.title}\n${leftTxt}（到期 ${d.m.dueDate}）` }); } catch(e){}
+        d.m.lastRemindedAt = new Date().toISOString();
+      });
+      // persist lastRemindedAt
+      due.forEach(d => {
+        const c = contracts.find(x=>x.id===d.c.id);
+        const mm = c && c.milestones.find(x=>x.id===d.m.id);
+        if (mm) mm.lastRemindedAt = d.m.lastRemindedAt;
+        if (c) putContract(c).catch(()=>{});
+      });
+    }
+  } else {
+    $("#reminderBanner").classList.remove("show");
+  }
+}
+
+function requestNotifPerm() {
+  if (!("Notification" in window)) { toast("当前浏览器不支持桌面通知"); return; }
+  Notification.requestPermission().then(p => {
+    if (p === "granted") { toast("✅ 桌面提醒已启用"); checkReminders(); }
+    else toast("提醒权限被拒绝，仍会在页面内显示横幅");
+  });
+}
+
+/* ============ 弹窗：新增/编辑 ============ */
+function openModal(contract) {
+  $("#modalTitle").textContent = contract ? "编辑合同" : "新增合同";
+  $("#f_id").value = contract ? contract.id : "";
+  $("#f_name").value = contract ? contract.name : "";
+  $("#f_category").value = contract ? (contract.category||"") : "";
+  $("#f_party").value = contract ? (contract.party||"") : "";
+  $("#f_amount").value = contract ? (contract.amount||"") : "";
+  $("#f_uploadDate").value = contract ? contract.uploadDate : todayStr();
+  $("#f_file").value = "";
+  const f = contract && contract.file;
+  $("#f_fileHint").textContent = f ? `当前附件：${f.name}（${(f.size/1024).toFixed(0)} KB）— 重新选择可替换` : "";
+  renderMsEditor(contract ? contract.milestones : []);
+  $("#modalMask").classList.add("show");
+}
+function closeModal() { $("#modalMask").classList.remove("show"); }
+
+function renderMsEditor(milestones) {
+  const cont = $("#msContainer");
+  cont.innerHTML = (milestones||[]).map((m,i) => msRowHTML(m,i)).join("");
+}
+function msRowHTML(m, i) {
+  m = m || {};
+  return `<div class="ms-edit" data-idx="${i}" data-mid="${esc(m.id||"")}" data-done="${m.done?1:0}">
+    <div class="ms-head"><span>节点 #${i+1}</span><button class="iconbtn" type="button" data-rmms="${i}">移除</button></div>
+    <div class="grid3">
+      <input type="text" placeholder="节点名称" data-k="title" value="${esc(m.title||"")}" />
+      <input type="date" data-k="dueDate" value="${esc(m.dueDate||"")}" />
+      <input type="number" placeholder="提前天" min="0" data-k="remindDays" value="${esc(m.remindDays!=null?m.remindDays:"")}" />
+    </div>
+  </div>`;
+}
+function collectMs() {
+  const rows = [...document.querySelectorAll("#msContainer .ms-edit")];
+  return rows.map(r => {
+    const get = (k) => r.querySelector(`[data-k="${k}"]`).value.trim();
+    return {
+      id: r.dataset.mid || uid(),
+      title: get("title"),
+      dueDate: get("dueDate"),
+      remindDays: get("remindDays") === "" ? 0 : parseInt(get("remindDays"),10),
+      done: r.dataset.done === "1",
+    };
+  });
+}
+
+async function saveContract() {
+  const name = $("#f_name").value.trim();
+  const uploadDate = $("#f_uploadDate").value;
+  if (!name) { toast("请填写合同名称"); return; }
+  if (!uploadDate) { toast("请填写上传时间"); return; }
+  const id = $("#f_id").value || uid();
+  let existing = contracts.find(c => c.id === id);
+  const milestones = collectMs().filter(m => m.title && m.dueDate);
+
+  // preserve done & lastRemindedAt from existing
+  if (existing) {
+    milestones.forEach(m => {
+      const old = (existing.milestones||[]).find(o => o.id === m.id);
+      if (old) { m.done = old.done; m.lastRemindedAt = old.lastRemindedAt; }
+    });
+  }
+
+  // file handling
+  let fileObj = existing ? existing.file : null;
+  const fileInput = $("#f_file");
+  if (fileInput.files && fileInput.files[0]) {
+    const f = fileInput.files[0];
+    fileObj = { name: f.name, type: f.type, size: f.size, blob: f };
+  }
+
+  const contract = {
+    id,
+    name,
+    category: $("#f_category").value.trim(),
+    party: $("#f_party").value.trim(),
+    amount: $("#f_amount").value === "" ? null : Number($("#f_amount").value),
+    uploadDate,
+    file: fileObj,
+    milestones,
+    updatedAt: new Date().toISOString(),
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+  };
+  await putContract(contract);
+  contracts = await getAllContracts();
+  closeModal();
+  renderAll();
+  checkReminders();
+  toast(existing ? "已更新合同" : "已新增合同");
+}
+
+/* ============ 事件绑定 ============ */
+function bindEvents() {
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    activeView = t.dataset.view;
+    $("#view-"+activeView).classList.add("active");
+    if (activeView === "timeline") renderTimeline();
+    if (activeView === "stats") renderStats_charts();
+    if (activeView === "upcoming") renderUpcoming();
+  }));
+
+  $("#btnAdd").addEventListener("click", () => openModal(null));
+  $("#btnCancel").addEventListener("click", closeModal);
+  $("#btnSave").addEventListener("click", saveContract);
+  $("#btnAddMs").addEventListener("click", () => {
+    const cont = $("#msContainer");
+    const i = cont.children.length;
+    const div = document.createElement("div");
+    div.innerHTML = msRowHTML({}, i);
+    cont.appendChild(div.firstElementChild);
+  });
+  $("#modalMask").addEventListener("click", (e) => { if (e.target.id === "modalMask") closeModal(); });
+
+  $("#btnPerm").addEventListener("click", requestNotifPerm);
+  $("#reminderClose").addEventListener("click", () => $("#reminderBanner").classList.remove("show"));
+  $("#reminderGoto").addEventListener("click", () => { document.querySelector('.tab[data-view="upcoming"]').click(); });
+
+  $("#searchInput").addEventListener("input", renderContracts);
+  $("#filterCat").addEventListener("change", renderContracts);
+  $("#filterStatus").addEventListener("change", renderContracts);
+
+  // delegated clicks
+  document.body.addEventListener("click", async (e) => {
+    const t = e.target;
+    if (t.dataset.edit) {
+      const c = contracts.find(x=>x.id===t.dataset.edit);
+      openModal(c); return;
+    }
+    if (t.dataset.del) {
+      if (confirm("确定删除该合同？（含附件）")) {
+        await deleteContract(t.dataset.del);
+        contracts = await getAllContracts();
+        renderAll(); toast("已删除合同");
+      }
+      return;
+    }
+    if (t.dataset.delms) {
+      const [cid, mid] = t.dataset.delms.split("|");
+      const c = contracts.find(x=>x.id===cid);
+      c.milestones = c.milestones.filter(m=>m.id!==mid);
+      await putContract(c); contracts = await getAllContracts();
+      renderAll(); checkReminders(); return;
+    }
+    if (t.dataset.done) {
+      const [cid, mid] = t.dataset.done.split("|");
+      const c = contracts.find(x=>x.id===cid);
+      const m = c && c.milestones.find(x=>x.id===mid);
+      if (m) { m.done = true; await putContract(c); contracts = await getAllContracts(); renderAll(); checkReminders(); }
+      return;
+    }
+    if (t.dataset.dl) {
+      const c = contracts.find(x=>x.id===t.dataset.dl);
+      if (c && c.file && c.file.blob) {
+        const url = URL.createObjectURL(c.file.blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = c.file.name; a.click();
+        setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      }
+      return;
+    }
+    if (t.dataset.rmms) {
+      const idx = t.dataset.rmms;
+      const row = document.querySelector(`#msContainer .ms-edit[data-idx="${idx}"]`);
+      if (row) row.remove();
+      return;
+    }
+  });
+
+  // keep ms row ids stable
+  $("#msContainer").addEventListener("input", () => {
+    [...document.querySelectorAll("#msContainer .ms-edit")].forEach((r,i)=>r.dataset.idx=i);
+  });
+}
+
+/* ============ 初始化 ============ */
+function renderAll() {
+  renderStats();
+  renderContracts();
+  if (activeView === "upcoming") renderUpcoming();
+  if (activeView === "timeline") renderTimeline();
+  if (activeView === "stats") renderStats_charts();
+}
+
+(async function init() {
+  try {
+    await openDB();
+    contracts = await getAllContracts();
+    bindEvents();
+    renderAll();
+    checkReminders();
+    // periodic check every 5 min
+    setInterval(checkReminders, 5*60*1000);
+    if ("Notification" in window && Notification.permission === "granted") {
+      // already granted
+    }
+  } catch (err) {
+    console.error(err);
+    alert("初始化失败：" + err.message);
+  }
+})();
+</script>
+</body>
+</html>
