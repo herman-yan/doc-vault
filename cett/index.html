@@ -186,10 +186,11 @@
     @media (max-width: 900px) { .hero-stats { gap:1.4rem; } }
     @media (max-width: 768px) { .hero-stats { margin-top:2.6rem; } }
 
-    /* ===== HERO spotlight (cursor follow) ===== */
+    /* ===== HERO spotlight (cursor follow — gentle golden orb) ===== */
     .hero-spotlight { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0;
-        background: radial-gradient(460px circle at var(--mx, 50%) var(--my, 35%),
-            rgba(150,190,255,0.32), rgba(120,170,255,0.10) 38%, transparent 62%);
+        --mx: 50%; --my: 35%;
+        background: radial-gradient(220px circle at var(--mx) var(--my),
+            rgba(255, 226, 150, 0.32), rgba(255, 191, 98, 0.14) 48%, rgba(255, 173, 74, 0.04) 72%, transparent 84%);
         transition: opacity 0.5s ease; }
     .hero:hover .hero-spotlight { opacity: 1; }
     @media (hover: none) { .hero-spotlight { display: none; } }
@@ -320,6 +321,7 @@
     .mall-card.real .mall-card-ico .ico { font-size: 1.15rem; }
     /* 保养耗材卡片与设备工具完全对齐（无产品图时以小图标占位） */
     .mall-card.real.mall-card--oil .mall-card-ico .ico-wrap { background: linear-gradient(135deg, #06427a, #0050b3); }
+    .mall-card.real.mall-card--training .mall-card-ico { height: 320px; }
     .mall-subtitle { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin: 1.8rem 0 1.1rem;
         display: flex; align-items: center; gap: 9px; }
     .mall-subtitle::before { content: ''; width: 4px; height: 18px; border-radius: 3px; background: var(--accent); }
@@ -928,6 +930,15 @@
         <div class="mall-panel" data-cat="edu">
             <p class="mall-cat-desc">面向技师、门店与行业从业者，提供宁德时代体系内的培训、认证与教研资源，赋能新能源后市场人才。</p>
             <div class="mall-grid">
+                <div class="mall-card real reveal mall-card--training">
+                    <div class="mall-card-ico"><img class="ico-bg" src="images/mall-training-courses.png" alt="动力蓄电池专业认证培训系列"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-graduation-cap"></use></svg></div></div>
+                    <div class="mall-card-body">
+                        <h4>动力蓄电池专业认证培训系列 <span class="mall-pill hot">新品</span></h4>
+                        <p>涵盖维修与保险查勘定损两大方向，含高级直通班、中级直通班及初级班，面向技师与行业从业者提供体系化认证培训。</p>
+                        <div class="mall-specs"><span>维修认证</span><span>查勘定损</span><span>含证书</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">¥ 360 起 / 人</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
                 <div class="mall-card real reveal">
                     <div class="mall-card-ico"><img class="ico-bg" src="images/mall-10.jpg" alt="三电维修认证"><div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-microchip"></use></svg></div></div>
                     <div class="mall-card-body">
@@ -1057,6 +1068,18 @@
         <div class="mall-panel" data-cat="consumable">
             <p class="mall-cat-desc">宁家商城官方保养耗材，适配新能源与燃油车日常养护，原厂品质、全国联保。</p>
             <div class="mall-grid">
+                <div class="mall-card real reveal">
+                    <div class="mall-card-ico">
+                        <img class="ico-bg" src="images/mall-petronas-oils.png" alt="PETRONAS / INTEGRA 新能源润滑系列">
+                        <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-oil-can"></use></svg></div>
+                    </div>
+                    <div class="mall-card-body">
+                        <h4>PETRONAS / INTEGRA 新能源润滑系列 <span class="mall-pill hot">新品</span></h4>
+                        <p>涵盖混动专用发动机油、电动车减速器齿轮油及电驱系统润滑油，适配新能源与混动车型全场景养护。</p>
+                        <div class="mall-specs"><span>5W-30</span><span>0W-20</span><span>D300</span><span>A300</span><span>W500</span></div>
+                        <div class="mall-card-foot"><span class="mall-price">详见产品图</span><a href="#appointment" class="mall-more">了解详情 →</a></div>
+                    </div>
+                </div>
                 <div class="mall-card real reveal mall-card--oil">
                     <div class="mall-card-ico">
                         <div class="ico-wrap"><svg class="ico" aria-hidden="true"><use href="#ico-oil-can"></use></svg></div>
