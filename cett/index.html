@@ -246,6 +246,13 @@
     .about-image { position: relative; border-radius: var(--radius-lg); min-height: 440px; overflow: hidden;
         background: linear-gradient(135deg, #e8f1fd, #d4e6fb); }
     .about-image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .about-slides { position: absolute; inset: 0; z-index: 0; }
+    .about-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; }
+    .about-slide.active { opacity: 1; }
+    .about-dots { position: absolute; bottom: 1.2rem; left: 1.2rem; z-index: 4; display: flex; gap: 8px; }
+    .about-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.65);
+        border: 1px solid rgba(0,0,0,0.08); cursor: pointer; transition: all .3s ease; }
+    .about-dot.active { background: var(--accent); width: 22px; border-radius: 4px; }
     .about-image-badge { position: absolute; bottom: 1.8rem; right: 1.8rem; background: rgba(255,255,255,0.95);
         backdrop-filter: blur(10px); border-radius: var(--radius); padding: 1.4rem 1.8rem; box-shadow: var(--shadow-lg); text-align: center; }
     .about-image-badge h3 { font-size: 2rem; color: var(--accent); line-height: 1; }
@@ -768,8 +775,15 @@
 <section class="about section-pad" id="about">
     <div class="container">
         <div class="about-grid">
-            <div class="about-image reveal">
-                <img src="images/store-beijing.jpg" alt="宁家服务北京直营门店外景" loading="lazy">
+            <div class="about-image reveal about-carousel">
+                <div class="about-slides" aria-label="门店照片">
+                    <div class="about-slide active"><img src="images/store-beijing.jpg" alt="宁家服务北京直营门店外景" loading="lazy"></div>
+                    <div class="about-slide"><img src="images/store-entrance.png" alt="宁家服务门店正门" loading="lazy"></div>
+                </div>
+                <div class="about-dots" role="tablist" aria-label="门店照片指示器">
+                    <button class="about-dot active" aria-label="图片 1" aria-selected="true"></button>
+                    <button class="about-dot" aria-label="图片 2" aria-selected="false"></button>
+                </div>
                 <div class="about-image-badge">
                     <h3>北京</h3>
                     <p>宁德时代官方授权直营门店 · 联动全国</p>
@@ -1537,6 +1551,30 @@
         }, 600);
         return false;
     }
+
+    // ---- about image carousel ----
+    (function(){
+        const slides = document.querySelectorAll('.about-slide');
+        const dots = document.querySelectorAll('.about-dot');
+        if (!slides.length) return;
+        let current = 0;
+        let timer = null;
+        const delay = 6000;
+        function go(n) {
+            slides[current].classList.remove('active');
+            dots[current]?.classList.remove('active');
+            dots[current]?.setAttribute('aria-selected','false');
+            current = (n + slides.length) % slides.length;
+            slides[current].classList.add('active');
+            dots[current]?.classList.add('active');
+            dots[current]?.setAttribute('aria-selected','true');
+        }
+        function next() { go(current + 1); }
+        function start() { if (timer) clearInterval(timer); timer = setInterval(next, delay); }
+        function stop() { if (timer) { clearInterval(timer); timer = null; } }
+        dots.forEach((d, i) => d.addEventListener('click', () => { stop(); go(i); start(); }));
+        start();
+    })();
 
     // ---- hero image carousel ----
     (function(){
