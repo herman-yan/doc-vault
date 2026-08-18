@@ -209,6 +209,17 @@
   .toast.show { opacity: 1; }
   .hint { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
   .perm-note { font-size: 12px; color: var(--orange); margin-left: 10px; }
+
+  /* import modal */
+  #importMapping select {
+    width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; border-radius: 8px; font-size: 13px; font-family: inherit;
+  }
+  #importPreview table td, #importPreview table th {
+    padding: 5px 8px; border-bottom: 1px solid var(--border-soft); text-align: left; white-space: nowrap;
+  }
+  #importPreview table th { color: var(--text-dim); font-weight: 500; }
+  #f_category { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: var(--text); padding: 9px 11px; border-radius: 8px; font-size: 13px; font-family: inherit; }
 </style>
 </head>
 <body>
@@ -217,6 +228,7 @@
   <h1>合同里程碑跟踪与提醒</h1>
   <span class="spacer"></span>
   <button class="btn ghost sm" id="btnPerm">🔔 启用桌面提醒</button>
+  <button class="btn ghost sm" id="btnImport">⬆️ 导入 Excel</button>
   <button class="btn primary" id="btnAdd">＋ 新增合同</button>
 </header>
 
@@ -278,8 +290,12 @@
       </div>
       <div class="field">
         <label>类别</label>
-        <input type="text" id="f_category" list="catList" placeholder="如：采购 / 服务 / 租赁" />
-        <datalist id="catList"></datalist>
+        <select id="f_category">
+          <option value="合同协议">合同协议</option>
+          <option value="人事档案">人事档案</option>
+          <option value="财务档案">财务档案</option>
+          <option value="其它">其它</option>
+        </select>
       </div>
     </div>
     <div class="grid2">
@@ -317,8 +333,48 @@
   </div>
 </div>
 
+<!-- Import Excel Modal -->
+<div class="modal-mask" id="importMask">
+  <div class="modal" style="max-width:760px">
+    <h2 id="importTitle">导入 Excel / CSV</h2>
+
+    <div class="field" id="importPick">
+      <label>选择文件（.xlsx / .xls / .csv）</label>
+      <input type="file" id="importFile" accept=".xlsx,.xls,.csv" />
+      <div class="hint">建议列：合同名称、类别、对方、金额、上传时间、节点1名称、节点1到期日、节点1提前天、节点2…。列名找不到时会让你手动映射。类别须为：合同协议 / 人事档案 / 财务档案 / 其它。</div>
+    </div>
+
+    <div id="importStep2" style="display:none">
+      <div class="field">
+        <label>列映射（选择每一列对应的含义；留空表示忽略该列）</label>
+        <div id="importMapping"></div>
+      </div>
+      <div class="field">
+        <label>未识别到的类别将统一归入</label>
+        <select id="importDefaultCat">
+          <option value="合同协议">合同协议</option>
+          <option value="人事档案">人事档案</option>
+          <option value="财务档案">财务档案</option>
+          <option value="其它" selected>其它</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>数据预览（前 6 行）</label>
+        <div id="importPreview" style="max-height:260px;overflow:auto;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:6px"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" id="importCancel" type="button">取消</button>
+      <button class="btn primary" id="importNext" type="button" style="display:none">下一步：映射</button>
+      <button class="btn primary" id="importConfirm" type="button" style="display:none">确认导入</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
+<script src="xlsx.full.min.js"></script>
 <script>
 "use strict";
 /* ============ 数据层：IndexedDB ============ */
@@ -388,6 +444,26 @@ function statusOf(ms, today) {
 const STATUS_COLOR = { overdue: "var(--red)", due: "var(--orange)", upcoming: "var(--blue)", done: "var(--green)" };
 const STATUS_LABEL = { overdue: "已逾期", due: "即将到期", upcoming: "未到期", done: "已完成" };
 
+/* ============ 类别（四类档案） ============ */
+const CATEGORIES = ["合同协议", "人事档案", "财务档案", "其它"];
+const CAT_COLOR = {
+  "合同协议": "#4f9cf9",
+  "人事档案": "#bc8cff",
+  "财务档案": "#3fb950",
+  "其它":     "#9aa7b4",
+};
+// 归一化：旧数据可能是任意自由文本，映射进四类（含别名匹配）
+function normalizeCat(v) {
+  v = String(v == null ? "" : v).trim();
+  if (!v) return "其它";
+  if (CATEGORIES.includes(v)) return v;
+  const low = v.toLowerCase();
+  if (/人事|员工|档案|hr|人员|入职|离职|社保/.test(low) || /人/.test(v) && /事|员|档/.test(v)) return "人事档案";
+  if (/财务|账|款|发票|财税|金|费|报销/.test(low)) return "财务档案";
+  if (/合同|协议|采购|服务|租赁|销售|合作|保密/.test(low)) return "合同协议";
+  return "其它";
+}
+
 function toast(msg) {
   const t = $("#toast");
   t.textContent = msg;
@@ -435,15 +511,13 @@ function renderContracts() {
   const cat = $("#filterCat").value;
   const st = $("#filterStatus").value;
 
-  // category options
-  const cats = [...new Set(contracts.map(c => c.category).filter(Boolean))].sort();
+  // category options (fixed four classes)
   const cur = $("#filterCat").value;
-  $("#filterCat").innerHTML = '<option value="">全部类别</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  $("#filterCat").innerHTML = '<option value="">全部类别</option>' + CATEGORIES.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
   $("#filterCat").value = cur;
-  $("#catList").innerHTML = cats.map(c => `<option value="${esc(c)}"></option>`).join("");
 
   let list = contracts.filter(c => {
-    if (cat && c.category !== cat) return false;
+    if (cat && normalizeCat(c.category) !== cat) return false;
     if (q) {
       const hay = (c.name + " " + (c.party||"") + " " + (c.milestones||[]).map(m=>m.title).join(" ")).toLowerCase();
       if (!hay.includes(q)) return false;
@@ -494,7 +568,7 @@ function renderContracts() {
           <div class="cname">${esc(c.name)}</div>
           <div class="cmeta">上传 ${fmtDate(c.uploadDate)}${c.party?` · ${esc(c.party)}`:""}</div>
           <div style="margin-top:6px">
-            ${c.category?`<span class="tag">${esc(c.category)}</span>`:""}
+            ${c.category?`<span class="tag" style="background:${CAT_COLOR[normalizeCat(c.category)]}22;color:${CAT_COLOR[normalizeCat(c.category)]}">${esc(c.category)}</span>`:""}
             ${c.amount?`<span class="tag amt">${fmtMoney(c.amount)}</span>`:""}
           </div>
           ${fileChip}
@@ -632,11 +706,11 @@ function barSVG(data, w = 300, h = 180) {
 
 function renderStats_charts() {
   const today = todayStr();
-  // category pie
+  // category pie (fixed four classes)
   const catMap = {};
-  contracts.forEach(c => { const k = c.category||"未分类"; catMap[k]=(catMap[k]||0)+1; });
-  const palette = ["#4f9cf9","#3fb950","#d29922","#bc8cff","#e3823c","#f85149","#58a6ff","#79c0ff"];
-  const catData = Object.entries(catMap).map(([k,v],i)=>({label:k,value:v,color:palette[i%palette.length]}));
+  CATEGORIES.forEach(k => catMap[k] = 0);
+  contracts.forEach(c => { const k = normalizeCat(c.category); catMap[k]=(catMap[k]||0)+1; });
+  const catData = CATEGORIES.map(k => ({ label: k, value: catMap[k]||0, color: CAT_COLOR[k] }));
 
   // status bar
   let overdue=0,due=0,upcoming=0,done=0;
@@ -723,7 +797,7 @@ function openModal(contract) {
   $("#modalTitle").textContent = contract ? "编辑合同" : "新增合同";
   $("#f_id").value = contract ? contract.id : "";
   $("#f_name").value = contract ? contract.name : "";
-  $("#f_category").value = contract ? (contract.category||"") : "";
+  $("#f_category").value = contract ? normalizeCat(contract.category) : "合同协议";
   $("#f_party").value = contract ? (contract.party||"") : "";
   $("#f_amount").value = contract ? (contract.amount||"") : "";
   $("#f_uploadDate").value = contract ? contract.uploadDate : todayStr();
@@ -809,6 +883,176 @@ async function saveContract() {
   toast(existing ? "已更新合同" : "已新增合同");
 }
 
+/* ============ Excel 导入引擎 ============ */
+const IMPORT_FIELDS = [
+  { key: "name",      label: "合同名称 *", required: true },
+  { key: "category",  label: "类别" },
+  { key: "party",     label: "对方" },
+  { key: "amount",    label: "金额" },
+  { key: "uploadDate",label: "上传时间" },
+  { key: "ms1title",  label: "节点1名称" },
+  { key: "ms1due",    label: "节点1到期日" },
+  { key: "ms1remind", label: "节点1提前天" },
+  { key: "ms2title",  label: "节点2名称" },
+  { key: "ms2due",    label: "节点2到期日" },
+  { key: "ms2remind", label: "节点2提前天" },
+];
+let importData = [];   // parsed array of row objects
+let importHeaders = []; // sheet header strings
+
+function openImport() {
+  importData = []; importHeaders = [];
+  $("#importFile").value = "";
+  $("#importPick").style.display = "";
+  $("#importStep2").style.display = "none";
+  $("#importNext").style.display = "none";
+  $("#importConfirm").style.display = "none";
+  $("#importMapping").innerHTML = "";
+  $("#importPreview").innerHTML = "";
+  $("#importTitle").textContent = "导入 Excel / CSV";
+  $("#importMask").classList.add("show");
+}
+function closeImport() { $("#importMask").classList.remove("show"); }
+
+function parseImportFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
+        resolve(rows);
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// 智能猜测每个标准字段对应哪一列
+function guessMapping(headers) {
+  const norm = (s) => String(s||"").toLowerCase().replace(/\s/g,"");
+  const rules = {
+    name:      [/名称/, /合同/, /标题/, /name/],
+    category:  [/类别/, /分类/, /类型/, /cat/],
+    party:     [/对方/, /相对/, /甲方/, /乙方/, /party/, /相对方/],
+    amount:    [/金额/, /价/, /费用/, /amount/, /price/, /cost/],
+    uploadDate:[/上传时间/, /上传日期/, /日期/, /时间/, /uploaddate/, /date/],
+    ms1title:  [/节点1\D*名称/, /里程碑1/, /节点一/, /第一个.*节点/, /节点1/, /里程碑/],
+    ms1due:    [/节点1.*到期/, /到期1/, /到期日/, /节点1.*日期/, /due1/],
+    ms1remind: [/节点1.*提前/, /提前1/, /提前天/, /remind1/],
+    ms2title:  [/节点2\D*名称/, /里程碑2/, /节点二/, /节点2/],
+    ms2due:    [/节点2.*到期/, /到期2/, /节点2.*日期/, /due2/],
+    ms2remind: [/节点2.*提前/, /提前2/, /remind2/],
+  };
+  const map = {};
+  IMPORT_FIELDS.forEach(f => {
+    const rs = rules[f.key] || [];
+    const found = headers.findIndex(h => rs.some(r => r.test(norm(h))));
+    map[f.key] = found >= 0 ? headers[found] : "";
+  });
+  return map;
+}
+
+function renderMapping() {
+  const map = guessMapping(importHeaders);
+  $("#importMapping").innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">` + IMPORT_FIELDS.map(f => {
+    const opts = ['<option value="">— 忽略 —</option>']
+      .concat(importHeaders.map(h => `<option value="${esc(h)}" ${map[f.key]===h?"selected":""}>${esc(h)}</option>`)).join("");
+    return `<div><div class="hint" style="margin-bottom:4px">${esc(f.label)}</div>
+      <select data-map="${f.key}">${opts}</select></div>`;
+  }).join("") + `</div>`;
+}
+
+function buildImportRows() {
+  const selects = [...document.querySelectorAll("#importMapping select")];
+  const colOf = {};
+  selects.forEach(s => { colOf[s.dataset.map] = s.value; });
+  const getVal = (row, key) => {
+    const col = colOf[key];
+    if (!col) return "";
+    let v = row[col];
+    return v == null ? "" : String(v).trim();
+  };
+  const rows = importData.map(row => {
+    const name = getVal(row, "name");
+    if (!name) return null;
+    const catRaw = getVal(row, "category");
+    const dflt = $("#importDefaultCat") ? $("#importDefaultCat").value : "其它";
+    const cat = CATEGORIES.includes(catRaw) ? catRaw : (catRaw ? normalizeCat(catRaw) : dflt);
+    const amtRaw = getVal(row, "amount");
+    const amount = amtRaw === "" ? null : Number(String(amtRaw).replace(/[, ¥￥]/g, ""));
+    const milestones = [];
+    for (const grp of [{t:"ms1title",d:"ms1due",r:"ms1remind"},{t:"ms2title",d:"ms2due",r:"ms2remind"}]) {
+      const t = getVal(row, grp.t), d = getVal(row, grp.d);
+      if (t && d) milestones.push({ id: uid(), title: t, dueDate: toISODate(d), remindDays: getVal(row, grp.r) === "" ? 7 : parseInt(getVal(row, grp.r),10) || 0, done: false });
+    }
+    return {
+      id: uid(),
+      name,
+      category: cat,
+      party: getVal(row, "party"),
+      amount: isNaN(amount) ? null : amount,
+      uploadDate: toISODate(getVal(row, "uploadDate")) || todayStr(),
+      file: null,
+      milestones,
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      _imported: true,
+    };
+  }).filter(Boolean);
+  return rows;
+}
+
+// 把多种日期表示转为 YYYY-MM-DD（手工拆分，避免时区 off-by-one）
+function pad2(n) { return String(n).padStart(2, "0"); }
+function toISODate(s) {
+  if (!s) return "";
+  s = String(s).trim();
+  if (/^\d{4}[-/年]\d{1,2}[-/月]\d{1,2}/.test(s)) {
+    const m = s.match(/(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})/);
+    if (m) return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
+  }
+  // Excel 序列号（纯数字 20000~60000）
+  if (/^\d{5}$/.test(s)) {
+    const d = new Date((Number(s) - 25569) * 86400000);
+    return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`;
+  }
+  // 任意分隔符的 y m d / m d y
+  const parts = s.split(/[-/.]/).map(p=>p.trim()).filter(p=>/^\d+$/.test(p));
+  if (parts.length >= 3) {
+    let [a,b,c] = parts;
+    if (a.length === 4) return `${a}-${pad2(b)}-${pad2(c)}`;          // y/m/d
+    if (c.length === 4) return `${c}-${pad2(a)}-${pad2(b)}`;          // m/d/y
+    if (a.length === 2) return `20${a}-${pad2(b)}-${pad2(c)}`;        // yy/m/d
+  }
+  // 兜底：用 Date 解析后取本地年月日（避免 toISOString 时区漂移）
+  const t = Date.parse(s.replace(/\./g,"-").replace(/\//g,"-"));
+  if (!isNaN(t)) { const d = new Date(t); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+  return "";
+}
+
+function renderImportPreview(rows) {
+  const previewCols = ["name","category","party","amount","uploadDate","milestones"];
+  const head = `<tr>${previewCols.map(c=>`<th>${esc({name:"合同名称",category:"类别",party:"对方",amount:"金额",uploadDate:"上传时间",milestones:"里程碑数"}[c])}</th>`).join("")}</tr>`;
+  const body = rows.slice(0,6).map(r=>`<tr>
+    <td>${esc(r.name)}</td><td>${esc(r.category)}</td><td>${esc(r.party||"—")}</td>
+    <td>${r.amount?fmtMoney(r.amount):"—"}</td><td>${esc(r.uploadDate)}</td>
+    <td>${r.milestones.length}</td></tr>`).join("");
+  $("#importPreview").innerHTML = rows.length ? `<table style="width:100%;font-size:12px"><thead>${head}</thead><tbody>${body}</tbody></table>` : '<div class="empty">没有可导入的行（需至少含「合同名称」）</div>';
+}
+
+async function confirmImport() {
+  const rows = buildImportRows();
+  if (!rows.length) { toast("没有可导入的数据行"); return; }
+  for (const r of rows) { await putContract(r); }
+  contracts = await getAllContracts();
+  renderAll();
+  closeImport();
+  toast(`✅ 成功导入 ${rows.length} 条记录`);
+}
+
 /* ============ 事件绑定 ============ */
 function bindEvents() {
   document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
@@ -835,6 +1079,34 @@ function bindEvents() {
   $("#modalMask").addEventListener("click", (e) => { if (e.target.id === "modalMask") closeModal(); });
 
   $("#btnPerm").addEventListener("click", requestNotifPerm);
+  $("#btnImport").addEventListener("click", openImport);
+  $("#importCancel").addEventListener("click", closeImport);
+  $("#importMask").addEventListener("click", (e) => { if (e.target.id === "importMask") closeImport(); });
+  $("#importFile").addEventListener("change", async () => {
+    const f = $("#importFile").files && $("#importFile").files[0];
+    if (!f) return;
+    if (typeof XLSX === "undefined") { toast("解析库未加载，请刷新页面"); return; }
+    try {
+      importData = await parseImportFile(f);
+      if (!importData.length) { toast("文件为空或无数据"); return; }
+      importHeaders = Object.keys(importData[0]);
+      $("#importStep2").style.display = "";
+      $("#importNext").style.display = "";
+      renderMapping();
+      $("#importTitle").textContent = `导入 Excel / CSV（共 ${importData.length} 行）`;
+    } catch (err) {
+      console.error(err);
+      toast("解析失败：" + err.message);
+    }
+  });
+  $("#importNext").addEventListener("click", () => {
+    const rows = buildImportRows();
+    if (!rows.length) { toast("没有可导入的行，请检查「合同名称」列映射"); return; }
+    renderImportPreview(rows);
+    $("#importConfirm").style.display = "";
+    $("#importNext").style.display = "none";
+  });
+  $("#importConfirm").addEventListener("click", confirmImport);
   $("#reminderClose").addEventListener("click", () => $("#reminderBanner").classList.remove("show"));
   $("#reminderGoto").addEventListener("click", () => { document.querySelector('.tab[data-view="upcoming"]').click(); });
 
