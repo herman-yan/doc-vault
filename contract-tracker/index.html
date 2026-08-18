@@ -210,6 +210,14 @@
   .hint { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
   .perm-note { font-size: 12px; color: var(--orange); margin-left: 10px; }
 
+  /* milestone logic + mode */
+  .logic-badge { font-size: 11px; color: var(--green); background: #16301f; border: 1px solid #1d3a2a; padding: 1px 7px; border-radius: 10px; margin-left: 8px; }
+  .logic-badge.none { display: none; }
+  .ms-edit select[data-k="remindMode"] { width: 100%; background: var(--bg-input); border: 1px solid var(--border); color: var(--text); padding: 9px 8px; border-radius: 8px; font-size: 12px; font-family: inherit; }
+  .badge.cycle { background: #163a3a; color: #6fe3e3; }
+  .kcard.cycle { border-left-color: #56d4d4; }
+  .kcard.cycle .kcount { color: #56d4d4; }
+
   /* import modal */
   #importMapping select {
     width: 100%; background: var(--bg-input); border: 1px solid var(--border);
@@ -258,6 +266,7 @@
       <option value="overdue">已逾期</option>
       <option value="due">即将到期</option>
       <option value="upcoming">未到期</option>
+      <option value="cycle">周期提醒</option>
       <option value="done">已完成</option>
     </select>
   </div>
@@ -322,6 +331,7 @@
 
     <div class="field">
       <label>关键里程碑节点</label>
+      <div class="hint">智能逻辑：输入节点名称会自动套用规则 — 人事「试用期…」→提前10天、「合同期/到期…」→提前30天；财务「待付款…」→每30天、「待开票…」→每5天；合同协议「销售/签订…」→每5天。也可手动改。</div>
       <div id="msContainer"></div>
       <button class="btn sm" id="btnAddMs" type="button">＋ 添加里程碑节点</button>
     </div>
@@ -436,13 +446,14 @@ const fmtMoney = (n) => (n == null || isNaN(n) || n === "") ? "" : "¥" + Number
 
 function statusOf(ms, today) {
   if (ms.done) return "done";
+  if ((ms.remindMode || "before") === "interval") return "cycle";
   const left = daysBetween(today, ms.dueDate);
   if (left < 0) return "overdue";
   if (left <= (ms.remindDays || 0)) return "due";
   return "upcoming";
 }
-const STATUS_COLOR = { overdue: "var(--red)", due: "var(--orange)", upcoming: "var(--blue)", done: "var(--green)" };
-const STATUS_LABEL = { overdue: "已逾期", due: "即将到期", upcoming: "未到期", done: "已完成" };
+const STATUS_COLOR = { overdue: "var(--red)", due: "var(--orange)", upcoming: "var(--blue)", done: "var(--green)", cycle: "#56d4d4" };
+const STATUS_LABEL = { overdue: "已逾期", due: "即将到期", upcoming: "未到期", done: "已完成", cycle: "周期提醒" };
 
 /* ============ 类别（四类档案） ============ */
 const CATEGORIES = ["合同协议", "人事档案", "财务档案", "其它"];
@@ -464,6 +475,47 @@ function normalizeCat(v) {
   return "其它";
 }
 
+/* ============ 逻辑提醒规则 ============ */
+// 按「类别 + 节点名称关键字」自动套用提醒方式，避免每次手填。
+// mode: before = 提前 N 天（倒计时）；interval = 每 N 天（周期，用于持续跟进）
+const LOGIC_RULES = [
+  { id: "hr_probation", cats: ["人事档案"], keywords: [/试用期/, /probation/], mode: "before",  remindDays: 10, label: "试用期·提前10天" },
+  { id: "fin_invoice",  cats: ["财务档案"], keywords: [/待开票/, /待开具发票/, /开票/, /发票/], mode: "interval", remindDays: 5,  label: "待开票·每5天" },
+  { id: "fin_pay",      cats: ["财务档案"], keywords: [/待付款/, /待付/, /付款/], mode: "interval", remindDays: 30, label: "待付款·每30天" },
+  { id: "sales",        cats: ["合同协议"], keywords: [/销售/, /签订/, /签约/, /业务/, /回款/, /客户/], mode: "interval", remindDays: 5, label: "销售跟进·每5天" },
+  { id: "hr_contract",  cats: ["人事档案"], keywords: [/合同期/, /合同到期/, /到期/, /续签/, /劳动合同/], mode: "before", remindDays: 30, label: "合同期·提前30天" },
+];
+
+// 根据类别 + 节点名称匹配逻辑规则（返回命中规则或 null）
+function detectLogic(category, title) {
+  const t = String(title || "").toLowerCase();
+  const cat = normalizeCat(category);
+  for (const r of LOGIC_RULES) {
+    if (r.cats && !r.cats.includes(cat)) continue;
+    if (r.keywords.some(re => re.test(t))) return r;
+  }
+  return null;
+}
+
+// 在编辑行里根据节点名称自动套用逻辑（仅当提前天数为空时才自动填，避免覆盖手动值）
+function autoLogicForRow(row, category) {
+  if (!row) return;
+  const titleEl = row.querySelector('[data-k="title"]');
+  const modeEl  = row.querySelector('[data-k="remindMode"]');
+  const daysEl  = row.querySelector('[data-k="remindDays"]');
+  const badge   = row.querySelector('[data-logic]');
+  if (!titleEl || !modeEl || !daysEl || !badge) return;
+  const rule = detectLogic(category, titleEl.value);
+  if (rule) {
+    modeEl.value = rule.mode;
+    if (daysEl.value === "") daysEl.value = rule.remindDays;
+    badge.textContent = "🔧 自动逻辑：" + rule.label;
+    badge.classList.remove("none");
+  } else {
+    badge.classList.add("none");
+  }
+}
+
 function toast(msg) {
   const t = $("#toast");
   t.textContent = msg;
@@ -479,7 +531,7 @@ let activeView = "contracts";
 /* ============ 渲染：统计条 ============ */
 function renderStats() {
   const today = todayStr();
-  let total = contracts.length, msAll = 0, overdue = 0, due = 0, upcoming = 0, done = 0, amtSum = 0;
+  let total = contracts.length, msAll = 0, overdue = 0, due = 0, upcoming = 0, done = 0, cycle = 0, amtSum = 0;
   contracts.forEach(c => {
     (c.milestones || []).forEach(m => {
       msAll++;
@@ -487,6 +539,7 @@ function renderStats() {
       if (st === "overdue") overdue++;
       else if (st === "due") due++;
       else if (st === "upcoming") upcoming++;
+      else if (st === "cycle") cycle++;
       else done++;
     });
     if (c.amount) amtSum += Number(c.amount);
@@ -496,6 +549,7 @@ function renderStats() {
     { num: msAll, lbl: "里程碑节点", cls: "" },
     { num: due, lbl: "即将到期", cls: "orange" },
     { num: overdue, lbl: "已逾期", cls: "red" },
+    { num: cycle, lbl: "周期提醒", cls: "" },
     { num: done, lbl: "已完成", cls: "green" },
     { num: fmtMoney(amtSum).replace("¥","¥"), lbl: "合同金额合计", cls: "green" },
   ];
@@ -546,13 +600,20 @@ function renderContracts() {
   grid.innerHTML = list.map(c => {
     const ms = (c.milestones||[]).map(m => {
       const stt = statusOf(m, today);
-      const left = daysBetween(today, m.dueDate);
-      const leftTxt = m.done ? "已完成" : (left < 0 ? `逾期 ${Math.abs(left)} 天` : `剩 ${left} 天`);
+      const mode = m.remindMode || "before";
+      const remindDays = m.remindDays || 0;
+      let leftTxt;
+      if (m.done) leftTxt = "已完成";
+      else if (mode === "interval") leftTxt = `每 ${remindDays} 天`;
+      else { const left = daysBetween(today, m.dueDate); leftTxt = left < 0 ? `逾期 ${Math.abs(left)} 天` : `剩 ${left} 天`; }
+      const dateTxt = mode === "interval"
+        ? `基准日 ${fmtDate(m.dueDate)} · 每 ${remindDays} 天提醒`
+        : `到期 ${fmtDate(m.dueDate)} · 提前 ${remindDays} 天提醒`;
       return `<div class="ms">
         <span class="dot" style="background:${STATUS_COLOR[stt]}"></span>
         <div class="msbody">
           <div class="mstitle">${esc(m.title)}</div>
-          <div class="msdate">到期 ${fmtDate(m.dueDate)} · 提前 ${esc(m.remindDays||0)} 天提醒</div>
+          <div class="msdate">${dateTxt}</div>
         </div>
         <span class="badge ${stt}">${leftTxt}</span>
         <div class="mstools">
@@ -589,23 +650,35 @@ function renderUpcoming() {
   let items = [];
   contracts.forEach(c => (c.milestones||[]).forEach(m => {
     if (m.done) return;
-    const left = daysBetween(today, m.dueDate);
+    const mode = m.remindMode || "before";
+    const remindDays = m.remindDays || 0;
     const stt = statusOf(m, today);
-    items.push({ c, m, left, stt });
+    let left, unit;
+    if (mode === "interval") {
+      const ref = m.dueDate || today;
+      left = daysBetween(ref, today);
+      unit = "天·每" + remindDays + "天";
+    } else {
+      left = daysBetween(today, m.dueDate);
+      unit = left < 0 ? "天前到期" : "天剩";
+    }
+    items.push({ c, m, left, stt, mode, remindDays });
   }));
   items.sort((a,b) => a.left - b.left);
   const kb = $("#kanban");
   if (!items.length) { kb.innerHTML = `<div class="empty">没有待办节点 🎉 所有里程碑都已完成或未设置。</div>`; return; }
   kb.innerHTML = items.map(it => {
-    const cls = it.stt === "overdue" ? "overdue" : it.stt === "due" ? "due" : "up";
+    const cls = it.stt === "overdue" ? "overdue" : it.stt === "due" ? "due" : it.stt === "cycle" ? "cycle" : "up";
     const countTxt = it.left < 0 ? Math.abs(it.left) : it.left;
-    const unit = it.left < 0 ? "天前到期" : "天剩";
+    const kremind = it.mode === "interval"
+      ? `周期提醒 · 每 ${it.remindDays} 天（自基准日 ${it.left} 天）`
+      : `提前 ${it.remindDays} 天提醒 · ${STATUS_LABEL[it.stt]}`;
     return `<div class="kcard ${cls}">
       <div class="kcontract">${esc(it.c.name)}</div>
       <div class="ktitle">${esc(it.m.title)}</div>
-      <div class="kcount">${countTxt}<span class="kunit"> ${unit}</span></div>
-      <div class="kdate">到期日：${fmtDate(it.m.dueDate)}</div>
-      <div class="kremind">提前 ${esc(it.m.remindDays||0)} 天提醒 · ${STATUS_LABEL[it.stt]}</div>
+      <div class="kcount">${countTxt}<span class="kunit"> ${it.unit}</span></div>
+      <div class="kdate">${it.mode === "interval" ? `基准日：${fmtDate(it.m.dueDate)}` : `到期日：${fmtDate(it.m.dueDate)}`}</div>
+      <div class="kremind">${kremind}</div>
       <div style="margin-top:10px"><button class="btn sm" data-done="${it.c.id}|${it.m.id}">标记完成</button></div>
     </div>`;
   }).join("");
@@ -667,6 +740,7 @@ function renderTimeline() {
       <span style="color:var(--red)">◆ 已逾期</span>
       <span style="color:var(--orange)">◆ 即将到期</span>
       <span style="color:var(--blue)">◆ 未到期</span>
+      <span style="color:#56d4d4">◆ 周期提醒</span>
       <span style="color:var(--green)">◆ 已完成</span>
     </div>
   </div>`;
@@ -713,12 +787,13 @@ function renderStats_charts() {
   const catData = CATEGORIES.map(k => ({ label: k, value: catMap[k]||0, color: CAT_COLOR[k] }));
 
   // status bar
-  let overdue=0,due=0,upcoming=0,done=0;
-  contracts.forEach(c=>(c.milestones||[]).forEach(m=>{const s=statusOf(m,today);if(s==="overdue")overdue++;else if(s==="due")due++;else if(s==="upcoming")upcoming++;else done++;}));
+  let overdue=0,due=0,upcoming=0,done=0,cycle=0;
+  contracts.forEach(c=>(c.milestones||[]).forEach(m=>{const s=statusOf(m,today);if(s==="overdue")overdue++;else if(s==="due")due++;else if(s==="upcoming")upcoming++;else if(s==="cycle")cycle++;else done++;}));
   const statusData = [
     {label:"已逾期",value:overdue,color:"#f85149"},
     {label:"即将到期",value:due,color:"#e3823c"},
     {label:"未到期",value:upcoming,color:"#58a6ff"},
+    {label:"周期提醒",value:cycle,color:"#56d4d4"},
     {label:"已完成",value:done,color:"#3fb950"},
   ];
 
@@ -748,37 +823,59 @@ function renderStats_charts() {
 }
 
 /* ============ 提醒引擎 ============ */
+// 判断某个里程碑在 today 是否应提醒，返回 {kind, left} 或 null
+function isReminderActive(m, today) {
+  const mode = m.remindMode || "before";
+  const remindDays = m.remindDays || 0;
+  if (mode === "interval") {
+    // 自基准日(ref)起每 remindDays 天提醒一次，直到完成
+    const ref = m.dueDate || (m.lastRemindedAt||"").slice(0,10) || today;
+    const since = daysBetween(ref, today);
+    const last = m.lastRemindedAt ? m.lastRemindedAt.slice(0,10) : null;
+    const sinceLast = last ? daysBetween(last, today) : null;
+    if (since >= 0 && (last === null || sinceLast >= remindDays)) return { kind: "interval", left: since };
+    return null;
+  }
+  const left = daysBetween(today, m.dueDate);
+  if (left <= remindDays && left >= -30) return { kind: "before", left };
+  return null;
+}
+
 function checkReminders() {
   const today = todayStr();
   const due = [];
   contracts.forEach(c => (c.milestones||[]).forEach(m => {
     if (m.done) return;
-    const left = daysBetween(today, m.dueDate);
-    const remindDays = m.remindDays || 0;
-    if (left <= remindDays && left >= -30) {
-      const last = m.lastRemindedAt ? m.lastRemindedAt.slice(0,10) : null;
-      if (last !== today) due.push({ c, m, left });
-    }
+    const hit = isReminderActive(m, today);
+    if (!hit) return;
+    const last = m.lastRemindedAt ? m.lastRemindedAt.slice(0,10) : null;
+    if (last !== today) due.push({ c, m, hit });
   }));
   if (due.length) {
     $("#reminderCount").textContent = due.length;
-    $("#reminderItems").textContent = due.slice(0,3).map(d => `${d.c.name} · ${d.m.title}（${d.left<0?`逾期${Math.abs(d.left)}天`:`剩${d.left}天`}）`).join("；") + (due.length>3?` 等 ${due.length} 项`:"");
+    $("#reminderItems").textContent = due.slice(0,3).map(d => {
+      const m = d.m;
+      if (d.hit.kind === "interval") return `${d.c.name} · ${m.title}（每${m.remindDays}天）`;
+      const l = d.hit.left;
+      return `${d.c.name} · ${m.title}（${l<0?`逾期${Math.abs(l)}天`:`剩${l}天`}）`;
+    }).join("；") + (due.length>3?` 等 ${due.length} 项`:"");
     $("#reminderBanner").classList.add("show");
-    // desktop notification (once per day per milestone)
-    if (Notification && Notification.permission === "granted") {
-      due.forEach(d => {
-        const leftTxt = d.left < 0 ? `已逾期 ${Math.abs(d.left)} 天` : `还剩 ${d.left} 天`;
-        try { new Notification("合同里程碑提醒", { body: `${d.c.name} · ${d.m.title}\n${leftTxt}（到期 ${d.m.dueDate}）` }); } catch(e){}
-        d.m.lastRemindedAt = new Date().toISOString();
-      });
-      // persist lastRemindedAt
-      due.forEach(d => {
-        const c = contracts.find(x=>x.id===d.c.id);
-        const mm = c && c.milestones.find(x=>x.id===d.m.id);
-        if (mm) mm.lastRemindedAt = d.m.lastRemindedAt;
-        if (c) putContract(c).catch(()=>{});
-      });
-    }
+    const granted = Notification && Notification.permission === "granted";
+    due.forEach(d => {
+      const m = d.m;
+      if (granted) {
+        const body = d.hit.kind === "interval"
+          ? `${m.title}\n周期提醒（每 ${m.remindDays} 天）`
+          : `${m.title}\n${d.hit.left<0?`已逾期 ${Math.abs(d.hit.left)} 天`:`还剩 ${d.hit.left} 天`}（到期 ${m.dueDate}）`;
+        try { new Notification("合同里程碑提醒", { body }); } catch(e){}
+      }
+      // 持久化去重：无论是否弹通知，都记录今天已提醒，避免反复弹横幅
+      m.lastRemindedAt = new Date().toISOString();
+      const c = contracts.find(x=>x.id===d.c.id);
+      const mm = c && c.milestones.find(x=>x.id===m.id);
+      if (mm) mm.lastRemindedAt = m.lastRemindedAt;
+      if (c) putContract(c).catch(()=>{});
+    });
   } else {
     $("#reminderBanner").classList.remove("show");
   }
@@ -805,6 +902,7 @@ function openModal(contract) {
   const f = contract && contract.file;
   $("#f_fileHint").textContent = f ? `当前附件：${f.name}（${(f.size/1024).toFixed(0)} KB）— 重新选择可替换` : "";
   renderMsEditor(contract ? contract.milestones : []);
+  [...$("#msContainer").querySelectorAll(".ms-edit")].forEach(r => autoLogicForRow(r, contract ? normalizeCat(contract.category) : $("#f_category").value));
   $("#modalMask").classList.add("show");
 }
 function closeModal() { $("#modalMask").classList.remove("show"); }
@@ -815,12 +913,17 @@ function renderMsEditor(milestones) {
 }
 function msRowHTML(m, i) {
   m = m || {};
+  const mode = m.remindMode || "before";
   return `<div class="ms-edit" data-idx="${i}" data-mid="${esc(m.id||"")}" data-done="${m.done?1:0}">
-    <div class="ms-head"><span>节点 #${i+1}</span><button class="iconbtn" type="button" data-rmms="${i}">移除</button></div>
+    <div class="ms-head"><span>节点 #${i+1}</span><span class="logic-badge none" data-logic></span><button class="iconbtn" type="button" data-rmms="${i}">移除</button></div>
+    <input type="text" placeholder="节点名称（如：试用期合同到期 / 已采购待付款 / 签订销售合同）" data-k="title" value="${esc(m.title||"")}" style="width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-size:13px;margin-bottom:8px" />
     <div class="grid3">
-      <input type="text" placeholder="节点名称" data-k="title" value="${esc(m.title||"")}" />
-      <input type="date" data-k="dueDate" value="${esc(m.dueDate||"")}" />
-      <input type="number" placeholder="提前天" min="0" data-k="remindDays" value="${esc(m.remindDays!=null?m.remindDays:"")}" />
+      <input type="date" data-k="dueDate" value="${esc(m.dueDate||"")}" title="到期日 / 周期基准日" />
+      <select data-k="remindMode" title="提醒方式">
+        <option value="before" ${mode==="interval"?"":"selected"}>提前N天</option>
+        <option value="interval" ${mode==="interval"?"selected":""}>每N天周期</option>
+      </select>
+      <input type="number" placeholder="天数" min="0" data-k="remindDays" value="${esc(m.remindDays!=null?m.remindDays:"")}" />
     </div>
   </div>`;
 }
@@ -832,6 +935,7 @@ function collectMs() {
       id: r.dataset.mid || uid(),
       title: get("title"),
       dueDate: get("dueDate"),
+      remindMode: r.querySelector('[data-k="remindMode"]').value,
       remindDays: get("remindDays") === "" ? 0 : parseInt(get("remindDays"),10),
       done: r.dataset.done === "1",
     };
@@ -986,7 +1090,13 @@ function buildImportRows() {
     const milestones = [];
     for (const grp of [{t:"ms1title",d:"ms1due",r:"ms1remind"},{t:"ms2title",d:"ms2due",r:"ms2remind"}]) {
       const t = getVal(row, grp.t), d = getVal(row, grp.d);
-      if (t && d) milestones.push({ id: uid(), title: t, dueDate: toISODate(d), remindDays: getVal(row, grp.r) === "" ? 7 : parseInt(getVal(row, grp.r),10) || 0, done: false });
+      if (!(t && d)) continue;
+      let remindDays = getVal(row, grp.r) === "" ? null : (parseInt(getVal(row, grp.r),10) || 0);
+      let mode = "before";
+      const rule = detectLogic(cat, t);
+      if (rule) { if (remindDays === null) remindDays = rule.remindDays; mode = rule.mode; }
+      if (remindDays === null) remindDays = 7;
+      milestones.push({ id: uid(), title: t, dueDate: toISODate(d), remindDays, remindMode: mode, done: false });
     }
     return {
       id: uid(),
@@ -1161,9 +1271,12 @@ function bindEvents() {
     }
   });
 
-  // keep ms row ids stable
-  $("#msContainer").addEventListener("input", () => {
+  // keep ms row ids stable + auto-apply logic when node title changes
+  $("#msContainer").addEventListener("input", (e) => {
     [...document.querySelectorAll("#msContainer .ms-edit")].forEach((r,i)=>r.dataset.idx=i);
+    if (e.target && e.target.dataset && e.target.dataset.k === "title") {
+      autoLogicForRow(e.target.closest(".ms-edit"), $("#f_category").value);
+    }
   });
 }
 
