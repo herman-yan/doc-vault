@@ -191,7 +191,22 @@
       "id": 12,
       "uploadTime": "2026-08-18T03:13:51.064Z",
       "filePath": "docs-vault/files/12.pdf"
+    },
+    {
+      "name": "返修拍摄照片汇总.xlsx",
+      "size": 11294,
+      "type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "typeName": "Excel",
+      "icon": "📗",
+      "color": "#10b981",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 13,
+      "uploadTime": "2026-08-18T03:14:24.739Z",
+      "filePath": "docs-vault/files/13.xlsx"
     }
   ],
-  "lastUpdated": "2026/8/18 11:14:23"
+  "lastUpdated": "2026/8/18 11:14:26"
 }
