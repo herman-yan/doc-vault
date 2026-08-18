@@ -176,7 +176,22 @@
       "id": 11,
       "uploadTime": "2026-07-28T02:03:11.696Z",
       "filePath": "docs-vault/files/11.png"
+    },
+    {
+      "name": "宁家（北京）汽车服务有限公司 企业简介v1.2(2).pdf",
+      "size": 6951556,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 12,
+      "uploadTime": "2026-08-18T03:13:51.064Z",
+      "filePath": "docs-vault/files/12.pdf"
     }
   ],
-  "lastUpdated": "2026/7/28 10:03:14"
+  "lastUpdated": "2026/8/18 11:14:23"
 }
