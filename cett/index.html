@@ -69,8 +69,8 @@
         animation: cettShine 2.6s ease-in-out infinite;
         transition: filter 0.4s; }
     .nav-brand-sub { font-size: 1.55rem; font-weight: 800; letter-spacing: 1px; line-height: 1;
-        margin: 0; padding-left: 0.8rem; border-left: 1px solid rgba(255,255,255,0.3);
-        color: rgba(255,255,255,0.72); transition: color 0.4s, border-color 0.4s; }
+        margin: 0; padding-left: 0; border-left: none;
+        color: rgba(255,255,255,0.72); transition: color 0.4s; }
     @keyframes cettShine {
         0%, 100% { filter: drop-shadow(0 0 12px rgba(255,255,255,0.7)) drop-shadow(0 0 26px rgba(170,215,255,0.32)); }
         50% { filter: drop-shadow(0 0 24px rgba(255,255,255,1)) drop-shadow(0 0 52px rgba(190,230,255,0.65)); }
@@ -80,7 +80,7 @@
         background: none; -webkit-background-clip: border-box; background-clip: border-box;
         -webkit-text-fill-color: currentColor; color: #4a5568;
         filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08)); animation: none; }
-    nav.scrolled .nav-brand-sub { color: #64748b; border-left-color: rgba(0,0,0,0.15); }
+    nav.scrolled .nav-brand-sub { color: #64748b; }
     .nav-links { display: flex; list-style: none; gap: 2.4rem; align-items: center; }
     .nav-links a { text-decoration: none; color: rgba(255,255,255,0.92); font-size: 0.92rem; font-weight: 500;
         transition: color 0.3s; position: relative; padding: 4px 0; }
@@ -612,8 +612,7 @@
 <!-- NAVIGATION -->
 <nav id="navbar">
     <div class="nav-inner">
-        <a href="#home" class="nav-brand" aria-label="CETT 宁家服务">
-            <span class="nav-brand-word">CETT</span>
+        <a href="#home" class="nav-brand" aria-label="宁家服务">
             <span class="nav-brand-sub">宁家服务（北京）直营体验中心</span>
         </a>
         <button class="nav-toggle" id="navToggle" aria-label="菜单"><svg class="ico" aria-hidden="true"><use href="#ico-bars"></use></svg></button>
