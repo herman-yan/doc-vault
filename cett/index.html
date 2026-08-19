@@ -59,7 +59,7 @@
         box-shadow: 0 1px 0 rgba(6,42,110,0.08); }
     .nav-inner { max-width: var(--maxw); margin: 0 auto; display: flex; align-items: center;
         justify-content: space-between; min-height: 64px; height: auto; }
-    .nav-brand { text-decoration: none; display: inline-flex; align-items: center;
+    .nav-brand { text-decoration: none; display: inline-flex; flex-direction: row; align-items: center; gap: 0.6rem;
         color: #fff; transition: color 0.4s; line-height: 1; }
     .nav-brand-word { font-size: 1.55rem; font-weight: 800; letter-spacing: 5.5px; line-height: 1;
         background: linear-gradient(135deg, #d6ecff 0%, #ffffff 20%, #a8cce8 40%, #ffffff 62%, #7eb8e8 100%);
@@ -68,6 +68,9 @@
         filter: drop-shadow(0 0 14px rgba(255,255,255,0.8)) drop-shadow(0 0 32px rgba(160,210,255,0.45));
         animation: cettShine 2.6s ease-in-out infinite;
         transition: filter 0.4s; }
+    .nav-brand-sub { font-size: 0.6rem; font-weight: 500; letter-spacing: 0.5px; line-height: 1.1;
+        margin: 0; padding-left: 0.6rem; border-left: 1px solid rgba(255,255,255,0.3);
+        color: rgba(255,255,255,0.72); transition: color 0.4s, border-color 0.4s; }
     @keyframes cettShine {
         0%, 100% { filter: drop-shadow(0 0 12px rgba(255,255,255,0.7)) drop-shadow(0 0 26px rgba(170,215,255,0.32)); }
         50% { filter: drop-shadow(0 0 24px rgba(255,255,255,1)) drop-shadow(0 0 52px rgba(190,230,255,0.65)); }
@@ -77,6 +80,7 @@
         background: none; -webkit-background-clip: border-box; background-clip: border-box;
         -webkit-text-fill-color: currentColor; color: #4a5568;
         filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08)); animation: none; }
+    nav.scrolled .nav-brand-sub { color: #64748b; border-left-color: rgba(0,0,0,0.15); }
     .nav-links { display: flex; list-style: none; gap: 2.4rem; align-items: center; }
     .nav-links a { text-decoration: none; color: rgba(255,255,255,0.92); font-size: 0.92rem; font-weight: 500;
         transition: color 0.3s; position: relative; padding: 4px 0; }
@@ -610,6 +614,7 @@
     <div class="nav-inner">
         <a href="#home" class="nav-brand" aria-label="CETT 宁家服务">
             <span class="nav-brand-word">CETT</span>
+            <span class="nav-brand-sub">中能时代科技集团</span>
         </a>
         <button class="nav-toggle" id="navToggle" aria-label="菜单"><svg class="ico" aria-hidden="true"><use href="#ico-bars"></use></svg></button>
         <ul class="nav-links" id="navLinks">
