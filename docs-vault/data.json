@@ -313,7 +313,24 @@
       "id": 15,
       "uploadTime": "2026-09-01T09:10:26.240Z",
       "filePath": "docs-vault/files/15.pdf"
+    },
+    {
+      "name": "1、北京中能时代科技集团有限公司1000  张祥英  营业执照  副本  250326.pdf",
+      "size": 524227,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-zhongneng",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "金梦",
+      "id": 16,
+      "uploadTime": "2026-09-01T09:10:38.365Z",
+      "filePath": "docs-vault/files/16.pdf"
     }
   ],
-  "lastUpdated": "2026/9/1 17:10:30"
+  "lastUpdated": "2026/9/1 17:10:41"
 }
