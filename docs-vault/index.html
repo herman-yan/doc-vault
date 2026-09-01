@@ -53,6 +53,7 @@
     --cat-cooperation: #8b5cf6;
     --cat-lease: #fb923c;
     --cat-loan: #a3e635;
+    --cat-battery: #f59e0b;
 
     --sidebar-width: 260px;
     --header-height: 68px;
@@ -1307,6 +1308,7 @@ body {
 .cat-cooperation { background: rgba(139,92,246,0.15); color: var(--cat-cooperation); }
 .cat-lease { background: rgba(251,146,60,0.15); color: var(--cat-lease); }
 .cat-loan { background: rgba(163,230,53,0.15); color: var(--cat-loan); }
+.cat-battery { background: rgba(245,158,11,0.15); color: var(--cat-battery); }
 
 /* ========== 滚动条美化 ========== */
 ::-webkit-scrollbar {
@@ -1325,6 +1327,69 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255,255,255,0.3);
+}
+
+/* ========== 登录密码门 ========== */
+.login-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    backdrop-filter: blur(8px);
+}
+.login-gate.hidden { display: none; }
+.login-card {
+    width: 340px;
+    max-width: 86vw;
+    padding: 40px 32px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    text-align: center;
+    backdrop-filter: blur(14px);
+}
+.login-icon { font-size: 48px; margin-bottom: 8px; }
+.login-title { margin: 0 0 4px; font-size: 22px; color: #f1f5f9; font-weight: 700; letter-spacing: 1px; }
+.login-sub { margin: 0 0 22px; font-size: 13px; color: #94a3b8; }
+.login-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 16px;
+    margin-bottom: 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(15, 23, 42, 0.6);
+    color: #f1f5f9;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+.login-input:focus { border-color: #6366f1; }
+.login-btn {
+    width: 100%;
+    padding: 13px 16px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+}
+.login-btn:hover { opacity: 0.92; }
+.login-btn:active { transform: scale(0.98); }
+.login-error { margin: 12px 0 0; font-size: 13px; color: #f87171; }
+.login-error.hidden { display: none; }
+.login-card.shake { animation: login-shake 0.4s ease; }
+@keyframes login-shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
 }
 
 /* ========== 响应式 ========== */
@@ -1436,6 +1501,18 @@ body {
 </style>
 </head>
 <body>
+    <!-- ========== 登录密码门 ========== -->
+    <div class="login-gate" id="loginGate">
+        <div class="login-card">
+            <div class="login-icon">🔐</div>
+            <h2 class="login-title">资料管理库</h2>
+            <p class="login-sub">请输入访问密码</p>
+            <input type="password" id="loginInput" class="login-input" placeholder="访问密码" autocomplete="off" />
+            <button id="loginBtn" class="login-btn">进入</button>
+            <p class="login-error" id="loginError" style="display:none;">密码错误，请重试</p>
+        </div>
+    </div>
+
     <div class="bg-decoration">
         <div class="bg-orb bg-orb-1"></div>
         <div class="bg-orb bg-orb-2"></div>
@@ -1910,83 +1987,68 @@ body {
 
         // ========== 配置常量 ==========
 
-        // ===== 公司清单（按图中 33 家 + 公共资料库）=====
-        // 注意：图中某些字比较模糊，已按最接近读法修正；如与原图有出入可微调。
+        // ===== 公司清单（按用户提供的准确清单 + 公共资料库）=====
         const COMPANIES = [
             { id: 'public',           name: '公共资料库', aliases: [], isPublic: true },
-            { id: 'bj-zhongxian',     name: '北京中现时代科技集团有限公司',         aliases: ['中现时代'] },
-            { id: 'bj-zhonghang-nh',   name: '北京中航能航科技集团有限公司',         aliases: ['中航能航'] },
-            { id: 'bj-luyin',         name: '北京陆引新能源科技有限公司',           aliases: ['陆引'] },
-            { id: 'bj-runjia-ningjia',name: '北京润贾新能源科技有限公司 / 宁家（北京）汽车服务有限公司', aliases: ['润贾', '北京润贾', '宁家（北京）', '宁家北京'] },
-            { id: 'bj-yide-zhi',      name: '北京易得置新能源汽车技术服务有限公司',   aliases: ['易得置'] },
-            { id: 'bj-yide-yi',       name: '北京易得翼汽车技术服务有限公司',         aliases: ['易得翼'] },
-            { id: 'bj-laishao',       name: '北京莱绍管理咨询合伙企业（有限合伙）',   aliases: ['莱绍'] },
-            { id: 'bj-weishu',        name: '北京位数科技发展有限公司',             aliases: ['位数'] },
-            { id: 'bj-yijia',         name: '北京仪家科技发展有限公司',             aliases: ['仪家'] },
-            { id: 'bj-anying',        name: '北京安颖新能源科技有限公司',           aliases: ['安颖'] },
-            { id: 'bj-bai-ting-yi',   name: '百停亿（北京）科技有限公司',           aliases: ['百停亿'] },
+            { id: 'bj-zhongneng',     name: '北京中能时代科技集团有限公司',           aliases: ['中能时代'] },
+            { id: 'bj-zhongneng-xh',  name: '北京中能新航科技集团有限公司',           aliases: ['中能新航'] },
+            { id: 'bj-longgui',       name: '北京隆归新能源科技有限公司',             aliases: ['隆归'] },
+            { id: 'bj-ningjia-bj',    name: '宁家（北京）汽车服务有限公司',           aliases: ['宁家（北京）', '宁家北京'] },
+            { id: 'bj-yideyi-ny',     name: '北京易得翼新能源汽车服务有限公司',         aliases: ['易得翼新能源', '易得翼'] },
+            { id: 'bj-yideyi-auto',   name: '北京易得翼汽车技术服务有限公司',           aliases: ['易得翼汽车'] },
+            { id: 'bj-laituo',        name: '北京莱拓管理咨询合伙企业（有限合伙）',     aliases: ['莱拓'] },
+            { id: 'bj-junge',         name: '北京俊歌科技发展有限公司',               aliases: ['俊歌'] },
+            { id: 'bj-juntang',       name: '北京俊棠科技发展有限公司',               aliases: ['俊棠'] },
+            { id: 'bj-anjun',         name: '北京安峻新能源科技有限公司',             aliases: ['安峻'] },
+            { id: 'bai-de-yi',        name: '百得亿（北京）科技有限公司',             aliases: ['百得亿'] },
             { id: 'bj-qinyi',         name: '勤翼（北京）汽车服务有限公司',           aliases: ['勤翼', '勤翼北京'] },
-            { id: 'tj-qinyi',         name: '天津勤翼新能源科技有限公司',           aliases: ['天津勤翼'] },
-            { id: 'tj-qinyi-east',    name: '天津勤翼新能源科技河东区分公司',         aliases: ['河东', '天津勤翼河东'] },
-            { id: 'tj-yiboda',        name: '天津翼博达新能源科技有限公司',           aliases: ['翼博达'] },
-            { id: 'cz-lanzhao',       name: '沧州蓝召科技有限公司',                 aliases: ['蓝召'] },
-            { id: 'sjz-qingxing',     name: '石家庄青行新能源科技有限公司',           aliases: ['青行', '石家庄青行'] },
-            { id: 'hd-juntou',        name: '邯郸市骏投新能源科技有限公司',           aliases: ['骏投'] },
-            { id: 'sx-yitong-jinhe',  name: '陕西溢同津合科技发展有限公司',           aliases: ['溢同津合'] },
-            { id: 'sx-hefei',         name: '陕西赫斐新能源科技有限公司',             aliases: ['赫斐'] },
-            { id: 'sx-qingxing-ny',   name: '陕西青行时代新能源科技有限公司',         aliases: ['陕西青行', '青行时代'] },
-            { id: 'sx-qingxing-kj',   name: '陕西青行时代科技发展有限公司',           aliases: ['陕西青行时代'] },
-            { id: 'eed-jinhang',      name: '鄂尔多斯金杭新能源科技有限公司',         aliases: ['金杭', '鄂尔多斯金杭', '鄂尔多斯市金杭'] },
-            { id: 'eed-jinhang-kj',   name: '鄂尔多斯市金杭科技发展有限公司',         aliases: ['金杭科技', '鄂尔多斯金杭科技', '鄂尔多斯市金杭科技'] },
+            { id: 'tj-qinyi',         name: '天津勤翼新能源科技有限公司',             aliases: ['天津勤翼'] },
+            { id: 'tj-qinyi-east',    name: '天津勤翼新能源科技河东区分公司',         aliases: ['河东区分公司', '天津勤翼河东', '河东'] },
+            { id: 'tj-yiweida',       name: '天津翼维达新能源科技有限公司',           aliases: ['翼维达'] },
+            { id: 'cz-xigui',         name: '沧州玺归科技有限公司',                   aliases: ['玺归'] },
+            { id: 'sjz-xuxing',       name: '石家庄胥行新能源科技有限公司',           aliases: ['胥行', '石家庄胥行'] },
+            { id: 'hd-hantou',        name: '邯郸市邯投新能源科技有限公司',           aliases: ['邯投'] },
+            { id: 'sx-daotong',       name: '陕西道同谦合科技发展有限公司',           aliases: ['道同谦合'] },
+            { id: 'sx-hecheng',       name: '陕西赫呈新能源科技有限公司',             aliases: ['赫呈'] },
+            { id: 'sx-xuxing-ny',     name: '陕西胥行时代新能源科技有限公司',         aliases: ['陕西胥行时代新能源'] },
+            { id: 'sx-xuxing-kj',     name: '陕西胥行时代科技发展有限公司',           aliases: ['陕西胥行时代科技'] },
+            { id: 'eed-jinhang',      name: '鄂尔多斯金杭新能源科技有限公司',         aliases: ['鄂尔多斯金杭', '金杭', '鄂尔多斯市金杭'] },
+            { id: 'eed-jinhang-kj',   name: '鄂尔多斯市金杭科技发展有限公司',         aliases: ['鄂尔多斯市金杭科技', '金杭科技', '鄂尔多斯金杭科技'] },
             { id: 'sx-woqi',          name: '山西沃奇新能源科技有限公司',             aliases: ['沃奇'] },
-            { id: 'dt-yutian',        name: '大同禹天新能源科技有限公司',             aliases: ['禹天'] },
-            { id: 'hn-qiandao',       name: '海南谦道投资合伙企业（有限合伙）',       aliases: ['谦道'] },
-            { id: 'ningjia-qiqing',   name: '宁家（七青）汽车服务有限公司',           aliases: ['七青', '宁家七青'] },
-            { id: 'lz-jinhang',       name: '林芝市金杭新能源科技有限公司',           aliases: ['林芝金杭', '林芝市金杭'] },
-            { id: 'lz-weiji',         name: '林芝市伟机汽车服务有限公司',             aliases: ['伟机'] },
-            { id: 'lz-runyu',         name: '林芝润渝时代新能源科技有限公司',         aliases: ['润渝时代'] },
-            { id: 'sh-rongan',        name: '上海融安安和新能源有限责任公司',         aliases: ['融安'] },
-            { id: 'bj-jiayu',         name: '北京驾欲碳科技有限公司',                 aliases: ['驾欲'] }
+            { id: 'dt-saimu',         name: '大同赛木新能源科技有限公司',             aliases: ['赛木'] },
+            { id: 'hn-qiantong',      name: '海南谦通投资合伙企业（有限合伙）',       aliases: ['谦通'] },
+            { id: 'bj-ningjia-cc',    name: '宁家（长春）汽车服务有限公司',           aliases: ['宁家长春', '宁家（长春）', '长春'] },
+            { id: 'lz-jinhang',       name: '林芝市金杭新能源科技有限公司',           aliases: ['林芝市金杭', '林芝金杭'] },
+            { id: 'lz-weihong',       name: '林芝市伟虹汽车服务有限公司',             aliases: ['伟虹'] },
+            { id: 'lz-runhe',         name: '林芝润合时代新能源科技有限公司',         aliases: ['润合时代'] },
+            { id: 'sh-rongsi',        name: '上海融思安和新能源有限责任公司',         aliases: ['融思安和', '融思'] },
+            { id: 'bj-zhineng',       name: '北京智能碳科科技有限公司',               aliases: ['智能碳科'] }
         ];
 
-        // ===== 文档类型（每个公司或公共资料库下的二级分类）=====
+        // ===== 文档类型（公司主体下的二级分类：合作/销售/采购/劳动人事/换电延保 + 其他文件）=====
         const DOC_TYPES = [
+            { id: 'cooperation',  name: '合作协议',   icon: '📝', color: 'var(--cat-cooperation)',
+              keywords: ['合作协议','战略合作','框架协议','意向书','合作'] },
             { id: 'sales',        name: '销售合同',   icon: '📈', color: 'var(--cat-sales)',
               keywords: ['销售合同','销售协议','销售订单','购销','销售'] },
             { id: 'purchase',     name: '采购合同',   icon: '🛒', color: 'var(--cat-purchase)',
               keywords: ['采购合同','采购协议','采购订单','采购'] },
-            { id: 'service',      name: '服务合同',   icon: '🤝', color: 'var(--cat-business)',
-              keywords: ['服务合同','服务协议','服务订单','服务'] },
-            { id: 'cooperation',  name: '合作协议',   icon: '📝', color: 'var(--cat-cooperation)',
-              keywords: ['合作协议','战略合作','框架协议','意向书','合作'] },
-            { id: 'labor',        name: '劳动合同',   icon: '👥', color: 'var(--cat-hr)',
-              keywords: ['劳动合同','聘用合同','劳务合同','聘用','劳务'] },
-            { id: 'lease',        name: '租赁合同',   icon: '🏠', color: 'var(--cat-lease)',
-              keywords: ['租赁合同','租赁协议','场地租赁','租赁','租用'] },
-            { id: 'loan',         name: '借款合同',   icon: '💳', color: 'var(--cat-loan)',
-              keywords: ['借款协议','借款合同','贷款合同','融资合同','借款','贷款','融资'] },
-            { id: 'contract',     name: '其他合同',   icon: '📄', color: 'var(--cat-contract)',
-              keywords: ['合同','协议','contract','agreement','MOU','补充','续签','续约','签约','契约'] },
-            { id: 'certificate',  name: '公司证照',   icon: '🏛️', color: 'var(--cat-certificate)',
-              keywords: ['营业执照','许可证','资质证书','资质','专利','商标','备案','登记证','代码证','认证','许可','执照','企业简介','公司简介'] },
-            { id: 'finance',      name: '财务档案',   icon: '💰', color: 'var(--cat-finance)',
-              keywords: ['发票','报销','财务','预算','invoice','receipt','tax','对账','结算','审计','税务','账目','成本'] },
-            { id: 'legal',        name: '法律文件',   icon: '⚖️', color: 'var(--cat-legal)',
-              keywords: ['法律','法务','诉讼','判决','合规','律师函','仲裁','纠纷','维权','裁定'] },
-            { id: 'admin',        name: '行政公文',   icon: '📋', color: 'var(--cat-admin)',
-              keywords: ['通知','公告','行政','制度','规章','会议纪要','审批','公文','流程','管理办法','章程'] },
-            { id: 'other',        name: '其他文件',   icon: '📁', color: 'var(--cat-other)', keywords: [] }
+            { id: 'labor',        name: '劳动人事',   icon: '👥', color: 'var(--cat-hr)',
+              keywords: ['劳动合同','聘用合同','劳务合同','劳动人事','人事合同','人事','聘用','劳务'] },
+            { id: 'battery',      name: '换电延保合同', icon: '🔋', color: 'var(--cat-battery)',
+              keywords: ['换电合同','延保合同','换电协议','延保协议','换电','延保','电池'] },
+            { id: 'other',        name: '其他文件',   icon: '📁', color: 'var(--cat-other)', keywords: ['流程','说明','清单','台账','汇总','登记','统计'] }
         ];
 
         // 兼容字段映射（旧版 category 字段 -> 新版 docType 字段）
         const LEGACY_CATEGORY_MAP = {
-            contract: 'contract',
-            certificate: 'certificate',
-            legal: 'legal',
-            finance: 'finance',
+            contract: 'other',
+            certificate: 'other',
+            legal: 'other',
+            finance: 'other',
             hr: 'labor',
-            admin: 'admin',
-            business: 'service',
+            admin: 'other',
+            business: 'other',
             project: 'other',
             tech: 'other',
             other: 'other'
@@ -3172,9 +3234,41 @@ body {
             }
         }
 
+        // ========== 登录密码门 ==========
+        const LOGIN_PASSWORD = String.fromCharCode(106,105,110,106,105,101,49,50,51); // jinjie123
+        const loginGate = document.getElementById('loginGate');
+        const loginInput = document.getElementById('loginInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const loginCard = loginGate.querySelector('.login-card');
+
+        function tryUnlock() {
+            if (loginInput.value === LOGIN_PASSWORD) {
+                try { sessionStorage.setItem('dv_unlocked', '1'); } catch (e) {}
+                loginGate.classList.add('hidden');
+                startApp();
+            } else {
+                loginError.style.display = 'block';
+                loginCard.classList.add('shake');
+                setTimeout(() => loginCard.classList.remove('shake'), 400);
+                loginInput.value = '';
+                loginInput.focus();
+            }
+        }
+        loginBtn.addEventListener('click', tryUnlock);
+        loginInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryUnlock(); });
+
         // ========== 启动应用 ==========
-        const app = new DocClassificationApp();
-        app.init();
+        function startApp() {
+            const app = new DocClassificationApp();
+            app.init();
+        }
+        if (sessionStorage.getItem('dv_unlocked') === '1') {
+            loginGate.classList.add('hidden');
+            startApp();
+        } else {
+            loginInput.focus();
+        }
     </script>
 </body>
 </html>
