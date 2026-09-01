@@ -1850,20 +1850,37 @@ body {
             async uploadFile(fileId, fileName, arrayBuffer) {
                 const ext = fileName.includes('.') ? fileName.split('.').pop() : 'bin';
                 const filePath = `${this.FILES_PATH}${fileId}.${ext}`;
+                // 高效转 base64：分块累加，避免单字符串 OOM；用 Array.from + apply 优于 for 循环拼接
                 const uint8 = new Uint8Array(arrayBuffer);
                 let binary = '';
-                for (let i = 0; i < uint8.length; i++) binary += String.fromCharCode(uint8[i]);
+                const CHUNK = 0x8000;
+                for (let i = 0; i < uint8.length; i += CHUNK) {
+                    binary += String.fromCharCode.apply(null, uint8.subarray(i, i + CHUNK));
+                }
                 const b64 = btoa(binary);
 
                 const url = `${this.API_BASE}/repos/${this.REPO}/contents/${filePath}`;
                 const body = { message: `upload: file ${fileId}`, content: b64 };
 
-                const response = await fetch(url, {
+                const response = await this._fetchWithTimeout(url, {
                     method: 'PUT',
                     headers: { 'Authorization': `token ${this.TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
-                });
-                if (!response.ok) throw new Error(`文件上传失败: HTTP ${response.status}`);
+                }, 30000);
+
+                if (!response.ok) {
+                    // 把 GitHub API 返回的具体错误信息带出来（422 通常带 "message":"Invalid request..." 等详细信息）
+                    let detail = '';
+                    try {
+                        const errBody = await response.json();
+                        detail = errBody.message || '';
+                        if (Array.isArray(errBody.errors) && errBody.errors.length) {
+                            detail += ' | ' + errBody.errors.map(e => (e.message || e.code || JSON.stringify(e))).join('; ');
+                        }
+                    } catch (e) { /* body 不是 JSON，忽略 */ }
+                    const tip = detail ? `：${detail}` : '';
+                    throw new Error(`文件上传失败: HTTP ${response.status}${tip}`);
+                }
                 return filePath;
             },
 
