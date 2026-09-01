@@ -1518,8 +1518,8 @@ body {
         <div class="bg-orb bg-orb-2"></div>
         <div class="bg-orb bg-orb-3"></div>
     </div>
-    <!-- ========== 初始化加载界面 ========== -->
-    <div class="init-overlay" id="initOverlay">
+    <!-- ========== 初始化加载界面（默认隐藏，登录后由 startApp 显示） ========== -->
+    <div class="init-overlay hidden" id="initOverlay">
         <div class="init-icon">☁️</div>
         <h2>资料管理库</h2>
         <p id="initMessage">正在从云端同步数据...</p>
@@ -3296,6 +3296,8 @@ body {
 
         // ========== 启动应用 ==========
         function startApp() {
+            // 显示出 init-overlay（默认是隐藏的，因为要等登录后才进入加载阶段）
+            document.getElementById('initOverlay').classList.remove('hidden');
             const app = new DocClassificationApp();
             app.init();
         }
