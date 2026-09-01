@@ -47,6 +47,12 @@
     --cat-business: #38bdf8;
     --cat-tech: #4facfe;
     --cat-other: #94a3b8;
+    --cat-public: #fbbf24;
+    --cat-sales: #34d399;
+    --cat-purchase: #f59e0b;
+    --cat-cooperation: #8b5cf6;
+    --cat-lease: #fb923c;
+    --cat-loan: #a3e635;
 
     --sidebar-width: 260px;
     --header-height: 68px;
@@ -170,6 +176,214 @@ body {
     border-radius: 10px;
     font-size: 12px;
     color: var(--text-secondary);
+}
+
+/* ========== 二级分类导航（公司+文档类型） ========== */
+.nav-section {
+    margin-top: 4px;
+}
+
+.nav-section-header {
+    display: flex;
+    align-items: center;
+    padding: 9px 20px;
+    cursor: pointer;
+    gap: 10px;
+    transition: background var(--transition-fast);
+    border-left: 3px solid transparent;
+    font-size: 13px;
+}
+
+.nav-section-header:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.nav-section-header.active {
+    background: rgba(79, 172, 254, 0.12);
+    border-left-color: var(--primary-blue);
+    color: #fff;
+    font-weight: 600;
+}
+
+.nav-section-header .toggle-arrow {
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform var(--transition-fast);
+    width: 12px;
+    text-align: center;
+}
+
+.nav-section-header.expanded .toggle-arrow {
+    transform: rotate(90deg);
+}
+
+.nav-section-header .icon {
+    font-size: 15px;
+    width: 22px;
+    text-align: center;
+}
+
+.nav-section-header .name {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nav-section-header .count {
+    background: rgba(255,255,255,0.1);
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.nav-sub-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.nav-section.expanded .nav-sub-list {
+    max-height: 600px;
+}
+
+.nav-sub-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 20px 6px 44px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    border-left: 3px solid transparent;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+}
+
+.nav-sub-item:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-secondary);
+}
+
+.nav-sub-item.active {
+    background: rgba(79, 172, 254, 0.16);
+    border-left-color: var(--primary-blue);
+    color: #fff;
+    font-weight: 500;
+}
+
+.nav-sub-item .icon {
+    font-size: 13px;
+    width: 18px;
+    text-align: center;
+}
+
+.nav-sub-item .count {
+    margin-left: auto;
+    background: rgba(255,255,255,0.08);
+    padding: 1px 7px;
+    border-radius: 8px;
+    font-size: 10.5px;
+    color: var(--text-muted);
+}
+
+.nav-section-divider {
+    margin: 6px 14px;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+}
+
+.nav-section-label {
+    font-size: 10.5px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 10px 20px 6px;
+    font-weight: 600;
+}
+
+.sidebar.collapsed .nav-section-header .name,
+.sidebar.collapsed .nav-section-header .count,
+.sidebar.collapsed .nav-section-label,
+.sidebar.collapsed .nav-sub-list {
+    display: none;
+}
+
+.sidebar.collapsed .nav-section-header {
+    padding: 10px 20px;
+    justify-content: center;
+}
+
+/* ========== 顶部面包屑 / 标签切换 ========== */
+.breadcrumb-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 14px 18px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(8px);
+    flex-wrap: wrap;
+}
+
+.breadcrumb-bar .crumb {
+    color: var(--text-muted);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.breadcrumb-bar .crumb-cur {
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.breadcrumb-bar .crumb-sep {
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+/* ========== 文档类型 chips（卡片角标） ========== */
+.doc-type-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 16px;
+    font-size: 11.5px;
+    font-weight: 500;
+}
+
+.doc-type-chip .chip-icon {
+    font-size: 12px;
+}
+
+/* 公司徽标在卡片中显示 */
+.company-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255,255,255,0.08);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.company-tag.compact {
+    max-width: 200px;
 }
 
 .sidebar-footer {
@@ -1087,6 +1301,12 @@ body {
 .cat-business { background: rgba(56,189,248,0.15); color: var(--cat-business); }
 .cat-tech { background: rgba(79,172,254,0.15); color: var(--cat-tech); }
 .cat-other { background: rgba(148,163,184,0.15); color: var(--cat-other); }
+.cat-public { background: rgba(251,191,36,0.15); color: var(--cat-public); }
+.cat-sales { background: rgba(52,211,153,0.15); color: var(--cat-sales); }
+.cat-purchase { background: rgba(245,158,11,0.15); color: var(--cat-purchase); }
+.cat-cooperation { background: rgba(139,92,246,0.15); color: var(--cat-cooperation); }
+.cat-lease { background: rgba(251,146,60,0.15); color: var(--cat-lease); }
+.cat-loan { background: rgba(163,230,53,0.15); color: var(--cat-loan); }
 
 /* ========== 滚动条美化 ========== */
 ::-webkit-scrollbar {
@@ -1689,27 +1909,88 @@ body {
         };
 
         // ========== 配置常量 ==========
-        const CATEGORIES = [
-            { id: 'contract', name: '合同协议', icon: '📄', color: 'var(--cat-contract)',
-              keywords: ['合同', '协议', 'contract', 'agreement', 'MOU', '框架', '补充', '续签', '续约', '签约', '条款', '契约'] },
-            { id: 'certificate', name: '公司证照', icon: '🏢', color: 'var(--cat-certificate)',
-              keywords: ['营业执照', '资质', '许可证', '专利', '商标', '证书', '登记', '备案', '认证', '许可', '执照', '代码证'] },
-            { id: 'legal', name: '法律文件', icon: '⚖️', color: 'var(--cat-legal)',
-              keywords: ['法律', '法务', '诉讼', '判决', 'compliance', 'legal', '律师函', '仲裁', '纠纷', '维权', '合规', '裁定'] },
-            { id: 'finance', name: '财务档案', icon: '💰', color: 'var(--cat-finance)',
-              keywords: ['发票', '报销', '财务', '预算', 'invoice', 'receipt', 'tax', '付款', '对账', '结算', '审计', '税务', '账目', '费用', '成本'] },
-            { id: 'hr', name: '人事档案', icon: '👥', color: 'var(--cat-hr)',
-              keywords: ['员工', '人事', 'HR', '薪酬', '培训', '考勤', '招聘', '入职', '离职', '绩效', '社保', '公积金', '劳动合同'] },
-            { id: 'admin', name: '行政公文', icon: '📋', color: 'var(--cat-admin)',
-              keywords: ['通知', '公告', '行政', 'policy', '制度', '规章', '会议纪要', '审批', '公文', '流程', '管理办法', '章程'] },
-            { id: 'business', name: '业务资料', icon: '🤝', color: 'var(--cat-business)',
-              keywords: ['客户', '供应商', '报价', '招标', '投标', '采购', '商务', '合作', '意向书', '询价', '订单', '销售'] },
-            { id: 'project', name: '项目资料', icon: '📊', color: 'var(--cat-project)',
-              keywords: ['项目', 'plan', 'PRD', '需求', 'milestone', '进度', '立项', '验收', '实施', '排期', '里程碑'] },
-            { id: 'tech', name: '技术文档', icon: '🔧', color: 'var(--cat-tech)',
-              keywords: ['技术', '规范', '标准', '设计', 'spec', 'API', '架构', '接口', '手册', '说明书', '操作指南'] },
-            { id: 'other', name: '其他', icon: '📁', color: 'var(--cat-other)', keywords: [] }
+
+        // ===== 公司清单（按图中 33 家 + 公共资料库）=====
+        // 注意：图中某些字比较模糊，已按最接近读法修正；如与原图有出入可微调。
+        const COMPANIES = [
+            { id: 'public',           name: '公共资料库', aliases: [], isPublic: true },
+            { id: 'bj-zhongxian',     name: '北京中现时代科技集团有限公司',         aliases: ['中现时代'] },
+            { id: 'bj-zhonghang-nh',   name: '北京中航能航科技集团有限公司',         aliases: ['中航能航'] },
+            { id: 'bj-luyin',         name: '北京陆引新能源科技有限公司',           aliases: ['陆引'] },
+            { id: 'bj-runjia-ningjia',name: '北京润贾新能源科技有限公司 / 宁家（北京）汽车服务有限公司', aliases: ['润贾', '北京润贾', '宁家（北京）', '宁家北京'] },
+            { id: 'bj-yide-zhi',      name: '北京易得置新能源汽车技术服务有限公司',   aliases: ['易得置'] },
+            { id: 'bj-yide-yi',       name: '北京易得翼汽车技术服务有限公司',         aliases: ['易得翼'] },
+            { id: 'bj-laishao',       name: '北京莱绍管理咨询合伙企业（有限合伙）',   aliases: ['莱绍'] },
+            { id: 'bj-weishu',        name: '北京位数科技发展有限公司',             aliases: ['位数'] },
+            { id: 'bj-yijia',         name: '北京仪家科技发展有限公司',             aliases: ['仪家'] },
+            { id: 'bj-anying',        name: '北京安颖新能源科技有限公司',           aliases: ['安颖'] },
+            { id: 'bj-bai-ting-yi',   name: '百停亿（北京）科技有限公司',           aliases: ['百停亿'] },
+            { id: 'bj-qinyi',         name: '勤翼（北京）汽车服务有限公司',           aliases: ['勤翼', '勤翼北京'] },
+            { id: 'tj-qinyi',         name: '天津勤翼新能源科技有限公司',           aliases: ['天津勤翼'] },
+            { id: 'tj-qinyi-east',    name: '天津勤翼新能源科技河东区分公司',         aliases: ['河东', '天津勤翼河东'] },
+            { id: 'tj-yiboda',        name: '天津翼博达新能源科技有限公司',           aliases: ['翼博达'] },
+            { id: 'cz-lanzhao',       name: '沧州蓝召科技有限公司',                 aliases: ['蓝召'] },
+            { id: 'sjz-qingxing',     name: '石家庄青行新能源科技有限公司',           aliases: ['青行', '石家庄青行'] },
+            { id: 'hd-juntou',        name: '邯郸市骏投新能源科技有限公司',           aliases: ['骏投'] },
+            { id: 'sx-yitong-jinhe',  name: '陕西溢同津合科技发展有限公司',           aliases: ['溢同津合'] },
+            { id: 'sx-hefei',         name: '陕西赫斐新能源科技有限公司',             aliases: ['赫斐'] },
+            { id: 'sx-qingxing-ny',   name: '陕西青行时代新能源科技有限公司',         aliases: ['陕西青行', '青行时代'] },
+            { id: 'sx-qingxing-kj',   name: '陕西青行时代科技发展有限公司',           aliases: ['陕西青行时代'] },
+            { id: 'eed-jinhang',      name: '鄂尔多斯金杭新能源科技有限公司',         aliases: ['金杭', '鄂尔多斯金杭', '鄂尔多斯市金杭'] },
+            { id: 'eed-jinhang-kj',   name: '鄂尔多斯市金杭科技发展有限公司',         aliases: ['金杭科技', '鄂尔多斯金杭科技', '鄂尔多斯市金杭科技'] },
+            { id: 'sx-woqi',          name: '山西沃奇新能源科技有限公司',             aliases: ['沃奇'] },
+            { id: 'dt-yutian',        name: '大同禹天新能源科技有限公司',             aliases: ['禹天'] },
+            { id: 'hn-qiandao',       name: '海南谦道投资合伙企业（有限合伙）',       aliases: ['谦道'] },
+            { id: 'ningjia-qiqing',   name: '宁家（七青）汽车服务有限公司',           aliases: ['七青', '宁家七青'] },
+            { id: 'lz-jinhang',       name: '林芝市金杭新能源科技有限公司',           aliases: ['林芝金杭', '林芝市金杭'] },
+            { id: 'lz-weiji',         name: '林芝市伟机汽车服务有限公司',             aliases: ['伟机'] },
+            { id: 'lz-runyu',         name: '林芝润渝时代新能源科技有限公司',         aliases: ['润渝时代'] },
+            { id: 'sh-rongan',        name: '上海融安安和新能源有限责任公司',         aliases: ['融安'] },
+            { id: 'bj-jiayu',         name: '北京驾欲碳科技有限公司',                 aliases: ['驾欲'] }
         ];
+
+        // ===== 文档类型（每个公司或公共资料库下的二级分类）=====
+        const DOC_TYPES = [
+            { id: 'sales',        name: '销售合同',   icon: '📈', color: 'var(--cat-sales)',
+              keywords: ['销售合同','销售协议','销售订单','购销','销售'] },
+            { id: 'purchase',     name: '采购合同',   icon: '🛒', color: 'var(--cat-purchase)',
+              keywords: ['采购合同','采购协议','采购订单','采购'] },
+            { id: 'service',      name: '服务合同',   icon: '🤝', color: 'var(--cat-business)',
+              keywords: ['服务合同','服务协议','服务订单','服务'] },
+            { id: 'cooperation',  name: '合作协议',   icon: '📝', color: 'var(--cat-cooperation)',
+              keywords: ['合作协议','战略合作','框架协议','意向书','合作'] },
+            { id: 'labor',        name: '劳动合同',   icon: '👥', color: 'var(--cat-hr)',
+              keywords: ['劳动合同','聘用合同','劳务合同','聘用','劳务'] },
+            { id: 'lease',        name: '租赁合同',   icon: '🏠', color: 'var(--cat-lease)',
+              keywords: ['租赁合同','租赁协议','场地租赁','租赁','租用'] },
+            { id: 'loan',         name: '借款合同',   icon: '💳', color: 'var(--cat-loan)',
+              keywords: ['借款协议','借款合同','贷款合同','融资合同','借款','贷款','融资'] },
+            { id: 'contract',     name: '其他合同',   icon: '📄', color: 'var(--cat-contract)',
+              keywords: ['合同','协议','contract','agreement','MOU','补充','续签','续约','签约','契约'] },
+            { id: 'certificate',  name: '公司证照',   icon: '🏛️', color: 'var(--cat-certificate)',
+              keywords: ['营业执照','许可证','资质证书','资质','专利','商标','备案','登记证','代码证','认证','许可','执照','企业简介','公司简介'] },
+            { id: 'finance',      name: '财务档案',   icon: '💰', color: 'var(--cat-finance)',
+              keywords: ['发票','报销','财务','预算','invoice','receipt','tax','对账','结算','审计','税务','账目','成本'] },
+            { id: 'legal',        name: '法律文件',   icon: '⚖️', color: 'var(--cat-legal)',
+              keywords: ['法律','法务','诉讼','判决','合规','律师函','仲裁','纠纷','维权','裁定'] },
+            { id: 'admin',        name: '行政公文',   icon: '📋', color: 'var(--cat-admin)',
+              keywords: ['通知','公告','行政','制度','规章','会议纪要','审批','公文','流程','管理办法','章程'] },
+            { id: 'other',        name: '其他文件',   icon: '📁', color: 'var(--cat-other)', keywords: [] }
+        ];
+
+        // 兼容字段映射（旧版 category 字段 -> 新版 docType 字段）
+        const LEGACY_CATEGORY_MAP = {
+            contract: 'contract',
+            certificate: 'certificate',
+            legal: 'legal',
+            finance: 'finance',
+            hr: 'labor',
+            admin: 'admin',
+            business: 'service',
+            project: 'other',
+            tech: 'other',
+            other: 'other'
+        };
 
         const FILE_TYPES = {
             'application/pdf': { icon: '📕', color: '#ef4444', name: 'PDF' },
@@ -1752,7 +2033,9 @@ body {
         class DocClassificationApp {
             constructor() {
                 this.files = [];
-                this.currentCategory = 'all';
+                this.currentCompany = 'all';   // 'all' | 'public' | companyId
+                this.currentDocType = 'all';   // 'all' | docTypeId
+                this.expandedSections = new Set();  // 当前展开的公司 IDs
                 this.currentView = 'grid';
                 this.currentFile = null;
                 this.searchQuery = '';
@@ -1833,12 +2116,73 @@ body {
             }
 
             // 从GitHub数据加载文件（v3: 文件按需下载，不预加载blob）
+            // 同时迁移旧版 category 字段至 v4（company / docType）
             loadFilesFromGitHub() {
                 const docs = GitHubDataManager.getDocuments();
-                this.files = docs.map(d => ({
-                    ...d,
-                    blob: null // v3: 文件按需下载，不预加载
-                }));
+                this.files = docs.map(d => this._migrateDoc({ ...d, blob: null }));
+            }
+
+            // 数据迁移：旧 v3 字段 category → 新 v4 字段 company + docType
+            // 旧 category 用 LEGACY_CATEGORY_MAP 映射；文件名匹配公司 alias 推断 company
+            _migrateDoc(doc) {
+                if (!doc.company && !doc.docType) {
+                    const guess = this._guessClassification(doc.name || '', doc.category || '');
+                    doc.company = guess.company;
+                    doc.docType = guess.docType;
+                }
+                // 兜底：保证有默认值
+                if (!doc.company) doc.company = 'public';
+                if (!doc.docType) doc.docType = 'other';
+                // 兼容字段保留 category（用 docType 转回旧值），保证向后兼容
+                doc.category = doc.docType;
+                return doc;
+            }
+
+            // 根据文件名/旧分类猜测公司 + 文档类型
+            // 关键改进：
+            // 1. 公司匹配：选最长 alias（"宁家北京" > "宁家"）
+            // 2. docType：选最长匹配关键字；并列时偏好 admin/other（更通用的类型）
+            _guessClassification(filename, legacyCategory) {
+                const lower = filename.toLowerCase();
+
+                // 1. 公司匹配：匹配最长 alias
+                let guessedCompany = null;
+                let bestCompanyMatchLen = 0;
+                for (const c of COMPANIES) {
+                    if (c.isPublic) continue;
+                    for (const alias of c.aliases) {
+                        if (alias && lower.includes(alias.toLowerCase())) {
+                            if (alias.length > bestCompanyMatchLen) {
+                                bestCompanyMatchLen = alias.length;
+                                guessedCompany = c.id;
+                            }
+                        }
+                    }
+                }
+
+                // 2. docType：收集所有命中 (id, keywordLen, orderIndex)，先按 len 倒序，再按通用度（orderIndex 越大越通用）
+                const candidates = [];
+                DOC_TYPES.forEach((dt, idx) => {
+                    for (const kw of dt.keywords) {
+                        if (kw && lower.includes(kw.toLowerCase())) {
+                            candidates.push({ id: dt.id, len: kw.length, idx });
+                            break;
+                        }
+                    }
+                });
+                // 排序：len 倒序 → idx 倒序（更通用的 admin/other 在 DOC_TYPES 末尾，优先生效）
+                candidates.sort((a, b) => (b.len - a.len) || (b.idx - a.idx));
+
+                let guessedDocType;
+                if (candidates.length > 0) {
+                    guessedDocType = candidates[0].id;
+                } else if (legacyCategory && LEGACY_CATEGORY_MAP[legacyCategory]) {
+                    guessedDocType = LEGACY_CATEGORY_MAP[legacyCategory];
+                } else {
+                    guessedDocType = 'other';
+                }
+
+                return { company: guessedCompany || 'public', docType: guessedDocType };
             }
 
             // 同步数据
@@ -2007,7 +2351,7 @@ body {
                 const ext = '.' + file.name.split('.').pop().toLowerCase();
                 const mimeType = EXT_TYPE_MAP[ext] || file.type || 'application/octet-stream';
                 const typeInfo = FILE_TYPES[mimeType] || { icon: '📎', color: '#6b7280', name: '其他' };
-                
+
                 // 使用 FileReader 读取文件
                 const arrayBuffer = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -2015,7 +2359,7 @@ body {
                     reader.onerror = () => reject(new Error('文件读取失败: ' + file.name));
                     reader.readAsArrayBuffer(file);
                 });
-                
+
                 // 生成摘要（文本类文件）
                 let summary = '';
                 if (['text/plain', 'text/markdown', 'application/json', 'text/csv'].includes(mimeType)) {
@@ -2027,8 +2371,8 @@ body {
                     }
                 }
 
-                // 自动分类
-                const category = this.autoClassify(file.name);
+                // 自动分类：返回 company + docType
+                const guess = this.autoClassify(file.name);
 
                 return {
                     name: file.name,
@@ -2037,28 +2381,19 @@ body {
                     typeName: typeInfo.name,
                     icon: typeInfo.icon,
                     color: typeInfo.color,
-                    category: category,
+                    company: guess.company,
+                    docType: guess.docType,
+                    category: guess.docType, // 兼容旧字段
                     tags: [],
                     summary: summary,
-                    _fileBuffer: arrayBuffer,  // v3: 传原始ArrayBuffer，不再base64
+                    _fileBuffer: arrayBuffer,
                     blob: null
                 };
             }
 
-            // 自动分类
+            // 自动分类：根据文件名推断所属公司与文档类型
             autoClassify(filename) {
-                const lowerName = filename.toLowerCase();
-                
-                for (const cat of CATEGORIES) {
-                    if (cat.id === 'other') continue;
-                    for (const keyword of cat.keywords) {
-                        if (lowerName.includes(keyword.toLowerCase())) {
-                            return cat.id;
-                        }
-                    }
-                }
-                
-                return 'other';
+                return this._guessClassification(filename, null);
             }
 
             // 渲染整个应用
@@ -2068,83 +2403,157 @@ body {
                 this.renderFiles();
             }
 
-            // 渲染分类导航
+            // 渲染分类导航（v4: 公共资料库 + 33 家公司，每家公司下 13 种文档类型）
             renderCategories() {
                 const nav = document.getElementById('categoryNav');
                 const counts = this.getCategoryCounts();
-                
-                let html = `
-                    <div class="nav-item ${this.currentCategory === 'all' ? 'active' : ''}" data-category="all">
+
+                let html = '';
+
+                // 全部文件
+                html += `
+                    <div class="nav-item ${this.currentCompany === 'all' && this.currentDocType === 'all' ? 'active' : ''}" data-nav="all">
                         <span class="icon">📂</span>
                         <span class="category-name">全部文件</span>
                         <span class="category-count">${this.files.length}</span>
                     </div>
                 `;
-                
-                CATEGORIES.forEach(cat => {
-                    const count = counts[cat.id] || 0;
+
+                // ====== 公司列表（含公共资料库）======
+                html += '<div class="nav-section-label">公司 / 分类</div>';
+                COMPANIES.forEach(c => {
+                    const companyFiles = this.files.filter(f => f.company === c.id);
+                    const companyCount = companyFiles.length;
+                    const isActive = this.currentCompany === c.id;
+                    const isExpanded = this.expandedSections.has(c.id) || isActive;
+                    const icon = c.isPublic ? '🏛️' : '🏢';
+
+                    html += `<div class="nav-section ${isExpanded ? 'expanded' : ''}" data-company="${c.id}">`;
+                    // 标题行（点击 = 进入该公司/全部类型）
                     html += `
-                        <div class="nav-item ${this.currentCategory === cat.id ? 'active' : ''}" data-category="${cat.id}">
-                            <span class="icon">${cat.icon}</span>
-                            <span class="category-name">${cat.name}</span>
-                            <span class="category-count">${count}</span>
+                        <div class="nav-section-header ${isActive && this.currentDocType === 'all' ? 'active' : ''}" data-section-header="${c.id}">
+                            <span class="toggle-arrow">▶</span>
+                            <span class="icon">${icon}</span>
+                            <span class="name" title="${c.name}">${c.name}</span>
+                            <span class="count">${companyCount}</span>
                         </div>
                     `;
+                    // 子类型列表（13 种文档类型）
+                    html += '<div class="nav-sub-list">';
+                    // 第一项：该公司的全部文档
+                    const allActive = isActive && this.currentDocType === 'all';
+                    html += `
+                        <div class="nav-sub-item ${allActive ? 'active' : ''}" data-sub-company="${c.id}" data-sub-doctype="all">
+                            <span class="icon">🗂️</span>
+                            <span>全部文件</span>
+                            <span class="count">${companyCount}</span>
+                        </div>
+                    `;
+                    DOC_TYPES.forEach(dt => {
+                        const dtCount = companyFiles.filter(f => f.docType === dt.id).length;
+                        if (dtCount === 0) return; // 不显示 0 计数子项，保持侧边栏精简
+                        const dtActive = isActive && this.currentDocType === dt.id;
+                        html += `
+                            <div class="nav-sub-item ${dtActive ? 'active' : ''}" data-sub-company="${c.id}" data-sub-doctype="${dt.id}">
+                                <span class="icon">${dt.icon}</span>
+                                <span>${dt.name}</span>
+                                <span class="count">${dtCount}</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div>'; // .nav-sub-list
+                    html += '</div>'; // .nav-section
+                    html += '<div class="nav-section-divider"></div>';
                 });
-                
-                // 上传人筛选区域
-                const uploaders = [...new Set(this.files.map(f => f.uploader || '未知'))].filter(u => u);
+
+                // ====== 上传人筛选 ======
+                const uploaders = [...new Set(this.files.map(f => f.uploader || '未知'))].filter(u => u && u !== '未知');
                 if (uploaders.length > 0) {
-                    html += '<div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);">';
-                    html += '<div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;padding:0 12px;margin-bottom:6px;">上传人</div>';
+                    html += '<div style="margin-top:8px;padding-top:8px;">';
+                    html += '<div class="nav-section-label">上传人</div>';
                     html += `<div class="nav-item ${this.currentUploader === 'all' ? 'active' : ''}" data-uploader="all">
                         <span class="icon">👤</span>
                         <span class="category-name">全部上传人</span>
-                        <span class="category-count">${this.files.length}</span>
+                        <span class="category-count">${uploaders.length}</span>
                     </div>`;
                     uploaders.forEach(u => {
-                        const count = this.files.filter(f => (f.uploader || '未知') === u).length;
-                        html += `<div class="nav-item ${this.currentUploader === u ? 'active' : ''}" data-uploader="${u}">
+                        const cnt = this.files.filter(f => (f.uploader || '未知') === u).length;
+                        const act = this.currentUploader === u ? 'active' : '';
+                        html += `<div class="nav-item ${act}" data-uploader="${u}">
                             <span class="icon">👤</span>
                             <span class="category-name">${u}</span>
-                            <span class="category-count">${count}</span>
+                            <span class="category-count">${cnt}</span>
                         </div>`;
                     });
                     html += '</div>';
                 }
-                
+
                 nav.innerHTML = html;
-                
-                // 绑定分类点击事件
-                nav.querySelectorAll('.nav-item[data-category]').forEach(item => {
-                    item.addEventListener('click', () => {
-                        nav.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                        item.classList.add('active');
-                        this.currentCategory = item.dataset.category;
-                        this.currentUploader = 'all';
+
+                // 绑定：全部文件
+                const allItem = nav.querySelector('[data-nav="all"]');
+                if (allItem) allItem.addEventListener('click', () => {
+                    this.currentCompany = 'all';
+                    this.currentDocType = 'all';
+                    this.renderCategories();
+                    this.renderFiles();
+                });
+
+                // 绑定：公司标题点击 = 进入该公司(全部类型)
+                nav.querySelectorAll('[data-section-header]').forEach(h => {
+                    h.addEventListener('click', () => {
+                        const cid = h.dataset.sectionHeader;
+                        // 切换展开 / 选中
+                        if (this.expandedSections.has(cid)) {
+                            this.expandedSections.delete(cid);
+                        } else {
+                            this.expandedSections.add(cid);
+                        }
+                        this.currentCompany = cid;
+                        this.currentDocType = 'all';
+                        this.renderCategories();
                         this.renderFiles();
                     });
                 });
 
-                nav.querySelectorAll('.nav-item[data-uploader]').forEach(item => {
-                    item.addEventListener('click', () => {
-                        nav.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                        item.classList.add('active');
-                        this.currentUploader = item.dataset.uploader;
-                        this.currentCategory = 'all';
+                // 绑定：公司下的子类型点击
+                nav.querySelectorAll('[data-sub-company]').forEach(it => {
+                    it.addEventListener('click', () => {
+                        this.currentCompany = it.dataset.subCompany;
+                        this.currentDocType = it.dataset.subDoctype;
+                        this.expandedSections.add(this.currentCompany);
+                        this.renderCategories();
+                        this.renderFiles();
+                    });
+                });
+
+                // 绑定：上传人筛选
+                nav.querySelectorAll('[data-uploader]').forEach(it => {
+                    it.addEventListener('click', () => {
+                        this.currentUploader = it.dataset.uploader;
+                        this.renderCategories();
                         this.renderFiles();
                     });
                 });
             }
 
-            // 获取分类统计
+            // 获取每个公司 + 文档类型的文件计数
             getCategoryCounts() {
-                const counts = {};
-                CATEGORIES.forEach(cat => {
-                    counts[cat.id] = this.files.filter(f => f.category === cat.id).length;
+                const counts = { byCompany: {}, byDocType: {}, byCompanyAndDocType: {} };
+                this.files.forEach(f => {
+                    const c = f.company || 'public';
+                    const d = f.docType || 'other';
+                    counts.byCompany[c] = (counts.byCompany[c] || 0) + 1;
+                    counts.byDocType[d] = (counts.byDocType[d] || 0) + 1;
+                    const key = c + '||' + d;
+                    counts.byCompanyAndDocType[key] = (counts.byCompanyAndDocType[key] || 0) + 1;
                 });
                 return counts;
             }
+
+            // 工具：根据公司 id 取对象
+            getCompanyById(id) { return COMPANIES.find(c => c.id === id); }
+            getDocTypeById(id) { return DOC_TYPES.find(d => d.id === id); }
 
             // 渲染统计
             renderStats() {
@@ -2171,46 +2580,53 @@ body {
             // 渲染文件列表
             renderFiles() {
                 const container = document.getElementById('filesContainer');
-                
+
                 let filtered = this.filterFiles();
                 filtered = this.sortFiles(filtered);
-                
+
                 document.getElementById('resultsCount').textContent = `共 ${filtered.length} 个文件`;
-                
+
                 if (filtered.length === 0) {
+                    const hasFilter = this.searchQuery || this.currentCompany !== 'all' || this.currentDocType !== 'all';
                     container.innerHTML = `
                         <div class="empty-state">
                             <div class="icon">📭</div>
-                            <h3>${this.searchQuery || this.currentCategory !== 'all' ? '未找到匹配文件' : '暂无文件'}</h3>
-                            <p>${this.searchQuery || this.currentCategory !== 'all' ? '尝试调整搜索条件' : '点击上方区域或拖拽文件开始上传'}</p>
+                            <h3>${hasFilter ? '未找到匹配文件' : '暂无文件'}</h3>
+                            <p>${hasFilter ? '尝试调整搜索条件或清除筛选' : '点击上方区域或拖拽文件开始上传'}</p>
                         </div>
                     `;
                     return;
                 }
-                
+
+                // 顶部 breadcrumb（显示当前公司 / 文档类型）
+                const breadcrumbHtml = this._renderBreadcrumb();
+
+                let bodyHtml = '';
                 if (this.currentView === 'grid') {
-                    container.innerHTML = `<div class="files-grid">${filtered.map(f => this.renderFileCard(f)).join('')}</div>`;
+                    bodyHtml = `<div class="files-grid">${filtered.map(f => this.renderFileCard(f)).join('')}</div>`;
                 } else {
-                    container.innerHTML = `
+                    bodyHtml = `
                         <div class="files-list">
                             <div class="list-header">
                                 <div>文件名</div>
-                                <div>分类</div>
+                                <div>公司</div>
+                                <div>文档类型</div>
                                 <div>上传人</div>
-                                <div>大小</div>
-                                <div>上传时间</div>
+                                <div>大小 / 时间</div>
                                 <div>操作</div>
                             </div>
                             ${filtered.map(f => this.renderListItem(f)).join('')}
                         </div>
                     `;
                 }
-                
+
+                container.innerHTML = breadcrumbHtml + bodyHtml;
+
                 // 绑定文件点击事件
                 container.querySelectorAll('.file-card, .list-item').forEach(item => {
                     item.addEventListener('click', () => this.openDetail(parseInt(item.dataset.id)));
                 });
-                
+
                 // 绑定删除按钮事件
                 container.querySelectorAll('.delete-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
@@ -2218,15 +2634,50 @@ body {
                         this.confirmDeleteFile(parseInt(btn.dataset.id));
                     });
                 });
+
+                // 绑定面包屑上的"清除筛选"
+                const clearBtn = container.querySelector('[data-clear-filter]');
+                if (clearBtn) clearBtn.addEventListener('click', () => {
+                    this.currentCompany = 'all';
+                    this.currentDocType = 'all';
+                    this.renderCategories();
+                    this.renderFiles();
+                });
             }
 
-            // 渲染文件卡片
+            // 渲染顶部面包屑（当前公司 / 类型上下文）
+            _renderBreadcrumb() {
+                if (this.currentCompany === 'all') {
+                    return `<div class="breadcrumb-bar">
+                        <span class="crumb crumb-cur">📂 全部文件</span>
+                        <span class="crumb-sep">·</span>
+                        <span class="crumb">共 ${this.filterFiles().length} 个文件</span>
+                    </div>`;
+                }
+                const c = this.getCompanyById(this.currentCompany);
+                const dt = this.getDocTypeById(this.currentDocType);
+                const clearable = (this.currentCompany !== 'all' || this.currentDocType !== 'all');
+                return `<div class="breadcrumb-bar">
+                    <span class="crumb crumb-cur">${c ? (c.isPublic ? '🏛️' : '🏢') + ' ' + c.name : this.currentCompany}</span>
+                    ${dt ? `<span class="crumb-sep">›</span><span class="crumb">${dt.icon} ${dt.name}</span>` : ''}
+                    ${clearable ? `<button class="btn btn-outline" style="margin-left:auto;padding:6px 14px;font-size:12px;" data-clear-filter>清除筛选</button>` : ''}
+                </div>`;
+            }
+
+            // 渲染文件卡片（v4: 显示公司 + 文档类型 chip）
             renderFileCard(file) {
-                const cat = CATEGORIES.find(c => c.id === file.category) || CATEGORIES[CATEGORIES.length - 1];
+                const company = this.getCompanyById(file.company) || this.getCompanyById('public');
+                const dt = this.getDocTypeById(file.docType) || this.getDocTypeById('other');
                 const tags = file.tags.map(t => `<span class="tag">${t}</span>`).join('');
                 const date = new Date(file.uploadTime).toLocaleDateString('zh-CN');
                 const size = this.formatSize(file.size);
-                
+
+                // 公司徽标
+                const companyShort = (company.name || '').length > 8
+                    ? (company.name.substring(0, 8) + '…')
+                    : company.name;
+                const companyIcon = company.isPublic ? '🏛️' : '🏢';
+
                 return `
                     <div class="file-card" data-id="${file.id}">
                         <div class="file-card-icon" style="color: ${file.color}">${file.icon}</div>
@@ -2235,7 +2686,14 @@ body {
                             <span>${size}</span>
                             <span>${date}</span>
                         </div>
-                        <span class="file-card-category cat-${file.category}">${cat.icon} ${cat.name}</span>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">
+                            <span class="doc-type-chip cat-${dt.id}" title="${dt.name}">
+                                <span class="chip-icon">${dt.icon}</span>${dt.name}
+                            </span>
+                        </div>
+                        <div class="company-tag compact" title="${company.name}">
+                            ${companyIcon} ${companyShort}
+                        </div>
                         ${file.uploader ? `<div style="font-size:11px;color:var(--text-gray);margin-top:4px;">👤 ${file.uploader}</div>` : ''}
                         ${tags ? `<div class="file-card-tags">${tags}</div>` : ''}
                     </div>
@@ -2244,20 +2702,25 @@ body {
 
             // 渲染列表项
             renderListItem(file) {
-                const cat = CATEGORIES.find(c => c.id === file.category) || CATEGORIES[CATEGORIES.length - 1];
+                const company = this.getCompanyById(file.company) || this.getCompanyById('public');
+                const dt = this.getDocTypeById(file.docType) || this.getDocTypeById('other');
                 const date = new Date(file.uploadTime).toLocaleDateString('zh-CN');
                 const size = this.formatSize(file.size);
-                
+                const companyIcon = company.isPublic ? '🏛️' : '🏢';
+
                 return `
                     <div class="list-item" data-id="${file.id}">
                         <div class="list-item-name">
                             <span style="color: ${file.color}">${file.icon}</span>
                             <span title="${file.name}">${file.name}</span>
                         </div>
-                        <div><span class="file-card-category cat-${file.category}">${cat.name}</span></div>
+                        <div><span class="company-tag" title="${company.name}">${companyIcon} ${company.name}</span></div>
+                        <div><span class="doc-type-chip cat-${dt.id}">${dt.icon} ${dt.name}</span></div>
                         <div style="font-size:13px;color:var(--text-gray);">${file.uploader || '未知'}</div>
-                        <div>${size}</div>
-                        <div>${date}</div>
+                        <div style="font-size:12px;color:var(--text-gray);">
+                            <div>${size}</div>
+                            <div style="opacity:.7;">${date}</div>
+                        </div>
                         <div class="list-item-actions">
                             <button class="delete-btn" data-id="${file.id}">删除</button>
                         </div>
@@ -2265,31 +2728,39 @@ body {
                 `;
             }
 
-            // 过滤文件
+            // 过滤文件（v4: 按公司 + 文档类型 + 上传人 + 搜索关键字）
             filterFiles() {
                 return this.files.filter(f => {
-                    if (this.currentCategory !== 'all' && f.category !== this.currentCategory) {
+                    // 公司筛选
+                    if (this.currentCompany !== 'all' && f.company !== this.currentCompany) {
                         return false;
                     }
-                    
-                    if (this.currentUploader && this.currentUploader !== 'all' && (f.uploader || '未知') !== this.currentUploader) {
+                    // 文档类型筛选（仅在选定了非 all 公司或公共资料库时生效；
+                    // 全部文件视图下不需要按子类型过滤，除非用户主动选了子类型）
+                    if (this.currentDocType !== 'all'
+                        && this.currentCompany !== 'all'
+                        && f.docType !== this.currentDocType) {
                         return false;
                     }
-                    
+                    // 上传人筛选
+                    if (this.currentUploader !== 'all'
+                        && (f.uploader || '未知') !== this.currentUploader) {
+                        return false;
+                    }
+                    // 搜索
                     if (this.searchQuery) {
+                        const company = this.getCompanyById(f.company);
+                        const dt = this.getDocTypeById(f.docType);
                         const searchIn = [
-                            f.name.toLowerCase(),
-                            f.category.toLowerCase(),
-                            f.tags.join(' ').toLowerCase(),
+                            (f.name || '').toLowerCase(),
+                            (f.tags || []).join(' ').toLowerCase(),
                             (f.summary || '').toLowerCase(),
-                            (f.uploader || '').toLowerCase()
+                            (f.uploader || '').toLowerCase(),
+                            (company ? company.name : '').toLowerCase(),
+                            (dt ? dt.name : '').toLowerCase()
                         ].join(' ');
-                        
-                        if (!searchIn.includes(this.searchQuery)) {
-                            return false;
-                        }
+                        if (!searchIn.includes(this.searchQuery)) return false;
                     }
-                    
                     return true;
                 });
             }
@@ -2324,68 +2795,83 @@ body {
             openDetail(fileId) {
                 const file = this.files.find(f => f.id === fileId);
                 if (!file) return;
-                
+
                 this.currentFile = file;
                 const panel = document.getElementById('detailPanel');
                 const body = document.getElementById('detailBody');
-                
+
                 const tagsHtml = file.tags.map(t => `
                     <span class="detail-tag">
                         ${t}
                         <button onclick="app.removeTag(${fileId}, '${t.replace(/'/g, "\\'")}')">×</button>
                     </span>
                 `).join('');
-                
+
+                const companyOptions = COMPANIES.map(c => `
+                    <option value="${c.id}" ${c.id === file.company ? 'selected' : ''}>
+                        ${c.isPublic ? '🏛️' : '🏢'} ${c.name}
+                    </option>
+                `).join('');
+
+                const docTypeOptions = DOC_TYPES.map(d => `
+                    <option value="${d.id}" ${d.id === file.docType ? 'selected' : ''}>
+                        ${d.icon} ${d.name}
+                    </option>
+                `).join('');
+
                 body.innerHTML = `
                     <div class="detail-icon" style="color: ${file.color}">${file.icon}</div>
-                    
+
                     <div class="detail-field">
                         <div class="detail-label">文件名</div>
                         <div class="detail-value filename">${file.name}</div>
                     </div>
-                    
+
                     <div class="detail-field">
                         <div class="detail-label">文件类型</div>
                         <div class="detail-value">${file.typeName}</div>
                     </div>
-                    
+
                     <div class="detail-field">
                         <div class="detail-label">文件大小</div>
                         <div class="detail-value">${this.formatSize(file.size)}</div>
                     </div>
-                    
+
                     <div class="detail-field">
                         <div class="detail-label">上传时间</div>
                         <div class="detail-value">${new Date(file.uploadTime).toLocaleString('zh-CN')}</div>
                     </div>
-                    
+
                     <div class="detail-field">
                         <div class="detail-label">上传人</div>
                         <div class="detail-value">👤 ${file.uploader || '未知'}</div>
                     </div>
-                    
+
                     <div class="detail-field">
-                        <div class="detail-label">分类</div>
-                        <select class="detail-category-select" id="categorySelect" onchange="app.changeCategory(${fileId}, this.value)">
-                            ${CATEGORIES.map(c => `
-                                <option value="${c.id}" ${c.id === file.category ? 'selected' : ''}>
-                                    ${c.icon} ${c.name}
-                                </option>
-                            `).join('')}
+                        <div class="detail-label">所属公司 / 资料库</div>
+                        <select class="detail-category-select" id="companySelect" onchange="app.changeCompany(${fileId}, this.value)">
+                            ${companyOptions}
                         </select>
                     </div>
-                    
+
+                    <div class="detail-field">
+                        <div class="detail-label">文档类型</div>
+                        <select class="detail-category-select" id="docTypeSelect" onchange="app.changeDocType(${fileId}, this.value)">
+                            ${docTypeOptions}
+                        </select>
+                    </div>
+
                     <div class="detail-field">
                         <div class="detail-label">标签</div>
                         <div class="detail-tags" id="tagsContainer">
                             ${tagsHtml || '<span style="color: var(--text-light)">暂无标签</span>'}
                         </div>
                         <div class="add-tag-form">
-                            <input type="text" id="newTagInput" placeholder="输入标签后按回车添加" 
+                            <input type="text" id="newTagInput" placeholder="输入标签后按回车添加"
                                    onkeypress="if(event.key==='Enter') app.addTag(${fileId})">
                         </div>
                     </div>
-                    
+
                     ${file.summary ? `
                         <div class="detail-field">
                             <div class="detail-label">摘要</div>
@@ -2393,7 +2879,7 @@ body {
                         </div>
                     ` : ''}
                 `;
-                
+
                 panel.classList.add('open');
             }
 
@@ -2403,18 +2889,36 @@ body {
                 this.currentFile = null;
             }
 
-            // 更改分类
-            async changeCategory(fileId, newCategory) {
+            // 更改所属公司
+            async changeCompany(fileId, newCompany) {
                 const file = this.files.find(f => f.id === fileId);
                 if (!file) return;
-                
-                file.category = newCategory;
-                
-                await GitHubDataManager.updateDocument(fileId, { category: newCategory });
-                
-                this.render();
+                file.company = newCompany;
+                await GitHubDataManager.updateDocument(fileId, {
+                    company: newCompany,
+                    docType: file.docType,
+                    category: file.docType
+                });
+                this.renderCategories();
+                this.renderFiles();
                 this.openDetail(fileId);
-                this.showToast('分类已更新', 'success');
+                this.showToast('公司已更新', 'success');
+            }
+
+            // 更改文档类型
+            async changeDocType(fileId, newDocType) {
+                const file = this.files.find(f => f.id === fileId);
+                if (!file) return;
+                file.docType = newDocType;
+                file.category = newDocType;
+                await GitHubDataManager.updateDocument(fileId, {
+                    docType: newDocType,
+                    category: newDocType
+                });
+                this.renderCategories();
+                this.renderFiles();
+                this.openDetail(fileId);
+                this.showToast('文档类型已更新', 'success');
             }
 
             // 添加标签
