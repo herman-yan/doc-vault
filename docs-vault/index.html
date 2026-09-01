@@ -2090,13 +2090,15 @@ body {
               keywords: ['劳动合同','聘用合同','劳务合同','劳动人事','人事合同','人事','聘用','劳务'] },
             { id: 'battery',      name: '换电延保合同', icon: '🔋', color: 'var(--cat-battery)',
               keywords: ['换电合同','延保合同','换电协议','延保协议','换电','延保','电池'] },
+            { id: 'license',      name: '证照',       icon: '🪪', color: 'var(--cat-certificate)',
+              keywords: ['营业执照','证照','许可证','开户许可证','登记证','资质证书','执照','证书'] },
             { id: 'other',        name: '其他文件',   icon: '📁', color: 'var(--cat-other)', keywords: ['流程','说明','清单','台账','汇总','登记','统计'] }
         ];
 
         // 兼容字段映射（旧版 category 字段 -> 新版 docType 字段）
         const LEGACY_CATEGORY_MAP = {
             contract: 'other',
-            certificate: 'other',
+            certificate: 'license',
             legal: 'other',
             finance: 'other',
             hr: 'labor',
