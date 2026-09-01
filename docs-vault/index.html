@@ -1696,16 +1696,28 @@ body {
             data: null,
             sha: null,
 
+            // 带超时的 fetch（避免网络异常时 await 无限挂起）
+            async _fetchWithTimeout(url, options, timeoutMs) {
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), timeoutMs);
+                try {
+                    return await fetch(url, { ...options, signal: ctrl.signal });
+                } finally {
+                    clearTimeout(tid);
+                }
+            },
+
             // 从GitHub读取data.json（仅元数据，很小很快）
             async load() {
                 try {
                     const url = `${this.API_BASE}/repos/${this.REPO}/contents/${this.PATH}`;
-                    const metaResponse = await fetch(url, {
+                    // 8 秒超时，超时即视为失败，跳到兜底
+                    const metaResponse = await this._fetchWithTimeout(url, {
                         headers: {
                             'Authorization': `token ${this.TOKEN}`,
                             'Accept': 'application/vnd.github.v3+json'
                         }
-                    });
+                    }, 8000);
 
                     if (metaResponse.status === 404) {
                         this.data = { version: 3, storageMode: 'separate', documents: [], lastUpdated: new Date().toLocaleString('zh-CN') };
@@ -1738,14 +1750,18 @@ body {
                         if (!rawResponse.ok) throw new Error(`Raw fetch failed: HTTP ${rawResponse.status}`);
                         this.data = JSON.parse(await rawResponse.text());
                     }
+                    this._saveLocalCache();
                     return true;
                 } catch (error) {
-                    // 网络等异常 → 尝试 raw 兜底，保证内容可读
+                    // 网络等异常 → 尝试 raw 兜底，再退到本地缓存，保证内容可见
                     console.error('GitHub API 加载失败，尝试 raw 兜底:', error);
                     try {
                         const ok = await this._loadFromRaw();
-                        if (ok) return true;
+                        if (ok) { this._saveLocalCache(); return true; }
                     } catch (e2) { console.error('raw 兜底失败:', e2); }
+                    // 最后一道：本地缓存（保证至少看到上次的数据，而不是永远转圈）
+                    const cached = this._loadFromLocalCache();
+                    if (cached) return true;
                     throw error;
                 }
             },
@@ -1754,7 +1770,8 @@ body {
             async _loadFromRaw() {
                 try {
                     const rawUrl = `https://raw.githubusercontent.com/${this.REPO}/main/${this.PATH}`;
-                    const resp = await fetch(rawUrl, { headers: { 'Accept': 'application/json' } });
+                    // raw 也加 5 秒超时，避免某些环境下 fetch 无限挂起
+                    const resp = await this._fetchWithTimeout(rawUrl, { headers: { 'Accept': 'application/json' } }, 5000);
                     if (!resp.ok) throw new Error(`Raw HTTP ${resp.status}`);
                     this.data = JSON.parse(await resp.text());
                     this.sha = null; // 只读模式，无法写回
@@ -1764,6 +1781,25 @@ body {
                     console.error('raw 兜底读取失败:', e);
                     return false;
                 }
+            },
+
+            // 本地缓存兜底（最近一次成功加载的数据，仅作离线/网络异常时的可见性）
+            _loadFromLocalCache() {
+                try {
+                    const cached = localStorage.getItem('docvault_data_cache');
+                    if (!cached) return false;
+                    this.data = JSON.parse(cached);
+                    this.sha = null;
+                    console.warn('已从本地缓存加载（可能不是最新数据）');
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            },
+            _saveLocalCache() {
+                try {
+                    if (this.data) localStorage.setItem('docvault_data_cache', JSON.stringify(this.data));
+                } catch (e) { /* 忽略存储错误 */ }
             },
 
             // 写入data.json到GitHub（仅元数据）
