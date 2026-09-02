@@ -1073,6 +1073,7 @@ body {
     color: #fff;
     transform: translateY(-1px);
 }
+.pill:active { transform: scale(0.96); }
 .pill .pill-icon { font-size: 15px; flex-shrink: 0; }
 .pill .pill-name {
     flex: 1;
@@ -1292,7 +1293,7 @@ body {
     opacity: 0;
     visibility: hidden;
     transition: all var(--transition-normal);
-    z-index: 300;
+    z-index: 1500;
     box-shadow: var(--glass-shadow);
 }
 
@@ -1374,6 +1375,13 @@ body {
     background: linear-gradient(135deg, rgba(255,106,136,.92), rgba(255,153,172,.92));
     color: #fff;
     border: none;
+}
+
+.toast.info {
+    background: rgba(22,33,62,.92);
+    color: #cbd5e1;
+    border: 1px solid rgba(148,163,184,.35);
+    font-weight: 500;
 }
 
 .toast.loading {
@@ -3218,11 +3226,16 @@ body {
                 }
             }
 
-            // 请求调整文档类型（pill 点击触发：先弹确认弹窗，确认后才真正切换，避免误触；点当前类型不弹窗）
+            // 请求调整文档类型（pill 点击触发：先弹确认弹窗，确认后才真正切换，避免误触；点当前类型给 toast 提示而非静默）
             requestDocTypeChange(fileId, newDocType) {
                 const file = this.files.find(f => f.id === fileId);
                 if (!file) { this.showToast('找不到该文件', 'error'); return; }
-                if (file.docType === newDocType) return; // 当前类型，点自己无变化不弹窗
+                const currentDocTypeName = (DOC_TYPES.find(d => d.id === file.docType) || {}).name || file.docType;
+                if (file.docType === newDocType) {
+                    // 点自己：给柔和提示，而不是什么都不做让用户以为没反应
+                    this.showToast(`当前已是「${currentDocTypeName}」`, 'info', 2200);
+                    return;
+                }
                 const oldDocTypeName = (DOC_TYPES.find(d => d.id === file.docType) || {}).name || file.docType;
                 const newDocTypeName = (DOC_TYPES.find(d => d.id === newDocType) || {}).name || newDocType;
 
