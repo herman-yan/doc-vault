@@ -1015,6 +1015,108 @@ body {
     background: #16213e;
 }
 
+/* ========== 分类快速切换 pill 按钮组 ========== */
+.detail-classify {
+    margin: 6px 0 18px;
+    padding: 14px 14px 16px;
+    border-radius: 14px;
+    background: rgba(99,102,241,0.07);
+    border: 1px solid rgba(99,102,241,0.18);
+}
+.detail-classify-title {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+.detail-classify-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 9px 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.32);
+    color: #fde68a;
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+.detail-classify-hint .hint-icon { flex-shrink: 0; font-size: 15px; line-height: 1.2; }
+.pill-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 11px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+    text-align: left;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+.pill:hover {
+    border-color: rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    transform: translateY(-1px);
+}
+.pill .pill-icon { font-size: 15px; flex-shrink: 0; }
+.pill .pill-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pill.active {
+    border-color: rgba(255,255,255,0.55);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+.pill.active .pill-check { color: #fff; font-size: 14px; flex-shrink: 0; }
+.detail-classify-foot {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255,255,255,0.08);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.detail-classify-foot .foot-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.detail-classify-foot select {
+    flex: 1;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+}
+.detail-classify-foot select option { background: #16213e; }
+@media (max-width: 900px) {
+    .pill-grid { grid-template-columns: 1fr; }
+}
+
 .detail-tags {
     display: flex;
     flex-wrap: wrap;
@@ -2204,6 +2306,21 @@ body {
                 }
             }
 
+            // 判断文件自动分类的置信度
+            // 返回 true 表示文件名命中过具体类型关键词（高置信度）；
+            // 返回 false 表示无任何具体关键词命中、被默认归到 other（低置信度，提示用户手动确认）
+            _classifyConfidence(file) {
+                const name = (file.name || '').toLowerCase();
+                if (!name) return false;
+                for (const dt of DOC_TYPES) {
+                    if (dt.id === 'other') continue;
+                    for (const kw of dt.keywords) {
+                        if (name.includes(kw.toLowerCase())) return true;
+                    }
+                }
+                return false;
+            }
+
             // 显示初始化加载状态
             showInitLoading(message) {
                 const overlay = document.getElementById('initOverlay');
@@ -2924,20 +3041,50 @@ body {
                     </span>
                 `).join('');
 
+                const confidenceHigh = this._classifyConfidence(file);
+                const docTypePills = DOC_TYPES.map(d => `
+                    <button type="button"
+                            class="pill ${d.id === file.docType ? 'active' : ''}"
+                            style="--pill-color: ${d.color}"
+                            onclick="app.changeDocType(${fileId}, '${d.id}')"
+                            title="切换为「${d.name}」">
+                        <span class="pill-icon" style="color: ${d.id === file.docType ? d.color : ''}">${d.icon}</span>
+                        <span class="pill-name">${d.name}</span>
+                        ${d.id === file.docType ? '<span class="pill-check">✓</span>' : ''}
+                    </button>
+                `).join('');
+
+                const hintHtml = confidenceHigh ? '' : `
+                    <div class="detail-classify-hint">
+                        <span class="hint-icon">⚠️</span>
+                        <span>系统未在文件名中匹配到明确类型，已默认归为「其他文件」。如分类有误，请点击下方正确的类型重新归类。</span>
+                    </div>
+                `;
+
                 const companyOptions = COMPANIES.map(c => `
                     <option value="${c.id}" ${c.id === file.company ? 'selected' : ''}>
                         ${c.isPublic ? '🏛️' : '🏢'} ${c.name}
                     </option>
                 `).join('');
 
-                const docTypeOptions = DOC_TYPES.map(d => `
-                    <option value="${d.id}" ${d.id === file.docType ? 'selected' : ''}>
-                        ${d.icon} ${d.name}
-                    </option>
-                `).join('');
-
                 body.innerHTML = `
                     <div class="detail-icon" style="color: ${file.color}">${file.icon}</div>
+
+                    <div class="detail-classify">
+                        <div class="detail-classify-title">📋 调整文档类型（点一下即生效）</div>
+                        ${hintHtml}
+                        <div class="pill-grid">
+                            ${docTypePills}
+                        </div>
+                        <div class="detail-classify-foot">
+                            <div class="foot-row">
+                                <span style="white-space:nowrap;">📍 切换公司</span>
+                                <select onchange="app.changeCompany(${fileId}, this.value)">
+                                    ${companyOptions}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="detail-field">
                         <div class="detail-label">文件名</div>
@@ -2962,20 +3109,6 @@ body {
                     <div class="detail-field">
                         <div class="detail-label">上传人</div>
                         <div class="detail-value">👤 ${file.uploader || '未知'}</div>
-                    </div>
-
-                    <div class="detail-field">
-                        <div class="detail-label">所属公司 / 资料库</div>
-                        <select class="detail-category-select" id="companySelect" onchange="app.changeCompany(${fileId}, this.value)">
-                            ${companyOptions}
-                        </select>
-                    </div>
-
-                    <div class="detail-field">
-                        <div class="detail-label">文档类型</div>
-                        <select class="detail-category-select" id="docTypeSelect" onchange="app.changeDocType(${fileId}, this.value)">
-                            ${docTypeOptions}
-                        </select>
                     </div>
 
                     <div class="detail-field">
