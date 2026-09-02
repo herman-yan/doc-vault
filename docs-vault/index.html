@@ -3066,7 +3066,7 @@ body {
                     <button type="button"
                             class="pill ${d.id === file.docType ? 'active' : ''}"
                             style="--pill-color: ${d.color}"
-                            onclick="app.changeDocType(${fileId}, '${d.id}')"
+                            onclick="app.requestDocTypeChange(${fileId}, '${d.id}')"
                             title="切换为「${d.name}」">
                         <span class="pill-icon" style="color: ${d.id === file.docType ? d.color : ''}">${d.icon}</span>
                         <span class="pill-name">${d.name}</span>
@@ -3091,7 +3091,7 @@ body {
                     <div class="detail-icon" style="color: ${file.color}">${file.icon}</div>
 
                     <div class="detail-classify">
-                        <div class="detail-classify-title">📋 调整文档类型（点一下即生效）</div>
+                        <div class="detail-classify-title">📋 调整文档类型（点一下确认后变更）</div>
                         ${hintHtml}
                         <div class="pill-grid">
                             ${docTypePills}
@@ -3218,6 +3218,29 @@ body {
                 }
             }
 
+            // 请求调整文档类型（pill 点击触发：先弹确认弹窗，确认后才真正切换，避免误触；点当前类型不弹窗）
+            requestDocTypeChange(fileId, newDocType) {
+                const file = this.files.find(f => f.id === fileId);
+                if (!file) { this.showToast('找不到该文件', 'error'); return; }
+                if (file.docType === newDocType) return; // 当前类型，点自己无变化不弹窗
+                const oldDocTypeName = (DOC_TYPES.find(d => d.id === file.docType) || {}).name || file.docType;
+                const newDocTypeName = (DOC_TYPES.find(d => d.id === newDocType) || {}).name || newDocType;
+
+                document.getElementById('confirmTitle').textContent = '确认调整分类';
+                document.getElementById('confirmMessage').textContent =
+                    `将「${file.name}」从「${oldDocTypeName}」调整为「${newDocTypeName}」？`;
+
+                // 「确认」按钮临时改用蓝色（分类变更是常规操作，不是危险操作）；关闭弹窗时由 closeConfirm 恢复 btn-danger
+                const okBtn = document.getElementById('confirmOk');
+                if (okBtn) {
+                    okBtn.classList.remove('btn-danger');
+                    okBtn.classList.add('btn-primary');
+                }
+
+                this.confirmCallback = () => this.changeDocType(fileId, newDocType);
+                document.getElementById('confirmModal').classList.add('open');
+            }
+
             // 添加标签
             async addTag(fileId) {
                 const input = document.getElementById('newTagInput');
@@ -3321,9 +3344,14 @@ body {
                 document.getElementById('confirmModal').classList.add('open');
             }
 
-            // 关闭确认弹窗
+            // 关闭确认弹窗（关闭时恢复「确认」按钮为默认 btn-danger，避免调整分类等场景临时切换的样式残留影响删除/清空）
             closeConfirm() {
                 document.getElementById('confirmModal').classList.remove('open');
+                const okBtn = document.getElementById('confirmOk');
+                if (okBtn) {
+                    okBtn.classList.remove('btn-primary');
+                    okBtn.classList.add('btn-danger');
+                }
                 this.confirmCallback = null;
             }
 
