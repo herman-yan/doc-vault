@@ -341,7 +341,9 @@
       "company": "bj-zhongneng",
       "docType": "cooperation",
       "category": "cooperation",
-      "tags": [],
+      "tags": [
+        "负债表"
+      ],
       "summary": "",
       "uploader": "金梦",
       "id": 17,
@@ -349,5 +351,5 @@
       "filePath": "docs-vault/files/17.pdf"
     }
   ],
-  "lastUpdated": "2026-09-02 12:00:00"
+  "lastUpdated": "2026/9/2 14:28:14"
 }
