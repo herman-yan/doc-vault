@@ -339,8 +339,8 @@
       "icon": "📕",
       "color": "#ef4444",
       "company": "bj-zhongneng",
-      "docType": "cooperation",
-      "category": "cooperation",
+      "docType": "other",
+      "category": "other",
       "tags": [
         "负债表"
       ],
@@ -351,5 +351,5 @@
       "filePath": "docs-vault/files/17.pdf"
     }
   ],
-  "lastUpdated": "2026/9/2 14:28:14"
+  "lastUpdated": "2026/9/2 15:03:24"
 }
