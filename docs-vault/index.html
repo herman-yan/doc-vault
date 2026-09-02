@@ -1907,18 +1907,28 @@ body {
             // 写入data.json到GitHub（仅元数据）
             async save() {
                 try {
+                    // 没有 sha 一定失败（API 要求 sha 才能更新已存在的文件），
+                    // 提前给出明确错误而不是走完 fetch 才抱怨
+                    if (!this.sha) {
+                        throw new Error('缺少 sha（data.json 的版本号），可能是首次保存还没拿到 sha。请刷新页面重试');
+                    }
                     const content = JSON.stringify(this.data, null, 2);
                     const base64Content = btoa(unescape(encodeURIComponent(content)));
                     const url = `${this.API_BASE}/repos/${this.REPO}/contents/${this.PATH}`;
-                    const body = { message: `update: 文档数据 ${new Date().toLocaleString('zh-CN')}`, content: base64Content };
-                    if (this.sha) body.sha = this.sha;
+                    const body = { message: `update: 文档数据 ${new Date().toLocaleString('zh-CN')}`, content: base64Content, sha: this.sha };
 
                     const response = await fetch(url, {
                         method: 'PUT',
                         headers: { 'Authorization': `token ${this.TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
                         body: JSON.stringify(body)
                     });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                    if (!response.ok) {
+                        // 把 GitHub 返回的详细原因（404/422/409）作为错误抛出，让上层 catch 到后展示
+                        let detail = '';
+                        try { const j = await response.json(); detail = (j.message || '') + (Array.isArray(j.errors) ? ' / ' + j.errors.map(e=>e.message||'').join(',') : ''); }
+                        catch(_) { try { detail = await response.text(); } catch(_2){} }
+                        throw new Error(`HTTP ${response.status}${detail ? ': ' + detail.slice(0,200) : ''}`);
+                    }
                     const result = await response.json();
                     this.sha = result.content.sha;
                     return true;
@@ -1929,8 +1939,10 @@ body {
             },
 
             // 原子操作：重新加载最新数据后执行变更
+            // 这里失败时直接把原始错误抛出，让上层 changeDocType / changeCompany 等显示给用户
             async _reloadAndApply(applyFn) {
                 const maxRetries = 3;
+                let lastErr = null;
                 for (let attempt = 0; attempt < maxRetries; attempt++) {
                     try {
                         await this.load();
@@ -1938,14 +1950,20 @@ body {
                         await this.save();
                         return true;
                     } catch (error) {
-                        if (error.message && (error.message.includes('422') || error.message.includes('409'))) {
-                            console.log(`SHA冲突，第 ${attempt+1} 次重试...`);
-                            if (attempt === maxRetries - 1) throw new Error('保存失败：多次重试后仍有冲突，请刷新页面重试');
+                        lastErr = error;
+                        const msg = (error && error.message) || String(error);
+                        // SHA 冲突 / 422 可重试
+                        if (msg.includes('422') || msg.includes('409')) {
+                            console.log(`[save retry] SHA冲突，第 ${attempt+1} 次重试...`);
+                            // 第 2 次起加 200ms 让任何临时性冲突稳定下来
+                            if (attempt < maxRetries - 1) await new Promise(r => setTimeout(r, 200));
                             continue;
                         }
+                        // 缺少 sha / 网络错 / 其他 → 不重试，立即抛出
                         throw error;
                     }
                 }
+                throw new Error('保存失败：多次重试后仍有冲突，请刷新页面重试。原始错误：' + (lastErr?.message || lastErr));
             },
 
             // 上传单个文件到GitHub独立存储
@@ -3142,33 +3160,60 @@ body {
             // 更改所属公司
             async changeCompany(fileId, newCompany) {
                 const file = this.files.find(f => f.id === fileId);
-                if (!file) return;
+                if (!file) { this.showToast('找不到该文件', 'error'); return; }
+                const oldCompany = file.company;
                 file.company = newCompany;
-                await GitHubDataManager.updateDocument(fileId, {
-                    company: newCompany,
-                    docType: file.docType,
-                    category: file.docType
-                });
-                this.renderCategories();
-                this.renderFiles();
-                this.openDetail(fileId);
-                this.showToast('公司已更新', 'success');
+                try {
+                    await GitHubDataManager.updateDocument(fileId, {
+                        company: newCompany,
+                        docType: file.docType,
+                        category: file.docType
+                    });
+                    this.renderCategories();
+                    this.renderFiles();
+                    this.openDetail(fileId);
+                    this.showToast('公司已更新', 'success');
+                } catch (err) {
+                    file.company = oldCompany;
+                    console.error('changeCompany 失败:', err);
+                    const msg = (err && err.message) ? err.message : String(err);
+                    this.showToast('切换公司失败：' + msg.slice(0, 120), 'error', 6000);
+                    this.renderCategories();
+                    this.renderFiles();
+                    this.openDetail(fileId);
+                }
             }
 
-            // 更改文档类型
+            // 更改文档类型（pill 按钮的 onClick 调用此方法）
             async changeDocType(fileId, newDocType) {
                 const file = this.files.find(f => f.id === fileId);
-                if (!file) return;
+                if (!file) { this.showToast('找不到该文件', 'error'); return; }
+                if (file.docType === newDocType) return; // 没变化就不操作
+                const oldDocType = file.docType;
+                // 1) 立刻更新本地 view，避免重复点击 + 让 UI 立刻反映
                 file.docType = newDocType;
                 file.category = newDocType;
-                await GitHubDataManager.updateDocument(fileId, {
-                    docType: newDocType,
-                    category: newDocType
-                });
-                this.renderCategories();
-                this.renderFiles();
-                this.openDetail(fileId);
-                this.showToast('文档类型已更新', 'success');
+                // 2) 同步到 GitHub；任何失败都让用户看见
+                try {
+                    await GitHubDataManager.updateDocument(fileId, {
+                        docType: newDocType,
+                        category: newDocType
+                    });
+                    this.renderCategories();
+                    this.renderFiles();
+                    this.openDetail(fileId);
+                    this.showToast(`已切换为「${DOC_TYPES.find(d=>d.id===newDocType)?.name || newDocType}」`, 'success');
+                } catch (err) {
+                    // 失败：把本地改回去（避免和云端不一致），并把真实错误告诉用户
+                    file.docType = oldDocType;
+                    file.category = oldDocType;
+                    console.error('changeDocType 失败:', err);
+                    const msg = (err && err.message) ? err.message : String(err);
+                    this.showToast('切换失败：' + msg.slice(0, 120), 'error', 6000);
+                    this.renderCategories();
+                    this.renderFiles();
+                    this.openDetail(fileId);
+                }
             }
 
             // 添加标签
