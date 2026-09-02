@@ -308,6 +308,20 @@
         .kb-section-actions { flex-direction:column; align-items:flex-start; gap:10px; }
     }
     </style>
+<style>
+/* ===== 中央资料库（docs-vault）接入样式 ===== */
+.lib-status{ font-size:12px; color:var(--text-muted); padding:4px 10px; border-radius:20px; background:var(--glass-bg); border:1px solid var(--glass-border); white-space:nowrap; }
+.lib-status.lib-ok{ color:#43e97b; border-color:rgba(67,233,123,.35); }
+.lib-status.lib-fail{ color:#ffa502; border-color:rgba(255,165,2,.35); }
+.lib-status.lib-loading{ color:#4facfe; }
+.kb-card-type.type-lib{ background:linear-gradient(135deg,#a855f7,#6366f1); color:#fff; }
+.kb-card-lib{ border:1px solid rgba(168,85,247,.35); cursor:pointer; }
+.kb-card-lib:hover{ border-color:rgba(168,85,247,.7); box-shadow:0 6px 22px rgba(99,102,241,.18); }
+.kb-lib-company{ font-size:13px; color:var(--text-secondary); margin:2px 0 6px; }
+.kb-lib-meta{ font-size:12px; color:var(--text-muted); margin-bottom:8px; }
+.kb-lib-download{ display:inline-block; margin-top:6px; font-size:13px; font-weight:600; color:#fff; background:linear-gradient(135deg,#6366f1,#4facfe); padding:6px 14px; border-radius:18px; }
+.kb-tag.lib-src{ color:#c4b5fd; border:1px solid rgba(196,181,253,.4); }
+</style>
 </head>
 <body>
 <div class="bg-decoration"><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div></div>
@@ -373,7 +387,7 @@
     <div class="toolbar">
         <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" value="" placeholder="搜索知识库内容（标题、正文、标签）..." autocomplete="off" oninput="onSearch()" onfocus="if(this.value)this.value=''">
+            <input type="text" id="searchInput" value="" placeholder="搜索知识库 / 中央资料库（标题、正文、标签、公司、证照…）..." autocomplete="off" oninput="onSearch()" onfocus="if(this.value)this.value=''">
         </div>
         <div class="filter-chips">
             <span class="chip chip-all active" onclick="setFilter('all',this)">全部</span>
@@ -389,6 +403,7 @@
         <div class="section-header">
             <h2 class="section-title">知识库内容</h2>
             <div class="kb-section-actions">
+                <span class="lib-status" id="libStatus">📚 正在连接中央资料库…</span>
                 <span class="result-count" id="resultCount">共 4 条结果</span>
                 <button class="header-btn ghost" onclick="clearAllUser()">🗑️ 清空我的上传</button>
                 <button class="header-btn" onclick="openUpload()">📥 上传内部文件</button>
@@ -559,9 +574,145 @@ function loadUserEntries(){
 
 function getAllEntries(){
     try {
-        return KB_DATA.concat(Array.isArray(USER_CACHE) ? USER_CACHE : []);
+        return KB_DATA.concat(Array.isArray(USER_CACHE) ? USER_CACHE : [], Array.isArray(LIB_CACHE) ? LIB_CACHE : []);
     } catch(e) { return KB_DATA.slice(); }
 }
+
+// ========== 中央资料库（docs-vault）目录接入 ==========
+// 同源（herman-yan.github.io/doc-vault/）拉取资料库元数据目录，
+// 仅作「搜索 + 下载」用途：不解析文件内容、不改写资料库。
+let LIB_CACHE = [];
+let LIB_STATUS = 'loading';   // loading | ok | fail
+const LIB_CATALOG_URL = new URL('../docs-vault/data.json', location.href).href;
+
+// 文档类型 → 中文标签（与 docs-vault DOC_TYPES 对齐）
+const LIB_DOCTYPE_NAMES = {
+    cooperation:'合作协议', sales:'销售合同', purchase:'采购合同',
+    labor:'劳动人事', battery:'换电延保合同', other:'其他文件', license:'证照'
+};
+// 公司 id → 中文名（与 docs-vault COMPANIES 对齐；资料库新增公司时需同步此处）
+const LIB_COMPANY_NAMES = {
+    'public':'公共资料库',
+    'bj-zhongneng':'北京中能时代科技集团有限公司',
+    'bj-zhongneng-xh':'北京中能新航科技集团有限公司',
+    'bj-longgui':'北京隆归新能源科技有限公司',
+    'bj-ningjia-bj':'宁家（北京）汽车服务有限公司',
+    'bj-yideyi-ny':'北京易得翼新能源汽车服务有限公司',
+    'bj-yideyi-auto':'北京易得翼汽车技术服务有限公司',
+    'bj-laituo':'北京莱拓管理咨询合伙企业(有限合伙)',
+    'bj-junge':'北京俊歌科技发展有限公司',
+    'bj-juntang':'北京俊棠科技发展有限公司',
+    'bj-anjun':'北京安峻新能源科技有限公司',
+    'bai-de-yi':'百得亿(北京)科技有限公司',
+    'bj-qinyi':'勤翼（北京）汽车服务有限公司',
+    'tj-qinyi':'天津勤翼新能源科技有限公司',
+    'tj-qinyi-east':'天津勤翼新能源科技河东区分公司',
+    'tj-yiweida':'天津翼维达新能源科技有限公司',
+    'cz-xigui':'沧州玺归科技有限公司',
+    'sjz-xuxing':'石家庄胥行新能源科技有限公司',
+    'hd-hantou':'邯郸市邯投新能源科技有限公司',
+    'sx-daotong':'陕西道同谦合科技发展有限公司',
+    'sx-hecheng':'陕西赫呈新能源科技有限公司',
+    'sx-xuxing-ny':'陕西胥行时代新能源科技有限公司',
+    'sx-xuxing-kj':'陕西胥行时代科技发展有限公司',
+    'eed-jinhang':'鄂尔多斯金杭新能源科技有限公司',
+    'eed-jinhang-kj':'鄂尔多斯市金杭科技发展有限公司',
+    'sx-woqi':'山西沃奇新能源科技有限公司',
+    'dt-saimu':'大同赛木新能源科技有限公司',
+    'hn-qiantong':'海南谦通投资合伙企业(有限合伙)',
+    'bj-ningjia-cc':'宁家（长春）汽车服务有限公司',
+    'lz-jinhang':'林芝市金杭新能源科技有限公司',
+    'lz-weihong':'林芝市伟虹汽车服务有限公司',
+    'lz-runhe':'林芝润合时代新能源科技有限公司',
+    'sh-rongsi':'上海融思安和新能源有限责任公司',
+    'bj-zhineng':'北京智能碳科科技有限公司'
+};
+function libDocTypeName(id){ return LIB_DOCTYPE_NAMES[id] || id || '其他文件'; }
+function libCompanyName(id){ return LIB_COMPANY_NAMES[id] || id || ''; }
+function libExt(name){ const i = (name||'').lastIndexOf('.'); return i>=0 ? name.slice(i+1).toLowerCase() : ''; }
+function libFormatSize(b){
+    if(!b && b!==0) return '';
+    if(b < 1024) return b + ' B';
+    if(b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+    return (b/1024/1024).toFixed(2) + ' MB';
+}
+function libFormatTime(iso){
+    if(!iso) return '';
+    try { const d = new Date(iso); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+    catch(_){ return ''; }
+}
+function normalizeLibDoc(doc){
+    const dt = doc.docType || 'other';
+    const cName = libCompanyName(doc.company);
+    const dName = libDocTypeName(dt);
+    const filePath = doc.filePath || ('docs-vault/files/' + doc.id + '.' + libExt(doc.name));
+    const downloadUrl = new URL('../' + filePath, location.href).href;
+    const searchText = [doc.name, cName, doc.company, dName, (doc.tags||[]).join(' ')].join(' ');
+    return {
+        id: 'lib-' + doc.id,
+        title: doc.name || ('文件 ' + doc.id),
+        source: 'library',
+        category: 'lib',
+        categoryLabel: dName,
+        company: doc.company,
+        companyName: cName,
+        docType: dt,
+        tags: [dName, cName, doc.company].concat(doc.tags||[]),
+        size: libFormatSize(doc.size),
+        rawSize: doc.size,
+        filePath: filePath,
+        downloadUrl: downloadUrl,
+        plain: searchText.toLowerCase(),
+        content: '',
+        srcExt: libExt(doc.name),
+        timeLabel: libFormatTime(doc.uploadTime),
+        _lib: true
+    };
+}
+async function loadLibraryCatalog(){
+    LIB_STATUS = 'loading';
+    updateLibStatus();
+    try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(()=>ctrl.abort(), 12000);
+        const resp = await fetch(LIB_CATALOG_URL, { signal: ctrl.signal, cache: 'no-cache' });
+        clearTimeout(timer);
+        if(!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const docs = Array.isArray(data.documents) ? data.documents : [];
+        LIB_CACHE = docs.map(normalizeLibDoc);
+        LIB_STATUS = 'ok';
+    } catch(err){
+        console.warn('中央资料库目录加载失败：', err);
+        LIB_STATUS = 'fail';
+    }
+    updateLibStatus();
+    renderCards();   // 目录到手即刷新列表（即使搜索框为空也展示「中央资料库」分组）
+}
+function updateLibStatus(){
+    const el = document.getElementById('libStatus');
+    if(!el) return;
+    if(LIB_STATUS==='ok') el.innerHTML = '📚 中央资料库已连接（'+LIB_CACHE.length+' 个文件）';
+    else if(LIB_STATUS==='fail') el.innerHTML = '⚠️ 中央资料库未连接（搜索仅限本地上传）';
+    else el.innerHTML = '📚 正在连接中央资料库…';
+    el.className = 'lib-status lib-' + LIB_STATUS;
+}
+function downloadLib(id){
+    const item = LIB_CACHE.find(e=>e.id===id);
+    if(!item) return;
+    try {
+        const a = document.createElement('a');
+        a.href = item.downloadUrl;
+        a.download = item.title || ('file-' + id);
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } catch(err){
+        window.open(item.downloadUrl, '_blank', 'noopener');   // 兜底：新标签打开
+    }
+}
+
 function loadLLMConfig(){ try { return JSON.parse(localStorage.getItem(LS_LLM) || '{}'); } catch(e){ return {}; } }
 function isLLMEnabled(){ const c = loadLLMConfig(); return !!(c.enabled && c.base && c.key); }
 
@@ -584,7 +735,7 @@ function searchEntries(query, topN){
     topN = topN || 3;
     const qTokens = tokenize(query);
     if(!qTokens.length) return [];
-    const entries = getAllEntries();
+    const entries = getAllEntries().filter(e => e.source !== 'library');   // 问答只用本地上传文本，资料库文件不解析
     const scored = entries.map(e=>{
         const title = (e.title||'').toLowerCase();
         const intro = (e.introduction||'').toLowerCase();
@@ -1092,6 +1243,7 @@ const CAT_META = [
   {key:'meeting', label:'会议纪要', icon:'📋'},
   {key:'guide',   label:'使用指南', icon:'📖'},
   {key:'pdf',     label:'文档资料', icon:'📄'},
+  {key:'lib',     label:'中央资料库', icon:'📚'},
 ];
 const collapsedGroups = new Set();
 
@@ -1107,6 +1259,7 @@ function renderCards() {
             (i.title||'').toLowerCase().includes(q) ||
             (i.introduction||'').toLowerCase().includes(q) ||
             (i.content||'').toLowerCase().includes(q) ||
+            (i.plain||'').toLowerCase().includes(q) ||
             (i.tags||[]).some(t => (t||'').toLowerCase().includes(q))
         );
     }
@@ -1148,6 +1301,7 @@ function renderCards() {
 }
 
 function cardHtml(item, q) {
+    if (item.source === 'library') return libCardHtml(item, q);
     const typeClass = 'type-' + item.category;
     const preview = (item.plain || item.introduction || item.content || '').slice(0, 150);
     const snippet = q ? highlightText(preview, searchQuery.trim()) : escapeHtml(preview);
@@ -1168,6 +1322,28 @@ function cardHtml(item, q) {
             <span>📄 ${item.size||''}</span>
             <span>📝 ${(item.plain||item.content||'').length} 字</span>
         </div>
+    </div>`;
+}
+
+// 中央资料库条目卡片：展示公司/类型，点击即下载原件
+function libCardHtml(item, q) {
+    const snippet = q ? highlightText(item.title||'', searchQuery.trim()) : escapeHtml(item.title||'');
+    const ext = (item.srcExt||'').toUpperCase() || '文件';
+    return `
+    <div class="kb-card kb-card-lib" onclick="downloadLib('${item.id}')" title="点击下载原件">
+        <div class="kb-card-header">
+            <span class="kb-card-type type-lib">${item.categoryLabel}</span>
+            <span class="kb-time">${item.timeLabel||''}</span>
+        </div>
+        <div class="kb-title">${snippet}</div>
+        <div class="kb-lib-company">🏢 ${escapeHtml(item.companyName||item.company||'')}</div>
+        <div class="kb-lib-meta">📚 中央资料库原件 · 点击卡片下载</div>
+        <div class="kb-tags">
+            <span class="kb-tag lib-src">资料库</span>
+            <span class="kb-tag">${escapeHtml(item.size||'')}</span>
+            <span class="kb-tag">${escapeHtml(ext)}</span>
+        </div>
+        <div class="kb-lib-download">⬇️ 下载原件</div>
     </div>`;
 }
 
@@ -1332,6 +1508,7 @@ function mdToHtml(md) {
 // ========== 初始化 ==========
 // 先从 IndexedDB 载入已上传内容（并自动迁移旧版 localStorage 数据），再渲染
 loadUserEntries().then(()=>{ refreshAll(); updateModeHint(); });
+loadLibraryCatalog();   // 并行拉取中央资料库目录（搜索 + 下载）
 // 确保搜索框为空（防止浏览器自动填充残留值）
 const si = document.getElementById('searchInput'); if(si) si.value = '';
 // 支持拖拽上传
