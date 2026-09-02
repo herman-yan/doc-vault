@@ -2027,23 +2027,25 @@ body {
                 });
             },
 
-            // 获取文件的下载URL
+            // 获取文件的下载URL（用 raw.githubusercontent.com 直链，返回真实二进制，无 1MB 限制，且 ?raw=true 在 api 端点不生效）
             getFileUrl(doc) {
                 if (doc.filePath) {
-                    return `https://api.github.com/repos/${this.REPO}/contents/${doc.filePath}?raw=true`;
+                    return `https://raw.githubusercontent.com/${this.REPO}/main/${doc.filePath}`;
                 }
                 return null;
             },
 
-            // 下载文件内容为Blob
+            // 下载文件内容为Blob（raw 直链为公开资源，无需携带 token；按元数据还原正确 MIME 确保下载后能打开）
             async downloadFileAsBlob(doc) {
                 const url = this.getFileUrl(doc);
                 if (!url) return null;
-                const resp = await fetch(url, {
-                    headers: { 'Authorization': `token ${this.TOKEN}` }
-                });
+                const resp = await fetch(url);
                 if (!resp.ok) throw new Error(`下载失败: HTTP ${resp.status}`);
-                return await resp.blob();
+                let blob = await resp.blob();
+                if (doc.type && blob && blob.type !== doc.type) {
+                    blob = new Blob([blob], { type: doc.type });
+                }
+                return blob;
             },
 
             getDocuments() { return this.data?.documents || []; },
