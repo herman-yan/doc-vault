@@ -1293,7 +1293,7 @@ body {
     opacity: 0;
     visibility: hidden;
     transition: all var(--transition-normal);
-    z-index: 1500;
+    z-index: 10000;
     box-shadow: var(--glass-shadow);
 }
 
@@ -1534,6 +1534,20 @@ body {
     border: 1px solid rgba(67,233,123,0.3);
 }
 
+/* 构建版本戳：用于一眼确认浏览器是否已加载到最新版（看到新数字=已是最新） */
+.build-stamp {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-muted, #8a93a8);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    border: 1px solid rgba(255,255,255,0.1);
+    user-select: none;
+    white-space: nowrap;
+}
+
 /* ========== 初始化加载状态 ========== */
 .init-overlay {
     position: fixed;
@@ -1679,6 +1693,7 @@ body {
                     <!-- 统计由JS动态生成 -->
                 </div>
                 <div class="header-actions">
+                    <span class="build-stamp" id="buildStamp" title="页面构建版本，用于确认是否已是最新版：看到这个数字即代表已加载最新版">build 2026.09.02.3</span>
                     <span class="cloud-badge">☁️ 云端同步</span>
                     <button class="btn btn-outline" id="settingsBtn">⚙️ 设置</button>
                 </div>
