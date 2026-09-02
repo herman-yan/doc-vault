@@ -330,7 +330,24 @@
       "id": 16,
       "uploadTime": "2026-09-02T03:23:47.422Z",
       "filePath": "docs-vault/files/16.pdf"
+    },
+    {
+      "name": "260429  中能时代  2025年资产负债表  已盖.pdf",
+      "size": 1444783,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-zhongneng",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "金梦",
+      "id": 17,
+      "uploadTime": "2026-09-02T03:23:56.613Z",
+      "filePath": "docs-vault/files/17.pdf"
     }
   ],
-  "lastUpdated": "2026/9/2 11:23:52"
+  "lastUpdated": "2026/9/2 11:24:00"
 }
