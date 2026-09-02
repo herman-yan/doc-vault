@@ -3554,6 +3554,7 @@ body {
             // 显示出 init-overlay（默认是隐藏的，因为要等登录后才进入加载阶段）
             document.getElementById('initOverlay').classList.remove('hidden');
             const app = new DocClassificationApp();
+            window.app = app; // 暴露到全局，供详情面板内联 onclick 调用（否则 startApp 内的局部 app 在全局作用域不可见）
             app.init();
         }
         if (sessionStorage.getItem('dv_unlocked') === '1') {
