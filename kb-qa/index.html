@@ -669,7 +669,9 @@ function normalizeLibDoc(doc){
         _lib: true
     };
 }
-async function loadLibraryCatalog(){
+async function loadLibraryCatalog(retryLeft){
+    if(LIB_STATUS === 'ok') return;                 // 已成功加载，不重复拉取
+    if(retryLeft === undefined) retryLeft = 2;       // 失败自动重试 2 次
     LIB_STATUS = 'loading';
     updateLibStatus();
     try {
@@ -684,6 +686,10 @@ async function loadLibraryCatalog(){
         LIB_STATUS = 'ok';
     } catch(err){
         console.warn('中央资料库目录加载失败：', err);
+        if(retryLeft > 0){
+            await new Promise(r => setTimeout(r, 1500));
+            return loadLibraryCatalog(retryLeft - 1);
+        }
         LIB_STATUS = 'fail';
     }
     updateLibStatus();
@@ -1398,6 +1404,8 @@ function setFilter(cat, el) {
 
 function onSearch() {
     searchQuery = document.getElementById('searchInput').value;
+    // 资料库还没加载（或曾失败）时，搜索主动去拉目录，确保搜得到原件
+    if(LIB_STATUS !== 'ok' && LIB_STATUS !== 'loading') loadLibraryCatalog();
     renderCards();
 }
 
