@@ -305,8 +305,8 @@
       "icon": "📕",
       "color": "#ef4444",
       "company": "bj-zhongneng",
-      "docType": "license",
-      "category": "license",
+      "docType": "cooperation",
+      "category": "cooperation",
       "tags": [],
       "summary": "",
       "uploader": "金梦",
@@ -351,5 +351,5 @@
       "filePath": "docs-vault/files/17.pdf"
     }
   ],
-  "lastUpdated": "2026/9/2 15:03:29"
+  "lastUpdated": "2026/9/3 10:05:02"
 }
