@@ -2172,215 +2172,224 @@ body {
 /* 分类概览条 */
 .cat-overview {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
-  gap: 10px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
 }
 .cat-chip {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-left: 3px solid var(--cat-color, var(--accent));
-  border-radius: 11px;
-  padding: 10px 12px;
+  border-radius: 10px;
+  padding: 9px 11px;
   cursor: pointer;
-  transition: transform .15s, background .15s, box-shadow .15s;
+  transition: background .15s, box-shadow .15s;
 }
-.cat-chip:hover { background: var(--bg-hover); transform: translateY(-2px); }
+.cat-chip:hover { background: var(--bg-hover); }
 .cat-chip.active {
   background: var(--bg-hover);
   box-shadow: inset 0 0 0 1px var(--cat-color, var(--accent));
 }
-.cat-chip-top { display: flex; align-items: center; gap: 8px; }
+.cat-chip-top { display: flex; align-items: center; gap: 6px; }
 .cat-chip-ico {
-  width: 26px; height: 26px; border-radius: 8px;
+  width: 24px; height: 24px; border-radius: 7px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; background: var(--cat-bg, rgba(255,255,255,.06));
+  font-size: 13px; background: var(--cat-bg, rgba(255,255,255,.06));
   flex-shrink: 0;
 }
-.cat-chip-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+.cat-chip-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
 .cat-chip-nums {
-  margin-top: 7px; display: flex; gap: 10px;
-  font-size: 11px; color: var(--text-secondary);
+  margin-top: 5px; font-size: 11px; color: var(--text-secondary);
+  display: flex; gap: 8px; flex-wrap: wrap;
 }
 .cat-chip-nums b { color: var(--text-primary); font-weight: 600; }
 
 /* 分类区块 */
 .cat-section {
-  margin-bottom: 22px;
+  margin-bottom: 16px;
   border: 1px solid var(--border-color);
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
-  background: rgba(255,255,255,0.015);
+  background: rgba(255,255,255,0.012);
 }
 .cat-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 13px 16px;
+  gap: 10px;
+  padding: 10px 14px;
   cursor: pointer;
-  border-left: 4px solid var(--cat-color, var(--accent));
-  background: linear-gradient(90deg, var(--cat-bg, rgba(255,255,255,.05)), transparent 65%);
+  border-left: 3px solid var(--cat-color, var(--accent));
+  background: linear-gradient(90deg, var(--cat-bg, rgba(255,255,255,.04)), transparent 60%);
   user-select: none;
 }
 .cat-head-ico {
-  width: 38px; height: 38px; border-radius: 11px;
+  width: 30px; height: 30px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 19px; background: var(--cat-bg, rgba(255,255,255,.06));
+  font-size: 15px; background: var(--cat-bg, rgba(255,255,255,.06));
   flex-shrink: 0;
 }
 .cat-head-main { flex: 1; min-width: 0; }
-.cat-head-title { font-size: 15.5px; font-weight: 700; color: var(--text-primary); }
-.cat-head-stats { margin-top: 3px; font-size: 11.5px; color: var(--text-secondary); display: flex; gap: 12px; flex-wrap: wrap; }
-.cat-head-arrow { font-size: 12px; color: var(--text-secondary); transition: transform .2s; }
+.cat-head-title { font-size: 14.5px; font-weight: 700; color: var(--text-primary); }
+.cat-head-stats { margin-top: 2px; font-size: 11px; color: var(--text-secondary); display: flex; gap: 12px; flex-wrap: wrap; }
+.cat-head-stats .warn { color: var(--orange); }
+.cat-head-arrow { font-size: 10px; color: var(--text-secondary); transition: transform .2s; }
 .cat-section.collapsed .cat-head-arrow { transform: rotate(-90deg); }
-.cat-body {
-  padding: 14px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
-  gap: 12px;
-}
+.cat-body { padding: 10px 12px 14px; display: block; }
 .cat-section.collapsed .cat-body { display: none; }
 
-/* 客户卡 */
+/* 客户卡（默认全部展开） */
 .cust-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
   overflow: hidden;
-  transition: border-color .18s, box-shadow .18s;
+  transition: border-color .18s;
 }
 .cust-card:hover { border-color: var(--cat-color, var(--accent)); }
-.cust-card.expanded { box-shadow: 0 4px 18px rgba(0,0,0,.28); }
-.cust-head { display: flex; gap: 10px; padding: 13px 14px; cursor: pointer; align-items: flex-start; }
+.cust-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 13px;
+  cursor: pointer;
+}
 .cust-avatar {
-  width: 38px; height: 38px; border-radius: 11px;
+  width: 32px; height: 32px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0;
+  font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
 }
 .cust-main { flex: 1; min-width: 0; }
-.cust-name-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.cust-line1 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .cust-name { font-size: 14.5px; font-weight: 600; color: var(--text-primary); }
-.cust-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+.cust-line2 {
+  font-size: 11px; color: var(--text-secondary);
+  margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap;
+}
+.cust-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.cust-arrow { font-size: 10px; color: var(--text-secondary); transition: transform .2s; }
+.cust-card.collapsed .cust-arrow { transform: rotate(-90deg); }
+.cust-body { display: block; border-top: 1px solid var(--border-color); padding: 10px 13px 12px; }
+.cust-card.collapsed .cust-body { display: none; }
+
 .mini-tag {
-  font-size: 10.5px; padding: 1px 7px; border-radius: 6px;
+  font-size: 10.5px; padding: 1px 7px; border-radius: 5px;
   background: var(--bg-secondary); color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color); line-height: 1.6;
 }
 .mini-tag.ind { background: rgba(29,155,240,.12); color: var(--accent); border-color: transparent; }
 .mini-tag.warn { background: rgba(255,122,0,.14); color: var(--orange); border-color: transparent; }
-.cust-pills { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
-.pill {
-  font-size: 11px; padding: 2px 9px; border-radius: 20px;
-  background: var(--bg-secondary); color: var(--text-secondary); white-space: nowrap;
-}
-.pill.proj { background: rgba(29,155,240,.14); color: var(--accent); font-weight: 600; }
-.pill.risk { background: rgba(255,122,0,.16); color: var(--orange); font-weight: 600; }
-.pill.people { background: rgba(0,186,124,.14); color: var(--green); }
-.cust-arrow { font-size: 11px; color: var(--text-secondary); transition: transform .2s; }
-.cust-card.expanded .cust-arrow { transform: rotate(90deg); }
 
-/* 客户级联系人条 */
+/* 客户级对接人条 */
 .contact-bar {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  padding: 0 14px 12px 62px;
+  display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+  margin-bottom: 10px;
 }
 .contact-chip {
-  display: inline-flex; align-items: center; gap: 7px;
+  display: inline-flex; align-items: center; gap: 6px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 20px; padding: 3px 10px 3px 3px; font-size: 12px;
+  border-radius: 16px; padding: 2px 9px 2px 2px; font-size: 11.5px;
+  line-height: 1.4;
 }
 .contact-avatar {
-  width: 22px; height: 22px; border-radius: 50%;
+  width: 20px; height: 20px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
 }
 .contact-name { font-weight: 600; color: var(--text-primary); }
 .contact-role {
-  font-size: 10.5px; color: var(--text-secondary);
-  background: var(--bg-hover); padding: 1px 6px; border-radius: 5px;
+  font-size: 10px; color: var(--text-secondary);
+  background: var(--bg-hover); padding: 0 5px; border-radius: 4px;
 }
 .contact-phone {
   color: var(--accent); text-decoration: none;
-  font-variant-numeric: tabular-nums; letter-spacing: .3px;
+  font-variant-numeric: tabular-nums;
 }
 .contact-phone:hover { text-decoration: underline; }
 .icon-btn {
   background: transparent; border: none; cursor: pointer;
-  color: var(--text-secondary); font-size: 11px; padding: 0 2px;
+  color: var(--text-secondary); font-size: 11px; padding: 0 1px;
 }
 .icon-btn:hover { color: var(--accent); }
 .contact-add {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 11.5px; color: var(--accent); cursor: pointer;
-  border: 1px dashed var(--border-color); border-radius: 20px; padding: 3px 10px;
-  background: transparent;
+  font-size: 11px; color: var(--accent); cursor: pointer;
+  border: 1px dashed var(--border-color); border-radius: 16px;
+  padding: 3px 9px; background: transparent;
 }
 .contact-add:hover { border-color: var(--accent); }
 
-/* 项目区 */
-.cust-projects { display: none; padding: 0 12px 12px; flex-direction: column; gap: 10px; }
-.cust-card.expanded .cust-projects { display: flex; }
+/* 项目卡 */
+.proj-grid {
+  display: grid; gap: 9px;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+}
 .proj-card {
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 10px; background: var(--bg-secondary); overflow: hidden;
+  border-radius: 9px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
 }
 .proj-head {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 9px 11px; background: rgba(255,255,255,.02);
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 7px 10px; background: rgba(255,255,255,.02);
+  border-bottom: 1px solid var(--border-color);
 }
 .proj-name {
-  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  font-size: 12.5px; font-weight: 600; color: var(--text-primary);
   cursor: pointer;
 }
-.proj-name:hover { color: var(--accent); text-decoration: underline; }
+.proj-name:hover { color: var(--accent); }
 .proj-status {
-  font-size: 11px; padding: 2px 8px; border-radius: 6px;
-  background: rgba(0,186,124,.14); color: var(--green); font-weight: 500;
+  font-size: 10.5px; padding: 1px 6px; border-radius: 4px;
+  background: rgba(0,186,124,.14); color: var(--green);
 }
 .proj-prio {
-  font-size: 10px; padding: 1px 6px; border-radius: 6px; font-weight: 600;
-  background: rgba(29,155,240,.15); color: var(--accent);
+  font-size: 10px; padding: 1px 6px; border-radius: 4px;
+  background: rgba(29,155,240,.15); color: var(--accent); font-weight: 600;
 }
 .proj-prio.lost { background: rgba(244,33,46,.15); color: var(--red); }
-.proj-prio.low { background: rgba(136,153,166,.16); color: var(--text-secondary); }
-.proj-date { margin-left: auto; font-size: 11px; color: var(--text-secondary); }
-.proj-dir { padding: 8px 11px 0; font-size: 11.5px; color: var(--text-secondary); }
-.proj-bar { height: 4px; background: var(--bg-hover); border-radius: 3px; margin: 8px 11px 0; overflow: hidden; }
-.proj-bar > i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--green)); }
-.proj-bar-txt { font-size: 10px; color: var(--text-secondary); padding: 3px 11px 0; }
-.proj-latest { padding: 8px 11px 0; font-size: 11.5px; color: var(--text-secondary); line-height: 1.55; }
-.proj-issue { padding: 6px 11px 0; font-size: 11.5px; color: var(--orange); }
+.proj-prio.low { background: rgba(136,153,166,.15); color: var(--text-secondary); }
+.proj-date { margin-left: auto; font-size: 10.5px; color: var(--text-secondary); }
+.proj-body {
+  padding: 8px 10px; font-size: 11.5px; color: var(--text-secondary);
+  line-height: 1.5;
+}
+.proj-dir { margin-bottom: 4px; }
+.proj-bar { height: 3px; background: var(--bg-hover); border-radius: 2px; margin: 5px 0 2px; overflow: hidden; }
+.proj-bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--green)); }
+.proj-bar-txt { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; }
+.proj-latest { color: var(--text-primary); }
+.proj-issue { color: var(--orange); margin-top: 4px; }
 
 /* 项目对接人 */
 .proj-contacts {
-  margin-top: 9px; border-top: 1px dashed var(--border-color);
-  padding: 8px 11px; background: rgba(0,0,0,.14);
-  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  border-top: 1px dashed var(--border-color);
+  padding: 7px 10px 9px;
+  background: rgba(0,0,0,.1);
 }
-.proj-contacts-title {
-  width: 100%; font-size: 10.5px; color: var(--text-secondary);
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;
+.proj-contacts-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 5px;
 }
-.proj-contact-row {
-  display: flex; align-items: center; gap: 8px; width: 100%;
-  padding: 3px 0; flex-wrap: wrap;
-}
+.proj-contacts-label { font-size: 10.5px; color: var(--text-secondary); }
+.proj-contacts-list { display: flex; flex-wrap: wrap; gap: 4px; }
 .proj-empty-contacts { font-size: 11px; color: var(--text-secondary); }
+
+.proj-timeline { padding: 0 10px 8px; border-top: 1px solid var(--border-color); }
+.proj-timeline-item { font-size: 11px; color: var(--text-secondary); padding: 2px 0; }
+.proj-timeline-item b { color: var(--text-primary); font-weight: 600; margin-right: 6px; }
 .proj-timeline-toggle {
-  font-size: 10.5px; color: var(--accent); cursor: pointer;
-  border: none; background: transparent; padding: 0;
+  font-size: 11px; color: var(--accent); background: transparent;
+  border: none; padding: 5px 10px 6px; cursor: pointer;
+  display: block; width: 100%; text-align: left;
 }
-.proj-timeline { display: none; padding: 8px 11px 10px; border-top: 1px solid var(--border-color); }
-.proj-timeline.open { display: block; }
-.proj-timeline-item { font-size: 11px; color: var(--text-secondary); padding: 3px 0; line-height: 1.5; }
-.proj-timeline-item b { color: var(--text-primary); font-weight: 600; margin-right: 6px; font-variant-numeric: tabular-nums; }
 
 .crm-empty { padding: 30px; text-align: center; color: var(--text-secondary); font-size: 13px; }
 
 @media (max-width: 640px) {
-  .cat-body { grid-template-columns: 1fr; }
-  .contact-bar { padding-left: 14px; }
+  .proj-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -3711,10 +3720,10 @@ function renderDatabaseView() {
           <div class="cat-head-main">
             <div class="cat-head-title">${esc(g.key)}</div>
             <div class="cat-head-stats">
-              <span>👥 ${g.members.length} 家客户</span>
-              <span>📋 ${g.projCount} 个项目</span>
-              <span>📇 ${g.peopleCount} 位对接人</span>
-              ${g.riskCount ? `<span style="color:var(--orange)">⚠ ${g.riskCount} 个待解决问题</span>` : ''}
+              <span>客户 ${g.members.length}</span>
+              <span>项目 ${g.projCount}</span>
+              <span>对接人 ${g.peopleCount}</span>
+              ${g.riskCount ? `<span class="warn">待解决 ${g.riskCount}</span>` : ''}
             </div>
           </div>
           <span class="cat-head-arrow">▼</span>
@@ -3729,19 +3738,20 @@ function renderDatabaseView() {
     const projCount = c.projects.length;
     const riskCount = c.projects.filter(p => p.issue).length;
     const custContacts = c.contacts;
-    const headContacts = custContacts.slice(0, 2);
-    const restCount = custContacts.length - headContacts.length;
+    const latestCustUpdate = c.projects.reduce((m, p) => (p.latestUpdate && p.latestUpdate > m ? p.latestUpdate : m), '') || '';
 
-    // 客户卡顶部对接人总览
-    let barHtml = '';
+    // 客户级对接人条
+    const headContacts = custContacts.slice(0, 4);
+    const restCount = custContacts.length - headContacts.length;
+    let contactBar = '';
     if (custContacts.length > 0) {
-      barHtml = `<div class="contact-bar">
-        ${headContacts.map(ct => contactChip(ct, { owner: ct.project ? ct.project : '' })).join('')}
-        ${restCount > 0 ? `<span class="pill">+${restCount}</span>` : ''}
-        <button class="contact-add" onclick="event.stopPropagation();openContactModalFor('${esc(c.name)}','')">＋ 对接人</button>
+      contactBar = `<div class="contact-bar">
+        ${headContacts.map(ct => contactChip(ct, {})).join('')}
+        ${restCount > 0 ? `<span class="mini-tag">+${restCount}</span>` : ''}
+        <button class="contact-add" onclick="event.stopPropagation();openContactModalFor('${esc(c.name)}','')">编辑对接人</button>
       </div>`;
     } else {
-      barHtml = `<div class="contact-bar">
+      contactBar = `<div class="contact-bar">
         <button class="contact-add" onclick="event.stopPropagation();openContactModalFor('${esc(c.name)}','')">＋ 添加对接人</button>
       </div>`;
     }
@@ -3750,7 +3760,7 @@ function renderDatabaseView() {
     const projHtml = c.projects.map(p => {
       const own = c.contacts.filter(ct => ct.project && ct.project === p.projectName);
       const list = own.length ? own : c.contacts.filter(ct => !ct.project);
-      const ownerLabel = own.length ? '本项目对接人' : (list.length ? '客户对接人' : '');
+      const ownerLabel = own.length ? '本项目' : (list.length ? '客户共用' : '');
       const pctRaw = parseFloat(p.completion);
       const hasPct = !isNaN(pctRaw) && p.completion !== '' && p.completion != null;
       const pct = hasPct ? Math.min(100, Math.max(0, pctRaw <= 1 ? pctRaw * 100 : pctRaw)) : 0;
@@ -3764,59 +3774,63 @@ function renderDatabaseView() {
             <span class="proj-name" ${p.projectId ? `onclick="event.stopPropagation();showDetail(${p.projectId})"` : ''}>${esc(p.projectName)}</span>
             ${p.status ? `<span class="proj-status">${esc(p.status)}</span>` : ''}
             ${p.priority ? `<span class="proj-prio ${prioClass}">${esc(p.priority)}</span>` : ''}
-            ${followerBadge(p.latestEntry && p.latestEntry.updater || '', 18)}
             <span class="proj-date">${p.latestUpdate ? esc(String(p.latestUpdate).substring(5).replace('-', '/')) : ''}${p.totalUpdates ? ` · ${p.totalUpdates}次` : ''}</span>
           </div>
-          ${p.direction ? `<div class="proj-dir">🎯 ${esc(p.direction)}</div>` : ''}
-          ${hasPct ? `<div class="proj-bar"><i style="width:${pct}%"></i></div><div class="proj-bar-txt">完成度 ${Math.round(pct)}%</div>` : ''}
-          ${latest ? `<div class="proj-latest">🕘 ${esc(latest)}</div>` : ''}
-          ${p.issue ? `<div class="proj-issue">⚠ ${esc(p.issue)}</div>` : ''}
+          <div class="proj-body">
+            ${p.direction ? `<div class="proj-dir">方向：${esc(p.direction)}</div>` : ''}
+            ${hasPct ? `<div class="proj-bar"><i style="width:${pct}%"></i></div><div class="proj-bar-txt">完成度 ${Math.round(pct)}%</div>` : ''}
+            ${latest ? `<div class="proj-latest">最近：${esc(latest)}</div>` : ''}
+            ${p.issue ? `<div class="proj-issue">风险：${esc(p.issue)}</div>` : ''}
+          </div>
           <div class="proj-contacts">
-            <div class="proj-contacts-title">
-              <span>👤 ${ownerLabel || '对接人'}</span>
-              <button class="proj-timeline-toggle" onclick="event.stopPropagation();openContactModalFor('${esc(c.name)}','${esc(p.projectName)}')">＋ 添加/编辑对接人</button>
+            <div class="proj-contacts-head">
+              <span class="proj-contacts-label">${ownerLabel ? `对接人（${ownerLabel}）` : '对接人'}</span>
+              <button class="contact-add" style="font-size:10.5px;padding:2px 7px" onclick="event.stopPropagation();openContactModalFor('${esc(c.name)}','${esc(p.projectName)}')">编辑</button>
             </div>
-            ${list.length
-              ? list.map(ct => `<div class="proj-contact-row">${contactChip(ct, {})}</div>`).join('')
-              : `<div class="proj-empty-contacts">暂无对接人，点击右上「＋ 添加/编辑对接人」录入姓名 / 职位 / 电话</div>`}
+            <div class="proj-contacts-list">
+              ${list.length
+                ? list.map(ct => contactChip(ct, {})).join('')
+                : `<span class="proj-empty-contacts">暂无对接人</span>`}
+            </div>
           </div>
           ${tl.length ? `
             <div class="proj-timeline" id="ptl-${p.projectId || 'x'}-${Math.random().toString(36).slice(2, 7)}">
               ${tl.map(e => `<div class="proj-timeline-item"><b>${esc((e.date || '').substring(5).replace('-', '/'))}</b>${esc((e.content || '').split('\n')[0])}</div>`).join('')}
             </div>
-            <div style="padding:6px 11px 8px"><button class="proj-timeline-toggle" onclick="event.stopPropagation();toggleProjTimeline(this)">📜 展开历史进展 (${tl.length})</button></div>
+            <button class="proj-timeline-toggle" onclick="event.stopPropagation();toggleProjTimeline(this)">查看历史进展（${tl.length}）</button>
           ` : ''}
         </div>`;
     }).join('');
 
     const searchBlob = (c.name + ' ' + c.category + ' ' + c.industryTag + ' ' +
-      c.projects.map(p => p.projectName + ' ' + p.direction + ' ' + p.status).join(' ') + ' ' +
+      c.projects.map(p => p.projectName + ' ' + (p.direction || '') + ' ' + (p.status || '')).join(' ') + ' ' +
       c.contacts.map(x => (x.name || '') + ' ' + (x.phone || '') + ' ' + (x.role || '')).join(' ')).toLowerCase();
 
     return `
-      <div class="cust-card" data-name="${esc(c.name)}" data-search="${esc(searchBlob)}">
-        <div class="cust-head" onclick="toggleCustomerCard(this)" style="--cat-color:${catColor}">
+      <div class="cust-card" data-name="${esc(c.name)}" data-search="${esc(searchBlob)}" style="--cat-color:${catColor}">
+        <div class="cust-head" onclick="toggleCustomerCard(this)">
           <div class="cust-avatar" style="background:${catColor}">${esc(c.name.charAt(0))}</div>
           <div class="cust-main">
-            <div class="cust-name-row">
+            <div class="cust-line1">
               <span class="cust-name">${esc(c.name)}</span>
               ${c.industryTag ? `<span class="mini-tag ind">${esc(c.industryTag)}</span>` : ''}
-              ${riskCount ? `<span class="mini-tag warn">⚠ ${riskCount} 待解决</span>` : ''}
-            </div>
-            <div class="cust-tags">
               <span class="mini-tag">${esc(c.category)}</span>
-              ${c.projects.slice(0, 3).map(p => `<span class="mini-tag">${esc(p.projectName)}</span>`).join('')}
-              ${projCount > 3 ? `<span class="mini-tag">+${projCount - 3}</span>` : ''}
+              ${riskCount ? `<span class="mini-tag warn">⚠ ${riskCount}</span>` : ''}
+            </div>
+            <div class="cust-line2">
+              <span>项目 ${projCount}</span>
+              <span>对接人 ${custContacts.length || '—'}</span>
+              ${latestCustUpdate ? `<span>最近更新 ${esc(latestCustUpdate.substring(5).replace('-', '/'))}</span>` : ''}
             </div>
           </div>
-          <div class="cust-pills">
-            <span class="pill proj">📋 ${projCount} 项目</span>
-            ${custContacts.length ? `<span class="pill people">📇 ${custContacts.length} 人</span>` : ''}
-            <span class="cust-arrow">▶</span>
+          <div class="cust-actions">
+            <span class="cust-arrow">▼</span>
           </div>
         </div>
-        ${barHtml}
-        <div class="cust-projects">${projHtml}</div>
+        <div class="cust-body">
+          ${contactBar}
+          <div class="proj-grid">${projHtml}</div>
+        </div>
       </div>`;
   }
 
@@ -3825,7 +3839,7 @@ function renderDatabaseView() {
 
 function toggleCustomerCard(headerEl) {
   const card = headerEl.closest('.cust-card') || headerEl.closest('.customer-card');
-  if (card) card.classList.toggle('expanded');
+  if (card) card.classList.toggle('collapsed');
 }
 
 // Search / filter
