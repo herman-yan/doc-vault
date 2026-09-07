@@ -2135,6 +2135,253 @@ body {
   font-size: 14px;
   cursor: pointer;
 }
+
+/* ==========================================================
+   客户资料库 v2（分类可视化）
+   ========================================================== */
+.crm-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.crm-seg {
+  display: inline-flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+.crm-seg button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all .15s;
+}
+.crm-seg button:hover { color: var(--text-primary); }
+.crm-seg button.active { background: var(--accent); color: #fff; font-weight: 600; }
+.crm-hint { font-size: 12px; color: var(--text-secondary); }
+
+/* 分类概览条 */
+.cat-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.cat-chip {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--cat-color, var(--accent));
+  border-radius: 11px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: transform .15s, background .15s, box-shadow .15s;
+}
+.cat-chip:hover { background: var(--bg-hover); transform: translateY(-2px); }
+.cat-chip.active {
+  background: var(--bg-hover);
+  box-shadow: inset 0 0 0 1px var(--cat-color, var(--accent));
+}
+.cat-chip-top { display: flex; align-items: center; gap: 8px; }
+.cat-chip-ico {
+  width: 26px; height: 26px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; background: var(--cat-bg, rgba(255,255,255,.06));
+  flex-shrink: 0;
+}
+.cat-chip-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+.cat-chip-nums {
+  margin-top: 7px; display: flex; gap: 10px;
+  font-size: 11px; color: var(--text-secondary);
+}
+.cat-chip-nums b { color: var(--text-primary); font-weight: 600; }
+
+/* 分类区块 */
+.cat-section {
+  margin-bottom: 22px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.015);
+}
+.cat-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  cursor: pointer;
+  border-left: 4px solid var(--cat-color, var(--accent));
+  background: linear-gradient(90deg, var(--cat-bg, rgba(255,255,255,.05)), transparent 65%);
+  user-select: none;
+}
+.cat-head-ico {
+  width: 38px; height: 38px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; background: var(--cat-bg, rgba(255,255,255,.06));
+  flex-shrink: 0;
+}
+.cat-head-main { flex: 1; min-width: 0; }
+.cat-head-title { font-size: 15.5px; font-weight: 700; color: var(--text-primary); }
+.cat-head-stats { margin-top: 3px; font-size: 11.5px; color: var(--text-secondary); display: flex; gap: 12px; flex-wrap: wrap; }
+.cat-head-arrow { font-size: 12px; color: var(--text-secondary); transition: transform .2s; }
+.cat-section.collapsed .cat-head-arrow { transform: rotate(-90deg); }
+.cat-body {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
+  gap: 12px;
+}
+.cat-section.collapsed .cat-body { display: none; }
+
+/* 客户卡 */
+.cust-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color .18s, box-shadow .18s;
+}
+.cust-card:hover { border-color: var(--cat-color, var(--accent)); }
+.cust-card.expanded { box-shadow: 0 4px 18px rgba(0,0,0,.28); }
+.cust-head { display: flex; gap: 10px; padding: 13px 14px; cursor: pointer; align-items: flex-start; }
+.cust-avatar {
+  width: 38px; height: 38px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.cust-main { flex: 1; min-width: 0; }
+.cust-name-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.cust-name { font-size: 14.5px; font-weight: 600; color: var(--text-primary); }
+.cust-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+.mini-tag {
+  font-size: 10.5px; padding: 1px 7px; border-radius: 6px;
+  background: var(--bg-secondary); color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+.mini-tag.ind { background: rgba(29,155,240,.12); color: var(--accent); border-color: transparent; }
+.mini-tag.warn { background: rgba(255,122,0,.14); color: var(--orange); border-color: transparent; }
+.cust-pills { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+.pill {
+  font-size: 11px; padding: 2px 9px; border-radius: 20px;
+  background: var(--bg-secondary); color: var(--text-secondary); white-space: nowrap;
+}
+.pill.proj { background: rgba(29,155,240,.14); color: var(--accent); font-weight: 600; }
+.pill.risk { background: rgba(255,122,0,.16); color: var(--orange); font-weight: 600; }
+.pill.people { background: rgba(0,186,124,.14); color: var(--green); }
+.cust-arrow { font-size: 11px; color: var(--text-secondary); transition: transform .2s; }
+.cust-card.expanded .cust-arrow { transform: rotate(90deg); }
+
+/* 客户级联系人条 */
+.contact-bar {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 0 14px 12px 62px;
+}
+.contact-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px; padding: 3px 10px 3px 3px; font-size: 12px;
+}
+.contact-avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.contact-name { font-weight: 600; color: var(--text-primary); }
+.contact-role {
+  font-size: 10.5px; color: var(--text-secondary);
+  background: var(--bg-hover); padding: 1px 6px; border-radius: 5px;
+}
+.contact-phone {
+  color: var(--accent); text-decoration: none;
+  font-variant-numeric: tabular-nums; letter-spacing: .3px;
+}
+.contact-phone:hover { text-decoration: underline; }
+.icon-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-secondary); font-size: 11px; padding: 0 2px;
+}
+.icon-btn:hover { color: var(--accent); }
+.contact-add {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11.5px; color: var(--accent); cursor: pointer;
+  border: 1px dashed var(--border-color); border-radius: 20px; padding: 3px 10px;
+  background: transparent;
+}
+.contact-add:hover { border-color: var(--accent); }
+
+/* 项目区 */
+.cust-projects { display: none; padding: 0 12px 12px; flex-direction: column; gap: 10px; }
+.cust-card.expanded .cust-projects { display: flex; }
+.proj-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px; background: var(--bg-secondary); overflow: hidden;
+}
+.proj-head {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 11px; background: rgba(255,255,255,.02);
+}
+.proj-name {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  cursor: pointer;
+}
+.proj-name:hover { color: var(--accent); text-decoration: underline; }
+.proj-status {
+  font-size: 11px; padding: 2px 8px; border-radius: 6px;
+  background: rgba(0,186,124,.14); color: var(--green); font-weight: 500;
+}
+.proj-prio {
+  font-size: 10px; padding: 1px 6px; border-radius: 6px; font-weight: 600;
+  background: rgba(29,155,240,.15); color: var(--accent);
+}
+.proj-prio.lost { background: rgba(244,33,46,.15); color: var(--red); }
+.proj-prio.low { background: rgba(136,153,166,.16); color: var(--text-secondary); }
+.proj-date { margin-left: auto; font-size: 11px; color: var(--text-secondary); }
+.proj-dir { padding: 8px 11px 0; font-size: 11.5px; color: var(--text-secondary); }
+.proj-bar { height: 4px; background: var(--bg-hover); border-radius: 3px; margin: 8px 11px 0; overflow: hidden; }
+.proj-bar > i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--green)); }
+.proj-bar-txt { font-size: 10px; color: var(--text-secondary); padding: 3px 11px 0; }
+.proj-latest { padding: 8px 11px 0; font-size: 11.5px; color: var(--text-secondary); line-height: 1.55; }
+.proj-issue { padding: 6px 11px 0; font-size: 11.5px; color: var(--orange); }
+
+/* 项目对接人 */
+.proj-contacts {
+  margin-top: 9px; border-top: 1px dashed var(--border-color);
+  padding: 8px 11px; background: rgba(0,0,0,.14);
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+}
+.proj-contacts-title {
+  width: 100%; font-size: 10.5px; color: var(--text-secondary);
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;
+}
+.proj-contact-row {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 3px 0; flex-wrap: wrap;
+}
+.proj-empty-contacts { font-size: 11px; color: var(--text-secondary); }
+.proj-timeline-toggle {
+  font-size: 10.5px; color: var(--accent); cursor: pointer;
+  border: none; background: transparent; padding: 0;
+}
+.proj-timeline { display: none; padding: 8px 11px 10px; border-top: 1px solid var(--border-color); }
+.proj-timeline.open { display: block; }
+.proj-timeline-item { font-size: 11px; color: var(--text-secondary); padding: 3px 0; line-height: 1.5; }
+.proj-timeline-item b { color: var(--text-primary); font-weight: 600; margin-right: 6px; font-variant-numeric: tabular-nums; }
+
+.crm-empty { padding: 30px; text-align: center; color: var(--text-secondary); font-size: 13px; }
+
+@media (max-width: 640px) {
+  .cat-body { grid-template-columns: 1fr; }
+  .contact-bar { padding-left: 14px; }
+}
 </style>
 </head>
 <body>
@@ -2241,6 +2488,13 @@ body {
   <div class="db-view" id="databaseView">
     <div class="search-box">
       <input type="text" class="search-input" placeholder="🔍 搜索客户名称、类型、合作方向..." oninput="filterTable(this.value)">
+    </div>
+    <div class="crm-toolbar">
+      <div class="crm-seg" id="groupModeSeg">
+        <button class="active" data-mode="type" onclick="setGroupMode('type')">按合作类型</button>
+        <button data-mode="industry" onclick="setGroupMode('industry')">按行业</button>
+      </div>
+      <span class="crm-hint" id="crmHint">点击上方分类卡片可快速筛选；点击客户卡展开项目与对接人</span>
     </div>
     <div id="customerTables"></div>
   </div>
@@ -2637,20 +2891,30 @@ function loadExistingContacts(name, section) {
   if (contacts.length === 0) {
     addContactRow();
   } else {
-    contacts.forEach(c => addContactRow(c.name, c.phone, c.role));
+    contacts.forEach(c => addContactRow(c.name, c.phone, c.role, c.project));
   }
 }
 
-function addContactRow(name, phone, role) {
+function addContactRow(name, phone, role, project) {
   const list = document.getElementById('contactList');
   const row = document.createElement('div');
   row.className = 'contact-item';
+  const partnerName = (document.getElementById('selectedContactPartner') || {}).value || '';
+  const opts = partnerProjectNames(partnerName)
+    .map(pn => `<option value="${pn === project ? project : pn}">${pn}</option>`).join('');
+  const selected = project || '';
   row.innerHTML = `
     <input type="text" class="form-input" placeholder="姓名" value="${name || ''}" style="flex:0.8;min-width:60px">
     <input type="text" class="form-input" placeholder="电话" value="${phone || ''}" style="flex:1;min-width:80px">
     <input type="text" class="form-input" placeholder="职位" value="${role || ''}" style="flex:0.8;min-width:60px">
+    <select class="form-input" style="flex:1;min-width:96px" title="关联项目（可留空=客户级通用对接人）">
+      <option value="">通用(客户级)</option>
+      ${opts}
+    </select>
     <button class="btn-remove-contact" onclick="this.parentElement.remove()">&times;</button>
   `;
+  const sel = row.querySelector('select');
+  if (sel) sel.value = selected;
   list.appendChild(row);
 }
 
@@ -2685,8 +2949,9 @@ async function submitContact() {
     const name = inputs[0].value.trim();
     const phone = inputs[1].value.trim();
     const role = inputs[2].value.trim();
+    const project = inputs[3] ? (inputs[3].value || '').trim() : '';
     if (name || phone) {
-      contacts.push({ name: name || '', phone: phone || '', role: role || '' });
+      contacts.push({ name: name || '', phone: phone || '', role: role || '', project: project });
     }
   });
 
@@ -3085,6 +3350,93 @@ function showProjectList() {
 }
 
 // ===================== Customer Database =====================
+// ===================== 客户资料库：分组模式 / 交互 =====================
+let groupMode = 'type';          // type=合作类型, industry=行业
+let activeCatFilter = null;      // 当前筛选的大分类
+
+function setGroupMode(mode) {
+  groupMode = mode;
+  activeCatFilter = null;
+  document.querySelectorAll('#groupModeSeg button').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  const hint = document.getElementById('crmHint');
+  if (hint) hint.textContent = mode === 'industry'
+    ? '按行业标签归类：同一客户只归入一个行业，未标注行业的客户归入「待补充行业」'
+    : '点击上方分类卡片可快速筛选；点击客户卡展开项目与对接人';
+  renderDatabaseView();
+}
+
+function toggleCatFilter(key) {
+  activeCatFilter = (activeCatFilter === key) ? null : key;
+  renderDatabaseView();
+}
+
+function toggleCatSection(headEl) {
+  headEl.closest('.cat-section').classList.toggle('collapsed');
+}
+
+function toggleProjTimeline(btn) {
+  const box = btn.parentElement.previousElementSibling;
+  if (box && box.classList.contains('proj-timeline')) box.classList.toggle('open');
+}
+
+async function copyText(text, btn) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); ta.remove();
+    } catch (e2) {}
+  }
+  const old = btn.textContent;
+  btn.textContent = '✓';
+  setTimeout(() => { btn.textContent = old; }, 1200);
+}
+
+// 某企业关联的项目名（用于联系人关联项目下拉）
+function partnerProjectNames(name) {
+  if (!appData) return [];
+  const set = [];
+  const add = n => { if (n && set.indexOf(n) === -1) set.push(n); };
+  appData.businessPartners.forEach(p => { if (p.name === name) add(p.relatedProject || p.name); });
+  appData.venuePartners.forEach(p => { if (p.name === name) add('场地合作'); });
+  appData.industryPartners.forEach(p => {
+    if (p.company === name) {
+      const t = (p.direction || '') + (p.status || '');
+      if (/展厅|检测|延保|销售|售前/.test(t)) add('场地合作');
+    }
+  });
+  appData.projects.forEach(p => { if (p.name === name) add(p.name); });
+  if (set.length === 0) appData.projects.forEach(p => add(p.name));
+  return set;
+}
+
+function openContactModalFor(partnerName, projectName) {
+  const p = getAllPartners().find(x => x.name === partnerName);
+  openContactModal();
+  if (!p) return;
+  selectContactPartner(p.name, p.section);
+  if (!projectName) return;
+  const rows = document.querySelectorAll('#contactList .contact-item');
+  let target = null;
+  if (rows.length) {
+    const last = rows[rows.length - 1];
+    const filled = [...last.querySelectorAll('input')].map(i => (i.value || '').trim()).join('');
+    if (!filled) target = last;
+  }
+  if (!target) { addContactRow('', '', '', projectName); return; }
+  const sel = target.querySelector('select');
+  if (!sel) return;
+  if (![...sel.options].some(o => o.value === projectName)) {
+    sel.add(new Option(projectName, projectName, true, true));
+  } else {
+    sel.value = projectName;
+  }
+}
+
 function renderDatabaseView() {
   // ========== 0. 跟进人固定色（同名字永远同色） ==========
   const FOLLOWER_COLORS = [
@@ -3162,7 +3514,7 @@ function renderDatabaseView() {
     } else {
       // No matching project, still show as a standalone entry
       c.projects.push({
-        projectId: null, projectName: relatedName,
+        projectId: null, projectName: relatedName || p.name,
         direction: p.direction || '', status: p.status || '',
         issue: p.issue || '', priority: '',
         latestEntry: null, latestUpdate: '', totalUpdates: 0, completion: '',
@@ -3205,7 +3557,7 @@ function renderDatabaseView() {
     } else {
       // Add as standalone
       c.projects.push({
-        projectId: null, projectName: p.industry || '待分类',
+        projectId: null, projectName: p.industry || p.direction || '合作接洽',
         direction: p.direction || '', status: p.status || '待跟进',
         issue: p.issue || '', priority: '',
         latestEntry: null, latestUpdate: '', totalUpdates: 0, completion: '',
@@ -3214,196 +3566,280 @@ function renderDatabaseView() {
     }
   });
   
-  // ========== 2. 分组 ==========
-  const groupOrder = ['政府合作方', '业务合作方', '场地合作方', '潜在客户', '待分类'];
-  const groups = {};
-  groupOrder.forEach(g => { groups[g] = []; });
-  
-  Object.values(customerMap).forEach(c => {
-    const g = groups[c.industry] || groups['待分类'];
-    g.push(c);
-  });
-  
-  // Sort within groups by project count desc, then name
-  Object.values(groups).forEach(g => {
-    g.sort((a, b) => {
-      if (b.projects.length !== a.projects.length) return b.projects.length - a.projects.length;
-      return a.name.localeCompare(b.name, 'zh');
-    });
-  });
-  
-  const groupIcons = {
-    '政府合作方': { bg: 'rgba(120,86,255,0.15)', color: '#7856ff', icon: '🏛' },
-    '业务合作方': { bg: 'rgba(29,155,240,0.15)', color: '#1d9bf0', icon: '🤝' },
-    '场地合作方': { bg: 'rgba(0,186,124,0.15)', color: '#00ba7c', icon: '📍' },
-    '潜在客户':   { bg: 'rgba(255,122,0,0.15)', color: '#ff7a00', icon: '🔍' },
-    '待分类':     { bg: 'rgba(136,153,166,0.15)', color: '#8899a6', icon: '📁' }
-  };
-  
-  // ========== 3. 渲染 ==========
-  const allCustomers = Object.values(customerMap);
-  let globalIdx = 0;
-  let html = `<div style="margin-bottom:14px;font-size:13px;color:var(--text-secondary)">共 ${allCustomers.length} 个客户 · 点击展开查看各项目进展</div>`;
-  
-  for (const [groupName, members] of Object.entries(groups)) {
-    if (members.length === 0) continue;
-    const gi = groupIcons[groupName] || groupIcons['待分类'];
-    
-    html += `
-      <div class="customer-group-header">
-        <div class="customer-group-icon" style="background:${gi.bg}">${gi.icon}</div>
-        <span class="customer-group-name">${groupName}</span>
-        <span class="customer-group-count">(${members.length})</span>
-      </div>
-    `;
-    
-    html += members.map(c => {
-      const colorIdx = globalIdx % avatarColors.length;
-      globalIdx++;
-      const initial = c.name.charAt(0);
-      const industryColors = {
-        '政府合作方': 'background:rgba(120,86,255,0.15);color:#7856ff',
-        '业务合作方': 'background:rgba(29,155,240,0.15);color:#1d9bf0',
-        '场地合作方': 'background:rgba(0,186,124,0.15);color:#00ba7c',
-        '潜在客户': 'background:rgba(255,122,0,0.15);color:#ff7a00',
-        '待分类': 'background:rgba(136,153,166,0.15);color:#8899a6'
-      };
-      const industryStyle = industryColors[c.industry] || 'background:rgba(136,153,166,0.15);color:#8899a6';
-      const projectCount = c.projects.length;
-      
-      // Project rows with timeline
-      const projectRowsHtml = c.projects.map(p => {
-        const latestContent = p.latestEntry ? p.latestEntry.content.split('\n')[0] : '暂无进展记录';
-        const latestDate = p.latestUpdate || '';
-        const updaterHtml = p.latestEntry && p.latestEntry.updater ? ` · ${p.latestEntry.updater}` : '';
-        const issueHtml = p.issue ? `<div class="project-row-issue">⚠ ${p.issue}</div>` : '';
-        const priorityClass = p.priority === '战败' ? 'lost' : 'high';
-        const detailBtn = p.projectId ? `<span class="project-row-detail-btn" onclick="event.stopPropagation();showDetail(${p.projectId})">📄 查看详情</span>` : '';
-        
-        // Build timeline entries (skip first since it's already shown as latest)
-        let timelineHtml = '';
-        if (p.timeline && p.timeline.length > 1) {
-          const entries = p.timeline.slice(1).map(entry => {
-            const entryContent = entry.content ? entry.content.split('\n')[0] : '';
-            const entryDate = entry.date || '';
-            const entryUpdater = entry.updater || '';
-            return `
-              <div class="timeline-entry">
-                <div class="timeline-entry-header">
-                  <span class="timeline-entry-date">${entryDate.substring(5).replace('-', '/') || entryDate}</span>
-                  ${entryUpdater ? `<span class="timeline-entry-updater">${entryUpdater}</span>` : ''}
-                </div>
-                <div class="timeline-entry-content">${entryContent}</div>
-              </div>
-            `;
-          }).join('');
-          timelineHtml = `
-            <div class="project-timeline-section">
-              <div class="project-timeline-title">历史进展</div>
-              ${entries}
-            </div>
-          `;
-        }
-        
-        return `
-          <div style="border-bottom: 1px solid var(--border-color);">
-            <div class="customer-project-row">
-              <div class="project-row-left">
-                <span class="project-row-name">${p.projectName}</span>
-                ${followerBadge(p.latestEntry && p.latestEntry.updater || '', 18)}
-                ${p.direction ? `<span class="project-row-direction">${p.direction}</span>` : ''}
-              </div>
-              <div class="project-row-center">
-                <div class="project-row-status">${p.status || '待跟进'}</div>
-                <div class="project-row-latest">${latestContent}</div>
-                ${issueHtml}
-              </div>
-              <div class="project-row-right">
-                ${latestDate ? `<span class="project-row-date">${latestDate.substring(5).replace('-', '/')}</span>` : ''}
-                ${p.priority ? `<span class="project-row-priority ${priorityClass}">${p.priority}</span>` : ''}
-                ${p.totalUpdates ? `<span style="font-size:10px;color:var(--text-secondary)">${p.totalUpdates}次更新</span>` : ''}
-                ${detailBtn}
-              </div>
-            </div>
-            ${timelineHtml}
-          </div>
-        `;
-      }).join('');
-      
-      // Contact section
-      let contactHtml = '';
-      if (c.contacts.length > 0) {
-        const contactItems = c.contacts.map(ct => {
-          const parts = [];
-          if (ct.name) parts.push(`<span class="c-name">${ct.name}</span>`);
-          if (ct.phone) parts.push(`<span class="c-phone">${ct.phone}</span>`);
-          if (ct.role) parts.push(`<span class="c-role">${ct.role}</span>`);
-          return parts.length > 0 ? `<span class="customer-contact-item">${parts.join(' ')}</span>` : '';
-        }).filter(Boolean).join('');
-        contactHtml = `
-          <div class="customer-contact-section">
-            <div class="customer-contact-title">联系人</div>
-            <div class="customer-contact-list">${contactItems}</div>
-          </div>
-        `;
-      }
-      
-      return `
-        <div class="customer-card" data-name="${c.name}" data-search="${(c.name + ' ' + c.industry + ' ' + c.projects.map(p => p.projectName + ' ' + p.direction + ' ' + p.status).join(' ')).toLowerCase()}">
-          <div class="customer-header" onclick="toggleCustomerCard(this)">
-            <div class="customer-avatar" style="background:${avatarColors[colorIdx]}">${initial}</div>
-            <div class="customer-info">
-              <div class="customer-name-row">
-                <span class="customer-name">${c.name}</span>
-                <span class="customer-industry" style="${industryStyle}">${c.industry}</span>
-              </div>
-              <div class="customer-meta">
-                <span class="customer-project-count">📋 ${projectCount}个项目</span>
-                ${c.projects.some(p => p.issue) ? `<span style="color:var(--orange)">⚠ ${c.projects.filter(p => p.issue).length}个问题</span>` : ''}
-                ${(() => {
-                  // 汇总该客户所有项目的跟进人
-                  const followers = [];
-                  const seen = new Set();
-                  c.projects.forEach(p => {
-                    const u = (p.latestEntry && p.latestEntry.updater) || '';
-                    if (u && !seen.has(u)) { seen.add(u); followers.push(u); }
-                  });
-                  if (followers.length === 0) return '';
-                  return `<span class="customer-followers-summary">${followers.map(f => {
-                    const c2 = followerColor(f);
-                    return `<span class="cfs-item" style="background:${String(c2).replace('#','rgba(')+',0.1)'};color:${c2}"><span class="cfs-avatar" style="background:${c2}">${f.charAt(0)}</span>${f}</span>`;
-                  }).join('')}</span>`;
-                })()}
-                ${c.projects.some(p => p.latestUpdate && p.latestUpdate >= new Date().toISOString().substring(0,10).replace(/-/g,'-')) ? `<span style="color:var(--green)">● 活跃</span>` : ''}
-              </div>
-            </div>
-            <span class="customer-expand-icon">▶</span>
-          </div>
-          <div class="customer-projects-panel">
-            ${projectRowsHtml}
-          </div>
-          ${contactHtml}
-        </div>
-      `;
-    }).join('');
+  // ========== 2. 大分类（合作类型 / 行业） ==========
+  const CAT_DEFS = [
+    { key: '政府合作方', icon: '🏛', color: '#7856ff' },
+    { key: '战略合作方', icon: '⭐', color: '#ffd400' },
+    { key: '业务合作方', icon: '🤝', color: '#1d9bf0' },
+    { key: '潜在客户',   icon: '🔍', color: '#ff7a00' },
+    { key: '场地合作方', icon: '📍', color: '#00ba7c' },
+    { key: '未分类',     icon: '📁', color: '#8899a6' }
+  ];
+  const IND_COLORS = ['#1d9bf0','#00ba7c','#ff7a00','#7856ff','#f4212e','#ffd400','#00bcd4','#9c27b0'];
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-  
+  function normalizeCategory(text) {
+    const t = String(text || '');
+    if (t.includes('政府')) return '政府合作方';
+    if (t.includes('战略')) return '战略合作方';
+    if (t.includes('业务')) return '业务合作方';
+    if (t.includes('场地')) return '场地合作方';
+    if (t.includes('潜在')) return '潜在客户';
+    return '';
+  }
+  function hexToRgba(hex, a) {
+    const h = String(hex).replace('#', '');
+    const n = parseInt(h.length === 3 ? h.split('').map(x => x + x).join('') : h, 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+  function personColor(name) {
+    let hash = 0;
+    for (let i = 0; i < String(name).length; i++) hash = ((hash << 5) - hash + String(name).charCodeAt(i)) | 0;
+    return IND_COLORS[Math.abs(hash) % IND_COLORS.length];
+  }
+  function phoneHref(p) { return 'tel:' + String(p || '').replace(/[^\d+\-]/g, ''); }
+
+  // 联系人 chip（姓名 / 职位 / 电话 + 复制）
+  function contactChip(ct, opts) {
+    const o = opts || {};
+    const nm = esc(ct.name || '未命名');
+    const ph = ct.phone ? String(ct.phone).trim() : '';
+    const role = ct.role ? String(ct.role).trim() : '';
+    const color = personColor(ct.name || '?');
+    return `<span class="contact-chip">
+      <span class="contact-avatar" style="background:${color}">${esc((ct.name || '?').charAt(0))}</span>
+      <span class="contact-name">${nm}</span>
+      ${role ? `<span class="contact-role">${esc(role)}</span>` : ''}
+      ${ph ? `<a class="contact-phone" href="${phoneHref(ph)}" title="拨打 ${esc(ph)}">📞 ${esc(ph)}</a>
+              <button class="icon-btn" title="复制号码" onclick="event.stopPropagation();copyText('${esc(ph)}',this)">⧉</button>` : ''}
+      ${o.owner ? `<span class="mini-tag">${esc(o.owner)}</span>` : ''}
+    </span>`;
+  }
+
+  // 归类：类别 + 行业标签
+  Object.values(customerMap).forEach(c => {
+    let cat = normalizeCategory(c.industry);
+    if (c.sources.has('venue')) cat = '场地合作方';
+    if (!cat && c.sources.has('industry') && !c.sources.has('business')) cat = '潜在客户';
+    c.category = cat || '未分类';
+
+    let ind = '';
+    if (c.sources.has('industry')) {
+      const ip = appData.industryPartners.find(p => p.company === c.name);
+      if (ip && ip.industry && !normalizeCategory(ip.industry)) ind = ip.industry;
+    }
+    if (!ind && !normalizeCategory(c.industry) && c.industry && c.industry !== '待分类') ind = c.industry;
+    c.industryTag = ind;
+  });
+
+  const allCustomers = Object.values(customerMap);
+
+  // 按当前模式分组
+  const catList = [];
+  function getCatDef(key) {
+    let def = CAT_DEFS.find(d => d.key === key);
+    if (!def) {
+      let hash = 0;
+      for (let i = 0; i < key.length; i++) hash = ((hash << 5) - hash + key.charCodeAt(i)) | 0;
+      def = { key, icon: '🏷', color: IND_COLORS[Math.abs(hash) % IND_COLORS.length] };
+    }
+    return def;
+  }
+  function buildGroups() {
+    const map = {};
+    allCustomers.forEach(c => {
+      const key = groupMode === 'industry' ? (c.industryTag || '待补充行业') : c.category;
+      if (!map[key]) map[key] = [];
+      map[key].push(c);
+    });
+    const order = groupMode === 'industry' ? null : CAT_DEFS.map(d => d.key);
+    const keys = order ? order.filter(k => map[k]) : Object.keys(map).sort((a, b) => map[b].length - map[a].length);
+    return keys.map(k => {
+      const def = getCatDef(k);
+      const members = map[k].slice().sort((a, b) => {
+        if (b.projects.length !== a.projects.length) return b.projects.length - a.projects.length;
+        return a.name.localeCompare(b.name, 'zh');
+      });
+      const projCount = members.reduce((s, c) => s + c.projects.length, 0);
+      const riskCount = members.reduce((s, c) => s + c.projects.filter(p => p.issue).length, 0);
+      const peopleCount = members.reduce((s, c) => s + c.contacts.length, 0);
+      return { key: k, icon: def.icon, color: def.color, members, projCount, riskCount, peopleCount };
+    });
+  }
+
+  const groups = buildGroups();
+
+  // ========== 3. 渲染 ==========
+  let html = '';
+
+  // 3.1 顶部分类概览
+  html += `<div class="cat-overview">`;
+  groups.forEach(g => {
+    const bg = hexToRgba(g.color, 0.15);
+    const active = activeCatFilter === g.key ? ' active' : '';
+    html += `
+      <div class="cat-chip${active}" style="--cat-color:${g.color};--cat-bg:${bg}" onclick="toggleCatFilter('${esc(g.key)}')">
+        <div class="cat-chip-top">
+          <span class="cat-chip-ico">${g.icon}</span>
+          <span class="cat-chip-name">${esc(g.key)}</span>
+        </div>
+        <div class="cat-chip-nums">
+          <span><b>${g.members.length}</b> 客户</span>
+          <span><b>${g.projCount}</b> 项目</span>
+          ${g.riskCount ? `<span style="color:var(--orange)"><b>${g.riskCount}</b> 风险</span>` : ''}
+        </div>
+      </div>`;
+  });
+  html += `</div>`;
+
+  if (groups.length === 0) {
+    html += `<div class="crm-empty">暂无客户数据</div>`;
+  }
+
+  // 3.2 分类区块
+  groups.forEach(g => {
+    if (activeCatFilter && activeCatFilter !== g.key) return;
+    const bg = hexToRgba(g.color, 0.15);
+    html += `
+      <div class="cat-section" data-cat="${esc(g.key)}" style="--cat-color:${g.color};--cat-bg:${bg}">
+        <div class="cat-head" onclick="toggleCatSection(this)">
+          <span class="cat-head-ico">${g.icon}</span>
+          <div class="cat-head-main">
+            <div class="cat-head-title">${esc(g.key)}</div>
+            <div class="cat-head-stats">
+              <span>👥 ${g.members.length} 家客户</span>
+              <span>📋 ${g.projCount} 个项目</span>
+              <span>📇 ${g.peopleCount} 位对接人</span>
+              ${g.riskCount ? `<span style="color:var(--orange)">⚠ ${g.riskCount} 个待解决问题</span>` : ''}
+            </div>
+          </div>
+          <span class="cat-head-arrow">▼</span>
+        </div>
+        <div class="cat-body">
+          ${g.members.map(c => renderCustomerCard(c, g.color)).join('')}
+        </div>
+      </div>`;
+  });
+
+  function renderCustomerCard(c, catColor) {
+    const projCount = c.projects.length;
+    const riskCount = c.projects.filter(p => p.issue).length;
+    const custContacts = c.contacts;
+    const headContacts = custContacts.slice(0, 2);
+    const restCount = custContacts.length - headContacts.length;
+
+    // 客户卡顶部对接人总览
+    let barHtml = '';
+    if (custContacts.length > 0) {
+      barHtml = `<div class="contact-bar">
+        ${headContacts.map(ct => contactChip(ct, { owner: ct.project ? ct.project : '' })).join('')}
+        ${restCount > 0 ? `<span class="pill">+${restCount}</span>` : ''}
+        <button class="contact-add" onclick="event.stopPropagation();openContactModalFor('${esc(c.name)}','')">＋ 对接人</button>
+      </div>`;
+    } else {
+      barHtml = `<div class="contact-bar">
+        <button class="contact-add" onclick="event.stopPropagation();openContactModalFor('${esc(c.name)}','')">＋ 添加对接人</button>
+      </div>`;
+    }
+
+    // 项目卡
+    const projHtml = c.projects.map(p => {
+      const own = c.contacts.filter(ct => ct.project && ct.project === p.projectName);
+      const list = own.length ? own : c.contacts.filter(ct => !ct.project);
+      const ownerLabel = own.length ? '本项目对接人' : (list.length ? '客户对接人' : '');
+      const pctRaw = parseFloat(p.completion);
+      const hasPct = !isNaN(pctRaw) && p.completion !== '' && p.completion != null;
+      const pct = hasPct ? Math.min(100, Math.max(0, pctRaw <= 1 ? pctRaw * 100 : pctRaw)) : 0;
+      const latest = p.latestEntry ? p.latestEntry.content.split('\n')[0] : '';
+      const prioClass = p.priority === '战败' ? 'lost' : (p.priority === '低' ? 'low' : '');
+      const tl = (p.timeline || []).slice(1, 6);
+
+      return `
+        <div class="proj-card">
+          <div class="proj-head">
+            <span class="proj-name" ${p.projectId ? `onclick="event.stopPropagation();showDetail(${p.projectId})"` : ''}>${esc(p.projectName)}</span>
+            ${p.status ? `<span class="proj-status">${esc(p.status)}</span>` : ''}
+            ${p.priority ? `<span class="proj-prio ${prioClass}">${esc(p.priority)}</span>` : ''}
+            ${followerBadge(p.latestEntry && p.latestEntry.updater || '', 18)}
+            <span class="proj-date">${p.latestUpdate ? esc(String(p.latestUpdate).substring(5).replace('-', '/')) : ''}${p.totalUpdates ? ` · ${p.totalUpdates}次` : ''}</span>
+          </div>
+          ${p.direction ? `<div class="proj-dir">🎯 ${esc(p.direction)}</div>` : ''}
+          ${hasPct ? `<div class="proj-bar"><i style="width:${pct}%"></i></div><div class="proj-bar-txt">完成度 ${Math.round(pct)}%</div>` : ''}
+          ${latest ? `<div class="proj-latest">🕘 ${esc(latest)}</div>` : ''}
+          ${p.issue ? `<div class="proj-issue">⚠ ${esc(p.issue)}</div>` : ''}
+          <div class="proj-contacts">
+            <div class="proj-contacts-title">
+              <span>👤 ${ownerLabel || '对接人'}</span>
+              <button class="proj-timeline-toggle" onclick="event.stopPropagation();openContactModalFor('${esc(c.name)}','${esc(p.projectName)}')">＋ 添加/编辑对接人</button>
+            </div>
+            ${list.length
+              ? list.map(ct => `<div class="proj-contact-row">${contactChip(ct, {})}</div>`).join('')
+              : `<div class="proj-empty-contacts">暂无对接人，点击右上「＋ 添加/编辑对接人」录入姓名 / 职位 / 电话</div>`}
+          </div>
+          ${tl.length ? `
+            <div class="proj-timeline" id="ptl-${p.projectId || 'x'}-${Math.random().toString(36).slice(2, 7)}">
+              ${tl.map(e => `<div class="proj-timeline-item"><b>${esc((e.date || '').substring(5).replace('-', '/'))}</b>${esc((e.content || '').split('\n')[0])}</div>`).join('')}
+            </div>
+            <div style="padding:6px 11px 8px"><button class="proj-timeline-toggle" onclick="event.stopPropagation();toggleProjTimeline(this)">📜 展开历史进展 (${tl.length})</button></div>
+          ` : ''}
+        </div>`;
+    }).join('');
+
+    const searchBlob = (c.name + ' ' + c.category + ' ' + c.industryTag + ' ' +
+      c.projects.map(p => p.projectName + ' ' + p.direction + ' ' + p.status).join(' ') + ' ' +
+      c.contacts.map(x => (x.name || '') + ' ' + (x.phone || '') + ' ' + (x.role || '')).join(' ')).toLowerCase();
+
+    return `
+      <div class="cust-card" data-name="${esc(c.name)}" data-search="${esc(searchBlob)}">
+        <div class="cust-head" onclick="toggleCustomerCard(this)" style="--cat-color:${catColor}">
+          <div class="cust-avatar" style="background:${catColor}">${esc(c.name.charAt(0))}</div>
+          <div class="cust-main">
+            <div class="cust-name-row">
+              <span class="cust-name">${esc(c.name)}</span>
+              ${c.industryTag ? `<span class="mini-tag ind">${esc(c.industryTag)}</span>` : ''}
+              ${riskCount ? `<span class="mini-tag warn">⚠ ${riskCount} 待解决</span>` : ''}
+            </div>
+            <div class="cust-tags">
+              <span class="mini-tag">${esc(c.category)}</span>
+              ${c.projects.slice(0, 3).map(p => `<span class="mini-tag">${esc(p.projectName)}</span>`).join('')}
+              ${projCount > 3 ? `<span class="mini-tag">+${projCount - 3}</span>` : ''}
+            </div>
+          </div>
+          <div class="cust-pills">
+            <span class="pill proj">📋 ${projCount} 项目</span>
+            ${custContacts.length ? `<span class="pill people">📇 ${custContacts.length} 人</span>` : ''}
+            <span class="cust-arrow">▶</span>
+          </div>
+        </div>
+        ${barHtml}
+        <div class="cust-projects">${projHtml}</div>
+      </div>`;
+  }
+
   document.getElementById('customerTables').innerHTML = html;
 }
 
 function toggleCustomerCard(headerEl) {
-  const card = headerEl.closest('.customer-card');
-  card.classList.toggle('expanded');
+  const card = headerEl.closest('.cust-card') || headerEl.closest('.customer-card');
+  if (card) card.classList.toggle('expanded');
 }
 
 // Search / filter
 function filterTable(query) {
   const q = query.toLowerCase().trim();
-  const cards = document.querySelectorAll('.customer-card');
+  const cards = document.querySelectorAll('.cust-card');
   cards.forEach(card => {
     const searchText = card.getAttribute('data-search') || '';
-    const match = !q || searchText.includes(q);
-    card.style.display = match ? '' : 'none';
+    card.style.display = (!q || searchText.includes(q)) ? '' : 'none';
+  });
+  // 隐藏无命中客户的分类区块
+  document.querySelectorAll('.cat-section').forEach(sec => {
+    const visible = sec.querySelectorAll('.cust-card:not([style*="display: none"])').length;
+    sec.style.display = visible ? '' : 'none';
   });
 }
 
