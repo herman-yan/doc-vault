@@ -2324,6 +2324,10 @@ body {
   display: grid; gap: 9px;
   grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
 }
+.proj-grid.proj-n1 { grid-template-columns: minmax(0, 1fr); }
+.proj-grid.proj-n2 { grid-template-columns: repeat(2, 1fr); }
+.proj-grid.proj-n3 { grid-template-columns: repeat(3, 1fr); }
+.proj-grid.proj-n4 { grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); }
 .proj-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -3818,7 +3822,6 @@ function renderDatabaseView() {
               ${riskCount ? `<span class="mini-tag warn">⚠ ${riskCount}</span>` : ''}
             </div>
             <div class="cust-line2">
-              <span>项目 ${projCount}</span>
               <span>对接人 ${custContacts.length || '—'}</span>
               ${latestCustUpdate ? `<span>最近更新 ${esc(latestCustUpdate.substring(5).replace('-', '/'))}</span>` : ''}
             </div>
@@ -3829,7 +3832,7 @@ function renderDatabaseView() {
         </div>
         <div class="cust-body">
           ${contactBar}
-          <div class="proj-grid">${projHtml}</div>
+          <div class="proj-grid proj-n${Math.min(c.projects.length, 4)}">${projHtml}</div>
         </div>
       </div>`;
   }
