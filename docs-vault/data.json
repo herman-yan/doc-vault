@@ -366,7 +366,24 @@
       "id": 18,
       "uploadTime": "2026-09-11T03:52:31.948Z",
       "filePath": "docs-vault/files/18.pdf"
+    },
+    {
+      "name": "3、北京隆归新能源科技有限公司500  胥东明  营业执照  正本 20240628.pdf",
+      "size": 552755,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-longgui",
+      "docType": "license",
+      "category": "license",
+      "tags": [],
+      "summary": "",
+      "uploader": "金梦",
+      "id": 19,
+      "uploadTime": "2026-09-11T03:52:47.905Z",
+      "filePath": "docs-vault/files/19.pdf"
     }
   ],
-  "lastUpdated": "2026/9/11 11:52:35"
+  "lastUpdated": "2026/9/11 11:52:50"
 }
