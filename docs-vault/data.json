@@ -400,7 +400,24 @@
       "id": 20,
       "uploadTime": "2026-09-11T06:16:00.629Z",
       "filePath": "docs-vault/files/20.pdf"
+    },
+    {
+      "name": "6、北京易得翼汽车技术服务500  李存柱 营业执照  副本  20240712.pdf",
+      "size": 1011138,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-yideyi-auto",
+      "docType": "license",
+      "category": "license",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 21,
+      "uploadTime": "2026-09-11T06:16:16.399Z",
+      "filePath": "docs-vault/files/21.pdf"
     }
   ],
-  "lastUpdated": "2026/9/11 14:16:05"
+  "lastUpdated": "2026/9/11 14:16:20"
 }
