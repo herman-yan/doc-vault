@@ -383,7 +383,24 @@
       "id": 19,
       "uploadTime": "2026-09-11T03:52:47.905Z",
       "filePath": "docs-vault/files/19.pdf"
+    },
+    {
+      "name": "5、北京易得翼新能源汽车技术服务200  张振辕 营业执照  副本   20250625.pdf",
+      "size": 1029248,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-yideyi-ny",
+      "docType": "license",
+      "category": "license",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 20,
+      "uploadTime": "2026-09-11T06:16:00.629Z",
+      "filePath": "docs-vault/files/20.pdf"
     }
   ],
-  "lastUpdated": "2026/9/11 11:53:39"
+  "lastUpdated": "2026/9/11 14:16:05"
 }
