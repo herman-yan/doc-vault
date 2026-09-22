@@ -434,7 +434,24 @@
       "id": 22,
       "uploadTime": "2026-09-22T07:41:33.054Z",
       "filePath": "docs-vault/files/22.pdf"
+    },
+    {
+      "name": "260904-培训合作协议-最幕咖-修改版(1)   我方盖章.pdf",
+      "size": 389828,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "public",
+      "docType": "cooperation",
+      "category": "cooperation",
+      "tags": [],
+      "summary": "",
+      "uploader": "金梦",
+      "id": 23,
+      "uploadTime": "2026-09-22T07:42:10.741Z",
+      "filePath": "docs-vault/files/23.pdf"
     }
   ],
-  "lastUpdated": "2026/9/22 15:41:53"
+  "lastUpdated": "2026/9/22 15:42:13"
 }
