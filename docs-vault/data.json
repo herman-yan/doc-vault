@@ -252,8 +252,8 @@
       "icon": "📕",
       "color": "#ef4444",
       "company": "bj-ningjia-bj",
-      "docType": "other",
-      "category": "other",
+      "docType": "cooperation",
+      "category": "cooperation",
       "tags": [
         "企业简介"
       ],
@@ -436,5 +436,5 @@
       "filePath": "docs-vault/files/22.pdf"
     }
   ],
-  "lastUpdated": "2026/9/22 15:41:41"
+  "lastUpdated": "2026/9/22 15:41:53"
 }
