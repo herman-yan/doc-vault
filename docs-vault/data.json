@@ -417,7 +417,24 @@
       "id": 21,
       "uploadTime": "2026-09-11T06:16:16.399Z",
       "filePath": "docs-vault/files/21.pdf"
+    },
+    {
+      "name": "260914-宁家北京＆中保知行战略合作协议-0907确认版（双方盖章）.pdf",
+      "size": 5498789,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-ningjia-bj",
+      "docType": "cooperation",
+      "category": "cooperation",
+      "tags": [],
+      "summary": "",
+      "uploader": "金梦",
+      "id": 22,
+      "uploadTime": "2026-09-22T07:41:33.054Z",
+      "filePath": "docs-vault/files/22.pdf"
     }
   ],
-  "lastUpdated": "2026/9/11 14:16:20"
+  "lastUpdated": "2026/9/22 15:41:41"
 }
