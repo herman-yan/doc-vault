@@ -570,7 +570,24 @@
       "id": 31,
       "uploadTime": "2026-10-08T10:22:10.562Z",
       "filePath": "docs-vault/files/31.pdf"
+    },
+    {
+      "name": "商标代理委托书.pdf",
+      "size": 1060120,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "public",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 32,
+      "uploadTime": "2026-10-08T10:22:21.490Z",
+      "filePath": "docs-vault/files/32.pdf"
     }
   ],
-  "lastUpdated": "2026/10/8 18:22:14"
+  "lastUpdated": "2026/10/8 18:22:25"
 }
