@@ -494,8 +494,8 @@
       "icon": "📕",
       "color": "#ef4444",
       "company": "bj-zhongneng",
-      "docType": "other",
-      "category": "other",
+      "docType": "cooperation",
+      "category": "cooperation",
       "tags": [],
       "summary": "",
       "uploader": "未知",
@@ -538,5 +538,5 @@
       "filePath": "docs-vault/files/29.pdf"
     }
   ],
-  "lastUpdated": "2026/10/8 18:12:49"
+  "lastUpdated": "2026/10/8 18:13:19"
 }
