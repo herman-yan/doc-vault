@@ -128,25 +128,9 @@
     border-radius:14px;padding:2px 10px;font-size:12px;margin:2px 4px 2px 0;cursor:pointer;}
   .chip.on{border-color:var(--brand);color:var(--brand);}
   @media(max-width:900px){.g4,.g3,.g2{grid-template-columns:1fr 1fr;}.sidebar{width:170px;}}
-  /* 访问口令门：纯前端遮挡，不构成真实访问控制 */
-  .gate{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center;}
-  .gate-box{width:min(360px,88vw);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 24px;text-align:center;}
-  .gate-box h2{margin:0;font-size:17px;}
-  .gate-box input{width:100%;margin:16px 0 12px;padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:14px;}
-  .gate-box input:focus{outline:none;border-color:var(--brand);}
-  .gate-err{min-height:18px;margin:10px 0 0;font-size:12px;color:var(--danger);}
 </style>
 </head>
 <body>
-<div class="gate" id="gate">
-  <form class="gate-box" id="gateForm" autocomplete="off">
-    <h2>智能合同台账</h2>
-    <div class="muted">请输入访问口令后进入</div>
-    <input type="password" id="gatePwd" placeholder="访问口令" autofocus>
-    <button class="btn primary" type="submit">进入</button>
-    <p class="gate-err" id="gateErr"></p>
-  </form>
-</div>
 <div class="app">
   <aside class="sidebar">
     <div class="logo">
@@ -1444,7 +1428,7 @@ function renderAll(){
   }
 }
 // 初始化：恢复上次的后端地址与数据源；默认直接尝试连钉钉实时，失败则回退演示数据
-function startApp(){
+(function initBackendField(){
   let savedSrc='live';
   try{
     const u=localStorage.getItem(LS_URL);
@@ -1456,36 +1440,8 @@ function startApp(){
   if(inp) inp.value=BACKEND_URL;
   setSrcSel(savedSrc);
   if(savedSrc==='live') connectDingtalk(true);
-  renderAll();
-}
-/* ---------------- 访问口令 ----------------
-   只存哈希，口令本身不出现在源码里；但纯前端校验任何人改一下 DOM/脚本就能绕过，
-   它挡的是「随手打开就看到台账」，不是真正的访问控制。需要真权限得靠后端鉴权。 */
-const GATE_HASH='c0be631e83627cac';
-const GATE_LS='sc.gate.v1';
-function gateHash(s){
-  let h=0xcbf29ce484222325n; const P=0x100000001b3n, M=(1n<<64n)-1n;
-  for(const ch of String(s)){ h^=BigInt(ch.codePointAt(0)); h=(h*P)&M; }
-  return h.toString(16);
-}
-(function gateInit(){
-  let unlocked=false;
-  try{ unlocked=localStorage.getItem(GATE_LS)==='1'; }catch(e){}
-  if(unlocked){ const g=$('#gate'); if(g) g.remove(); startApp(); return; }
-  const form=$('#gateForm');
-  if(!form){ startApp(); return; }
-  form.addEventListener('submit',e=>{
-    e.preventDefault();
-    const pwd=$('#gatePwd');
-    if(gateHash(pwd?pwd.value:'')===GATE_HASH){
-      const g=$('#gate'); if(g) g.remove();
-      try{ localStorage.setItem(GATE_LS,'1'); }catch(err){ /* 隐私模式下每次都要重输 */ }
-      startApp();
-    }else{
-      const err=$('#gateErr'); if(err) err.textContent='口令不正确';
-    }
-  });
 })();
+renderAll();
 </script>
 </body>
 </html>
