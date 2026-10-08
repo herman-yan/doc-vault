@@ -1,0 +1,7 @@
+# 凭证与真实业务数据，一律不入库
+.env
+.enrich-ledger.json
+.enrich-ledger.flat.bak.json
+.contract-classes.json
+server.log
+shot-*.png

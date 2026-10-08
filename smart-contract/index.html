@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>智能合同管理系统（标准版能力补齐）</title>
+<style>
+  :root{
+    --bg:#18191c; --panel:#222327; --panel2:#2a2c31; --line:#373a40;
+    --text:#e8e9ec; --sub:#9a9da3; --brand:#3d7eff; --brand-d:#2b5fd0;
+    --danger:#f06064; --warn:#f2994a; --ok:#3bb273; --purple:#9a6cff;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--text); font-size:14px; line-height:1.5;}
+  .app{display:flex; min-height:100vh;}
+  /* Sidebar */
+  .sidebar{width:210px; background:var(--panel); border-right:1px solid var(--line);
+    display:flex; flex-direction:column; padding:16px 10px; flex-shrink:0;}
+  .logo{display:flex; align-items:center; gap:10px; padding:4px 8px 16px; border-bottom:1px solid var(--line); margin-bottom:10px;}
+  .logo .ic{width:30px;height:30px;border-radius:8px;background:var(--brand);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;}
+  .logo .t{font-weight:700;font-size:15px;}
+  .logo .s{font-size:11px;color:var(--sub);}
+  .nav-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;
+    background:transparent;color:var(--sub);padding:10px 12px;border-radius:8px;cursor:pointer;
+    font-size:13.5px;margin-bottom:2px;transition:.15s;}
+  .nav-btn:hover{background:var(--panel2);color:var(--text);}
+  .nav-btn.active{background:var(--brand);color:#fff;}
+  .nav-btn .badge{margin-left:auto;background:var(--danger);color:#fff;font-size:11px;
+    padding:1px 7px;border-radius:10px;}
+  .nav-sep{height:1px;background:var(--line);margin:10px 6px;}
+  .side-foot{margin-top:auto;font-size:11px;color:var(--sub);padding:8px;line-height:1.6;}
+  .mode-pill{display:inline-block;background:rgba(61,126,255,.15);color:var(--brand);
+    border:1px solid var(--brand);padding:2px 8px;border-radius:10px;font-size:11px;}
+  /* Main */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .topbar{height:52px;border-bottom:1px solid var(--line);display:flex;align-items:center;
+    padding:0 20px;gap:12px;background:var(--panel);}
+  .topbar h1{font-size:16px;margin:0;font-weight:600;}
+  .topbar .crumb{color:var(--sub);font-size:13px;}
+  .topbar .right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .content{padding:20px;overflow:auto;flex:1;}
+  .section{display:none;}
+  .section.active{display:block;}
+  /* Cards / grid */
+  .grid{display:grid;gap:14px;}
+  .g4{grid-template-columns:repeat(4,1fr);}
+  .g3{grid-template-columns:repeat(3,1fr);}
+  .g2{grid-template-columns:repeat(2,1fr);}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;}
+  .stat .num{font-size:26px;font-weight:700;}
+  .stat .lbl{color:var(--sub);font-size:12.5px;margin-top:2px;}
+  .stat .sub{font-size:12px;margin-top:8px;}
+  .card h3{margin:0 0 12px;font-size:14px;display:flex;align-items:center;gap:8px;}
+  .card h3 .tag{margin-left:auto;font-size:11px;font-weight:500;color:var(--sub);}
+  /* Table */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  th{color:var(--sub);font-weight:500;background:var(--panel2);position:sticky;top:0;}
+  tbody tr:hover{background:var(--panel2);}
+  .pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;}
+  .p-ok{background:rgba(59,178,115,.15);color:var(--ok);}
+  .p-warn{background:rgba(242,153,74,.15);color:var(--warn);}
+  .p-danger{background:rgba(240,96,100,.15);color:var(--danger);}
+  .p-info{background:rgba(61,126,255,.15);color:var(--brand);}
+  .p-purple{background:rgba(154,108,255,.15);color:var(--purple);}
+  /* Filters */
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+  .inp,.sel{background:var(--panel2);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:7px 10px;font-size:13px;outline:none;}
+  .inp:focus,.sel:focus{border-color:var(--brand);}
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;transition:.15s;}
+  .btn:hover{border-color:var(--brand);}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .btn.primary:hover{background:var(--brand-d);}
+  .btn.sm{padding:4px 10px;font-size:12px;}
+  /* Modal */
+  .modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;
+    align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:50;}
+  .modal-mask.show{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    width:min(880px,100%);max-height:86vh;overflow:auto;}
+  .modal-head{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);}
+  .modal-head h2{margin:0;font-size:16px;}
+  .modal-head .x{margin-left:auto;cursor:pointer;color:var(--sub);font-size:20px;line-height:1;}
+  .modal-body{padding:20px;}
+  /* Diff */
+  .diff-row{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+  .diff-row .dh{padding:8px 12px;background:var(--panel2);font-weight:600;font-size:13px;
+    display:flex;align-items:center;gap:8px;}
+  .diff-cols{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+  .diff-cols>div{padding:10px 12px;font-size:12.5px;}
+  .diff-cols .std{background:rgba(59,178,115,.05);border-right:1px solid var(--line);}
+  .diff-cols .act{background:rgba(242,153,74,.05);}
+  .diff-cols .lab{color:var(--sub);font-size:11px;margin-bottom:3px;}
+  .dev-tag{margin-left:auto;}
+  /* Misc */
+  .muted{color:var(--sub);}
+  .row{display:flex;gap:14px;flex-wrap:wrap;}
+  .kv{display:flex;flex-direction:column;gap:2px;}
+  .kv .k{color:var(--sub);font-size:12px;}
+  .kv .v{font-size:14px;}
+  .kv-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
+  .kv-row .kv{min-width:120px;}
+  .file-list{display:flex;gap:8px;flex-wrap:wrap;}
+  .file-chip{display:inline-flex;align-items:center;gap:4px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:6px 10px;font-size:12.5px;color:var(--brand);text-decoration:none;margin:3px 6px 3px 0;}
+  .file-chip:hover{border-color:var(--brand);}
+  .bar{height:8px;border-radius:6px;background:var(--panel2);overflow:hidden;}
+  .bar>i{display:block;height:100%;}
+  .note{font-size:12.5px;color:var(--sub);margin-top:6px;}
+  .empty{padding:40px;text-align:center;color:var(--sub);}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--sub);margin-top:4px;}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--panel2);border:1px solid var(--brand);color:var(--text);
+    padding:10px 18px;border-radius:10px;font-size:13px;z-index:80;opacity:0;transition:.25s;}
+  .toast.show{opacity:1;}
+  .progress{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;margin-top:8px;}
+  .progress>i{display:block;height:100%;background:var(--brand);transition:width .3s;}
+  ul.flat{margin:0;padding-left:18px;}
+  ul.flat li{margin:3px 0;}
+  .chip{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+    border-radius:14px;padding:2px 10px;font-size:12px;margin:2px 4px 2px 0;cursor:pointer;}
+  .chip.on{border-color:var(--brand);color:var(--brand);}
+  @media(max-width:900px){.g4,.g3,.g2{grid-template-columns:1fr 1fr;}.sidebar{width:170px;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="ic">合</div>
+      <div><div class="t">智能合同</div><div class="s">标准版能力补齐</div></div>
+    </div>
+    <button class="nav-btn active" data-tab="dashboard">📊 概览看板</button>
+    <button class="nav-btn" data-tab="contracts">📁 合同台账</button>
+    <button class="nav-btn" data-tab="due">⏰ 到期提醒<span class="badge" id="dueBadge">0</span></button>
+    <button class="nav-btn" data-tab="risk">🛡️ 智能风控</button>
+    <button class="nav-btn" data-tab="accounting">💰 账款发票</button>
+    <button class="nav-btn" data-tab="counterparty">🏢 相对方管理</button>
+    <button class="nav-btn" data-tab="compare">🔍 审批/归档比对</button>
+    <button class="nav-btn" data-tab="template">📐 模板与编号</button>
+    <button class="nav-btn" data-tab="batch">🗂️ 批量操作</button>
+    <button class="nav-btn" data-tab="borrow">📤 借阅归还</button>
+    <div class="nav-sep"></div>
+    <button class="nav-btn" data-tab="about">ℹ️ 关于本系统</button>
+    <div class="side-foot">
+      <span class="mode-pill" id="sideModeTitle">本地演示模式</span><br/>
+      <span id="sideModeSub">数据内置 · 规则驱动<br/>无需联网 / 模型 / 密钥</span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">概览看板</h1>
+      <span class="crumb" id="pageCrumb">智能合同管理系统</span>
+      <div class="right">
+        <span class="mode-pill" id="modePill">演示数据</span>
+        <select id="srcSel" class="sel" onchange="onSourceChange()" title="数据来源">
+          <option value="demo">演示数据</option>
+          <option value="live">钉钉实时</option>
+        </select>
+        <select id="orgSel" class="sel" onchange="onOrgChange()" title="钉钉组织（dws 已授权账号）" style="display:none"></select>
+        <input id="bkUrl" class="inp" placeholder="后端地址" value="http://localhost:8787" style="width:165px" />
+        <button id="connBtn" class="btn primary" onclick="connectDingtalk()">连接</button>
+      </div>
+    </div>
+    <div class="content" id="content">
+      <div id="liveDiag" style="display:none;margin:12px 0;padding:12px 14px;border:1px solid #f0a020;border-radius:8px;background:#fff8ec;color:#8a5300;font-size:13px;line-height:1.7"></div>
+
+      <!-- DASHBOARD -->
+      <section class="section active" id="sec-dashboard"></section>
+
+      <!-- CONTRACTS -->
+      <section class="section" id="sec-contracts"></section>
+
+      <!-- DUE -->
+      <section class="section" id="sec-due"></section>
+
+      <!-- RISK -->
+      <section class="section" id="sec-risk"></section>
+
+      <!-- ACCOUNTING -->
+      <section class="section" id="sec-accounting"></section>
+
+      <!-- COUNTERPARTY -->
+      <section class="section" id="sec-counterparty"></section>
+
+      <!-- COMPARE -->
+      <section class="section" id="sec-compare"></section>
+
+      <!-- TEMPLATE -->
+      <section class="section" id="sec-template"></section>
+
+      <!-- BATCH -->
+      <section class="section" id="sec-batch"></section>
+
+      <!-- BORROW -->
+      <section class="section" id="sec-borrow"></section>
+
+      <!-- ABOUT -->
+      <section class="section" id="sec-about"></section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-mask" id="modal">
+  <div class="modal">
+    <div class="modal-head"><h2 id="modalTitle">合同详情</h2><span class="x" onclick="closeModal()">✕</span></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   智能合同管理系统 —— 标准版未开通能力（中级/高级）补齐
+   纯前端、规则驱动、内置演示数据，无需模型/服务端/密钥
+   ============================================================ */
+
+/* ---------- 演示数据：合同台账 ---------- */
+const today = new Date('2026-09-15');
+
+let CONTRACTS = [
+  {
+    id:'HT-2026-000128', name:'动力电池Pack采购合同', type:'采购',
+    party:'宁达新能源科技（苏州）有限公司', amount:1280000, currency:'¥',
+    sign:'2025-11-20', start:'2026-01-01', end:'2026-12-31',
+    status:'履行中', owner:'张敏', archive:'已归档', standard:'标准模板',
+    flag:false,
+    clauses:[
+      {topic:'付款方式', standard:'货到验收后30日内付至95%，留5%质保金期满支付', actual:'货到验收后60日内付至90%，留10%质保金期满支付', dev:true,
+       note:'付款周期延长、质保金比例提高，偏离标准模板，建议协商恢复至标准条款。'},
+      {topic:'违约责任', standard:'逾期付款按日万分之三计违约金，上限合同总额5%', actual:'逾期付款按日万分之五计违约金，上限合同总额10%', dev:true,
+       note:'违约金比例与上限均高于标准，对己方偏重。'},
+      {topic:'管辖', standard:'由甲方所在地（北京）法院管辖', actual:'由甲方所在地（北京）法院管辖', dev:false, note:''},
+      {topic:'保密', standard:'双方对商业秘密保密期3年', actual:'双方对商业秘密保密期5年', dev:true, note:'保密期长于标准，可接受但需记录。'},
+    ],
+    archiveCheck:[
+      {name:'合同金额', final:'¥1,280,000', scan:'¥1,280,000', match:true},
+      {name:'乙方名称', final:'宁达新能源科技（苏州）有限公司', scan:'宁达新能源科技（苏州）有限公司', match:true},
+      {name:'合同期限', final:'2026-01-01 至 2026-12-31', scan:'2026-01-01 至 2026-12-31', match:true},
+      {name:'签署日期', final:'2025-11-20', scan:'2025-11-20', match:true},
+    ],
+  },
+  {
+    id:'HT-2026-000140', name:'售后维修服务外包协议', type:'服务',
+    party:'速达汽车技术服务有限公司', amount:560000, currency:'¥',
+    sign:'2026-02-10', start:'2026-03-01', end:'2027-02-28',
+    status:'履行中', owner:'李伟', archive:'待归档', standard:'非标',
+    flag:true,
+    clauses:[
+      {topic:'连带责任', standard:'仅就自身过错承担责任', actual:'乙方对第三方行为承担无限连带责任', dev:true,
+       note:'含无限连带责任条款，属高风险，标准模板禁止，必须修订或专项审批。'},
+      {topic:'单方解除', standard:'任一方提前30日书面通知可解除', actual:'甲方可单方随时无责解除，乙方需提前90日', dev:true,
+       note:'解除权不对等，偏向甲方，乙方风险较高（作为甲方可接受）。'},
+      {topic:'付款方式', standard:'按月结算，次月15日前支付', actual:'按季度结算，季度末支付', dev:true, note:'结算周期拉长，影响现金流。'},
+      {topic:'保密', standard:'保密期3年', actual:'保密期3年', dev:false, note:''},
+    ],
+    archiveCheck:[
+      {name:'合同金额', final:'¥560,000', scan:'¥560,000', match:true},
+      {name:'乙方名称', final:'速达汽车技术服务有限公司', scan:'速达汽车技术服务有限公司', match:true},
+      {name:'合同期限', final:'2026-03-01 至 2027-02-28', scan:'2026-03-01 至 2027-02-28', match:true},
+      {name:'签署日期', final:'2026-02-10', scan:'2026-02-09', match:false},
+    ],
+  },
+  {
+    id:'HT-2026-000156', name:'门店形象设计服务合同', type:'设计',
+    party:'唯美空间设计工作室', amount:230000, currency:'¥',
+    sign:'2026-05-12', start:'2026-06-01', end:'2026-08-31',
+    status:'已完结', owner:'王芳', archive:'已归档', standard:'标准模板', flag:false,
+    clauses:[
+      {topic:'付款方式', standard:'首付30%，验收付70%', actual:'首付30%，验收付70%', dev:false, note:''},
+      {topic:'知识产权', standard:'交付成果知识产权归甲方', actual:'交付成果知识产权归甲方', dev:false, note:''},
+      {topic:'违约责任', standard:'违约金上限5%', actual:'违约金上限8%', dev:true, note:'违约金上限高于标准。'},
+    ],
+    archiveCheck:[
+      {name:'合同金额', final:'¥230,000', scan:'¥230,000', match:true},
+      {name:'乙方名称', final:'唯美空间设计工作室', scan:'唯美空间设计工作室', match:true},
+      {name:'合同期限', final:'2026-06-01 至 2026-08-31', scan:'2026-06-01 至 2026-08-31', match:true},
+      {name:'签署日期', final:'2026-05-12', scan:'2026-05-12', match:true},
+    ],
+  },
+  {
+    id:'HT-2026-000171', name:'物流运输年度框架协议', type:'运输',
+    party:'中通速运有限公司', amount:980000, currency:'¥',
+    sign:'2026-01-08', start:'2026-01-15', end:'2026-12-15',
+    status:'履行中', owner:'赵磊', archive:'已归档', standard:'标准模板', flag:false,
+    clauses:[
+      {topic:'付款方式', standard:'月结30日', actual:'月结30日', dev:false, note:''},
+      {topic:'赔偿', standard:'货物损毁按实际损失赔偿，上限运费3倍', actual:'货物损毁按实际损失赔偿，上限运费3倍', dev:false, note:''},
+      {topic:'管辖', standard:'北京法院管辖', actual:'乙方所在地（上海）法院管辖', dev:true, note:'管辖法院异地，争议解决成本升高。'},
+    ],
+    archiveCheck:[
+      {name:'合同金额', final:'¥980,000', scan:'¥980,000', match:true},
+      {name:'乙方名称', final:'中通速运有限公司', scan:'中通速运有限公司', match:true},
+      {name:'合同期限', final:'2026-01-15 至 2026-12-15', scan:'2026-01-15 至 2026-12-15', match:true},
+      {name:'签署日期', final:'2026-01-08', scan:'2026-01-08', match:true},
+    ],
+  },
+  {
+    id:'HT-2026-000188', name:'IT运维技术支持合同', type:'服务',
+    party:'云擎信息技术（北京）有限公司', amount:340000, currency:'¥',
+    sign:'2026-03-22', start:'2026-04-01', end:'2027-03-31',
+    status:'履行中', owner:'陈静', archive:'待归档', standard:'标准模板', flag:false,
+    clauses:[
+      {topic:'付款方式', standard:'按季支付', actual:'按季支付', dev:false, note:''},
+      {topic:'SLA', standard:'故障4小时响应', actual:'故障2小时响应', dev:true, note:'SLA优于标准，属有利偏离。'},
+      {topic:'保密', standard:'保密期3年', actual:'保密期3年', dev:false, note:''},
+    ],
+    archiveCheck:[
+      {name:'合同金额', final:'¥340,000', scan:'¥340,000', match:true},
+      {name:'乙方名称', final:'云擎信息技术（北京）有限公司', scan:'云擎信息技术（北京）有限公司', match:true},
+      {name:'合同期限', final:'2026-04-01 至 2027-03-31', scan:'2026-04-01 至 2027-03-31', match:true},
+      {name:'签署日期', final:'2026-03-22', scan:'2026-03-22', match:true},
+    ],
+  },
+  {
+    id:'HT-2025-000201', name:'办公场地租赁合同', type:'租赁',
+    party:'金辉商业地产管理有限公司', amount:1500000, currency:'¥',
+    sign:'2025-09-01', start:'2025-10-01', end:'2026-09-30',
+    status:'履行中', owner:'刘洋', archive:'已归档', standard:'标准模板', flag:false,
+    clauses:[
+      {topic:'付款方式', standard:'季付', actual:'季付', dev:false, note:''},
+      {topic:'续租', standard:'同等条件下优先续租', actual:'同等条件下优先续租', dev:false, note:''},
+      {topic:'违约责任', standard:'违约金上限2个月租金', actual:'违约金上限3个月租金', dev:true, note:'违约金上限高于标准。'},
+    ],
+    archiveCheck:[
+      {name:'合同金额', final:'¥1,500,000', scan:'¥1,500,000', match:true},
+      {name:'乙方名称', final:'金辉商业地产管理有限公司', scan:'金辉商业地产管理有限公司', match:true},
+      {name:'合同期限', final:'2025-10-01 至 2026-09-30', scan:'2025-10-01 至 2026-09-30', match:true},
+      {name:'签署日期', final:'2025-09-01', scan:'2025-09-01', match:true},
+    ],
+  },
+  {
+    id:'HT-2026-000213', name:'零部件联合开发协议', type:'技术',
+    party:'锐科精密制造有限公司', amount:760000, currency:'¥',
+    sign:'2026-04-18', start:'2026-05-01', end:'2027-04-30',
+    status:'待审批', owner:'孙浩', archive:'未归档', standard:'非标', flag:true,
+    clauses:[
+      {topic:'知识产权', standard:'背景知识产权各自所有，新成果共有', actual:'新成果归乙方单独所有', dev:true, note:'IP归属偏离，对甲方不利，需重新谈判。'},
+      {topic:'连带责任', standard:'就自身过错担责', actual:'双方对开发失败承担连带责任', dev:true, note:'含连带责任，标准模板禁止。'},
+      {topic:'付款方式', standard:'里程碑付款', actual:'里程碑付款', dev:false, note:''},
+    ],
+    archiveCheck:[
+      {name:'合同金额', final:'¥760,000', scan:'¥760,000', match:true},
+      {name:'乙方名称', final:'锐科精密制造有限公司', scan:'锐科精密制造有限公司', match:true},
+      {name:'合同期限', final:'2026-05-01 至 2027-04-30', scan:'2026-05-01 至 2027-04-30', match:true},
+      {name:'签署日期', final:'2026-04-18', scan:'2026-04-18', match:true},
+    ],
+  },
+  {
+    id:'HT-2026-000227', name:'市场推广服务合同', type:'服务',
+    party:'星河互动传媒有限公司', amount:420000, currency:'¥',
+    sign:'2026-06-30', start:'2026-07-15', end:'2026-12-15',
+    status:'履行中', owner:'周婷', archive:'待归档', standard:'标准模板', flag:false,
+    clauses:[
+      {topic:'付款方式', standard:'按效果月结', actual:'按效果月结', dev:false, note:''},
+      {topic:'KPI', standard:'曝光≥500万，转化≥3%', actual:'曝光≥500万，转化≥5%', dev:true, note:'KPI高于标准，对乙方偏重。'},
+      {topic:'保密', standard:'保密期3年', actual:'保密期3年', dev:false, note:''},
+    ],
+    archiveCheck:[
+      {name:'合同金额', final:'¥420,000', scan:'¥420,000', match:true},
+      {name:'乙方名称', final:'星河互动传媒有限公司', scan:'星河互动传媒有限公司', match:true},
+      {name:'合同期限', final:'2026-07-15 至 2026-12-15', scan:'2026-07-15 至 2026-12-15', match:true},
+      {name:'签署日期', final:'2026-06-30', scan:'2026-06-30', match:true},
+    ],
+  },
+];
+
+/* ---------- 相对方 ---------- */
+let PARTIES = [
+  {name:'宁达新能源科技（苏州）有限公司', type:'供应商', code:'91320594MA1XXXXX1A', level:'低',
+   reasons:['工商登记正常','无重大行政处罚','涉诉记录0'], contracts:2},
+  {name:'速达汽车技术服务有限公司', type:'供应商', code:'91310115MA1YYYYY2B', level:'高',
+   reasons:['近一年有2起服务合同纠纷涉诉','参保人数下降40%','被列入经营异常名录1次'], contracts:1},
+  {name:'唯美空间设计工作室', type:'合作方', code:'92320508MA3ZZZZZ3C', level:'低',
+   reasons:['个体户，无不良记录','历史合作评价良好'], contracts:1},
+  {name:'中通速运有限公司', type:'供应商', code:'91310000MA4WWWWW4D', level:'中',
+   reasons:['大型物流企业','近一年1起运输合同纠纷'], contracts:1},
+  {name:'云擎信息技术（北京）有限公司', type:'供应商', code:'91110108MA5VVVVV5E', level:'低',
+   reasons:['高新技术企业','无不良记录'], contracts:1},
+  {name:'金辉商业地产管理有限公司', type:'合作方', code:'91310104MA6UUUUU6F', level:'中',
+   reasons:['名下多处房产抵押','行业景气下行'], contracts:1},
+  {name:'锐科精密制造有限公司', type:'供应商', code:'91320583MA7TTTTT7G', level:'高',
+   reasons:['注册资本认缴未实缴','近一年3起买卖合同纠纷','法定代表人限高'], contracts:1},
+  {name:'星河互动传媒有限公司', type:'合作方', code:'91110105MA8SSSSS8H', level:'中',
+   reasons:['成立不足2年','暂无不良记录'], contracts:1},
+];
+
+/* ---------- 账款发票 ---------- */
+let ACCOUNTING = [
+  {cid:'HT-2026-000128', period:'2026-Q2', recv:320000, recvAmt:320000, invoiced:true, overdue:false, note:'正常'},
+  {cid:'HT-2026-000128', period:'2026-Q3', recv:320000, recvAmt:200000, invoiced:true, overdue:false, note:'部分回款中'},
+  {cid:'HT-2026-000140', period:'2026-Q2', recv:140000, recvAmt:0, invoiced:false, overdue:true, note:'逾期未按约结算'},
+  {cid:'HT-2026-000171', period:'2026-Q2', recv:245000, recvAmt:245000, invoiced:true, overdue:false, note:'正常'},
+  {cid:'HT-2026-000188', period:'2026-Q2', recv:85000, recvAmt:85000, invoiced:true, overdue:false, note:'正常'},
+  {cid:'HT-2026-000227', period:'2026-Q3', recv:210000, recvAmt:90000, invoiced:true, overdue:false, note:'按效果结算中'},
+  {cid:'HT-2025-000201', period:'2026-Q3', recv:375000, recvAmt:375000, invoiced:true, overdue:false, note:'正常'},
+];
+
+/* ---------- 模板与编号规则 ---------- */
+const TEMPLATES = [
+  {cat:'采购类', name:'采购合同标准模板 v3.2', code:'CG', rule:'CG-YYYY-NNNN（年份-序号）', must:['付款≤30日','质保金≤5%','北京管辖','禁止连带责任']},
+  {cat:'服务类', name:'服务外包标准模板 v2.1', code:'FW', rule:'FW-YYYY-NNNN', must:['按月/季结算','违约金上限5%','保密期3年']},
+  {cat:'租赁类', name:'租赁合同标准模板 v1.4', code:'ZL', rule:'ZL-YYYY-NNNN', must:['季付','优先续租权']},
+  {cat:'技术类', name:'技术开发标准模板 v2.0', code:'JS', rule:'JS-YYYY-NNNN', must:['IP共有','里程碑付款','禁止连带责任']},
+  {cat:'设计类', name:'设计服务标准模板 v1.0', code:'SJ', rule:'SJ-YYYY-NNNN', must:['首付≤30%','IP归甲方']},
+  {cat:'运输类', name:'运输框架标准模板 v1.2', code:'YS', rule:'YS-YYYY-NNNN', must:['月结30日','赔偿上限运费3倍']},
+];
+
+/* ---------- 借阅归还记录 ---------- */
+let BORROWS = [
+  {cid:'HT-2026-000128', who:'审计部-吴敏', out:'2026-09-01', back:'2026-09-10', status:'已归还', reason:'年度审计'},
+  {cid:'HT-2026-000140', who:'法务部-郑昊', out:'2026-09-08', back:'—', status:'借阅中', reason:'纠纷取证'},
+  {cid:'HT-2026-000213', who:'研发部-林楠', out:'2026-09-12', back:'—', status:'借阅中', reason:'技术对接'},
+];
+
+/* ---------- 业务操作状态（前端模拟批量操作） ---------- */
+const OP = {}; // cid -> {archive, transfer, complete}
+
+/* ---------- 数据源：演示 / 钉钉实时 ---------- */
+const DEMO_SNAPSHOT = { contracts: CONTRACTS, parties: PARTIES, accounting: ACCOUNTING, borrows: BORROWS };
+let DATA_SOURCE = 'demo';
+// 钉钉侧合同总数（来自接口 totalCount）与数据通道，用于「总数 vs 已接入」对账
+let SOURCE_TOTAL = 0;
+let SOURCE_CHANNEL = '';
+// 后台逐合同补全进度：起止日期未补全前，到期/临期统计必然为 0，界面需如实说明
+let ENRICH = { running:false, done:0, total:0 };
+// 多组织：钉钉一个账号可属于多个组织，dws 里每个组织是一个 profile。
+// 台账按组织分别拉取与统计，切换组织即换一份数据，绝不合并（合同 ID 只在组织内唯一）。
+let ORGS = [];
+let CATS = []; // 后端下发的细分类别（规则表在 server.js，避免两边各写一份）
+let OWN_COMPS = []; // 我方盖章主体名单（后端下发），用于详情回填相对方后重算「集团内」标记
+let CUR_ORG = '';      // 当前组织 profile（corpId:userId）
+let CUR_ORG_NAME = '';
+// 页面上现在实际显示的是哪个组织的数据。切组织失败时要靠它把下拉和真实数据对齐，
+// 否则下拉显示 B 组织、表格里却还是 A 组织的合同，比报错更糟。
+let LOADED_ORG = '';
+let LOADED_ORG_NAME = '';
+// 页面由 server.js 托管时（http/https），后端就是同源地址，自动指向；否则回退到默认端口
+let BACKEND_URL = (typeof location!=='undefined' && /^https?:$/.test(location.protocol)) ? location.origin : 'http://localhost:8787';
+// 记住用户上次选定的数据源与后端地址，避免每次打开都要手动连接
+const LS_SRC='scw.dataSource', LS_URL='scw.backendUrl', LS_ORG='scw.orgProfile';
+function savePrefs(src){
+  try{
+    localStorage.setItem(LS_SRC, src || $('#srcSel').value);
+    localStorage.setItem(LS_URL, BACKEND_URL);
+  }catch(e){ /* 隐私模式下 localStorage 不可用，忽略 */ }
+}
+function setConnBtn(text, disabled){
+  const b=$('#connBtn'); if(b){ b.textContent=text; b.disabled=!!disabled; }
+}
+function setSrcSel(v){ const s=$('#srcSel'); if(s) s.value=v; }
+
+/* ---------- 多组织（dws profile）---------- */
+// 所有后端请求统一带上当前组织，漏带就会读回 dws 默认组织的数据
+function api(path, params){
+  const q=new URLSearchParams(params||{});
+  if(CUR_ORG) q.set('org', CUR_ORG);
+  const s=q.toString();
+  return BACKEND_URL+path+(s ? (path.includes('?')?'&':'?')+s : '');
+}
+function setOrgSelUI(){
+  const sel=$('#orgSel'); if(!sel) return;
+  if(ORGS.length<2){ sel.style.display='none'; sel.innerHTML=''; return; }
+  sel.innerHTML=ORGS.map(o=>`<option value="${esc(o.profile)}">${esc(o.corpName||o.corpId)}${o.isCurrent?'（dws 当前）':''}</option>`).join('');
+  sel.value=CUR_ORG; sel.style.display='';
+}
+// 拉取新组织失败时，把选择器拨回页面上真实展示的那份数据所属的组织
+function restoreLoadedOrg(){
+  if(!LOADED_ORG) return;
+  CUR_ORG=LOADED_ORG; CUR_ORG_NAME=LOADED_ORG_NAME;
+  setOrgSelUI();
+  $('#modePill').textContent='钉钉实时'+(CUR_ORG_NAME?' · '+CUR_ORG_NAME:'');
+}
+// 组织清单来自 dws profile list：多登录一个组织，这里就多一个可选项
+async function loadOrgs(url){
+  try{
+    const r=await fetch(url+'/api/dingtalk/orgs');
+    const j=await r.json().catch(()=>({}));
+    ORGS = r.ok && Array.isArray(j.orgs) ? j.orgs : [];
+  }catch(e){ ORGS=[]; return; }
+  if(!ORGS.length) return;
+  let saved=''; try{ saved=localStorage.getItem(LS_ORG)||''; }catch(e){}
+  // 上次选的组织可能已退出登录 → 回退到 dws 当前组织，不能凭空指定一个读不到的组织
+  const pick = ORGS.find(o=>o.profile===saved) || ORGS.find(o=>o.isCurrent) || ORGS[0];
+  CUR_ORG=pick.profile; CUR_ORG_NAME=pick.corpName||'';
+  setOrgSelUI();
+}
+function onOrgChange(){
+  const sel=$('#orgSel'); if(!sel) return;
+  const v=sel.value;
+  if(v===CUR_ORG) return;
+  CUR_ORG=v; CUR_ORG_NAME=(ORGS.find(o=>o.profile===v)||{}).corpName||'';
+  try{ localStorage.setItem(LS_ORG, v); }catch(e){}
+  if(DATA_SOURCE==='live') connectDingtalk(); // 换组织 = 重取该组织的台账
+}
+
+function setSideMode(title, sub){
+  const t=$('#sideModeTitle'), s=$('#sideModeSub');
+  if(t) t.textContent=title; if(s) s.textContent=sub;
+}
+function revertToDemo(){
+  CONTRACTS = DEMO_SNAPSHOT.contracts;
+  PARTIES = DEMO_SNAPSHOT.parties;
+  ACCOUNTING = DEMO_SNAPSHOT.accounting;
+  BORROWS = DEMO_SNAPSHOT.borrows;
+  DATA_SOURCE='demo';
+  SOURCE_TOTAL=0; SOURCE_CHANNEL='';
+  $('#modePill').textContent='演示数据';
+  setSideMode('本地演示模式','数据内置 · 规则驱动');
+  hideLiveDiag();
+  renderAll();
+}
+function onSourceChange(){
+  savePrefs();
+  if($('#srcSel').value==='demo'){ revertToDemo(); $('#connBtn').textContent='连接'; }
+  else { $('#modePill').textContent='钉钉(未连接)'; $('#connBtn').textContent='连接'; }
+}
+// 自动连接失败时静默回退到演示数据，但保留「想要实时」这一意图，下次打开仍会重试
+function fallbackToDemo(msg){
+  revertToDemo();
+  setSrcSel('demo');
+  setConnBtn('连接', false);
+  toast(msg);
+}
+async function connectDingtalk(auto){
+  const url=($('#bkUrl').value||'').trim().replace(/\/$/,'');
+  if(!url){ if(!auto) toast('请填写后端地址'); return; }
+  BACKEND_URL=url;
+  $('#connBtn').textContent='连接中…'; $('#connBtn').disabled=true;
+  // 后端列表缓存过期时全量拉取约需 1 分钟，期间必须明确「数据还没到」，
+  // 否则页面停在演示数据上会被误读成「临期/逾期提醒都不见了」
+  $('#modePill').textContent='钉钉实时 · 拉取中（首次约 1 分钟）';
+  try{
+    const st=await fetch(url+'/api/dingtalk/status').then(r=>r.json());
+    if(!st.mode || st.mode==='demo'){
+      if(auto){ fallbackToDemo('后端未配置钉钉凭证，已切回演示数据'); return; }
+      toast('后端未配置钉钉凭证（当前为 demo 模式）');
+      $('#modePill').textContent='钉钉(未连)';
+      hideLiveDiag();
+      setConnBtn('连接', false);
+      return;
+    }
+    if(st.channel==='dws') await loadOrgs(url); // 先确定要读哪个组织，再取该组织的台账
+    if(CUR_ORG_NAME) $('#modePill').textContent='钉钉实时 · '+CUR_ORG_NAME+' · 拉取中（首次约 1 分钟）';
+    const data=await fetch(api('/api/dingtalk/bootstrap')).then(r=>r.json());
+    if(data && !Array.isArray(data.contracts)){
+      // 后端明确报错（如所选组织未登录/无权限）：保留当前数据，不能当成「该组织 0 份合同」
+      restoreLoadedOrg();
+      toast('读取失败：'+(data.message||'后端返回异常'));
+      showLiveDiag(JSON.stringify(data, null, 2), st.channel);
+      setConnBtn('刷新', false);
+      return;
+    }
+    CONTRACTS = data.contracts||[];
+    PARTIES = data.parties||[];
+    ACCOUNTING = data.accounting||[];
+    BORROWS = data.borrows||[];
+    OWN_COMPS = Array.isArray(data.ownCompanies)?data.ownCompanies.slice():[];
+    CATS = Array.isArray(data.cats)?data.cats.slice():[];
+    filterCompany='全部'; filterCat='全部'; cpCompany='全部'; // 换组织/重拉后公司集合不同，沿用旧筛选会筛出空列表
+    DATA_SOURCE='live';
+    SOURCE_CHANNEL=st.channel||'';
+    SOURCE_TOTAL=Number((data.stats||{}).sourceTotal||0);
+    if(data.org && data.org.corpName) CUR_ORG_NAME=data.org.corpName;
+    LOADED_ORG=CUR_ORG; LOADED_ORG_NAME=CUR_ORG_NAME; // 这份数据确实属于该组织，之后才允许「回退到它」
+    $('#modePill').textContent='钉钉实时'+(CUR_ORG_NAME?' · '+CUR_ORG_NAME:'');
+    setSideMode('钉钉实时', (st.channel==='dws' ? 'dws 直连智能合同' : '已接入智能合同连接器')
+      + (CUR_ORG_NAME ? ' · 组织：'+CUR_ORG_NAME : ''));
+    if(CONTRACTS.length===0){
+      if(SOURCE_TOTAL===0){
+        // 接口正常返回 0 条 = 这个组织的「智能合同」里没有（或没有该账号能看到的）合同，
+        // 不是连接故障，不该挂出连接器失败排查清单误导
+        hideLiveDiag();
+        toast((CUR_ORG_NAME||'该组织')+'：连接正常，但智能合同接口返回 0 份合同 —— 该组织可能尚未在智能合同中登记合同，或当前账号看不到其合同。');
+      }else{
+        toast('已连接钉钉，但返回 0 份合同');
+        showLiveDiag(data.rawResponse, st.channel);
+      }
+    }else{
+      hideLiveDiag();
+      toast((CUR_ORG_NAME?CUR_ORG_NAME+'：':'')+(SOURCE_TOTAL>0
+        ? '已接入钉钉智能合同 '+CONTRACTS.length+'/'+SOURCE_TOTAL+' 份'+(CONTRACTS.length===SOURCE_TOTAL?'（已全量）':'（差 '+(SOURCE_TOTAL-CONTRACTS.length)+' 份）')
+        : '已接入钉钉智能合同，共 '+CONTRACTS.length+' 份合同'));
+    }
+    setSrcSel('live');
+    savePrefs('live');
+    setConnBtn('刷新', false);
+    renderAll();
+    if(st.channel==='dws') pollEnrich(); // 逐合同补全在后台跑，完成后自动刷新出起止日期
+  }catch(e){
+    // DATA_SOURCE 已在取数成功后置为 live：此时抛出的异常来自渲染/收尾，
+    // 不能当成「连接失败」静默回退演示数据，否则页面看起来像没连上钉钉。
+    if(DATA_SOURCE==='live'){ restoreLoadedOrg(); console.error('钉钉数据已取到，但渲染出错：',e); toast('数据已加载，但页面渲染出错（见控制台）'); setConnBtn('刷新',false); return; }
+    if(auto) fallbackToDemo('自动连接钉钉失败，已切回演示数据');
+    else toast('连接失败：'+e.message);
+    setConnBtn('连接', false);
+  }
+}
+// 后台补全进度轮询：实时显示进度，完成后静默刷新一次列表
+let enrichTimer=null;
+function pollEnrich(){
+  if(enrichTimer) clearInterval(enrichTimer);
+  let ticks=0;
+  enrichTimer=setInterval(async()=>{
+    ticks++;
+    try{
+      const es=await fetch(api('/api/dingtalk/enrich-status')).then(r=>r.json());
+      ENRICH={running:!!es.running,done:es.done||0,total:es.total||0};
+      const orgTag=CUR_ORG_NAME?' · '+CUR_ORG_NAME:'';
+      if(es&&es.total&&es.running){ $('#modePill').textContent='钉钉实时'+orgTag+' · 补全中 '+es.done+'/'+es.total; }
+      if(es&&es.total&&!es.running){
+        clearInterval(enrichTimer); enrichTimer=null;
+        const data=await fetch(api('/api/dingtalk/bootstrap')).then(r=>r.json());
+        if(Array.isArray(data.contracts)){
+          CONTRACTS=data.contracts; PARTIES=data.parties||PARTIES;
+          ACCOUNTING=data.accounting||ACCOUNTING; BORROWS=data.borrows||BORROWS;
+        }
+        $('#modePill').textContent='钉钉实时'+orgTag;
+        renderAll();
+        const withRange=CONTRACTS.filter(c=>c.start||c.end).length;
+        toast('详情补全完成：'+CONTRACTS.length+' 份合同中 '+withRange+' 份含起止日期');
+      }
+    }catch(e){ /* 忽略轮询异常 */ }
+    if(ticks>72){ if(enrichTimer){clearInterval(enrichTimer);enrichTimer=null;} $('#modePill').textContent='钉钉实时'+(CUR_ORG_NAME?' · '+CUR_ORG_NAME:''); }
+  },5000);
+}
+
+/* ============================================================
+   工具函数
+   ============================================================ */
+function $(s){return document.querySelector(s);}
+function fmtMoney(n){return '¥'+Number(n).toLocaleString('zh-CN');}
+// 日期无效（如合同表单未登记到期日）时返回 null，调用方需自行判空，避免出现「NaN 天」
+function daysBetween(a,b){const d1=new Date(a),d2=new Date(b);if(isNaN(d1.getTime())||isNaN(d2.getTime()))return null;return Math.round((d2-d1)/86400000);}
+// 期限展示：有值显示区间；已取过详情但表单无日期时说明原因，而不是只给一个「—」
+function dateRangeHtml(c){
+  if(c.start||c.end) return esc(c.start||'—')+' ~ '+esc(c.end||'—');
+  if(c._detail) return '<span class="muted">该合同表单未登记生效/终止日期</span>';
+  return '<span class="muted">—</span>';
+}
+// 详情接口回填的相对方可能比拉列表时更权威（例如改成自家子公司简称），
+// 按后端同一套规则在前端重算「集团内」标记，不必等 5 分钟列表缓存过期
+function refreshPartyOwn(c){
+  const norm=s=>String(s||'').replace(/\s+/g,'').replace(/[()（）]/g,'');
+  const v=norm(c.party);
+  if(!v){ c.partyOwn=false; return; }
+  const names=OWN_COMPS.map(norm).filter(Boolean);
+  c.partyOwn = names.includes(v) || (v.length>=4 && names.some(n=>n.includes(v)||v.includes(n)));
+}
+// 相对方展示：区分「表单权威值」与「按合同名推断」，推断值标注提醒用户
+// trim=1 时截断（台账表格用），详情弹窗里给全称
+function partyHtml(c,trim){
+  if(!c.party||c.party==='—') return '<span class="muted">未识别</span>';
+  const p=String(c.party);
+  let h=trim&&p.length>12?`<span title="${esc(p)}">${esc(p.slice(0,12))}…</span>`:esc(p);
+  if(c.partyOwn) h+=' <span class="pill p-info" title="该「相对方」其实是本方盖章主体（集团内互盖章），不计入相对方统计">集团内</span>';
+  if(c.partyInferred) h+=' <span class="pill p-warn" title="由合同名称推断，打开详情后会用表单字段自动校正">推断</span>';
+  return h;
+}
+function levelPill(l){
+  if(l==='高')return '<span class="pill p-danger">高</span>';
+  if(l==='中')return '<span class="pill p-warn">中</span>';
+  if(l==='—'||!l)return '<span class="pill p-info">—</span>';
+  return '<span class="pill p-ok">低</span>';
+}
+function statusPill(s){
+  const map={'履行中':'p-info','已完结':'p-ok','待审批':'p-warn','已逾期':'p-danger','已到期':'p-danger',
+    '未生效':'p-warn','待生效':'p-warn','已作废':'p-info','待归档':'p-warn','归档确认中':'p-warn','已归档':'p-ok'};
+  return `<span class="pill ${map[s]||'p-info'}">${esc(s)}</span>`;
+}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function showLiveDiag(raw, channel){
+  const el=$('#liveDiag'); if(!el) return;
+  const r=String(raw||'(无返回)');
+  const truncated = r.length>1500 ? r.slice(0,1500)+' …（已截断）' : r;
+  const tips = channel==='dws'
+    ? '<li>本机 <code>dws</code> 是否已登录且有权限：<code>dws auth status</code> / <code>dws contract record list</code></li>'+
+      '<li>后端日志里的 dws 报错原文（<code>server.log</code>）</li>'+
+      '<li>当前账号在钉钉侧是否被授权查看合同台账</li>'
+    : '<li>「分页查询合同详情」节点是否有<b>未映射的必填入参</b>（尤其 <code>staffId</code>，缺失时钉钉只返回通用错误码、<code>errorMsg</code> 为空）</li>'+
+      '<li>查询节点的<b>输出是否映射为流程出参</b>（未映射 → 同步地址返回 {}）</li>'+
+      '<li>连接流是否已<b>发布</b>（草稿状态的同步调用地址不可用）</li>';
+  el.innerHTML =
+    '<b>⚠️ 后端已连通，但返回 0 份合同。</b>当前数据通道：<code>'+esc(channel||'未知')+'</code>。请检查：'+
+    '<ol style="margin:6px 0 6px 18px">'+tips+'</ol>'+
+    '钉钉原始返回（可截图发我）：<br><pre style="white-space:pre-wrap;word-break:break-all;background:#fff;border:1px solid #f0d8a0;border-radius:6px;padding:8px;margin-top:6px;max-height:180px;overflow:auto">'+esc(truncated)+'</pre>';
+  el.style.display='block';
+}
+function hideLiveDiag(){ const el=$('#liveDiag'); if(el) el.style.display='none'; }
+
+/* ---------- 合同风险评分（规则驱动） ---------- */
+function contractRisk(c){
+  let score=0, items=[];
+  // 条款偏离
+  (c.clauses||[]).forEach(cl=>{
+    if(cl.dev){
+      const bad = /连带|无限|无限连带/.test(cl.actual);
+      const heavy = /违约金|上限/.test(cl.topic) || /高于标准|偏重/.test(cl.note);
+      if(bad){score+=40; items.push({lv:'高',t:`条款【${cl.topic}】含无限连带责任`,d:cl.note});}
+      else if(heavy){score+=18; items.push({lv:'中',t:`条款【${cl.topic}】偏离标准且对己方偏重`,d:cl.note});}
+      else{score+=8; items.push({lv:'低',t:`条款【${cl.topic}】与标准模板存在偏离`,d:cl.note});}
+    }
+  });
+  // 归档比对不一致
+  const mis = (c.archiveCheck||[]).filter(x=>!x.match).length;
+  if(mis>0){score+=25; items.push({lv:'高',t:`归档比对发现 ${mis} 处扫描件与定稿不一致`,d:'需核对原件后重新归档。'});}
+  // 相对方风险
+  const p = PARTIES.find(x=>x.name===c.party);
+  if(p && p.level==='高'){score+=30; items.push({lv:'高',t:`相对方【${p.name}】风险等级高`,d:p.reasons.join('；')});}
+  else if(p && p.level==='中'){score+=12; items.push({lv:'中',t:`相对方【${p.name}】风险等级中`,d:p.reasons.join('；')});}
+  // 到期临近（由外部计算后补充）
+  score = Math.min(score,100);
+  const lv = score>=60?'高':score>=30?'中':'低';
+  return {score,lv,items};
+}
+
+/* ============================================================
+   渲染：概览看板
+   ============================================================ */
+function renderDashboard(){
+  const total=CONTRACTS.length;
+  const activeCount=CONTRACTS.filter(c=>c.status==='履行中').length;
+  const pendingCount=CONTRACTS.filter(c=>c.status==='待审批').length;
+  const unarchivedCount=CONTRACTS.filter(c=>c.archive==='待归档'||c.archive==='未归档').length;
+  // 到期
+  const due = CONTRACTS.map(c=>({c,left:daysBetween(today,c.end)}))
+    .filter(x=>x.left!==null && x.left>=0 && x.left<=90).sort((a,b)=>a.left-b.left);
+  const overdue = CONTRACTS.filter(c=>{const d=daysBetween(today,c.end);return d!==null && d<0 && c.status!=='已完结';});
+  const amtSum = CONTRACTS.reduce((s,c)=>s+c.amount,0);
+  // 风险
+  const risks = CONTRACTS.map(c=>({c,r:contractRisk(c)})).sort((a,b)=>b.r.score-a.r.score);
+  const highRisk = risks.filter(x=>x.r.lv==='高').length;
+  // 账款
+  const recvSum = ACCOUNTING.reduce((s,a)=>s+a.recv,0);
+  const gotSum = ACCOUNTING.reduce((s,a)=>s+a.recvAmt,0);
+  const overdueAmt = ACCOUNTING.filter(a=>a.overdue).reduce((s,a)=>s+a.recv,0);
+  // 实时模式下账款接口可能为空，必须避免 0/0 得到 NaN%
+  const payPct = recvSum>0 ? Math.round(gotSum/recvSum*100) : 0;
+
+  // 数据源对账：钉钉侧接口 totalCount vs 本页实际接入条数
+  const dated = CONTRACTS.filter(c=>c.start||c.end).length;
+  const coverPct = SOURCE_TOTAL>0 ? Math.min(100, Math.round(total/SOURCE_TOTAL*100)) : 0;
+  const coverFull = SOURCE_TOTAL>0 && total===SOURCE_TOTAL;
+  const coverCard = (DATA_SOURCE==='live' && SOURCE_TOTAL>0) ? `
+  <div class="card" style="margin-top:14px">
+    <h3>🔗 数据源对账：钉钉合同总数 vs 本页已接入${CUR_ORG_NAME?' · '+esc(CUR_ORG_NAME):''}</h3>
+    <div class="row" style="justify-content:space-between">
+      <div class="kv"><div class="k">钉钉侧合同总数</div><div class="v">${SOURCE_TOTAL}</div></div>
+      <div class="kv"><div class="k">本页已接入</div><div class="v" style="color:${coverFull?'var(--ok)':'var(--warn)'}">${total}</div></div>
+      <div class="kv"><div class="k">差额</div><div class="v" style="color:${coverFull?'var(--ok)':'var(--danger)'}">${SOURCE_TOTAL-total}</div></div>
+      <div class="kv"><div class="k">数据通道</div><div class="v" style="font-size:14px">${esc(SOURCE_CHANNEL||'live')}</div></div>
+      <div class="kv"><div class="k">当前组织</div><div class="v" style="font-size:14px">${esc(CUR_ORG_NAME||'dws 默认组织')}</div></div>
+    </div>
+    <div class="bar" style="margin-top:12px"><i style="width:${coverPct}%;background:${coverFull?'var(--ok)':'var(--warn)'}"></i></div>
+    <div class="note">${coverFull
+      ? '覆盖率 100%：本组织「智能合同」台账已全量拉取，无遗漏。'
+      : '覆盖率 '+coverPct+'%：有 '+(SOURCE_TOTAL-total)+' 份未取到，通常是拉取过程中 dws 调用失败或被限流。点右上角「刷新」重试；持续缺失时看 server.log。'}
+      ${ORGS.length>1?'<br/>本页面一次只呈现一个组织的台账（各组织数字与到期统计互不合并），切换请用右上角组织下拉，当前已授权 '+ORGS.length+' 个组织。':''}</div>
+  </div>` : '';
+
+  let html = `
+  ${DATA_SOURCE==='live' && total===0 ? `<div class="note" style="margin-bottom:14px;background:#fff8e6;border-color:#f0d8a0">
+    ℹ️ 组织「${esc(CUR_ORG_NAME||'当前组织')}」的「智能合同」接口返回 <b>0 份合同</b>（连接本身正常：状态 live-dws，未报错）。<br/>
+    通常是因为该组织还没在智能合同里登记合同，或当前登录账号（${esc((ORGS.find(o=>o.profile===CUR_ORG)||{}).userName||'—')}）看不到它的合同。
+    可用右上角的组织下拉切到另一个组织；也可在终端自查：<code>dws contract record list --start 2020-01-01T00:00:00+08:00 --end 2027-12-31T23:59:59+08:00 --profile ${esc(CUR_ORG||'')}</code>
+  </div>` : ''}
+  <div class="grid g4">
+    <div class="card stat"><div class="num">${total}</div><div class="lbl">合同总数</div>
+      <div class="sub muted">在管金额 ${fmtMoney(amtSum)}</div></div>
+    <div class="card stat"><div class="num" style="color:var(--brand)">${activeCount}</div><div class="lbl">履行中</div>
+      <div class="sub muted">待审批 ${pendingCount} · 待归档 ${unarchivedCount}</div></div>
+    <div class="card stat"><div class="num" style="color:var(--warn)">${due.length}</div><div class="lbl">90天内到期</div>
+      <div class="sub muted">已逾期 ${overdue.length}${(DATA_SOURCE==='live'&&dated<total)?' · 日期已补全 '+dated+'/'+total:''}</div></div>
+    <div class="card stat"><div class="num" style="color:var(--danger)">${highRisk}</div><div class="lbl">高风险合同</div>
+      <div class="sub muted">需重点跟进</div></div>
+  </div>
+  ${coverCard}
+
+  <div class="grid g2" style="margin-top:14px;">
+    <div class="card">
+      <h3>📈 合同金额与回款概览</h3>
+      <div class="row" style="justify-content:space-between">
+        <div class="kv"><div class="k">应收总额</div><div class="v">${fmtMoney(recvSum)}</div></div>
+        <div class="kv"><div class="k">已回款</div><div class="v" style="color:var(--ok)">${fmtMoney(gotSum)}</div></div>
+        <div class="kv"><div class="k">逾期应收</div><div class="v" style="color:var(--danger)">${fmtMoney(overdueAmt)}</div></div>
+      </div>
+      <div class="bar" style="margin-top:12px"><i style="width:${payPct}%;background:var(--ok)"></i></div>
+      <div class="note">回款进度 ${payPct}% · 数据来自账款发票模块</div>
+    </div>
+    <div class="card">
+      <h3>🛡️ 风险分布</h3>
+      <div class="row" style="gap:18px">
+        <div class="kv"><div class="k">高风险</div><div class="v" style="color:var(--danger)">${risks.filter(x=>x.r.lv==='高').length}</div></div>
+        <div class="kv"><div class="k">中风险</div><div class="v" style="color:var(--warn)">${risks.filter(x=>x.r.lv==='中').length}</div></div>
+        <div class="kv"><div class="k">低风险</div><div class="v" style="color:var(--ok)">${risks.filter(x=>x.r.lv==='低').length}</div></div>
+      </div>
+      <div class="legend" style="margin-top:12px">
+        <span><i class="dot" style="background:var(--danger)"></i>条款偏离/连带责任</span>
+        <span><i class="dot" style="background:var(--warn)"></i>相对方/管辖</span>
+        <span><i class="dot" style="background:var(--ok)"></i>正常</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:14px;">
+    <div class="card">
+      <h3>⏰ 临近到期提醒 <span class="tag">${due.length} 条</span></h3>
+      ${due.length? `<table><thead><tr><th>合同</th><th>相对方</th><th>到期</th><th>剩余</th></tr></thead><tbody>`+
+        due.slice(0,6).map(x=>`<tr onclick="openContract('${x.c.id}')" style="cursor:pointer">
+          <td>${esc(x.c.name)}</td><td>${esc(x.c.party.slice(0,10))}…</td>
+          <td>${x.c.end}</td><td>${x.left} 天</td></tr>`).join('')+`</tbody></table>`
+        : '<div class="empty">未来90天无到期合同</div>'}
+    </div>
+    <div class="card">
+      <h3>🔥 高风险合同 Top <span class="tag">${highRisk} 条</span></h3>
+      ${risks.filter(x=>x.r.lv==='高').slice(0,6).map(x=>`<div style="padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="openContract('${x.c.id}')">
+        <div style="display:flex;justify-content:space-between"><b>${esc(x.c.name)}</b><span class="pill p-danger">${x.r.score}分</span></div>
+        <div class="muted" style="font-size:12px">${x.r.items[0]?esc(x.r.items[0].t):''}</div></div>`).join('')
+        || '<div class="empty">暂无高风险合同</div>'}
+    </div>
+  </div>`;
+  $('#sec-dashboard').innerHTML = html;
+}
+
+/* ============================================================
+   渲染：合同台账
+   ============================================================ */
+let filterStatus='全部', filterKw='';
+// 公司（用印主体）与细分两级筛选。公司名来自钉钉表单/部门，可能含引号等字符，
+// 所以内联 onclick 只传下标、不传名字，避免拼出坏掉的 JS 字符串。
+let filterCompany='全部', filterCat='全部', COMP_LIST=[], CAT_LIST=[];
+function contractCompanies(){
+  const m=new Map();
+  for(const c of CONTRACTS) { const k=c.company||'未识别'; m.set(k,(m.get(k)||0)+1); }
+  return [...m.entries()].sort((a,b)=>{
+    if(a[0]==='未识别') return 1;
+    if(b[0]==='未识别') return -1;
+    return b[1]-a[1] || a[0].localeCompare(b[0],'zh');
+  });
+}
+function setFilterCompanyIdx(i){ filterCompany = i<0 ? '全部' : (COMP_LIST[i]?COMP_LIST[i][0]:'全部'); filterCat='全部'; renderContracts(); }
+function setFilterCatIdx(i){ filterCat = i<0 ? '全部' : CAT_LIST[i]; renderContracts(); }
+// 演示数据没有实时分类，用它的 type 顶上位，保证同一套筛选在两种模式下都能用
+function catOf(c){ return c.cat || c.type || ''; }
+function renderContracts(){
+  COMP_LIST = contractCompanies();
+  if(filterCompany!=='全部' && !COMP_LIST.some(x=>x[0]===filterCompany)) filterCompany='全部';
+  let list = CONTRACTS.slice();
+  if(filterCompany!=='全部') list=list.filter(c=>(c.company||'未识别')===filterCompany);
+  // 细分项只列当前公司下真实存在的类别，避免出现选了「招投标」却 0 份的空选项
+  CAT_LIST = [...new Set(list.map(catOf).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh'));
+  if(filterCat!=='全部' && !CAT_LIST.includes(filterCat)) filterCat='全部';
+  if(filterCat!=='全部') list=list.filter(c=>catOf(c)===filterCat);
+  if(filterStatus!=='全部') list=list.filter(c=>c.status===filterStatus);
+  if(filterKw) list=list.filter(c=>c.name.includes(filterKw)||c.party.includes(filterKw)||c.id.includes(filterKw));
+
+  // 状态筛选项按实际数据生成，否则实时数据里的「已到期/未生效」等状态无法筛选
+  const statusOrder=['履行中','待审批','已到期','未生效','已完结','已作废','待归档','归档确认中','已归档'];
+  const present=[...new Set(CONTRACTS.map(c=>c.status))];
+  const stats=['全部',...statusOrder.filter(s=>present.includes(s)),...present.filter(s=>!statusOrder.includes(s))];
+  const compChips = COMP_LIST.length>1 ? `
+    <span class="muted">公司：</span><span class="chip ${filterCompany==='全部'?'on':''}" onclick="setFilterCompanyIdx(-1)">全部</span>${COMP_LIST.map((x,i)=>`<span class="chip ${filterCompany===x[0]?'on':''}" onclick="setFilterCompanyIdx(${i})" title="${esc(x[0])}">${esc(x[0].length>14?x[0].slice(0,14)+'…':x[0])} ${x[1]}</span>`).join('')}` : '';
+  const catChips = CAT_LIST.length ? `
+    <span class="muted">细分：</span><span class="chip ${filterCat==='全部'?'on':''}" onclick="setFilterCatIdx(-1)">全部</span>${CAT_LIST.map((t,i)=>`<span class="chip ${filterCat===t?'on':''}" onclick="setFilterCatIdx(${i})">${esc(t)}</span>`).join('')}` : '';
+  html = `
+  <div class="toolbar">
+    <input class="inp" id="kw" placeholder="搜索合同名/相对方/编号" value="${esc(filterKw)}" oninput="filterKw=this.value;renderContracts()" style="width:220px"/>
+    ${compChips}${catChips}
+    <span class="muted" style="margin-left:8px">状态：</span>${stats.map(t=>`<span class="chip ${filterStatus===t?'on':''}" onclick="filterStatus='${t}';renderContracts()">${t}</span>`).join('')}
+    <span style="margin-left:auto" class="muted">${filterCompany==='全部'?'':esc(filterCompany)+' · '}${filterCat==='全部'?'':esc(filterCat)+' · '}共 ${list.length} 份</span>
+  </div>
+  <div class="card" style="padding:0;overflow:auto">
+    <table>
+      <thead><tr><th>编号</th><th>合同名称</th><th>公司</th><th>细分</th><th>相对方</th><th>金额</th><th>到期</th><th>剩余</th><th>状态</th><th>模板</th><th>风控</th><th></th></tr></thead>
+      <tbody>
+      ${list.map(c=>{const r=contractRisk(c);const left=daysBetween(today,c.end);const t=c.type||'—';
+        const cat=catOf(c)||'—'; const comp=c.company||'';
+        return `<tr>
+          <td>${c.id}</td><td>${esc(c.name)}</td>
+          <td style="font-size:12.5px">${comp?`<span title="${esc(comp)}${c.companySrc?'（来源：'+c.companySrc+'）':''}">${esc(comp.length>10?comp.slice(0,10)+'…':comp)}</span>`:'<span class="muted">—</span>'}</td>
+          <td><span class="pill p-info" title="${c.catSrc==='推断'?'按合同名称/用印用途推断，可在合同详情里改判':c.catSrc==='钉钉'?'钉钉台账分类':'人工改判'}">${esc(cat)}</span></td>
+          <td>${partyHtml(c,1)}</td>
+          <td>${fmtMoney(c.amount)}</td><td>${c.end||'<span class="muted">—</span>'}</td>
+          <td>${left===null?'<span class="muted">—</span>':(left<0?'<span class="p-danger" style="color:var(--danger)">逾期'+(-left)+'天</span>':left+'天')}</td>
+          <td>${statusPill(c.status)}</td>
+          <td>${c.standard==='非标'?'<span class="pill p-danger">非标</span>':c.standard==='—'?'<span class="pill p-info">实时</span>':'<span class="pill p-ok">标准</span>'}</td>
+          <td>${r.lv==='高'?'<span class="pill p-danger">高 '+r.score+'</span>':r.lv==='中'?'<span class="pill p-warn">中 '+r.score+'</span>':'<span class="pill p-ok">低 '+r.score+'</span>'}</td>
+          <td><button class="btn sm primary" onclick="openContract('${c.id}')">查看</button></td>
+        </tr>`;}).join('')}
+      </tbody>
+    </table>
+  </div>`;
+  $('#sec-contracts').innerHTML = html;
+}
+
+/* ============================================================
+   渲染：到期提醒
+   ============================================================ */
+function renderDue(){
+  const all = CONTRACTS.map(c=>({c,left:daysBetween(today,c.end)}))
+    .filter(x=>x.left!==null && x.c.status!=='已完结')
+    .sort((a,b)=>a.left-b.left);
+  const overdue = all.filter(x=>x.left<0);
+  const soon = all.filter(x=>x.left>=0 && x.left<=30);
+  const mid = all.filter(x=>x.left>30 && x.left<=90);
+  $('#dueBadge').textContent = (overdue.length+soon.length);
+
+  function block(title,arr,cls){
+    if(!arr.length) return '';
+    return `<div class="card"><h3>${title} <span class="tag">${arr.length} 条</span></h3><table>
+      <thead><tr><th>合同</th><th>相对方</th><th>到期日</th><th>状态</th><th>负责人</th><th></th></tr></thead><tbody>
+      ${arr.map(x=>`<tr>
+        <td>${esc(x.c.name)}</td><td>${esc(x.c.party.slice(0,12))}</td>
+        <td>${x.c.end}</td>
+        <td>${x.left<0?'<span class="pill p-danger">已逾期 '+(-x.left)+'天</span>':'<span class="pill '+cls+'">剩 '+x.left+' 天</span>'}</td>
+        <td>${x.c.owner}</td>
+        <td><button class="btn sm" onclick="openContract('${x.c.id}')">处理</button></td>
+      </tr>`).join('')}
+      </tbody></table></div>`;
+  }
+  // 实时模式下列表接口本身不含起止日期，未补全的合同无法参与到期计算，必须与「真的没有临期」区分开
+  const dated = CONTRACTS.filter(c=>c.start||c.end).length;
+  const undated = CONTRACTS.length-dated;
+  const coverNote = (DATA_SOURCE==='live' && undated>0)
+    ? `<div class="note" style="margin-bottom:12px;background:#fff8e6;border-color:#f0d8a0">ℹ️ 合同列表接口不含起止日期，需逐合同调详情补全：已取到到期日 <b>${dated} / ${CONTRACTS.length}</b>${ENRICH.running?'（补全进行中，完成后本页自动刷新）':'（补全已完成）'}；其余 ${undated} 份的合同表单本身未登记期限，因此不参与到期计算。</div>`
+    : '';
+  $('#sec-due').innerHTML = `
+    ${coverNote}
+    <div class="note" style="margin-bottom:12px">系统按合同到期日自动计算剩余天数，对逾期与临近到期（≤30天）合同重点提示，弥补标准版缺失的「到期提醒」能力。</div>
+    ${overdue.length?block('🔴 已逾期未处理',overdue,'p-danger'):''}
+    ${soon.length?block('🟠 30天内到期（紧急）',soon,'p-warn'):''}
+    ${mid.length?block('🟡 31–90天到期（关注）',mid,'p-info'):''}
+    ${(!overdue.length&&!soon.length&&!mid.length)?'<div class="empty">'+(ENRICH.running?'起止日期补全完成后将自动列出提醒':(undated?'暂无到期提醒（'+undated+' 份合同未登记期限，未参与计算）':'暂无到期提醒'))+'</div>':''}
+  `;
+}
+
+/* ============================================================
+   渲染：智能风控
+   ============================================================ */
+function renderRisk(){
+  const all = CONTRACTS.map(c=>({c,r:contractRisk(c)})).sort((a,b)=>b.r.score-a.r.score);
+  const cp = PARTIES.filter(p=>p.level==='高'||p.level==='中').sort((a,b)=>(b.level==='高')-(a.level==='高'));
+
+  const html = `
+  <div class="grid g2">
+    <div class="card">
+      <h3>📑 条款风险识别 <span class="tag">基于标准模板比对</span></h3>
+      <div class="note" style="margin-bottom:10px">逐条比对合同实际条款与标准模板，自动标出「偏离/非标条款」并给出修订建议；命中无限连带责任等红线直接判高风险。</div>
+      <table><thead><tr><th>合同</th><th>风险分</th><th>等级</th><th></th></tr></thead><tbody>
+      ${all.map(x=>`<tr><td>${esc(x.c.name)}</td>
+        <td>${x.r.score}</td>
+        <td>${x.r.lv==='高'?'<span class="pill p-danger">高</span>':x.r.lv==='中'?'<span class="pill p-warn">中</span>':'<span class="pill p-ok">低</span>'}</td>
+        <td><button class="btn sm" onclick="openContract('${x.c.id}')">详情</button></td></tr>`).join('')}
+      </tbody></table>
+    </div>
+    <div class="card">
+      <h3>🏢 相对方工商风险 <span class="tag">${cp.length} 家需关注</span></h3>
+      <div class="note" style="margin-bottom:10px">整合相对方经营异常、涉诉、限高等公开维度，形成风险等级，弥补标准版缺失的「相对方风险识别」。</div>
+      ${cp.map(p=>`<div style="padding:9px 0;border-bottom:1px solid var(--line)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <b>${esc(p.name)}</b>${levelPill(p.level)}</div>
+        <div class="muted" style="font-size:12px;margin-top:3px">${p.reasons.map(r=>'· '+esc(r)).join('<br/>')}</div>
+      </div>`).join('') || '<div class="empty">无中高风险相对方</div>'}
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>🔎 风险明细（点击合同名查看条款比对）</h3>
+    <table><thead><tr><th>合同</th><th>风险点</th><th>等级</th><th>说明/建议</th></tr></thead><tbody>
+    ${all.flatMap(x=>x.r.items.length?x.r.items.map(it=>`<tr>
+        <td onclick="openContract('${x.c.id}')" style="cursor:pointer">${esc(x.c.name)}</td>
+        <td>${esc(it.t)}</td>
+        <td>${it.lv==='高'?'<span class="pill p-danger">高</span>':it.lv==='中'?'<span class="pill p-warn">中</span>':'<span class="pill p-ok">低</span>'}</td>
+        <td class="muted">${esc(it.d)}</td></tr>`):[]).join('')}
+    </tbody></table>
+  </div>`;
+  $('#sec-risk').innerHTML = html;
+}
+
+/* ============================================================
+   渲染：账款发票
+   ============================================================ */
+function renderAccounting(){
+  // 账款行的合同可能已不在台账（被过滤/删除），必须兜底，否则整页渲染会中断
+  const rows = ACCOUNTING.map(a=>{const c=CONTRACTS.find(x=>x.id===a.cid)||{name:'（该合同已不在台账）'};return {...a,c};});
+  const recvSum=rows.reduce((s,a)=>s+a.recv,0), got=rows.reduce((s,a)=>s+a.recvAmt,0);
+  const invoiced=rows.filter(a=>a.invoiced).length;
+  const ov=rows.filter(a=>a.overdue);
+  html=`
+  <div class="grid g4" style="margin-bottom:14px">
+    <div class="card stat"><div class="num">${fmtMoney(recvSum)}</div><div class="lbl">应收总额</div></div>
+    <div class="card stat"><div class="num" style="color:var(--ok)">${fmtMoney(got)}</div><div class="lbl">已回款</div></div>
+    <div class="card stat"><div class="num" style="color:var(--brand)">${invoiced}/${rows.length}</div><div class="lbl">已开票</div></div>
+    <div class="card stat"><div class="num" style="color:var(--danger)">${ov.length}</div><div class="lbl">逾期账款</div></div>
+  </div>
+  <div class="card" style="padding:0;overflow:auto">
+    <table><thead><tr><th>合同</th><th>账期</th><th>应收</th><th>已收</th><th>开票</th><th>状态</th><th>备注</th></tr></thead><tbody>
+    ${rows.map(a=>`<tr>
+      <td>${esc(a.c.name)}<br/><span class="muted" style="font-size:11px">${a.cid}</span></td>
+      <td>${a.period}</td><td>${fmtMoney(a.recv)}</td><td>${fmtMoney(a.recvAmt)}</td>
+      <td>${a.invoiced?'<span class="pill p-ok">已开</span>':'<span class="pill p-warn">未开</span>'}</td>
+      <td>${a.overdue?'<span class="pill p-danger">逾期</span>':'<span class="pill p-ok">正常</span>'}</td>
+      <td class="muted">${esc(a.note)}</td></tr>`).join('')}
+    </tbody></table>
+  </div>
+  <div class="note" style="margin-top:10px">本模块弥补标准版缺失的「账款/发票到期提醒」，可据此触发催收与开票跟进。</div>`;
+  $('#sec-accounting').innerHTML=html;
+}
+
+/* ============================================================
+   渲染：相对方管理
+   ============================================================ */
+let cpCompany='全部', CP_COMPS=[];
+function setCpCompany(i){ cpCompany = i<0 ? '全部' : (CP_COMPS[i]||'全部'); renderCounterparty(); }
+function renderCounterparty(){
+  // 相对方按「用印选择的公司名称」分类：同一相对方可能跟多个子公司都签过，
+  // 所以逐公司分别计数，而不是合并成一个总数
+  // partyOwn=本方盖章主体（集团内互盖章被填在相对方栏），不算外部相对方
+  const byParty=new Map();
+  let ownHits=0;
+  for(const c of CONTRACTS){
+    if(!c.party || c.party==='—') continue;
+    if(c.partyOwn){ ownHits++; continue; }
+    const comp=c.company||'未识别';
+    if(!byParty.has(c.party)) byParty.set(c.party,new Map());
+    const m=byParty.get(c.party); m.set(comp,(m.get(comp)||0)+1);
+  }
+  CP_COMPS=[...new Set([...byParty.values()].flatMap(m=>[...m.keys()]))].sort((a,b)=>{
+    if(a==='未识别') return 1; if(b==='未识别') return -1;
+    return a.localeCompare(b,'zh');
+  });
+  if(cpCompany!=='全部' && !CP_COMPS.includes(cpCompany)) cpCompany='全部';
+  const ownNames=new Set(CONTRACTS.filter(c=>c.partyOwn).map(c=>c.party));
+  let rows=PARTIES.filter(p=>!ownNames.has(p.name));
+  for(const c of CONTRACTS){
+    if(!c.party||c.party==='—'||c.partyOwn) continue;
+    if(!rows.find(p=>p.name===c.party)) rows.push({name:c.party,type:'相对方',code:'—',level:'—',reasons:['（合同台账中出现的相对方，未单独登记）'],contracts:0});
+  }
+  const cnt=(p)=>{const m=byParty.get(p.name);
+    if(cpCompany!=='全部') return m?.get(cpCompany)||0;
+    return m ? [...m.values()].reduce((s,v)=>s+v,0) : (p.contracts||0);};
+  if(cpCompany!=='全部') rows=rows.filter(p=>(byParty.get(p.name)?.get(cpCompany)||0)>0);
+  rows.sort((a,b)=>cnt(b)-cnt(a) || a.name.localeCompare(b.name,'zh'));
+  const chips = `
+  <div class="toolbar">
+    ${CP_COMPS.length>1?`<span class="muted">用印公司：</span><span class="chip ${cpCompany==='全部'?'on':''}" onclick="setCpCompany(-1)">全部</span>${CP_COMPS.map((x,i)=>`<span class="chip ${cpCompany===x?'on':''}" onclick="setCpCompany(${i})" title="${esc(x)}">${esc(x.length>14?x.slice(0,14)+'…':x)}</span>`).join('')}`:''}
+    <span style="margin-left:auto" class="muted">${ownHits?`<span title="这些合同的「相对方」栏填的是本方盖章主体（集团内互盖章），不计入相对方">已排除集团内用印 ${ownHits} 份 · </span>`:''}共 ${rows.length} 个相对方</span>
+  </div>`;
+  html=chips+`
+  <div class="card" style="padding:0;overflow:auto">
+    <table><thead><tr><th>相对方</th><th>类型</th><th>统一社会信用代码</th><th>风险等级</th><th>关联合同${cpCompany==='全部'?'':'（'+esc(cpCompany)+'）'}</th><th>用印公司</th><th>风险原因</th></tr></thead><tbody>
+    ${rows.map(p=>{const m=byParty.get(p.name)||new Map();
+      const compCell=[...m.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k.length>12?k.slice(0,12)+'…':k)} ×${v}`).join('<br/>')||'<span class="muted">—</span>';
+      return `<tr>
+      <td><b>${esc(p.name)}</b></td><td><span class="pill p-info">${p.type}</span></td>
+      <td class="muted">${p.code}</td><td>${levelPill(p.level)}</td>
+      <td>${cnt(p)}</td>
+      <td style="font-size:12px" title="${esc([...m.keys()].join('、'))}">${compCell}</td>
+      <td class="muted" style="font-size:12.5px">${p.reasons.map(r=>'· '+esc(r)).join('<br/>')}</td></tr>`;}).join('')}
+    </tbody></table>
+  </div>`;
+  $('#sec-counterparty').innerHTML=html;
+}
+
+/* ============================================================
+   渲染：审批/归档比对
+   ============================================================ */
+function renderCompare(){
+  const list = CONTRACTS.filter(c=>c.flag || c.standard==='非标');
+  let html=`
+  <div class="note" style="margin-bottom:12px">「审批比对」在审批环节自动比对合同实际条款与标准模板，标出非标/偏离条款；「归档比对」在归档环节核对扫描件与定稿关键字段是否一致。两者均为高级版能力，本系统以规则引擎在本地实现。</div>
+  <div class="toolbar">
+    <span class="muted">选择合同：</span>
+    ${list.map(c=>`<span class="chip" style="cursor:pointer" onclick="openContract('${c.id}')">${esc(c.name)}</span>`).join('')}
+  </div>
+  <div class="card">
+    <h3>🔍 审批比对 / 归档比对 —— 选择上方合同查看详情</h3>
+    <div class="empty">点击上方任一（非标/需关注）合同，在弹窗中查看条款逐条比对与扫描件比对结果。</div>
+  </div>`;
+  $('#sec-compare').innerHTML=html;
+}
+
+/* ============================================================
+   渲染：模板与编号
+   ============================================================ */
+function renderTemplate(){
+  html=`
+  <div class="card" style="padding:0;overflow:auto">
+    <table><thead><tr><th>类别</th><th>标准模板</th><th>编号前缀</th><th>编号规则</th><th>强制条款</th></tr></thead><tbody>
+    ${TEMPLATES.map(t=>`<tr>
+      <td><span class="pill p-info">${t.cat}</span></td>
+      <td>${esc(t.name)}</td><td><code style="color:var(--brand)">${t.code}</code></td>
+      <td class="muted">${esc(t.rule)}</td>
+      <td style="font-size:12.5px">${t.must.map(m=>'✓ '+esc(m)).join('<br/>')}</td></tr>`).join('')}
+    </tbody></table>
+  </div>
+  <div class="note" style="margin-top:10px">本系统按「类别→前缀+年份+序号」自动生成合同编号建议，并校验强制条款，弥补标准版缺失的「模板/编号规则管理」。</div>`;
+  $('#sec-template').innerHTML=html;
+}
+
+/* ============================================================
+   渲染：批量操作（转交/归档/完结）
+   ============================================================ */
+function renderBatch(){
+  const list=CONTRACTS.map(c=>({c,op:OP[c.id]||{}}));
+  html=`
+  <div class="note" style="margin-bottom:12px">批量「归档 / 转交 / 完结」操作在标准版中按份手工处理，本系统提供勾选批量执行（演示环境仅更新前端状态，可对接钉钉合同系统落地）。</div>
+  <div class="toolbar">
+    <button class="btn primary" onclick="batchOp('archive')">批量归档</button>
+    <button class="btn" onclick="batchOp('transfer')">批量转交</button>
+    <button class="btn" onclick="batchOp('complete')">批量完结</button>
+    <span class="muted" id="batchSel">已选 0 项</span>
+  </div>
+  <div class="card" style="padding:0;overflow:auto">
+    <table><thead><tr><th><input type="checkbox" id="chkAll" onclick="toggleAll(this)"/></th><th>合同</th><th>状态</th><th>归档</th><th>已执行</th></tr></thead><tbody>
+    ${list.map(({c,op})=>`<tr>
+      <td><input type="checkbox" class="chk" value="${c.id}" onchange="updateSel()"/></td>
+      <td>${esc(c.name)}</td><td>${statusPill(c.status)}</td>
+      <td>${c.archive}</td>
+      <td>${op.archive?'<span class="pill p-ok">已归档</span>':''} ${op.transfer?'<span class="pill p-info">已转交</span>':''} ${op.complete?'<span class="pill p-ok">已完结</span>':''} ${!op.archive&&!op.transfer&&!op.complete?'<span class="muted">—</span>':''}</td>
+    </tr>`).join('')}
+    </tbody></table>
+  </div>`;
+  $('#sec-batch').innerHTML=html;
+}
+function toggleAll(box){
+  document.querySelectorAll('#sec-batch .chk').forEach(c=>c.checked=box.checked);updateSel();
+}
+function updateSel(){
+  const n=document.querySelectorAll('#sec-batch .chk:checked').length;
+  $('#batchSel').textContent='已选 '+n+' 项';
+}
+function batchOp(kind){
+  const ids=[...document.querySelectorAll('#sec-batch .chk:checked')].map(c=>c.value);
+  if(!ids.length){toast('请先勾选合同');return;}
+  ids.forEach(id=>{OP[id]=OP[id]||{};OP[id][kind]=true;
+    const c=CONTRACTS.find(x=>x.id===id);
+    if(kind==='archive')c.archive='已归档';
+    if(kind==='complete')c.status='已完结';
+  });
+  toast(`已对 ${ids.length} 份合同执行「${kind==='archive'?'归档':kind==='transfer'?'转交':'完结'}」`);
+  renderBatch();
+}
+
+/* ============================================================
+   渲染：借阅归还
+   ============================================================ */
+function renderBorrow(){
+  const records=BORROWS.map(b=>({...b,c:CONTRACTS.find(x=>x.id===b.cid)}));
+  html=`
+  <div class="toolbar">
+    <button class="btn primary" onclick="addBorrow()">登记借阅</button>
+  </div>
+  <div class="card" style="padding:0;overflow:auto">
+    <table><thead><tr><th>合同</th><th>借阅人</th><th>借出</th><th>应还/实还</th><th>状态</th><th>事由</th></tr></thead><tbody>
+    ${records.map(b=>`<tr>
+      <td>${esc(b.c?b.c.name:b.cid)}</td><td>${esc(b.who)}</td><td>${b.out}</td>
+      <td>${b.back}</td>
+      <td>${b.status==='借阅中'?'<span class="pill p-warn">借阅中</span>':'<span class="pill p-ok">已归还</span>'}</td>
+      <td class="muted">${esc(b.reason)}</td></tr>`).join('')}
+    </tbody></table>
+  </div>
+  <div class="note" style="margin-top:10px">借阅/归还台账弥补标准版缺失的「合同借阅与归还」管理。</div>`;
+  $('#sec-borrow').innerHTML=html;
+}
+function addBorrow(){
+  const cid=prompt('输入合同编号（如 HT-2026-000140）：');
+  if(!cid)return;
+  const c=CONTRACTS.find(x=>x.id===cid);
+  if(!c){toast('未找到该合同');return;}
+  const who=prompt('借阅人（部门-姓名）：')||'未知';
+  BORROWS.push({cid,who,out:'2026-09-15',back:'—',status:'借阅中',reason:'临时借阅'});
+  toast('借阅已登记');
+  renderBorrow();
+}
+
+/* ============================================================
+   渲染：关于
+   ============================================================ */
+function renderAbout(){
+  $('#sec-about').innerHTML=`
+  <div class="card">
+    <h3>ℹ️ 关于本系统</h3>
+    <p>本系统用于<strong>补齐钉钉「智能合同」标准版未开通的中级 / 高级能力</strong>，以纯前端、规则驱动、内置演示数据的方式运行，<strong>无需调用任何大模型、无需服务端、无需密钥、可离线打开</strong>。</p>
+    <h3 style="margin-top:16px">已覆盖的高级版能力</h3>
+    <ul class="flat">
+      <li>审批比对：合同实际条款 vs 标准模板，逐条标出非标/偏离并给修订建议</li>
+      <li>归档比对：扫描件关键字段 vs 定稿，自动发现不一致</li>
+      <li>智能风控：条款风险（含无限连带责任红线）+ 相对方工商风险识别</li>
+      <li>到期提醒：逾期 / 临近到期自动计算与提示</li>
+      <li>账款发票：应收、回款、开票、逾期可视与提醒</li>
+      <li>相对方管理：经营异常、涉诉、限高等维度风险分级</li>
+      <li>模板与编号：按类别自动编号建议 + 强制条款校验</li>
+      <li>批量操作：归档 / 转交 / 完结批量执行</li>
+      <li>借阅归还：合同借阅台账管理</li>
+    </ul>
+    <h3 style="margin-top:16px">对接真实钉钉</h3>
+    <p class="muted">打开页面时会自动连接后端并加载真实数据，无需手动点「连接」；若后端未启动或不可达，则自动回退到演示数据并提示。数据源偏好与后端地址记在浏览器本地，下次打开自动沿用；如需离线演示，可在右上角切回「演示数据」。后端 <code>server.js</code> 会通过「钉钉智能合同官方连接器（连接平台）」拉取真实合同列表、状态、相对方、到期日等，并复用本系统的规则引擎做到期提醒、风控基线、统计与批量操作；其中「逐条条款比对 / 扫描件归档比对」需补充定稿与扫描件文本后由本地规则引擎完成。详细步骤见项目 README。</p>
+    <p style="margin-top:16px">如有问题，请联系本组织合同台账的管理员。</p>
+  </div>`;
+}
+
+/* ============================================================
+   合同详情弹窗（汇总所有能力）
+   ============================================================ */
+function fileListHtml(files){
+  if(!files||!files.length) return '<div class="muted">无可用文件</div>';
+  return '<div class="file-list">'+files.map(function(f){
+    var kb=f.size? ' <span class="muted">('+Math.round(f.size/1024)+'KB)</span>':'';
+    return '<a class="file-chip" href="'+esc(f.url)+'" target="_blank" rel="noopener">📄 '+esc(f.name)+kb+'</a>';
+  }).join('')+'</div>';
+}
+function formFieldsHtml(ff){
+  if(!ff||!ff.length) return '';
+  return '<div class="kv-row">'+ff.slice(0,24).map(function(f){
+    return '<div class="kv"><div class="k">'+esc(f.label)+'</div><div class="v">'+esc(f.value)+'</div></div>';
+  }).join('')+'</div>';
+}
+function openContract(id){
+  const c=CONTRACTS.find(x=>x.id===id); if(!c)return;
+  $('#modalTitle').textContent=c.name+'（'+c.id+'）';
+  renderContractModal(c);
+  // 实时模式：拉取单份详情补全起止日期/相对方/文件/账款/表单字段
+  if(c.live && c.cid && BACKEND_URL){
+    fetch(api('/api/dingtalk/contract/'+encodeURIComponent(c.cid))).then(r=>r.json()).then(d=>{
+      if(d && !d.message){
+        if(d.start) c.start=d.start;
+        if(d.end) c.end=d.end;
+        if(d.party && d.party!=='—'){ c.party=d.party; c.partyInferred=false; refreshPartyOwn(c); }
+        if(d.amount) c.amount=d.amount;
+        c._detail=d;
+        renderContractModal(c);
+      }
+    }).catch(()=>{});
+  }
+}
+function renderContractModal(c){
+  const r=contractRisk(c);
+  const left=daysBetween(today,c.end);
+  const acct=ACCOUNTING.filter(a=>a.cid===c.id);
+  const acctD = c._detail && c._detail.accounting;
+  const files = (c._detail && c._detail.files) || c.files || [];
+  const ff = c._detail && c._detail.formFields;
+  const due = left===null? '<span class="pill p-info">无到期日</span>' : (left<0? '<span class="pill p-danger">已逾期 '+(-left)+' 天</span>' : '<span class="pill p-info">剩 '+left+' 天</span>');
+  const tier = c.standard==='非标'?'<span class="pill p-danger">非标</span>':c.standard==='—'?'<span class="pill p-info">实时</span>':'<span class="pill p-ok">标准</span>';
+
+  const riskItems = r.items.length? '<ul class="flat">'+r.items.map(function(it){
+    const lv = it.lv==='高'?'<span class="pill p-danger">高</span>':it.lv==='中'?'<span class="pill p-warn">中</span>':'<span class="pill p-ok">低</span>';
+    return '<li>'+lv+' '+esc(it.t)+(it.d?' <span class="muted">— '+esc(it.d)+'</span>':'')+'</li>';
+  }).join('')+'</ul>' : '<div class="muted">未识别到风险项</div>';
+
+  let acctHtml;
+  if(acctD && (acctD.restAmount||acctD.executedAmount||acctD.receive||acctD.pay)){
+    acctHtml='<div class="kv-row">'
+      +'<div class="kv"><div class="k">应收余额</div><div class="v">'+esc(acctD.restAmount)+'</div></div>'
+      +'<div class="kv"><div class="k">已执行金额</div><div class="v">'+esc(acctD.executedAmount)+'</div></div>'
+      +'<div class="kv"><div class="k">应收已收</div><div class="v">'+esc(acctD.receive)+'</div></div>'
+      +'<div class="kv"><div class="k">应付已付</div><div class="v">'+esc(acctD.pay)+'</div></div>'
+      +'</div>';
+  } else if(acct.length){
+    acctHtml='<table><thead><tr><th>账期</th><th>应收</th><th>已收</th><th>开票</th><th>状态</th></tr></thead><tbody>'
+      +acct.map(function(a){
+        return '<tr><td>'+a.period+'</td><td>'+fmtMoney(a.recv)+'</td><td>'+fmtMoney(a.recvAmt)+'</td>'
+          +'<td>'+(a.invoiced?'<span class="pill p-ok">已开</span>':'<span class="pill p-warn">未开</span>')+'</td>'
+          +'<td>'+(a.overdue?'<span class="pill p-danger">逾期</span>':'<span class="pill p-ok">正常</span>')+'</td></tr>';
+      }).join('')+'</tbody></table>';
+  } else { acctHtml='<div class="muted">暂无账款记录</div>'; }
+
+  const cmpHtml = (c.clauses&&c.clauses.length)? c.clauses.map(function(cl){
+    const dev = cl.dev?'<span class="pill p-warn dev-tag">偏离</span>':'<span class="pill p-ok dev-tag">一致</span>';
+    return '<div class="diff-row"><div class="dh">'+esc(cl.topic)+' '+dev+'</div><div class="diff-cols">'
+      +'<div class="std"><div class="lab">标准模板</div>'+esc(cl.standard)+'</div>'
+      +'<div class="act"><div class="lab">本合同实际</div>'+esc(cl.actual)+'</div></div>'
+      +(cl.note?'<div style="padding:8px 12px;font-size:12.5px;color:var(--sub);background:var(--panel2)">建议：'+esc(cl.note)+'</div>':'')
+      +'</div>';
+  }).join('') : '<div class="note">实时数据未包含逐条条款文本。如需审批比对，可在本系统粘贴「定稿条款」与「扫描件条款」，由本地规则引擎标出偏离条款与红线。</div>';
+
+  const arcHtml = (c.archiveCheck&&c.archiveCheck.length)? '<table><thead><tr><th>字段</th><th>定稿</th><th>扫描件</th><th>结果</th></tr></thead><tbody>'
+    + c.archiveCheck.map(function(a){
+      return '<tr><td>'+esc(a.name)+'</td><td>'+esc(a.final)+'</td><td>'+esc(a.scan)+'</td>'
+        +'<td>'+(a.match?'<span class="pill p-ok">一致</span>':'<span class="pill p-danger">不一致</span>')+'</td></tr>';
+    }).join('')+'</tbody></table>'
+    : '<div class="note">实时数据未含扫描件字段。可在归档环节上传定稿与扫描件，由本系统核对关键字段一致性。</div>';
+
+  const partyRiskCard = '<div class="card" style="margin-top:14px"><h3>🏢 相对方工商 / 风险 <button class="btn sm" onclick="checkPartyRiskById(\''+c.id+'\')">查询</button></h3>'
+    +'<div id="partyRiskBox" class="muted">点击「查询」获取该相对方的工商信息与风险检测（需钉钉智能合同对应能力开通）。</div></div>';
+
+  const formCard = (ff&&ff.length)? '<div class="card" style="margin-top:14px"><h3>📋 合同表单字段（实时）</h3>'+formFieldsHtml(ff)+'</div>' : '';
+
+  // 分类改判入口：钉钉侧台账分类目前几乎全是「未分类」，所以给人一个纠正的地方
+  const catOpts = CATS.length? CATS : [...new Set(CONTRACTS.map(catOf).filter(Boolean))];
+  const clsCard = DATA_SOURCE==='live' ? ('<div class="card" style="margin-top:14px"><h3>🏷️ 分类（我方公司 / 细分）</h3>'
+    +'<div class="row" style="gap:12px;align-items:flex-end">'
+    +'<div class="kv" style="min-width:300px"><div class="k">我方公司 · 现来源：'+esc(c.companySrc||'未识别')+'</div>'
+      +'<input class="inp" id="clsComp" value="'+esc(c.company||'')+'" placeholder="留空则按用印公司/部门自动" style="width:100%"/></div>'
+    +'<div class="kv" style="min-width:190px"><div class="k">细分 · 现来源：'+esc(c.catSrc||'—')+'</div>'
+      +'<select class="sel" id="clsCat" style="width:100%"><option value="">（自动）</option>'
+      +catOpts.map(x=>'<option value="'+esc(x)+'"'+(x===c.cat?' selected':'')+'>'+esc(x)+'</option>').join('')
+      +(c.cat&&!catOpts.includes(c.cat)?'<option value="'+esc(c.cat)+'" selected>'+esc(c.cat)+'（钉钉台账分类）</option>':'')
+      +'</select></div>'
+    +'<button class="btn primary" onclick="saveClass(\''+c.id+'\')">保存改判</button>'
+    +'</div>'
+    +'<div class="note">改判只写本机 <code>.contract-classes.json</code>，不回写钉钉；它优先于自动推断，重新补全也不会被覆盖。</div>'
+    +'</div>') : '';
+
+  const html =
+    '<div class="row" style="margin-bottom:14px">'
+    +'<div class="kv"><div class="k">相对方</div><div class="v">'+partyHtml(c)+'</div></div>'
+    +'<div class="kv"><div class="k">金额</div><div class="v">'+fmtMoney(c.amount)+'</div></div>'
+    +'<div class="kv"><div class="k">期限</div><div class="v">'+dateRangeHtml(c)+'</div></div>'
+    +'<div class="kv"><div class="k">到期</div><div class="v">'+due+'</div></div>'
+    +'<div class="kv"><div class="k">状态</div><div class="v">'+statusPill(c.status)+'</div></div>'
+    +'<div class="kv"><div class="k">模板</div><div class="v">'+tier+'</div></div>'
+    +'<div class="kv"><div class="k">负责人</div><div class="v">'+c.owner+'</div></div>'
+    +'</div>'
+    +clsCard
+    +'<div class="grid g2">'
+      +'<div class="card"><h3>🛡️ 风控评分 <span class="tag">'
+        +(r.lv==='高'?'<span class="pill p-danger">高 '+r.score+'</span>':r.lv==='中'?'<span class="pill p-warn">中 '+r.score+'</span>':'<span class="pill p-ok">低 '+r.score+'</span>')
+        +'</span></h3>'+riskItems+'</div>'
+      +'<div class="card"><h3>💰 账款发票</h3>'+acctHtml+'</div>'
+    +'</div>'
+    +'<div class="card" style="margin-top:14px"><h3>📎 合同文件（实时）</h3>'+fileListHtml(files)+'</div>'
+    +'<div class="card" style="margin-top:14px"><h3>🔍 审批比对（实际条款 vs 标准模板）</h3>'+cmpHtml+'</div>'
+    +'<div class="card" style="margin-top:14px"><h3>📑 归档比对（扫描件 vs 定稿）</h3>'+arcHtml+'</div>'
+    +partyRiskCard
+    +formCard
+    +'<div class="toolbar" style="margin-top:16px">'
+      +'<button class="btn primary" onclick="doOp(\''+c.id+'\',\'archive\')">标记归档</button>'
+      +'<button class="btn" onclick="doOp(\''+c.id+'\',\'transfer\')">转交</button>'
+      +'<button class="btn" onclick="doOp(\''+c.id+'\',\'complete\')">完结</button>'
+      +'<button class="btn" onclick="borrowFrom(\''+c.id+'\')">借阅登记</button>'
+    +'</div>'
+    +'<div class="note">以上按钮在演示环境仅更新前端状态；对接钉钉后可触发真实合同系统的归档 / 转交 / 完结 / 借阅接口。</div>';
+
+  $('#modalBody').innerHTML=html;
+  $('#modal').classList.add('show');
+}
+async function saveClass(id){
+  const c=CONTRACTS.find(x=>x.id===id); if(!c) return;
+  const catEl=document.getElementById('clsCat'), compEl=document.getElementById('clsComp');
+  if(!catEl||!compEl) return;
+  const payload={cid:c.cid, cat:catEl.value, company:compEl.value.trim()};
+  try{
+    const r=await fetch(api('/api/dingtalk/classify'),{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(x=>x.json());
+    if(!r || r.ok!==true){ toast('改判失败：'+((r&&r.message)||'后端未返回成功')); return; }
+    c.cat=r.cat; c.company=r.company; c.companySrc=r.companySrc;
+    c.catSrc = payload.cat ? '人工' : c.catSrc;
+    // 新认定的我方盖章主体可能正是别的合同里被当成相对方的那家子公司，整表重算一次
+    if(payload.company && !OWN_COMPS.includes(payload.company)) OWN_COMPS.push(payload.company);
+    CONTRACTS.forEach(refreshPartyOwn);
+    toast('已改判：'+(r.company||'未识别公司')+' · '+(r.cat||'—'));
+    renderAll(); renderContractModal(c);
+  }catch(e){ toast('改判失败：'+e.message); }
+}
+async function checkPartyRiskById(id){
+  const c=CONTRACTS.find(x=>x.id===id); if(!c)return;
+  const box=document.getElementById('partyRiskBox'); if(!box)return;
+  if(!c.party||c.party==='—'){ box.innerHTML='<div class="muted">该合同未识别到相对方</div>'; return; }
+  if(!BACKEND_URL){ box.innerHTML='<div class="muted">未连接钉钉后端</div>'; return; }
+  const caveat = c.partyInferred? '<div class="muted" style="margin-bottom:6px">⚠️ 该相对方系按合同名称推断，若非工商登记全称可能查不到结果。</div>' : '';
+  box.innerHTML=caveat+'<div class="muted">查询中…</div>';
+  try{
+    const [info,risk]=await Promise.all([
+      fetch(api('/api/dingtalk/subject-info',{name:c.party})).then(r=>r.json()).catch(()=>null),
+      fetch(api('/api/dingtalk/subject-risk',{name:c.party})).then(r=>r.json()).catch(()=>null),
+    ]);
+    let html='';
+    if(info && typeof info==='object' && Object.keys(info).length){
+      const keys=['unifiedSocialCreditCode','legalPerson','legalRepresentative','regCapital','registeredCapital','businessStatus','status','establishDate','enterpriseType','regAddress'];
+      const rows=keys.filter(k=>info[k]!==undefined&&info[k]!==null&&info[k]!=='').map(k=>`<div class="kv"><div class="k">${k}</div><div class="v">${esc(info[k])}</div></div>`);
+      html+= rows.length?`<div class="kv-row">${rows.join('')}</div>`:'<div class="muted">工商接口已返回，但无可展示字段</div>';
+    } else { html+='<div class="muted">未获取到工商信息（钉钉智能合同工商库未开通或无该主体记录）</div>'; }
+    if(risk && typeof risk==='object'){
+      const ok = risk.freeBenefitRestEnough===true;
+      html+=`<div class="muted" style="margin-top:8px">风险检测：${ok?'已开通，未返回具体风险项':'本组织未开通工商风险检测服务（钉钉智能合同付费能力）'}</div>`;
+    }
+    box.innerHTML=caveat+(html||'<div class="muted">无数据</div>');
+  }catch(e){ box.innerHTML='<div class="muted">查询失败：'+esc(e.message)+'</div>'; }
+}
+function doOp(id,kind){
+  OP[id]=OP[id]||{};OP[id][kind]=true;
+  const c=CONTRACTS.find(x=>x.id===id);
+  if(kind==='archive')c.archive='已归档';
+  if(kind==='complete')c.status='已完结';
+  toast('已执行：'+({archive:'归档',transfer:'转交',complete:'完结'}[kind]));
+  openContract(id);
+  renderAll();
+}
+function borrowFrom(id){
+  const who=prompt('借阅人（部门-姓名）：')||'未知';
+  BORROWS.push({cid:id,who,out:'2026-09-15',back:'—',status:'借阅中',reason:'详情页登记'});
+  toast('借阅已登记');renderBorrow();
+}
+function closeModal(){$('#modal').classList.remove('show');}
+
+/* ============================================================
+   导航 & 初始化
+   ============================================================ */
+const TITLES={dashboard:'概览看板',contracts:'合同台账',due:'到期提醒',risk:'智能风控',
+  accounting:'账款发票',counterparty:'相对方管理',compare:'审批/归档比对',template:'模板与编号',
+  batch:'批量操作',borrow:'借阅归还',about:'关于本系统'};
+function switchTab(tab){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  $('#sec-'+tab).classList.add('active');
+  $('#pageTitle').textContent=TITLES[tab];
+}
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+function renderAll(){
+  // 逐个渲染并隔离异常：单个面板出错不应导致其余面板全部空白
+  const fns=[renderDashboard,renderContracts,renderDue,renderRisk,renderAccounting,renderCounterparty,renderCompare,renderTemplate,renderBatch,renderBorrow,renderAbout];
+  for(const fn of fns){
+    try{ fn(); }catch(e){ console.warn('渲染失败:',fn.name,e); }
+  }
+}
+// 初始化：恢复上次的后端地址与数据源；默认直接尝试连钉钉实时，失败则回退演示数据
+(function initBackendField(){
+  let savedSrc='live';
+  try{
+    const u=localStorage.getItem(LS_URL);
+    if(u) BACKEND_URL=u;
+    const s=localStorage.getItem(LS_SRC);
+    if(s) savedSrc=s;
+  }catch(e){ /* 无 localStorage 时用默认值 */ }
+  const inp=$('#bkUrl');
+  if(inp) inp.value=BACKEND_URL;
+  setSrcSel(savedSrc);
+  if(savedSrc==='live') connectDingtalk(true);
+})();
+renderAll();
+</script>
+</body>
+</html>
