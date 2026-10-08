@@ -519,7 +519,24 @@
       "id": 28,
       "uploadTime": "2026-10-08T10:12:35.486Z",
       "filePath": "docs-vault/files/28.pdf"
+    },
+    {
+      "name": "20250818  中国汽车技术研究中心  合作研究协议    已双盖.pdf",
+      "size": 2641251,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "public",
+      "docType": "cooperation",
+      "category": "cooperation",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 29,
+      "uploadTime": "2026-10-08T10:12:43.124Z",
+      "filePath": "docs-vault/files/29.pdf"
     }
   ],
-  "lastUpdated": "2026/10/8 18:12:39"
+  "lastUpdated": "2026/10/8 18:12:49"
 }
