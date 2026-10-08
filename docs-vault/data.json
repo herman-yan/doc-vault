@@ -536,7 +536,24 @@
       "id": 29,
       "uploadTime": "2026-10-08T10:12:43.124Z",
       "filePath": "docs-vault/files/29.pdf"
+    },
+    {
+      "name": "林芝润合时代新能源科技有限公司章程.pdf",
+      "size": 3005512,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "lz-runhe",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 30,
+      "uploadTime": "2026-10-08T10:21:09.956Z",
+      "filePath": "docs-vault/files/30.pdf"
     }
   ],
-  "lastUpdated": "2026/10/8 18:13:19"
+  "lastUpdated": "2026/10/8 18:21:16"
 }
