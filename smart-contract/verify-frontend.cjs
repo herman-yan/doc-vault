@@ -17,45 +17,64 @@ const inlineSrc = scripts.join('\n;\n');
 const source = new vm.Script(inlineSrc); // 语法错误会在这里直接抛出
 console.log('内联脚本块数:', scripts.length, '  字符数:', inlineSrc.length);
 
-const store = new Map();
-function el(id) {
-  return {
-    id, innerHTML: '', textContent: '', value: '', dataset: {}, style: {}, disabled: false,
-    classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
-    addEventListener() {}, appendChild() {}, querySelector() { return el('child'); }, querySelectorAll() { return []; },
-  };
-}
-const document = {
-  getElementById(id) { const k = String(id); if (!store.has(k)) store.set(k, el(k)); return store.get(k); },
-  // 页面里的 $() 是 querySelector('#x')，必须与 getElementById 返回同一对象，
-  // 否则写入落在两个不同元素上，断言会读到空壳而「假通过」
-  querySelector(sel) { if (sel && sel[0] === '#') return this.getElementById(sel.slice(1)); const k = 'q:' + sel; if (!store.has(k)) store.set(k, el(k)); return store.get(k); },
-  querySelectorAll() { return []; },
-  createElement(t) { return el(t); },
-  addEventListener() {},
-};
-document.body = el('body');
-const ctx = {
-  console, document, window: {}, localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
-  fetch: () => Promise.resolve({ json: () => Promise.resolve({}) }),
-  setTimeout, clearTimeout, setInterval, clearInterval, Date, Math, JSON, Intl,
-  prompt: () => null, alert: () => {}, encodeURIComponent, decodeURIComponent,
-};
-ctx.window = ctx; ctx.globalThis = ctx;
-vm.createContext(ctx);
-
 const names = ['renderDashboard', 'renderContracts', 'renderDue', 'renderRisk', 'renderAccounting', 'renderCounterparty',
   'renderCompare', 'renderTemplate', 'renderBatch', 'renderBorrow', 'renderAbout', 'renderContractModal', 'refreshPartyOwn'];
 // vm 里顶层 let/const 不会挂到 context 上，附加一行把需要的引用导出来
-const shim = '\n;globalThis.__S={CONTRACTS,PARTIES,ACCOUNTING,BORROWS,OWN_COMPS,today,' + names.join(',') + '};';
-try { vm.runInContext(inlineSrc + shim, ctx); }
-catch (e) { console.log('脚本加载失败:', e.message); process.exit(1); }
-const S = ctx.__S;
+const shim = '\n;globalThis.__S={CONTRACTS,PARTIES,ACCOUNTING,BORROWS,OWN_COMPS,today,GATE_HASH,GATE_LS,gateHash,' + names.join(',') + '};';
+
+// 一次运行 = 一套独立的 DOM 桩 + localStorage（seed 用来模拟「本机已解锁过」）
+function makeEnv(seed) {
+  const store = new Map();
+  function el(id) {
+    return {
+      id, innerHTML: '', textContent: '', value: '', dataset: {}, style: {}, disabled: false, removed: false,
+      classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
+      addEventListener(ev, fn) { (this.__h = this.__h || {}); (this.__h[ev] = this.__h[ev] || []).push(fn); },
+      fire(ev, e) { for (const fn of (this.__h || {})[ev] || []) fn(e || { preventDefault() {} }); },
+      appendChild() {}, querySelector() { return el('child'); }, querySelectorAll() { return []; },
+      remove() { this.removed = true; },
+    };
+  }
+  const document = {
+    getElementById(id) { const k = String(id); if (!store.has(k)) store.set(k, el(k)); return store.get(k); },
+    // 页面里的 $() 是 querySelector('#x')，必须与 getElementById 返回同一对象，
+    // 否则写入落在两个不同元素上，断言会读到空壳而「假通过」
+    querySelector(sel) { if (sel && sel[0] === '#') return this.getElementById(sel.slice(1)); const k = 'q:' + sel; if (!store.has(k)) store.set(k, el(k)); return store.get(k); },
+    querySelectorAll() { return []; },
+    createElement(t) { return el(t); },
+    addEventListener() {},
+  };
+  document.body = el('body');
+  const ctx = {
+    console, document, window: {},
+    localStorage: { getItem: k => (seed && k in seed ? seed[k] : null), setItem() {}, removeItem() {} },
+    fetch: () => Promise.resolve({ json: () => Promise.resolve({}) }),
+    setTimeout, clearTimeout, setInterval, clearInterval, Date, Math, JSON, Intl, BigInt,
+    prompt: () => null, alert: () => {}, encodeURIComponent, decodeURIComponent,
+  };
+  ctx.window = ctx; ctx.globalThis = ctx;
+  vm.createContext(ctx);
+  try { vm.runInContext(inlineSrc + shim, ctx); }
+  catch (e) { console.log('脚本加载失败:', e.message); process.exit(1); }
+  return { store, ctx, S: ctx.__S, mk: id => { if (!store.has(id)) store.set(id, el(id)); return store.get(id); } };
+}
+
+const env = makeEnv(null);
+const S = env.S;
+const store = env.store, mk = env.mk, sec = id => mk(id).innerHTML;
 
 let pass = 0, fail = 0;
 const chk = (label, cond, extra) => { if (cond) { pass++; console.log('  PASS  ' + label); } else { fail++; console.log('  FAIL  ' + label + (extra ? '  → ' + String(extra).slice(0, 200) : '')); } };
-const mk = id => { if (!store.has(id)) store.set(id, el(id)); return store.get(id); };
-const sec = id => mk(id).innerHTML;
+
+console.log('\n=== 0. 访问口令门：未解锁时不得渲染台账 ===');
+chk('页面含口令遮罩与密码输入框', /id="gate"/.test(html) && /type="password" id="gatePwd"/.test(html));
+chk('源码里只有哈希、没有明文口令', /GATE_HASH\s*=\s*'[0-9a-f]{16}'/.test(inlineSrc));
+chk('加载后各面板保持空白（数据未取、未渲染）', sec('sec-dashboard') === '' && sec('sec-contracts') === '');
+const gateForm = mk('gateForm'), gatePwd = mk('gatePwd'), gateEl = mk('gate');
+gatePwd.value = '随手猜的一个口令';
+gateForm.fire('submit');
+chk('口令错误：给出提示且不进入', /口令不正确/.test(mk('gateErr').textContent) && gateEl.removed === false && sec('sec-dashboard') === '');
+chk('gateHash 稳定且与长度无关的碰撞（不同串不同值）', S.gateHash('a') !== S.gateHash('b') && S.gateHash('') !== S.GATE_HASH);
 
 // 与后端 normalizeDwsContract 输出同形的实时数据
 const liveShape = [
@@ -121,6 +140,12 @@ chk('合同列表：集团内相对方带标记', /集团内/.test(sec('sec-cont
 chk('相对方面板：排除集团内用印并注明份数', /已排除集团内用印 1 份/.test(sec('sec-counterparty')));
 chk('相对方面板：不列出被排除的主体', !/北京易联/.test(sec('sec-counterparty')));
 S.CONTRACTS.length = liveShape.length;
+
+console.log('\n=== 7. 本机已解锁过（localStorage 有标记）→ 直接进系统 ===');
+const env2 = makeEnv({ [S.GATE_LS]: '1' });
+chk('遮罩已移除', env2.mk('gate').removed === true);
+chk('未点任何按钮就已完成渲染', env2.mk('sec-dashboard').innerHTML.length > 0);
+chk('已渲染内容无 NaN/undefined', !/NaN|undefined/.test(env2.mk('sec-dashboard').innerHTML));
 
 console.log(`\n结果: ${pass} 通过 / ${fail} 失败`);
 process.exit(fail ? 1 : 0);
