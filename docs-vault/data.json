@@ -485,7 +485,24 @@
       "id": 26,
       "uploadTime": "2026-10-08T10:04:56.893Z",
       "filePath": "docs-vault/files/26.pdf"
+    },
+    {
+      "name": "3月18日   企业法律服务合同（北京中能时代科技集团）已盖.pdf",
+      "size": 711272,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-zhongneng",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 27,
+      "uploadTime": "2026-10-08T10:12:28.103Z",
+      "filePath": "docs-vault/files/27.pdf"
     }
   ],
-  "lastUpdated": "2026/10/8 18:11:45"
+  "lastUpdated": "2026/10/8 18:12:32"
 }
