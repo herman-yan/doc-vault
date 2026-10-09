@@ -402,23 +402,6 @@
       "filePath": "docs-vault/files/22.pdf"
     },
     {
-      "name": "260904-培训合作协议-最幕咖-修改版(1)   我方盖章.pdf",
-      "size": 389828,
-      "type": "application/pdf",
-      "typeName": "PDF",
-      "icon": "📕",
-      "color": "#ef4444",
-      "company": "public",
-      "docType": "cooperation",
-      "category": "cooperation",
-      "tags": [],
-      "summary": "",
-      "uploader": "金梦",
-      "id": 24,
-      "uploadTime": "2026-09-22T07:51:41.570Z",
-      "filePath": "docs-vault/files/24.pdf"
-    },
-    {
       "name": "260413中能时代科技科技集团&天津神州浩天科技 云会计 续签合同  双盖.pdf",
       "size": 1631040,
       "type": "application/pdf",
@@ -470,5 +453,5 @@
       "filePath": "docs-vault/files/30.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 10:51:49"
+  "lastUpdated": "2026/10/9 10:52:16"
 }
