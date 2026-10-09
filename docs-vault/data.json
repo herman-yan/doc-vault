@@ -453,23 +453,6 @@
       "filePath": "docs-vault/files/25.pdf"
     },
     {
-      "name": "260706  费控报销系统用户使用报告  已盖.pdf",
-      "size": 355833,
-      "type": "application/pdf",
-      "typeName": "PDF",
-      "icon": "📕",
-      "color": "#ef4444",
-      "company": "public",
-      "docType": "other",
-      "category": "other",
-      "tags": [],
-      "summary": "",
-      "uploader": "未知",
-      "id": 26,
-      "uploadTime": "2026-10-08T10:04:56.893Z",
-      "filePath": "docs-vault/files/26.pdf"
-    },
-    {
       "name": "3月18日   企业法律服务合同（北京中能时代科技集团）已盖.pdf",
       "size": 711272,
       "type": "application/pdf",
@@ -504,5 +487,5 @@
       "filePath": "docs-vault/files/30.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 10:51:26"
+  "lastUpdated": "2026/10/9 10:51:35"
 }
