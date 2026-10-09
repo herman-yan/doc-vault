@@ -468,7 +468,24 @@
       "id": 32,
       "uploadTime": "2026-10-09T03:26:55.483Z",
       "filePath": "docs-vault/files/32.pdf"
+    },
+    {
+      "name": "20250523   浩天云会计平台客户服务合同    已盖.pdf",
+      "size": 348316,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "public",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 33,
+      "uploadTime": "2026-10-09T03:27:08.178Z",
+      "filePath": "docs-vault/files/33.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 11:27:04"
+  "lastUpdated": "2026/10/9 11:27:10"
 }
