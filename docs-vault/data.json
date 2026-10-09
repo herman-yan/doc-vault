@@ -604,7 +604,24 @@
       "id": 40,
       "uploadTime": "2026-10-09T03:30:35.259Z",
       "filePath": "docs-vault/files/40.pdf"
+    },
+    {
+      "name": "2、北京中能新航科技集团有限公司100  王培  营业执照  副本  20251106.pdf",
+      "size": 517829,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-zhongneng-xh",
+      "docType": "license",
+      "category": "license",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 41,
+      "uploadTime": "2026-10-09T03:32:21.964Z",
+      "filePath": "docs-vault/files/41.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 11:31:11"
+  "lastUpdated": "2026/10/9 11:32:25"
 }
