@@ -504,23 +504,6 @@
       "filePath": "docs-vault/files/27.pdf"
     },
     {
-      "name": "260429  林芝经济开发区企业入驻申请表   已盖.pdf",
-      "size": 1691540,
-      "type": "application/pdf",
-      "typeName": "PDF",
-      "icon": "📕",
-      "color": "#ef4444",
-      "company": "public",
-      "docType": "other",
-      "category": "other",
-      "tags": [],
-      "summary": "",
-      "uploader": "未知",
-      "id": 28,
-      "uploadTime": "2026-10-08T10:12:35.486Z",
-      "filePath": "docs-vault/files/28.pdf"
-    },
-    {
       "name": "20250818  中国汽车技术研究中心  合作研究协议    已双盖.pdf",
       "size": 2641251,
       "type": "application/pdf",
@@ -555,5 +538,5 @@
       "filePath": "docs-vault/files/30.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 10:50:45"
+  "lastUpdated": "2026/10/9 10:50:54"
 }
