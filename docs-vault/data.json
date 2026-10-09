@@ -519,7 +519,24 @@
       "id": 35,
       "uploadTime": "2026-10-09T03:27:55.979Z",
       "filePath": "docs-vault/files/35.pdf"
+    },
+    {
+      "name": "260429  林芝经济开发区企业入驻申请表   已盖.pdf",
+      "size": 1691540,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "public",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 36,
+      "uploadTime": "2026-10-09T03:28:57.404Z",
+      "filePath": "docs-vault/files/36.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 11:27:59"
+  "lastUpdated": "2026/10/9 11:29:01"
 }
