@@ -487,23 +487,6 @@
       "filePath": "docs-vault/files/27.pdf"
     },
     {
-      "name": "20250818  中国汽车技术研究中心  合作研究协议    已双盖.pdf",
-      "size": 2641251,
-      "type": "application/pdf",
-      "typeName": "PDF",
-      "icon": "📕",
-      "color": "#ef4444",
-      "company": "public",
-      "docType": "cooperation",
-      "category": "cooperation",
-      "tags": [],
-      "summary": "",
-      "uploader": "未知",
-      "id": 29,
-      "uploadTime": "2026-10-08T10:12:43.124Z",
-      "filePath": "docs-vault/files/29.pdf"
-    },
-    {
       "name": "林芝润合时代新能源科技有限公司章程.pdf",
       "size": 3005512,
       "type": "application/pdf",
@@ -521,5 +504,5 @@
       "filePath": "docs-vault/files/30.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 10:51:15"
+  "lastUpdated": "2026/10/9 10:51:23"
 }
