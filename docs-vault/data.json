@@ -264,23 +264,6 @@
       "filePath": "docs-vault/files/12.pdf"
     },
     {
-      "name": "返修拍摄照片汇总.xlsx",
-      "size": 11294,
-      "type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "typeName": "Excel",
-      "icon": "📗",
-      "color": "#10b981",
-      "company": "public",
-      "docType": "other",
-      "category": "other",
-      "tags": [],
-      "summary": "",
-      "uploader": "未知",
-      "id": 13,
-      "uploadTime": "2026-08-18T03:14:24.739Z",
-      "filePath": "docs-vault/files/13.xlsx"
-    },
-    {
       "name": "1、北京中能时代科技集团有限公司1000  张祥英  营业执照  副本  250326.pdf",
       "size": 524227,
       "type": "application/pdf",
@@ -538,5 +521,5 @@
       "filePath": "docs-vault/files/30.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 10:50:57"
+  "lastUpdated": "2026/10/9 10:51:15"
 }
