@@ -570,7 +570,24 @@
       "id": 38,
       "uploadTime": "2026-10-09T03:29:43.146Z",
       "filePath": "docs-vault/files/38.pdf"
+    },
+    {
+      "name": "260724浩天云会计平台客户服务合同  合同(北京中能时代科技集团有限公司）双盖.pdf",
+      "size": 1055686,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-zhongneng",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 39,
+      "uploadTime": "2026-10-09T03:30:22.836Z",
+      "filePath": "docs-vault/files/39.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 11:29:52"
+  "lastUpdated": "2026/10/9 11:30:26"
 }
