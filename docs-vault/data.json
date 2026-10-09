@@ -536,7 +536,24 @@
       "id": 36,
       "uploadTime": "2026-10-09T03:28:57.404Z",
       "filePath": "docs-vault/files/36.pdf"
+    },
+    {
+      "name": "25年北京中能时代集团与陕西道同谦和  集团内部管理协议.pdf",
+      "size": 3452159,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-zhongneng",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 37,
+      "uploadTime": "2026-10-09T03:29:27.017Z",
+      "filePath": "docs-vault/files/37.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 11:29:01"
+  "lastUpdated": "2026/10/9 11:29:33"
 }
