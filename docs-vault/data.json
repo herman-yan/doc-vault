@@ -587,7 +587,24 @@
       "id": 39,
       "uploadTime": "2026-10-09T03:30:22.836Z",
       "filePath": "docs-vault/files/39.pdf"
+    },
+    {
+      "name": "20251105  浩天云会计平台客户服务保密协议  双盖.pdf",
+      "size": 872511,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "public",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 40,
+      "uploadTime": "2026-10-09T03:30:35.259Z",
+      "filePath": "docs-vault/files/40.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 11:30:26"
+  "lastUpdated": "2026/10/9 11:30:38"
 }
