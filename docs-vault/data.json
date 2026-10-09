@@ -451,7 +451,24 @@
       "id": 30,
       "uploadTime": "2026-10-08T10:21:09.956Z",
       "filePath": "docs-vault/files/30.pdf"
+    },
+    {
+      "name": "260413中能时代科技科技集团&天津神州浩天科技 云会计 续签合同  双盖.pdf",
+      "size": 1631040,
+      "type": "application/pdf",
+      "typeName": "PDF",
+      "icon": "📕",
+      "color": "#ef4444",
+      "company": "bj-zhongneng",
+      "docType": "other",
+      "category": "other",
+      "tags": [],
+      "summary": "",
+      "uploader": "未知",
+      "id": 31,
+      "uploadTime": "2026-10-09T03:25:37.142Z",
+      "filePath": "docs-vault/files/31.pdf"
     }
   ],
-  "lastUpdated": "2026/10/9 10:52:16"
+  "lastUpdated": "2026/10/9 11:25:41"
 }
