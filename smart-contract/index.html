@@ -492,8 +492,10 @@ async function loadOrgs(url){
   }catch(e){ ORGS=[]; return; }
   if(!ORGS.length) return;
   let saved=''; try{ saved=localStorage.getItem(LS_ORG)||''; }catch(e){}
-  // 上次选的组织可能已退出登录 → 回退到 dws 当前组织，不能凭空指定一个读不到的组织
-  const pick = ORGS.find(o=>o.profile===saved) || ORGS.find(o=>o.isCurrent) || ORGS[0];
+  // 上次选的组织可能已退出登录 → 不能凭空指定一个读不到的组织。
+  // 没选过时优先用 dws 的主组织：当前登录组织只是「最后一次切过去的」，可能是个空台账，
+  // 线上页面第一次打开就会显示 0 份，看着像坏了。
+  const pick = ORGS.find(o=>o.profile===saved) || ORGS.find(o=>o.isPrimary) || ORGS.find(o=>o.isCurrent) || ORGS[0];
   CUR_ORG=pick.profile; CUR_ORG_NAME=pick.corpName||'';
   setOrgSelUI();
 }
