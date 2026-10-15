@@ -445,8 +445,10 @@ let CUR_ORG_NAME = '';
 // 否则下拉显示 B 组织、表格里却还是 A 组织的合同，比报错更糟。
 let LOADED_ORG = '';
 let LOADED_ORG_NAME = '';
-// 页面由 server.js 托管时（http/https），后端就是同源地址，自动指向；否则回退到默认端口
-let BACKEND_URL = (typeof location!=='undefined' && /^https?:$/.test(location.protocol)) ? location.origin : 'http://localhost:8787';
+// 后端地址：只有「本机 server.js 托管本页」时后端才与页面同源（Pages、file://、别人电脑都不是）。
+// 其余情况统一先试本机 8787，这样线上副本也能直接读到经办者本机的真实台账。
+const SELF_HOSTED = typeof location!=='undefined' && /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.host);
+let BACKEND_URL = SELF_HOSTED ? location.origin : 'http://localhost:8787';
 // 记住用户上次选定的数据源与后端地址，避免每次打开都要手动连接
 const LS_SRC='scw.dataSource', LS_URL='scw.backendUrl', LS_ORG='scw.orgProfile';
 function savePrefs(src){
@@ -601,7 +603,8 @@ async function connectDingtalk(auto){
     // DATA_SOURCE 已在取数成功后置为 live：此时抛出的异常来自渲染/收尾，
     // 不能当成「连接失败」静默回退演示数据，否则页面看起来像没连上钉钉。
     if(DATA_SOURCE==='live'){ restoreLoadedOrg(); console.error('钉钉数据已取到，但渲染出错：',e); toast('数据已加载，但页面渲染出错（见控制台）'); setConnBtn('刷新',false); return; }
-    if(auto) fallbackToDemo('自动连接钉钉失败，已切回演示数据');
+    if(auto) fallbackToDemo(SELF_HOSTED ? '自动连接钉钉失败，已切回演示数据'
+      : '本机 8787 没有可连的后端，已切到演示数据。想在本页看真实台账：在本机运行 node server.js，再点右上角「连接」。');
     else toast('连接失败：'+e.message);
     setConnBtn('连接', false);
   }
@@ -1432,7 +1435,9 @@ function renderAll(){
   let savedSrc='live';
   try{
     const u=localStorage.getItem(LS_URL);
-    if(u) BACKEND_URL=u;
+    // 线上副本曾在把「本站地址」当后端存进 localStorage（Pages 上没有后端），
+    // 沿用那个值就永远不会去试本机 8787，这里直接丢掉同源值。
+    if(u && u!==location.origin) BACKEND_URL=u;
     const s=localStorage.getItem(LS_SRC);
     if(s) savedSrc=s;
   }catch(e){ /* 无 localStorage 时用默认值 */ }
