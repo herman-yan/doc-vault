@@ -437,8 +437,8 @@ function applyLedger(corpId, contracts) {
 }
 
 /* ---------------- 分类：我方公司 + 细分（合作协议 / 证照 …） ---------------- */
-// 「请选择印章的公司名称」是权威的我方主体：实测存在 deptName=产品部-陕西道同谦合科技发展有限公司
-// 而用印公司=沧州玺归科技有限公司 的跨主体盖章，只按部门分会归错公司。
+// 「请选择印章的公司名称」是权威的我方主体：实测存在 deptName=产品部-陕西恒行科技发展有限公司
+// 而用印公司=沧州启归科技有限公司 的跨主体盖章，只按部门分会归错公司。
 function extractSealCompany(formData) {
   const f = (formData || []).find(x => /印章的公司名称|用印主体|我方主体|我方单位/.test(String(x.label || '')));
   return f ? String(f.value || '').trim() : '';
