@@ -161,6 +161,11 @@
     .card{padding:12px;overflow-x:auto;}
     .card h3{font-size:13.5px;}
     th,td{padding:8px 8px;font-size:12.5px;}
+    /* 「查看/处理/详情」这类操作列排在最右：宽表在卡片里横滑时把它钉在右边缘，否则手机上够不到入口。
+       只钉含按钮的末列——相对方的「风险原因」等末列有 260px 宽，钉住会把整屏盖掉。 */
+    table:has(td:last-child .btn) :is(th,td):last-child{position:sticky;right:0;background:var(--panel);}
+    table:has(td:last-child .btn) th:last-child{background:var(--panel2);z-index:3;}
+    table:has(td:last-child .btn) tbody tr:hover td:last-child{background:var(--panel2);}
     .inp,.sel,.btn{font-size:16px;padding:9px 12px;}
     .btn.sm{font-size:13px;padding:6px 10px;}
     .kv-row .kv{min-width:0;flex:1 1 46%;}
@@ -1217,7 +1222,7 @@ function renderBorrow(){
       <td>${esc(b.c?b.c.name:b.cid)}</td><td>${esc(b.who)}</td><td>${b.out}</td>
       <td>${b.back}</td>
       <td>${b.status==='借阅中'?'<span class="pill p-warn">借阅中</span>':'<span class="pill p-ok">已归还</span>'}</td>
-      <td class="muted">${esc(b.reason)}</td></tr>`).join('')}
+      <td class="muted">${esc(b.reason||'—')}</td></tr>`).join('')}
     </tbody></table>
   </div>
   <div class="note" style="margin-top:10px">借阅/归还台账弥补标准版缺失的「合同借阅与归还」管理。</div>`;
