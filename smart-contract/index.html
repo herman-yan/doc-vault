@@ -128,6 +128,50 @@
     border-radius:14px;padding:2px 10px;font-size:12px;margin:2px 4px 2px 0;cursor:pointer;}
   .chip.on{border-color:var(--brand);color:var(--brand);}
   @media(max-width:900px){.g4,.g3,.g2{grid-template-columns:1fr 1fr;}.sidebar{width:170px;}}
+  /* 手机端（≤640px）：竖屏放不下 210px 侧栏，改成底部可横滑的标签条；
+     宽表格在卡片内左右滑动，弹窗铺满整屏，输入控件按 iOS 规则给到 16px 以免聚焦即缩放。 */
+  @media(max-width:640px){
+    html,body{height:auto;}
+    .app{flex-direction:column;min-height:100vh;min-height:100dvh;}
+    .main{order:1;}
+    .sidebar{order:2;position:sticky;bottom:0;z-index:30;width:auto;flex-direction:row;
+      align-items:center;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+      border-right:none;border-top:1px solid var(--line);flex-shrink:0;
+      padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));}
+    .sidebar .logo,.sidebar .nav-sep,.sidebar .side-foot{display:none;}
+    .nav-btn{flex:0 0 auto;width:auto;margin:0;padding:8px 12px;font-size:13px;white-space:nowrap;}
+    .nav-btn .badge{margin-left:6px;}
+    .topbar{height:auto;min-height:46px;padding:8px 12px;flex-wrap:wrap;gap:6px 8px;}
+    .topbar h1{font-size:15px;}
+    .topbar .crumb{display:none;}
+    .topbar .right{width:100%;margin-left:0;flex-wrap:wrap;gap:6px;}
+    .topbar .right .mode-pill{flex:1 1 100%;}
+    .topbar .right .sel{flex:1 1 0;min-width:0;}
+    .topbar .right .btn{flex:0 0 auto;}
+    /* 后端地址是给经办者本机调试用的，手机上不占首屏；要改仍可在这台机器的桌面端改 */
+    #bkUrl{display:none;}
+    .mode-pill{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    /* 筛选条（公司/细分/状态几十个 chip）竖屏换行会把表格挤出首屏，改成一行可横滑 */
+    .toolbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+    .toolbar>*{flex:0 0 auto;}
+    .content{padding:12px;overflow:visible;}
+    .grid.g4,.grid.g3{grid-template-columns:1fr 1fr;}
+    .grid.g2{grid-template-columns:1fr;}
+    .stat .num{font-size:22px;}
+    .card{padding:12px;overflow-x:auto;}
+    .card h3{font-size:13.5px;}
+    th,td{padding:8px 8px;font-size:12.5px;}
+    .inp,.sel,.btn{font-size:16px;padding:9px 12px;}
+    .btn.sm{font-size:13px;padding:6px 10px;}
+    .kv-row .kv{min-width:0;flex:1 1 46%;}
+    .diff-cols{grid-template-columns:1fr;}
+    .diff-cols .std{border-right:none;border-bottom:1px solid var(--line);}
+    .modal-mask{padding:0;align-items:stretch;}
+    .modal{width:100%;max-height:none;border-radius:0;border-left:none;border-right:none;}
+    .modal-head,.modal-body{padding:14px 12px;}
+    .empty{padding:24px 12px;}
+    .toast{left:10px;right:10px;bottom:72px;transform:none;text-align:center;}
+  }
 </style>
 </head>
 <body>
@@ -166,7 +210,7 @@
           <option value="live">钉钉实时</option>
         </select>
         <select id="orgSel" class="sel" onchange="onOrgChange()" title="钉钉组织（dws 已授权账号）" style="display:none"></select>
-        <input id="bkUrl" class="inp" placeholder="后端地址" value="http://localhost:8787" style="width:165px" />
+        <input id="bkUrl" class="inp" placeholder="后端地址" value="http://localhost:8787" style="width:min(165px,100%)" />
         <button id="connBtn" class="btn primary" onclick="connectDingtalk()">连接</button>
       </div>
     </div>
@@ -880,7 +924,7 @@ function renderContracts(){
     <span class="muted">细分：</span><span class="chip ${filterCat==='全部'?'on':''}" onclick="setFilterCatIdx(-1)">全部</span>${CAT_LIST.map((t,i)=>`<span class="chip ${filterCat===t?'on':''}" onclick="setFilterCatIdx(${i})">${esc(t)}</span>`).join('')}` : '';
   html = `
   <div class="toolbar">
-    <input class="inp" id="kw" placeholder="搜索合同名/相对方/编号" value="${esc(filterKw)}" oninput="filterKw=this.value;renderContracts()" style="width:220px"/>
+    <input class="inp" id="kw" placeholder="搜索合同名/相对方/编号" value="${esc(filterKw)}" oninput="filterKw=this.value;renderContracts()" style="width:min(220px,100%)"/>
     ${compChips}${catChips}
     <span class="muted" style="margin-left:8px">状态：</span>${stats.map(t=>`<span class="chip ${filterStatus===t?'on':''}" onclick="filterStatus='${t}';renderContracts()">${t}</span>`).join('')}
     <span style="margin-left:auto" class="muted">${filterCompany==='全部'?'':esc(filterCompany)+' · '}${filterCat==='全部'?'':esc(filterCat)+' · '}共 ${list.length} 份</span>
@@ -1307,9 +1351,9 @@ function renderContractModal(c){
   const catOpts = CATS.length? CATS : [...new Set(CONTRACTS.map(catOf).filter(Boolean))];
   const clsCard = DATA_SOURCE==='live' ? ('<div class="card" style="margin-top:14px"><h3>🏷️ 分类（我方公司 / 细分）</h3>'
     +'<div class="row" style="gap:12px;align-items:flex-end">'
-    +'<div class="kv" style="min-width:300px"><div class="k">我方公司 · 现来源：'+esc(c.companySrc||'未识别')+'</div>'
+    +'<div class="kv" style="min-width:min(300px,100%)"><div class="k">我方公司 · 现来源：'+esc(c.companySrc||'未识别')+'</div>'
       +'<input class="inp" id="clsComp" value="'+esc(c.company||'')+'" placeholder="留空则按用印公司/部门自动" style="width:100%"/></div>'
-    +'<div class="kv" style="min-width:190px"><div class="k">细分 · 现来源：'+esc(c.catSrc||'—')+'</div>'
+    +'<div class="kv" style="min-width:min(190px,100%)"><div class="k">细分 · 现来源：'+esc(c.catSrc||'—')+'</div>'
       +'<select class="sel" id="clsCat" style="width:100%"><option value="">（自动）</option>'
       +catOpts.map(x=>'<option value="'+esc(x)+'"'+(x===c.cat?' selected':'')+'>'+esc(x)+'</option>').join('')
       +(c.cat&&!catOpts.includes(c.cat)?'<option value="'+esc(c.cat)+'" selected>'+esc(c.cat)+'（钉钉台账分类）</option>':'')
