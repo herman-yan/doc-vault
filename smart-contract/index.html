@@ -654,9 +654,12 @@ async function connectDingtalk(auto){
     // DATA_SOURCE 已在取数成功后置为 live：此时抛出的异常来自渲染/收尾，
     // 不能当成「连接失败」静默回退演示数据，否则页面看起来像没连上钉钉。
     if(DATA_SOURCE==='live'){ restoreLoadedOrg(); console.error('钉钉数据已取到，但渲染出错：',e); toast('数据已加载，但页面渲染出错（见控制台）'); setConnBtn('刷新',false); return; }
+    // https 页面连本机端口会被浏览器的「本地网络访问」权限拦下，抛出来只是一句 Failed to fetch，看不出原因
+    const blocked = !SELF_HOSTED && /failed to fetch|networkerror|load failed/i.test(String(e && e.message || e));
     if(auto) fallbackToDemo(SELF_HOSTED ? '自动连接钉钉失败，已切回演示数据'
+      : blocked ? '浏览器拦住了本页（https）访问本机后端：需在站点设置里允许「本地网络」。想看真实台账，直接用 http://localhost:8787 打开最省事。'
       : '本机 8787 没有可连的后端，已切到演示数据。想在本页看真实台账：在本机运行 node server.js，再点右上角「连接」。');
-    else toast('连接失败：'+e.message);
+    else toast(blocked ? '连接被浏览器拦截：https 页面访问本机后端需允许「本地网络」。用 http://localhost:8787 打开，或点地址栏左侧图标 → 网站设置 → 本地网络 → 允许。' : '连接失败：'+e.message);
     setConnBtn('连接', false);
   }
 }

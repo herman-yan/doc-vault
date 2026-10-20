@@ -827,18 +827,28 @@ async function fetchLiveData(orgQuery) {
 }
 
 /* ---------------- HTTP 服务 ---------------- */
+// 公网 https 页面访问本机端口，会被 Chrome/Edge 的「本地网络访问」权限拦下：
+// 预检必须明确回允许头，否则线上副本连不上本机后端，用户只看到一句 Failed to fetch。
+const CORS_HDR = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Private-Network': 'true',
+  'Access-Control-Allow-Local-Network': 'true',
+  'Access-Control-Max-Age': '86400',
+};
 function send(res, code, obj, cors = true) {
   const body = JSON.stringify(obj);
   res.writeHead(code, {
     'Content-Type': 'application/json; charset=utf-8',
-    ...(cors ? { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' } : {}),
+    ...(cors ? CORS_HDR : {}),
   });
   res.end(body);
 }
 
 const NO_SERVER = process.env.NO_SERVER === '1';
 const server = http.createServer(async (req, res) => {
-  if (req.method === 'OPTIONS') { send(res, 204, {}); return; }
+  if (req.method === 'OPTIONS') { res.writeHead(204, CORS_HDR); res.end(); return; }
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const p = url.pathname;
 
