@@ -30,6 +30,7 @@
  * 启动： node server.js   （建议放在项目目录，与 index.html 同级）
  */
 import http from 'node:http';
+import { Readable } from 'node:stream';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -298,6 +299,12 @@ function fmtDate(ms) {
   if (isNaN(d.getTime())) return '';
   return d.toISOString().slice(0, 10);
 }
+// 钉钉回传的合同附件签名链接一律写死 http。线上副本是 https 页，浏览器会把 http 资源当成
+// 混合内容拦掉（表现为「点了没反应/下载失败」），所以统一升 https：OSS 的 Signature 只覆盖
+// Expires/OSSAccessKeyId/Signature 这三个查询参数，换协议后实测仍返回 200 且内容一致。
+function httpsUrl(u) {
+  return typeof u === 'string' ? u.replace(/^http:\/\//i, 'https://') : u;
+}
 function archiveFromStatus(s) {
   if (s === 'archived') return '已归档';
   if (s === 'not-archive') return '待归档';
@@ -323,7 +330,7 @@ function normalizeDwsContract(raw, org) {
   const status = mapStatus(raw.effectiveStatus || raw.contractStatus);
   const owner = raw.ownerName || raw.committerName || '—';
   const files = Array.isArray(raw.contractContentFiles)
-    ? raw.contractContentFiles.map(f => ({ name: f.fileName, url: f.fileDownloadUrl })) : [];
+    ? raw.contractContentFiles.map(f => ({ name: f.fileName, url: httpsUrl(f.fileDownloadUrl) })) : [];
   return {
     id, no: raw.contractNo || '', cid: raw.contractId, name, party, partyInferred, amount, currency,
     sign: fmtDate(raw.gmtCreate), start: '', end: '',
@@ -588,11 +595,12 @@ function partyFromName(name, ourName, aliases) {
   if (c.length >= 2 && c.length <= 6 && !/合同|协议|确认|公司|委托|服务|租赁|采购|销售|方案|通知/.test(c) && notOurs(c)) return c;
   return '';
 }
-async function dwsContractDetail(org, contractId) {
+async function dwsContractDetail(org, contractId, opts = {}) {
   if (!contractId) return null;
   const key = `${org?.corpId || ''}:${contractId}`;
   const cached = dwsDetailCache.get(key);
-  if (cached && Date.now() - cached.at < DETAIL_TTL) return cached.data;
+  // fresh：下载附件前要重取签名链接——10 分钟 TTL 内的缓存里那条 URL 本身可能已经过期
+  if (!opts.fresh && cached && Date.now() - cached.at < DETAIL_TTL) return cached.data;
   const j = await dwsBiz(org, ['contract', 'record', 'get', '--contract-id', String(contractId), '--format', 'json'], 60000);
   const rec = Array.isArray(j?.result) ? j.result[0] : null;
   if (!rec) return null;
@@ -609,7 +617,7 @@ async function dwsContractDetail(org, contractId) {
     ...(rec.contractContentFiles || []),
     ...(rec.contractArchiveFiles || []),
     ...(rec.contractAttachmentFiles || []),
-  ].filter(f => f && f.fileDownloadUrl).map(f => ({ name: f.fileName, url: f.fileDownloadUrl, type: f.fileType || '', size: f.fileSize || 0 }));
+  ].filter(f => f && f.fileDownloadUrl).map(f => ({ name: f.fileName, url: httpsUrl(f.fileDownloadUrl), type: f.fileType || '', size: f.fileSize || 0 }));
   const formFields = fd.filter(f => f.value !== '' && f.value !== null && f.value !== undefined)
     .slice(0, 40).map(f => ({ label: String(f.label || ''), value: String(f.value) }));
   const data = {
@@ -907,6 +915,38 @@ const server = http.createServer(async (req, res) => {
         // 合同 ID 只在组织内唯一，详情必须按当前台账所属组织去查
         const d = await dwsContractDetail(await resolveOrg(url.searchParams.get('org')), Number(cid));
         return send(res, d ? 200 : 404, d || { message: '未找到合同详情' });
+      } catch (e) { return send(res, 502, { message: String(e && e.message || e) }); }
+    }
+
+    // 合同附件下载。不把签名链接直接写进 href，是因为它会以三种方式失败：链接写死 http，
+    // https 页面点了会被当混合内容拦掉；签名 10~60 分钟就过期，页面停留久了存下来的其实是一段
+    // 403 的 XML；URL 路径是一串无语义的字符，存出来的文件没有扩展名，双击打不开。
+    // 这里按「合同 ID + 文件名」现取链接，再用钉钉里的原始文件名流式回传。
+    if (p === '/api/dingtalk/file') {
+      if (!USE_DWS) return send(res, 501, { message: '仅 dws 模式支持附件下载' });
+      const cid = url.searchParams.get('cid') || '';
+      const name = url.searchParams.get('name') || '';
+      if (!/^\d+$/.test(cid) || !name) return send(res, 400, { message: '参数不完整（需要 cid 与 name）' });
+      try {
+        const d = await dwsContractDetail(await resolveOrg(url.searchParams.get('org')), Number(cid), { fresh: true });
+        const f = d && d.files.find(x => x.name === name && x.url);
+        if (!f) return send(res, 404, { message: '钉钉详情里没有这份附件的可下载链接（列表接口只给了文件名）' });
+        // json=1：线上 https 页不能走本机流式下载（混合内容），只要一条现取的新链接自己打开
+        if (url.searchParams.get('json') === '1') return send(res, 200, { url: f.url, name: f.name, size: f.size || 0 });
+        const up = await fetch(f.url);
+        if (!up.ok) return send(res, 502, { message: `钉钉存储返回 ${up.status}，链接可能已失效，再点一次重试` });
+        const len = up.headers.get('content-length');
+        res.writeHead(200, {
+          ...CORS_HDR,
+          'Content-Type': up.headers.get('content-type') || 'application/octet-stream',
+          'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(f.name)}`,
+          ...(len ? { 'Content-Length': len } : {}),
+        });
+        const body = Readable.fromWeb(up.body);
+        body.on('error', () => res.destroy());
+        res.on('close', () => body.destroy());
+        body.pipe(res);
+        return;
       } catch (e) { return send(res, 502, { message: String(e && e.message || e) }); }
     }
 
