@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>库房管理系统 - 宁家服务数字化运营系统</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/aftersales-guardrails.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -96,6 +97,17 @@ tbody tr:hover{background:rgba(255,255,255,.03)}
 .toast.ok{border-color:var(--green-bd)}
 .toast.err{border-color:var(--red-bd);color:#ff6b5b}
 .hint{font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.6}
+.identity-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:10px 14px;margin:14px 0 4px;font-size:13px}
+.identity-bar label{font-size:12px;color:var(--text-secondary)}
+.identity-bar select,.identity-bar input{padding:7px 10px;border-radius:9px;background:rgba(0,0,0,.2);border:1px solid var(--border-color);color:var(--text-primary);font-size:13px;outline:none}
+.identity-note{font-size:11px;color:var(--text-muted);line-height:1.5}
+.scope-hint{font-size:12px;color:#ffbe4d;background:var(--amber-bg);border:1px solid var(--amber-bd);padding:8px 12px;border-radius:10px;margin-bottom:10px;line-height:1.6}
+.op-status{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.audit-list{margin-top:10px;border-top:1px dashed var(--border-color);padding-top:8px}
+.audit-row{font-size:11px;color:var(--text-muted);line-height:1.8}
+.audit-row b{color:var(--text-secondary);font-weight:600}
+.qc-fact{font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.7}
+.guard-stop{background:var(--red-bg);border:1px solid var(--red-bd);border-radius:12px;padding:18px;margin:20px 0;font-size:14px;line-height:1.7}
 @media(max-width:768px){.page-title{font-size:20px}.stat-box{min-width:calc(50% - 6px)}.field-row{flex-direction:column;gap:0}}
 </style>
 </head>
@@ -109,11 +121,15 @@ tbody tr:hover{background:rgba(255,255,255,.03)}
     </div>
   </div>
 
+  <div class="identity-bar" id="identityBar"></div>
+  <div id="scopeHint"></div>
+
   <div class="stats-bar" id="statsBar">
     <div class="stat-box"><div class="stat-value" id="stItems">—</div><div class="stat-label">物料种类</div></div>
     <div class="stat-box"><div class="stat-value" id="stWarn" style="color:#ffbe4d">—</div><div class="stat-label">库存预警</div></div>
     <div class="stat-box"><div class="stat-value" id="stOrders">—</div><div class="stat-label">待处理订货</div></div>
     <div class="stat-box"><div class="stat-value" id="stTxn">—</div><div class="stat-label">本月出入库</div></div>
+    <div class="stat-box"><div class="stat-value" id="stOld" style="color:#6fc0ff">—</div><div class="stat-label">旧件在途批次</div></div>
   </div>
 
   <div class="tabs" id="tabs">
@@ -152,7 +168,7 @@ tbody tr:hover{background:rgba(255,255,255,.03)}
     <div class="toolbar">
       <button class="btn primary" onclick="openOrderModal()">＋ 新建订货申请</button>
       <span style="flex:1"></span>
-      <span class="hint">工作流：待订货 → 已订货 → 已齐套 → 已领料 → 完成（领料时自动扣减库存并记录流水）</span>
+      <span class="hint">工作流：待订货 → 已订货 → 已齐套 → 已领料 → 完成（领料时自动扣减库存并记录流水；领料后生成旧件批次，请到「旧件管理」完成接收→核验→处置闭环）</span>
     </div>
     <div id="orderList"></div>
   </div>
@@ -174,7 +190,7 @@ tbody tr:hover{background:rgba(255,255,255,.03)}
 
   <!-- 视图：旧件管理 -->
   <div id="view-oldparts" style="display:none">
-    <div class="hint" style="margin-bottom:12px">旧件回收流程：领料更换后 → <b>旧件接收</b>（入库暂存）→ <b>旧件返厂</b>。以下为含旧件回收的订货单。</div>
+    <div id="oldHint"></div>
     <div id="oldList"></div>
   </div>
 </div>
@@ -210,6 +226,198 @@ const NOW=new Date().toISOString();
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(type||'');setTimeout(()=>t.className='toast',2200);}
 
+// ===================== 岗位身份与护栏（共用逻辑层 assets/aftersales-guardrails.js） =====================
+if(typeof AFG==='undefined'){
+  document.getElementById('statsBar').innerHTML='<div class="guard-stop">护栏模块 <b>../assets/aftersales-guardrails.js</b> 未加载。为避免绕过旧件状态机、核验闸门与责任分离校验，本页已停止写入。请确认该文件与本页一同部署。</div>';
+  document.getElementById('oldList').innerHTML='';
+  throw new Error('aftersales-guardrails.js not loaded');
+}
+let ME=AFG.getIdentity()||{name:'',role:'WAREHOUSE'};
+const OLD_FLOW=AFG.OLDPART_FLOW;
+const OLD_TXN={'待核验':['旧件入库',1],'旧件释放可用':['旧件释放可用',1],'拒收回库':['旧件拒收回库',-1],'旧件返厂':['旧件返厂',-1],'报废或退回客户':['旧件报废退回',-1]};
+const VERIFY_KIND={verify_ok:'ACCEPTED',verify_wrong:'WRONG_ITEM',verify_damaged:'DAMAGED'};
+
+function afKnownNames(){
+  const s=new Set();
+  (DB&&DB.orders||[]).forEach(o=>{if(o.engineer)s.add(o.engineer);});
+  (DB&&DB.txns||[]).forEach(t=>{if(t.operator&&t.operator!=='6.6盘库')s.add(t.operator);});
+  if(ME.name)s.add(ME.name);
+  return [...s].sort();
+}
+function renderIdentityBar(){
+  const names=afKnownNames();
+  document.getElementById('identityBar').innerHTML=`<label>本机岗位</label>
+    <input id="idName" list="idNameList" value="${esc(ME.name)}" placeholder="姓名" style="width:130px">
+    <datalist id="idNameList">${names.map(n=>`<option value="${esc(n)}"></option>`).join('')}</datalist>
+    <select id="idRole">${Object.keys(AFG.ROLES).map(r=>`<option value="${r}"${r===ME.role?' selected':''}>${esc(AFG.roleLabel(r))}</option>`).join('')}</select>
+    <button class="btn sm primary" onclick="afSaveIdentity()">切换</button>
+    <span class="identity-note">岗位识别保存在本机浏览器，用于视图分区与操作留痕，<b>不是安全边界</b>；正式权限需由统一后端校验。</span>`;
+}
+function afSaveIdentity(){
+  const name=document.getElementById('idName').value.trim();
+  const role=document.getElementById('idRole').value;
+  if(!name){toast('请先填写姓名','err');return;}
+  ME=AFG.setIdentity(name,role);
+  afApplyTabPermission();render();
+  toast('当前岗位：'+AFG.roleLabel(role)+' · '+name,'ok');
+}
+function afApplyTabPermission(){
+  const el=document.getElementById('scopeHint');
+  if(el)el.innerHTML=afScopeHint();
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.style.display=AFG.canPage(ME.role,t.dataset.view)?'':'none';
+  });
+  if(!AFG.canPage(ME.role,curView)){
+    const first=[...document.querySelectorAll('.tab')].find(t=>AFG.canPage(ME.role,t.dataset.view));
+    if(first){
+      curView=first.dataset.view;
+      document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===first));
+      ['inventory','orders','txns','oldparts'].forEach(v=>document.getElementById('view-'+v).style.display=v===curView?'block':'none');
+    }
+  }
+}
+function afScopeHint(){
+  const pages=(AFG.ROLE_PAGES[ME.role]||[]).map(p=>esc(p)).join(' / ');
+  return `<div class="scope-hint">当前岗位：<b>${esc(AFG.roleLabel(ME.role))}</b>${ME.name?' · '+esc(ME.name):''} —— ${esc((AFG.ROLES[ME.role]||{}).scopeHint||'')}<br>可进入视图：${pages||'（无）'}${AFG.isReadonly(ME.role)?'　<span class="badge b-gray">只读岗位：可查询，不能推动流转</span>':''}</div>`;
+}
+function afRequireName(){
+  if(!ME.name){toast('请先在上方「本机岗位」填写姓名（操作需要署名留痕）','err');return false;}
+  return true;
+}
+
+// ===================== 旧件生命周期（待接收 → 待核验 → 四种出口） =====================
+function oldpartOf(o){
+  if(o.oldpart&&AFG.isKnownStatus('OLDPART',o.oldpart.status))return o.oldpart;
+  const op={id:'OP-'+o.id,_flowKind:'OLDPART',status:'待接收',lines:[],audit:[],migrated:false};
+  if(o.old_return_date){op.status='旧件返厂';op.return_date=o.old_return_date;}
+  else if(o.old_receive_date){op.status='待核验';}
+  if(o.old_receive_date||o.old_return_date){
+    op.receive_date=o.old_receive_date||'';
+    op.migrated=true;
+    op.audit.push({at:NOW,action:'migrate',from:'',to:op.status,actor:'',role:'',roleLabel:'历史数据',note:'由旧版「标记接收/标记返厂」日期字段回填，无核验结论事实',reason:'',requestId:''});
+  }
+  o.oldpart=op;
+  return op;
+}
+function migrateOldparts(){
+  let n=0;
+  (DB.orders||[]).forEach(o=>{if(!o.oldpart&&oldpartOf(o).migrated)n++;});
+  return n;
+}
+function hasOldLot(o){
+  return o.status==='已领料'||o.status==='完成'||!!o.old_receive_date||!!o.old_return_date||!!o.oldpart;
+}
+function goOldparts(id){
+  if(!AFG.canPage(ME.role,'oldparts')){toast('当前岗位不能进入旧件管理','err');return;}
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.view==='oldparts'));
+  curView='oldparts';
+  ['inventory','orders','txns','oldparts'].forEach(v=>document.getElementById('view-'+v).style.display=v==='oldparts'?'block':'none');
+  renderOld();
+  const c=id&&document.getElementById('oldList').querySelector('[data-op="'+id+'"]');
+  if(c)c.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function renderOld(){
+  document.getElementById('oldHint').innerHTML=
+    `<div class="hint" style="margin:0 0 12px">旧件生命周期 <b>${esc(OLD_FLOW.version)}</b>（生效 ${esc(OLD_FLOW.effectiveAt)}）：领料更换后 → <b>旧件接收</b>（入暂存区，不计可用库存）→ <b>核验</b>（验收合格 / 到错货 / 破损·质量异常）→ 四种出口：<b>旧件释放可用</b> · <b>拒收回库</b> · <b>旧件返厂</b> · <b>报废或退回客户</b>。接收与核验需异人签署，每一步写入出入库流水与本批次留痕。</div>`;
+  const list=(DB.orders||[]).filter(o=>(o.items||[]).length&&hasOldLot(o));
+  const box=document.getElementById('oldList');
+  if(!list.length){box.innerHTML=`<div class="empty-state"><div class="emoji">♻️</div>暂无旧件批次（订货单推进至「已领料」后生成）</div>`;return;}
+  box.innerHTML=list.map(o=>{
+    const op=oldpartOf(o);
+    const idx=OLD_FLOW.states.indexOf(op.status);
+    const flow=OLD_FLOW.states.map((s,k)=>{
+      const cls=k<idx?'flow-step done':k===idx?'flow-step cur':'flow-step';
+      const d=s==='待接收'?(op.receive_date||''):s==='旧件返厂'?(op.return_date||''):'';
+      return `<span class="${cls}">${s}${d?' '+d:''}</span>`+(k<OLD_FLOW.states.length-1?'<span class="flow-arrow">→</span>':'');
+    }).join('');
+    const acts=AFG.actionable('OLDPART',op,ME);
+    const btns=acts.length
+      ?acts.map(t=>`<button class="btn sm ${t.to==='旧件释放可用'?'primary':(t.action==='scrap'||t.action==='verify_damaged'||t.action==='verify_wrong')?'amber':''}" onclick="openOldAction('${esc(o.id)}','${t.action}')">${esc(t.label)}</button>`).join('')
+      :`<span class="badge b-normal">✓ 批次已闭环 · ${esc(op.status)}</span>`;
+    const lines=(op.lines||[]).map(l=>`${esc(l.name||l.pn)} ×${l.qty}`).join('，');
+    const verify=op.verify
+      ?`<div class="qc-fact">核验结论：<b>${esc(op.verify.result)}</b> · ${esc(op.verify.name)}（${esc(AFG.roleLabel(op.verify.role))}）${esc((op.verify.at||'').slice(0,10))}${op.verify.note?' · '+esc(op.verify.note):''}</div>`
+      :(op.status!=='待接收'&&op.status!=='待核验'?`<div class="qc-fact" style="color:#ffbe4d">核验结论：无（历史数据回填，未走核验闸门）</div>`:'');
+    const exit=op.exit?`<div class="qc-fact">处置出口：<b>${esc(op.exit.to)}</b> · ${esc(op.exit.name)}${op.exit.reason?' · 原因：'+esc(op.exit.reason):''}</div>`:'';
+    return `<div class="op-card" data-op="${esc(o.id)}">
+      <div class="op-top">
+        <div><div class="op-title">订货单 ${esc(o.id)} · 旧件批次 ${esc(op.id)}</div>
+          <div class="op-meta">工程师 ${esc(o.engineer||'—')} ｜ 订货状态 ${esc(o.status)} ｜ 物料 ${(o.items||[]).map(it=>esc(it.name||it.pn)).join('、')}</div></div>
+        <div class="op-status"><span class="badge ${AFG.isActive('OLDPART',op.status)?'b-warn':'b-normal'}">${esc(op.status)}</span>${op.receivedBy?`<span class="cat-tag">接收人 ${esc(op.receivedBy)}</span>`:''}</div>
+      </div>
+      ${lines?`<div class="op-items">旧件明细：${lines}${op.location?' ｜ 暂存位：'+esc(op.location):''}</div>`:''}
+      ${verify}${exit}
+      <div class="flow">${flow}</div>
+      <div class="op-actions">${btns}${AFG.isReadonly(ME.role)?'<span class="badge b-gray">只读岗位</span>':''}</div>
+      <details class="audit-list"><summary style="font-size:12px;color:var(--text-secondary);cursor:pointer">操作留痕（${op.audit.length}）</summary>
+        ${op.audit.slice().reverse().map(a=>`<div class="audit-row"><b>${esc((a.at||'').slice(0,16).replace('T',' '))}</b> ｜ ${esc(a.from||'—')} → ${esc(a.to||'—')} ｜ <b>${esc(a.action)}</b> ｜ ${esc(a.actor||a.roleLabel||'系统')}${a.reason?' ｜ 原因：'+esc(a.reason):''}${a.note?' ｜ '+esc(a.note):''}</div>`).join('')||'<div class="audit-row">暂无</div>'}
+      </details>
+    </div>`;
+  }).join('');
+}
+function openOldAction(id,action){
+  if(!afRequireName())return;
+  const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  const op=oldpartOf(o);
+  const t=AFG.allowedTransitions('OLDPART',op.status).find(x=>x.action===action);
+  if(!t){toast('当前批次状态不允许该操作，请刷新','err');renderOld();return;}
+  const isReceive=action==='receive';
+  const rows=(o.items||[]).map((it,k)=>`<div class="line-item">
+      <span style="flex:1">${esc(it.name||it.pn)} <span class="cat-tag">(${esc(it.pn)})${isReceive?' 领料 '+it.qty:''}</span></span>
+      <input type="number" min="0" step="1" id="oldq_${k}" value="${isReceive?(op.lines&&op.lines.length?op.lines[k].qty:it.qty):((op.lines&&op.lines[k]?op.lines[k].qty:0)||it.qty)}" style="width:90px">
+    </div>`).join('');
+  const tip=isReceive
+    ?'旧件接收计入<b>暂存区</b>并写「旧件入库」流水，<b>不增加可用库存</b>；核验合格后才会转可用。'
+    :(action==='verify_ok'
+      ?'核验合格：数量将<b>计入可用库存</b>并写「旧件释放可用」流水。核验人与接收人不能是同一人。'
+      :(VERIFY_KIND[action]?`核验结论为<b>${esc(AFG.RECEIPT_KIND[VERIFY_KIND[action]])}</b>，暂存数量按出库核销（写流水，不动可用库存）。`
+        :'报废或退回客户需要写明原因，由调度/管理员执行。'));
+  openModal(`<h3>♻️ ${esc(t.label)} · 订货单 ${esc(o.id)}</h3>
+    <div class="hint" style="margin:0 0 12px">${tip}</div>
+    <div class="line-items">${rows||'<div class="cat-tag">该订货单无物料明细</div>'}</div>
+    ${isReceive?'<div class="field"><label>暂存库位</label><input id="oldLoc" placeholder="如：旧件暂存区 A-3"></div>':''}
+    ${t.requiresReason?'<div class="field"><label>原因 *</label><input id="oldReason" placeholder="必填：如客户放弃维修 / 无法修复"></div>':''}
+    <div class="field"><label>${t.requiresReason?'补充说明':'备注（破损描述 / 拒收理由等）'}</label><textarea id="oldNote" rows="2" placeholder="${action==='verify_damaged'?'破损部位、程度、是否影响返厂判定':''}"></textarea></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="confirmOldAction('${esc(id)}','${action}')">确认${esc(t.label)}</button></div>`);
+}
+async function confirmOldAction(id,action){
+  const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  const op=oldpartOf(o);
+  const t=AFG.allowedTransitions('OLDPART',op.status).find(x=>x.action===action);
+  if(!t){toast('当前批次状态不允许该操作','err');closeModal();render();return;}
+  const reason=(document.getElementById('oldReason')||{}).value||'';
+  const note=(document.getElementById('oldNote')||{}).value||'';
+  const lines=(o.items||[]).map((it,k)=>({pn:it.pn,name:it.name||it.pn,qty:Number((document.getElementById('oldq_'+k)||{}).value||0)}));
+  const totalQty=lines.reduce((s,l)=>s+l.qty,0);
+  if(action==='receive'&&totalQty<=0){toast('旧件接收数量必须大于 0','err');return;}
+  if(t.requiresReason&&!reason.trim()){toast('该操作必须填写原因','err');return;}
+  const res=AFG.applyTransition(op,t,ME,{requestId:AFG.newRequestId(),reason:reason.trim(),note:note.trim()});
+  if(!res.ok){toast(res.error,'err');return;}
+  op.lines=lines;
+  if(action==='receive'){
+    op.receive_date=today();o.old_receive_date=op.receive_date;
+    op.location=(document.getElementById('oldLoc')||{}).value||'';
+  }
+  if(VERIFY_KIND[action]){
+    op.verify={result:AFG.RECEIPT_KIND[VERIFY_KIND[action]],name:ME.name,role:ME.role,at:NOW,note:note.trim()};
+  }
+  if(t.action==='scrap'){op.exit={to:t.to,name:ME.name,role:ME.role,at:NOW,reason:reason.trim()};}
+  if(t.to==='旧件返厂'){op.return_date=today();o.old_return_date=op.return_date;op.exit=op.exit||{to:t.to,name:ME.name,role:ME.role,at:NOW,reason:reason.trim()};}
+  const[tType,tSign]=OLD_TXN[op.status]||['旧件入库',1];
+  if(tType!=='旧件释放可用'){
+    lines.forEach(l=>{if(l.qty>0)addTxn(tType,l.pn,tSign*l.qty,ME.name+'·'+AFG.roleLabel(ME.role),`${t.label} #${o.id}${note?'：'+note:''}${op.status==='旧件释放可用'?'':'（暂存核销，不动可用库存）'}`,o.id);});
+  }else{
+    lines.forEach(l=>{
+      if(l.qty<=0)return;
+      const m=itemByPn(l.pn);
+      if(m){m.stock=(m.stock||0)+l.qty;}
+      addTxn(tType,l.pn,l.qty,ME.name+'·'+AFG.roleLabel(ME.role),`核验合格转可用 #${o.id}${m?'（库存 +'+l.qty+' → '+m.stock+'）':'（台账无该 PN，仅记流水）'}${note?'：'+note:''}`,o.id);
+    });
+  }
+  await saveData();closeModal();render();
+  toast('✅ '+t.label+' 已完成 · 批次现为「'+op.status+'」','ok');
+}
+
 // ===================== 工具 =====================
 function itemByPn(pn){return DB.items.find(i=>i.pn===pn);}
 function stockStatus(i){if(!i.stock||i.stock<=0)return'danger';if(i.stock<i.safe_stock)return'warn';return'normal';}
@@ -244,6 +452,12 @@ function renderStats(){
   document.getElementById('stOrders').textContent=orders.filter(o=>o.status!=='完成').length;
   const ym=today().slice(0,7);
   document.getElementById('stTxn').textContent=txns.filter(t=>(t.date||'').slice(0,7)===ym).length;
+  const lots=orders.filter(o=>hasOldLot(o)).map(o=>oldpartOf(o));
+  const el=document.getElementById('stOld');if(!el)return;
+  el.textContent=lots.filter(l=>AFG.isActive('OLDPART',l.status)).length;
+  el.parentElement.style.cursor='pointer';
+  el.parentElement.onclick=()=>goOldparts('');
+  el.parentElement.title='点击前往旧件管理（待接收/待核验的在途批次）';
 }
 
 function renderInventory(){
@@ -310,7 +524,7 @@ function renderOrders(){
       <div class="flow">${flow}</div>
       <div class="op-actions">
         ${canAdv?`<button class="btn primary sm" onclick="advanceOrder('${o.id}')">▶ 推进至「${next}」</button>`:`<span class="badge b-normal">✓ 已完成</span>`}
-        <button class="btn sm" onclick="openOldModal('${o.id}')">旧件回收</button>
+        ${AFG.canPage(ME.role,'oldparts')?`<button class="btn sm" onclick="goOldparts('${esc(o.id)}')">♻️ 旧件回收${hasOldLot(o)?' · '+esc(oldpartOf(o).status):''}</button>`:''}
         <button class="btn sm danger" onclick="delOrder('${o.id}')">删除</button>
       </div>
     </div>`;
@@ -323,24 +537,11 @@ function renderTxns(){
   if(q)list=list.filter(t=>(t.pn||'').toLowerCase().includes(q)||(t.operator||'').toLowerCase().includes(q));
   const body=document.getElementById('txnBody');
   if(!list.length){body.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="emoji">📜</div>暂无出入库记录</div></td></tr>`;return;}
-  const typeMap={入库:['b-normal','📥 入库'],出库:['b-warn','📤 出库'],领料:['b-info','🔧 领料'],盘点:['b-gray','⚖️ 盘点'],旧件入库:['b-gray','♻️ 旧件入库'],旧件出库:['b-gray','♻️ 旧件出库']};
+  const typeMap={入库:['b-normal','📥 入库'],出库:['b-warn','📤 出库'],领料:['b-info','🔧 领料'],盘点:['b-gray','⚖️ 盘点'],旧件入库:['b-gray','♻️ 旧件接收(暂存)'],旧件出库:['b-gray','♻️ 旧件出库'],旧件释放可用:['b-normal','♻️ 旧件释放可用'],旧件拒收回库:['b-warn','♻️ 旧件拒收回库'],旧件返厂:['b-warn','♻️ 旧件返厂'],旧件报废退回:['b-danger','♻️ 旧件报废退回']};
   body.innerHTML=list.slice(0,300).map(t=>{const[v,c]=typeMap[t.type]||['b-gray',t.type];
     return `<tr><td>${esc(t.date)}</td><td><span class="badge ${v}">${c}</span></td><td>${esc(t.pn)}</td><td>${esc(t.name||'—')}</td>
       <td style="color:${t.qty>=0?'#5fe39b':'#ff6b5b'}">${t.qty>=0?'+':''}${t.qty}</td><td>${esc(t.operator||'—')}</td>
       <td>${esc(t.order_id||'—')}</td><td>${esc(t.remark||'')}</td></tr>`;
-  }).join('');
-}
-
-function renderOld(){
-  const list=(DB.orders||[]).filter(o=>(o.items||[]).length&&o.status!=='待订货');
-  const box=document.getElementById('oldList');
-  if(!list.length){box.innerHTML=`<div class="empty-state"><div class="emoji">♻️</div>暂无含旧件回收的订货单</div>`;return;}
-  box.innerHTML=list.map(o=>{
-    const recv=o.old_receive_date?`<span class="badge b-normal">✓ 已接收 ${o.old_receive_date}</span>`:`<button class="btn sm" onclick="setOld('${o.id}','receive')">标记接收</button>`;
-    const ret=o.old_return_date?`<span class="badge b-normal">✓ 已返厂 ${o.old_return_date}</span>`:`<button class="btn sm amber" onclick="setOld('${o.id}','return')">标记返厂</button>`;
-    return `<div class="op-card"><div class="op-top"><div><div class="op-title">订货单 ${esc(o.id)}</div>
-      <div class="op-meta">工程师 ${esc(o.engineer||'—')} ｜ 物料 ${(o.items||[]).map(it=>esc(it.name||it.pn)).join('、')}</div></div></div>
-      <div class="op-actions">${recv}${ret}</div></div>`;
   }).join('');
 }
 
@@ -469,13 +670,13 @@ async function advanceOrder(id){
     }
   }
   o.status=next;
+  if(next==='已领料'){
+    const op=oldpartOf(o);
+    if(op.status==='待接收'&&!op.audit.some(a=>a.action==='generate')){
+      AFG.appendAudit(op,{action:'generate',from:'',to:'待接收',actor:ME,note:'领料更换生成旧件批次（旧件回收流程起点）'});
+    }
+  }
   await saveData();render();toast('✅ 已推进至「'+next+'」','ok');
-}
-async function setOld(id,act){
-  const o=DB.orders.find(x=>x.id===id);if(!o)return;
-  if(act==='receive'){o.old_receive_date=today();addTxn('旧件入库',o.items[0].pn,0,o.engineer||'库房','旧件接收 #'+o.id,o.id);}
-  else{o.old_return_date=today();addTxn('旧件出库',o.items[0].pn,0,o.engineer||'库房','旧件返厂 #'+o.id,o.id);}
-  await saveData();render();toast('✅ 已更新旧件状态','ok');
 }
 async function delOrder(id){
   if(!confirm('确认删除该订货单？'))return;
@@ -535,6 +736,7 @@ async function importInventorySnapshot(){
 
 document.getElementById('tabs').addEventListener('click',e=>{
   const t=e.target.closest('.tab');if(!t)return;
+  if(!AFG.canPage(ME.role,t.dataset.view)){toast('当前岗位「'+AFG.roleLabel(ME.role)+'」不能进入该视图','err');return;}
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
   curView=t.dataset.view;
   ['inventory','orders','txns','oldparts'].forEach(v=>document.getElementById('view-'+v).style.display=v===curView?'block':'none');
@@ -543,7 +745,16 @@ document.getElementById('tabs').addEventListener('click',e=>{
 document.getElementById('invSearch').addEventListener('input',renderInventory);
 document.getElementById('txnSearch').addEventListener('input',renderTxns);
 
-(async()=>{DB=await loadData();DB.items=DB.items||[];DB.orders=DB.orders||[];DB.txns=DB.txns||[];buildCatChips();buildKfChips();render();})();
+(async()=>{
+  DB=await loadData();
+  DB.items=DB.items||[];DB.orders=DB.orders||[];DB.txns=DB.txns||[];
+  const migrated=migrateOldparts();
+  if(migrated)await saveData();
+  buildCatChips();buildKfChips();
+  renderIdentityBar();afApplyTabPermission();
+  render();
+  if(migrated)toast('已把 '+migrated+' 张历史订货单的旧件日期回填为旧件批次（无核验结论，需人工补核）','ok');
+})();
 </script>
 </body>
 </html>

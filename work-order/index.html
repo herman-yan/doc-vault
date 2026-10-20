@@ -75,6 +75,7 @@ tbody tr { cursor: pointer; }
 
 /* Status pills */
 .status-pill { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+.status-legacy { margin-left: 4px; font-size: 11px; color: #b26a00; cursor: help; }
 .status-待派工 { background: #f1f5f9; color: #64748b; }
 .status-未开工 { background: #f1f5f9; color: #64748b; }
 .status-待客户确认 { background: #fef3c7; color: #92400e; }
@@ -85,6 +86,34 @@ tbody tr { cursor: pointer; }
 .status-已结清 { background: #dcfce7; color: #166534; }
 .status-关闭工单 { background: #f1f5f9; color: #64748b; }
 .status-已终止 { background: #fee2e2; color: #991b1b; }
+.status-待班组复检 { background: #ffedd5; color: #9a3412; }
+.status-待质检终检 { background: #ede9fe; color: #5b21b6; }
+.status-驳回待重检 { background: #fee2e2; color: #991b1b; }
+.status-报价确认 { background: #e0f2fe; color: #075985; }
+
+/* 岗位身份条 */
+.identity-bar { padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--card); }
+.identity-bar .id-name { font-weight: 600; font-size: 13px; }
+.identity-bar .id-role { font-size: 12px; color: var(--text-secondary); }
+.identity-bar select { width: 100%; margin-top: 6px; font-size: 12px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+.identity-note { margin-top: 6px; font-size: 11px; line-height: 1.5; color: var(--text-secondary); background: #f8fafc; border-left: 3px solid #cbd5e1; padding: 6px 8px; border-radius: 4px; }
+.scope-hint { margin: 0 0 14px; font-size: 12px; color: #92400e; background: #fef3c7; border: 1px solid #fde68a; padding: 8px 12px; border-radius: 8px; }
+
+/* 结构化质检 */
+.qc-list { display: grid; gap: 6px; margin: 10px 0; }
+.qc-item { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 7px; background: #fff; }
+.qc-item input { width: auto; }
+.qc-gates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+.qc-err { color: var(--danger); font-size: 12px; margin-top: 8px; line-height: 1.6; }
+.qc-version { font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
+
+/* 操作留痕 */
+.audit-list { margin-top: 8px; border-left: 2px solid var(--border); padding-left: 12px; }
+.audit-row { font-size: 12px; color: var(--text-secondary); margin-bottom: 7px; line-height: 1.5; }
+.audit-row b { color: var(--text); font-weight: 600; }
+.qc-fact { font-size: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-top: 8px; line-height: 1.7; }
+.qc-fact .ok { color: var(--success); }
+.qc-fact .no { color: var(--danger); }
 
 /* Type tabs */
 .type-tabs { display: flex; gap: 0; margin-bottom: 20px; background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
@@ -203,6 +232,7 @@ tbody tr { cursor: pointer; }
     ⚡ 服务站管理
     <small>工单全流程管理</small>
   </div>
+  <div class="identity-bar" id="identityBar"></div>
   <div class="sidebar-nav">
     <div class="nav-section">工作台</div>
     <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
@@ -243,6 +273,7 @@ tbody tr { cursor: pointer; }
   <div class="modal" id="modalContent"></div>
 </div>
 
+<script src="../assets/aftersales-guardrails.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script>
 // ===== DATA STORE =====
@@ -272,6 +303,260 @@ function saveData(data) {
 }
 
 let APP = loadData();
+
+// ===== 岗位身份 + 流转护栏（逻辑与用例见 assets/aftersales-guardrails.js）=====
+if (typeof AFG === 'undefined') {
+  document.getElementById('mainContent').innerHTML =
+    '<div style="padding:40px;font-size:14px">护栏模块 <code>../assets/aftersales-guardrails.js</code> 未加载，为避免绕过状态机与质检闸门，本页已停止写入。请刷新或检查该文件是否随站点一同发布。</div>';
+  throw new Error('aftersales-guardrails.js not loaded');
+}
+let ME = AFG.getIdentity() || { name: '', role: 'ADMIN' };
+if (!ME.name) ME = AFG.setIdentity((APP.engineers[0] || '未署名'), ME.role);
+
+function afEsc(v) {
+  return String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function renderIdentityBar() {
+  const bar = document.getElementById('identityBar');
+  if (!bar) return;
+  const names = Array.from(new Set((APP.engineers || []).concat(APP.reporters || []).concat(ME.name ? [ME.name] : [])));
+  bar.innerHTML = `
+    <div class="id-name">${afEsc(ME.name)}</div>
+    <div class="id-role">${afEsc(AFG.roleLabel(ME.role))}${AFG.isReadonly(ME.role) ? ' · 只读' : ''}</div>
+    <select id="id_name" onchange="afSwitchIdentity(this.value, document.getElementById('id_role').value)" aria-label="选择本人">
+      ${names.map(n => `<option value="${afEsc(n)}" ${n === ME.name ? 'selected' : ''}>${afEsc(n)}</option>`).join('')}
+    </select>
+    <select id="id_role" onchange="afSwitchIdentity(document.getElementById('id_name').value, this.value)" aria-label="选择岗位">
+      ${Object.keys(AFG.ROLES).map(r => `<option value="${r}" ${r === ME.role ? 'selected' : ''}>${afEsc(AFG.ROLES[r].label)}</option>`).join('')}
+    </select>
+    <div class="identity-note">本机岗位识别，用于视图分区与操作留痕，<b>不是安全边界</b>；正式权限需由统一后端校验。</div>`;
+}
+
+function afSwitchIdentity(name, role) {
+  ME = AFG.setIdentity(name, role);
+  renderIdentityBar();
+  afApplyNavPermission();
+  renderPage();
+}
+
+function afApplyNavPermission() {
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.style.display = AFG.canPage(ME.role, el.dataset.page) ? '' : 'none';
+  });
+  if (!AFG.canPage(ME.role, currentPage)) switchPage('dashboard');
+}
+
+function afScopeHint() {
+  return `<div class="scope-hint">当前岗位：${afEsc(AFG.roleLabel(ME.role))} · ${afEsc((AFG.ROLES[ME.role] || {}).scopeHint || '')}</div>`;
+}
+
+function afWarranty() { return AFG.visibleOrders(ME.role, APP.warrantyOrders, ME); }
+function afNonWarranty() {
+  const idx = {};
+  APP.warehouseLogs.forEach(l => { if (l.relatedOrder) idx[l.relatedOrder] = true; });
+  return AFG.visibleOrders(ME.role, APP.nonWarrantyOrders, ME, idx);
+}
+
+function afFindOrder(kind, id) {
+  return (kind === 'WN' ? APP.warrantyOrders : APP.nonWarrantyOrders).find(x => x.id === id);
+}
+function afTransitionOf(kind, status, action) {
+  return AFG.allowedTransitions(kind, status).find(t => t.action === action);
+}
+
+// 导入/新建时的状态口径：只按流转模板归一（旧口径别名转换），认不出的值不静默改写——
+// 保留 statusRaw 并退回入口态，等人工在台账里确认后再走流转。
+function afNormalizeIncoming(kind, raw) {
+  const s = String(raw || '').trim();
+  if (!s) return { status: AFG.flowOf(kind).entry, raw: '', unknown: false };
+  const mapped = AFG.normalizeStatus(kind, s);
+  if (!AFG.isKnownStatus(kind, mapped)) return { status: AFG.flowOf(kind).entry, raw: s, unknown: true };
+  return { status: mapped, raw: mapped === s ? '' : s, unknown: false };
+}
+
+// 入口态赋值：新建单直接落状态机入口；导入单走归一，认不出的状态留痕待人工确认
+function afAssignIncomingStatus(kind, o, raw) {
+  const n = afNormalizeIncoming(kind, raw);
+  o.status = n.status;
+  if (n.raw) o.statusRaw = n.raw;
+  if (n.unknown) AFG.appendAudit(o, { action: 'import', to: n.status, actor: ME, note: '导入状态「' + n.raw + '」不在流转模板 ' + AFG.flowOf(kind).version + ' 内，已退回入口态，需人工确认后续流转' });
+  return n;
+}
+
+// 导入合并：匹配键去重、空值不覆盖，但 status / statusRaw 不回写——
+// 已存在单据的流程位置以本机台账流转为准，不能被一张旧表倒退。
+function afMergeInto(existing, incoming, keyFn) {
+  const fields = Object.keys(incoming[0] || {}).filter(f => f !== 'status' && f !== 'statusRaw');
+  return AFG.mergeImport(existing, incoming, keyFn, fields);
+}
+
+// 状态徽标：显式暴露「由旧口径归一而来」与「模板认不出的脏状态」，避免台账被误读；状态值一律转义后入 DOM
+function afStatusPill(kind, o) {
+  const s = afEsc(o.status);
+  if (!AFG.isKnownStatus(kind, o.status)) return `<span class="status-pill">${s} · 状态待确认</span>`;
+  const tag = o.statusRaw ? `<span class="status-legacy" title="原状态「${afEsc(o.statusRaw)}」，已按流转模板 ${afEsc(AFG.flowOf(kind).version)} 归一">原「${afEsc(o.statusRaw)}」</span>` : '';
+  return `<span class="status-pill status-${s}">${s}</span>${tag}`;
+}
+
+// 统一的流转出口：所有状态变化都经过这里，保证合法性、幂等、质检事实与留痕
+function afCommit(kind, id, action, payload) {
+  const o = afFindOrder(kind, id);
+  if (!o) return showUploadStatus('工单不存在，或当前岗位无权查看', 'error');
+  const t = afTransitionOf(kind, o.status, action);
+  if (!t) return showUploadStatus('当前状态「' + o.status + '」没有该操作，请刷新后以台账当前状态为准', 'error');
+  payload = Object.assign({ requestId: AFG.newRequestId() }, payload || {});
+  o._flowKind = kind;
+  const res = AFG.applyTransition(o, t, ME, payload);
+  delete o._flowKind;
+  if (!res.ok) return showUploadStatus(res.error, 'error');
+  const flow = kind === 'WN' ? AFG.WN_FLOW : AFG.NW_FLOW;
+  if (!o.flowTemplateVersion) { o.flowTemplateVersion = flow.version; o.flowTemplateEffectiveAt = flow.effectiveAt; }
+  if (action === 'dispatch') o.engineer = payload.engineer;
+  if (action === 'start') o.startDate = todayStr();
+  if (action === 'close') o.dealDate = o.dealDate || todayStr();
+  if (action === 'clear') o.clearedDate = todayStr();
+  if (action === 'cancel') o.cancelledDate = todayStr();
+  saveData(APP);
+  closeModal();
+  renderPage();
+  showUploadStatus('已流转至「' + o.status + '」，操作已留痕', 'success');
+}
+
+// 通用动作弹窗：按动作类型选择要采集的事实
+function afOpenAction(kind, id, action) {
+  const o = afFindOrder(kind, id);
+  if (!o) return;
+  const t = afTransitionOf(kind, o.status, action);
+  if (!t) return showUploadStatus('当前状态不允许该操作', 'error');
+  if (action === 'dispatch') return dispatchWarranty(id);
+  if (action === 'settle') return settleWarranty(id);
+  if (t.stage === 'SELF') return afOpenQcModal(kind, id);
+
+  let body = '';
+  if (t.stage === 'TEAM' || t.stage === 'FINAL') body = afQcFactsHtml(o);
+  else if (t.requiresReason || action === 'cancel') {
+    body = `<div class="form-group full"><label class="form-label">原因<span class="required">*</span></label>
+      <textarea class="form-textarea" id="af_reason" placeholder="必填：写明原因，便于后续审计回放"></textarea></div>`;
+  } else if (action === 'close') {
+    body = '<div class="qc-fact">关闭前请确认费用已结清、资料已归档。关闭动作会写入操作留痕，不可直接改状态。</div>';
+  }
+  const html = `
+    <div class="modal-header"><div class="modal-title">${afEsc(t.label)} - ${afEsc(o.id)}</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="qc-fact">当前状态：<b>${afEsc(o.status)}</b> → 目标状态：<b>${afEsc(t.to)}</b>　操作人：${afEsc(ME.name)}（${afEsc(AFG.roleLabel(ME.role))}）</div>
+      ${body}
+      <div class="form-group full" style="margin-top:10px"><label class="form-label">备注（可选）</label>
+        <textarea class="form-textarea" id="af_note" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="afConfirmAction('${kind}','${o.id}','${action}')">确认</button>
+    </div>`;
+  showModal(html);
+}
+
+function afConfirmAction(kind, id, action) {
+  const payload = { note: (document.getElementById('af_note') || {}).value || '' };
+  const reasonEl = document.getElementById('af_reason');
+  if (reasonEl) payload.reason = reasonEl.value.trim();
+  afCommit(kind, id, action, payload);
+}
+
+// ===== 结构化质检：11 项清单 + 数值门槛 =====
+function afOpenQcModal(kind, id) {
+  const o = afFindOrder(kind, id);
+  const html = `
+    <div class="modal-header"><div class="modal-title">技师自检申报竣工 - ${afEsc(o.id)}</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="qc-fact">清单模板：${afEsc(AFG.QC_TEMPLATE_VERSION)}　申报人：${afEsc(ME.name)}（${afEsc(AFG.roleLabel(ME.role))}）<br>
+        11 项须全部确认通过，三项数值门槛须如实填写；未通过项会阻断提交。</div>
+      <div class="qc-list">
+        ${AFG.QC_ITEMS.map(i => `
+          <label class="qc-item"><input type="checkbox" id="qc_${i.code}"><span>${afEsc(i.label)}</span></label>`).join('')}
+      </div>
+      <div class="qc-gates">
+        <div class="form-group"><label class="form-label">绝缘阻值(mΩ)</label><input class="form-input" type="number" step="0.01" id="qc_insulationMohm"></div>
+        <div class="form-group"><label class="form-label">容量恢复率(%)</label><input class="form-input" type="number" step="0.01" id="qc_capacityRecoveryPct" placeholder="95 ~ 999.99"></div>
+        <div class="form-group"><label class="form-label">72小时压降(mV)</label><input class="form-input" type="number" step="0.01" id="qc_voltageDrop72hMv" placeholder="0 ~ 30"></div>
+      </div>
+      <div class="form-group full" style="margin-top:10px"><label class="form-label">完工日期 / 工程师备注 / 产值</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <input class="form-input" type="date" id="comp_date" value="${todayStr()}">
+          <input class="form-input" type="number" step="0.1" id="comp_output" placeholder="工程师产值">
+        </div>
+        <textarea class="form-textarea" id="comp_note" rows="2" placeholder="维修情况、更换配件等" style="margin-top:8px"></textarea>
+      </div>
+      <div class="qc-err" id="afQcErr"></div>
+      <div class="qc-version">提交后进入「待班组复检」；复检与终检须由他人执行（责任分离）。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-success" onclick="afSubmitQc('${kind}','${o.id}')">确认自检合格并申报</button>
+    </div>`;
+  showModal(html);
+}
+
+function afSubmitQc(kind, id) {
+  const val = i => (document.getElementById(i) || {}).value;
+  const qc = {
+    items: AFG.QC_CODES.map(c => ({ code: c, passed: !!(document.getElementById('qc_' + c) || {}).checked })),
+    insulationMohm: val('qc_insulationMohm'),
+    capacityRecoveryPct: val('qc_capacityRecoveryPct'),
+    voltageDrop72hMv: val('qc_voltageDrop72hMv')
+  };
+  const v = AFG.validateQC(qc);
+  if (!v.ok) {
+    document.getElementById('afQcErr').innerHTML = v.errors.map(e => '· ' + afEsc(e)).join('<br>');
+    return;
+  }
+  const o = afFindOrder(kind, id);
+  o.completeDate = val('comp_date');
+  o.engineerNote = val('comp_note');
+  o.engineerOutput = val('comp_output');
+  // applyTransition 的结构化质检约定放在 payload.qc 下（stampQc 也按此留档）
+  afCommit(kind, id, 'self_check', { qc: qc, note: val('comp_note') });
+}
+
+function afQcFactsHtml(o) {
+  const q = (o && o.qc) || {};
+  if (!q.self) return '<div class="qc-err">该单为历史数据，没有技师自检事实。请补录自检后再走复检/终检。</div>';
+  const g = q.self.qc || {};
+  const rows = AFG.QC_ITEMS.map(i => {
+    const it = (g.items || []).find(x => x.code === i.code) || {};
+    return `<span class="${it.passed ? 'ok' : 'no'}">${it.passed ? '✓' : '✗'} ${afEsc(i.label)}</span>`;
+  }).join('　');
+  return `<div class="qc-fact">
+      <b>技师自检事实</b>（${afEsc(q.self.name)}，${afEsc(q.self.templateVersion || '')}）<br>${rows}<br>
+      绝缘阻值 ${afEsc(g.insulationMohm)} mΩ · 容量恢复率 ${afEsc(g.capacityRecoveryPct)}% · 72h 压降 ${afEsc(g.voltageDrop72hMv)} mV
+      ${q.team ? '<br><b>班组复检</b>：' + afEsc(q.team.name) + ' ' + afEsc(q.team.result) : ''}
+      ${q.final ? '<br><b>质检终检</b>：' + afEsc(q.final.name) + ' ' + afEsc(q.final.result) : ''}
+    </div>
+    <div class="qc-version">复核须与自检不同人：同一人承担自检与复检/终检会被拒绝。</div>`;
+}
+
+function afAuditHtml(o) {
+  const list = (o && o.audit) || [];
+  if (!list.length) return '<div class="audit-row">暂无操作留痕（该单尚未在新流转规则下发生变更）。</div>';
+  return list.slice().reverse().map(a => `
+    <div class="audit-row"><b>${afEsc(a.roleLabel || a.role)}</b> ${afEsc(a.actor)} ·
+      ${afEsc(a.from || '-')} → ${afEsc(a.to)} · ${afEsc((a.at || '').replace('T', ' ').slice(0, 16))}
+      ${a.reason ? '<br>原因：' + afEsc(a.reason) : ''}
+      ${a.note ? '<br>备注：' + afEsc(a.note) : ''}</div>`).join('');
+}
+
+function afActionButtons(kind, o) {
+  const acts = AFG.actionable(kind, o, ME);
+  if (!acts.length) return AFG.isReadonly(ME.role) ? '<span style="font-size:12px;color:var(--text-secondary)">只读岗位</span>' : '';
+  return acts.map(t => {
+    const cls = t.action === 'cancel' || t.action === 'reject' ? 'btn btn-sm btn-outline' :
+      (t.action === 'clear' || t.action === 'close' ? 'btn btn-sm btn-outline' : 'btn btn-sm btn-primary');
+    return `<button class="${cls}" onclick="afOpenAction('${kind}','${afEsc(o.id)}','${t.action}')">${afEsc(t.label)}</button>`;
+  }).join('');
+}
+
 
 function genId(prefix) {
   APP.idCounters[prefix]++;
@@ -305,18 +590,18 @@ function renderPage() {
 }
 
 function updateNavBadges() {
-  const wnActive = APP.warrantyOrders.filter(o => !['已结清','已终止','关闭工单'].includes(o.status)).length;
-  const nwActive = APP.nonWarrantyOrders.filter(o => !['关闭工单'].includes(o.status)).length;
+  const wnActive = afWarranty().filter(o => AFG.isActive('WN', o.status)).length;
+  const nwActive = afNonWarranty().filter(o => AFG.isActive('NW', o.status)).length;
   document.getElementById('nav-badge-wn').textContent = wnActive;
   document.getElementById('nav-badge-nw').textContent = nwActive;
 }
 
 // ===== DASHBOARD =====
 function renderDashboard() {
-  const wn = APP.warrantyOrders;
-  const nw = APP.nonWarrantyOrders;
-  const wnActive = wn.filter(o => !['已结清','已终止'].includes(o.status));
-  const nwActive = nw.filter(o => !['关闭工单'].includes(o.status));
+  const wn = afWarranty();
+  const nw = afNonWarranty();
+  const wnActive = wn.filter(o => AFG.isActive('WN', o.status));
+  const nwActive = nw.filter(o => AFG.isActive('NW', o.status));
   const wnUnassigned = wn.filter(o => o.status === '未派工').length;
   const nwPending = nw.filter(o => o.status === '待客户确认').length;
   const wnInProgress = wn.filter(o => ['在修','已竣工'].includes(o.status)).length;
@@ -397,7 +682,7 @@ function renderDashboard() {
               <td><span class="badge ${o._type==='保内'?'badge-blue':'badge-yellow'}">${o._type}</span></td>
               <td>${o.id}</td><td>${o.customerName||o.signedCustomer||'-'}</td>
               <td>${o.vehicleInfo||o.plateNumber||'-'}</td>
-              <td><span class="status-pill status-${o.status}">${o.status}</span></td>
+              <td>${afStatusPill(o._type === '保内' ? 'WN' : 'NW', o)}</td>
               <td>${o.engineer||o.repairEngineer||'-'}</td>
               <td>${o.registerDate||o.requestDate||'-'}</td>
             </tr>`).join('')}
@@ -426,30 +711,20 @@ function renderStatusChart(orders, statuses) {
 
 // ===== WARRANTY (保内) LIST =====
 function renderWarrantyList() {
-  const orders = APP.warrantyOrders;
+  const orders = afWarranty();
   return `
     <div class="page-header">
-      <div><div class="page-title">保内工单</div><div class="page-subtitle">服务站保内维修工单管理</div></div>
+      <div><div class="page-title">保内工单</div><div class="page-subtitle">服务站保内维修工单管理 · 流转模板 ${AFG.WN_FLOW.version}</div></div>
       <div style="display:flex;gap:8px;align-items:center">
         <button class="btn-upload" onclick="document.getElementById('excelFileInput').click()">📥 导入Excel</button>
         <button class="btn-upload" onclick="downloadTemplate()">📄 下载模板</button>
         <button class="btn btn-primary" onclick="openWarrantyForm()">+ 新建保内工单</button>
       </div>
     </div>
+    ${afScopeHint()}
     <div class="pipeline">
       <div class="pipeline-step" onclick="filterWarranty('')"><span>全部</span></div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step" onclick="filterWarranty('未派工')"><span>未派工</span></div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step" onclick="filterWarranty('未开工')"><span>未开工</span></div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step" onclick="filterWarranty('在修')"><span>在修</span></div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step" onclick="filterWarranty('已竣工')"><span>已竣工</span></div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step" onclick="filterWarranty('已结算')"><span>已结算</span></div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step" onclick="filterWarranty('已结清')"><span>已结清</span></div>
+      ${AFG.WN_FLOW.states.map(s => `<div class="pipeline-arrow">→</div><div class="pipeline-step" onclick="filterWarranty('${s}')"><span>${s}</span></div>`).join('')}
     </div>
     <div class="time-filter time-filter-wn">
       <div class="time-filter-label">📅 时间</div>
@@ -490,14 +765,11 @@ function renderWarrantyRows(orders) {
       <td>${(o.faultDesc||'-').substring(0,20)}</td>
       <td><span class="badge badge-blue">${o.repairType||'-'}</span></td>
       <td>${o.orderType||'-'}</td>
-      <td><span class="status-pill status-${o.status}">${o.status}</span></td>
+      <td>${afStatusPill('WN', o)}</td>
       <td>${o.engineer||'-'}</td>
       <td>${o.reporter||'-'}</td>
       <td class="action-group" onclick="event.stopPropagation()">
-        ${o.status==='未派工'?`<button class="btn btn-sm btn-primary" onclick="dispatchWarranty('${o.id}')">派单</button>`:''}
-        ${o.status==='未开工'?`<button class="btn btn-sm btn-success" onclick="startWarranty('${o.id}')">开工</button>`:''}
-        ${o.status==='在修'?`<button class="btn btn-sm btn-success" onclick="completeWarranty('${o.id}')">竣工</button>`:''}
-        ${o.status==='已竣工'?`<button class="btn btn-sm btn-primary" onclick="settleWarranty('${o.id}')">结算</button>`:''}
+        ${afActionButtons('WN', o)}
       </td>
     </tr>
   `).join('');
@@ -511,7 +783,7 @@ function filterWarrantyEngineer(eng) { wnFilterEngineer = eng; applyWarrantyFilt
 function searchWarranty(text) { wnSearchText = text; applyWarrantyFilter(); }
 
 function applyWarrantyFilter() {
-  let filtered = APP.warrantyOrders;
+  let filtered = afWarranty();
   if(wnFilterStatus) filtered = filtered.filter(o => o.status === wnFilterStatus);
   if(wnFilterEngineer) filtered = filtered.filter(o => o.engineer === wnFilterEngineer);
   if(wnFilterTime) filtered = filtered.filter(o => isInPeriod(o.registerDate, wnFilterTime));
@@ -524,24 +796,20 @@ function applyWarrantyFilter() {
 
 // ===== NON-WARRANTY (保外) LIST =====
 function renderNonWarrantyList() {
-  const orders = APP.nonWarrantyOrders;
+  const orders = afNonWarranty();
   return `
     <div class="page-header">
-      <div><div class="page-title">保外工单</div><div class="page-subtitle">保外维修业务台账管理</div></div>
+      <div><div class="page-title">保外工单</div><div class="page-subtitle">保外维修业务台账管理 · 流转模板 ${AFG.NW_FLOW.version}</div></div>
       <div style="display:flex;gap:8px;align-items:center">
         <button class="btn-upload" onclick="document.getElementById('excelFileInput').click()">📥 导入Excel</button>
         <button class="btn-upload" onclick="downloadTemplate()">📄 下载模板</button>
         <button class="btn btn-primary" onclick="openNonWarrantyForm()">+ 新建保外工单</button>
       </div>
     </div>
+    ${afScopeHint()}
     <div class="pipeline">
       <div class="pipeline-step" onclick="filterNonWarranty('')"><span>全部</span></div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step" onclick="filterNonWarranty('待客户确认')"><span>待客户确认</span></div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step" onclick="filterNonWarranty('维修完成')"><span>维修完成</span></div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step" onclick="filterNonWarranty('关闭工单')"><span>关闭工单</span></div>
+      ${AFG.NW_FLOW.states.map(s => `<div class="pipeline-arrow">→</div><div class="pipeline-step" onclick="filterNonWarranty('${s}')"><span>${s}</span></div>`).join('')}
     </div>
     <div class="time-filter time-filter-nw">
       <div class="time-filter-label">📅 时间</div>
@@ -589,14 +857,13 @@ function renderNonWarrantyRows(orders) {
       <td>${o.plateNumber||'-'}</td>
       <td><span class="badge ${o.productType==='乘用'?'badge-blue':'badge-green'}">${o.productType||'-'}</span></td>
       <td>${o.projectType||'-'}</td>
-      <td><span class="status-pill status-${o.status}">${o.status}</span></td>
+      <td>${afStatusPill('NW', o)}</td>
       <td>${o.repairEngineer||'-'}</td>
       <td>¥${parseFloat(o.quoteTotal||0).toLocaleString()}</td>
       <td>¥${parseFloat(o.receivedAmount||0).toLocaleString()}</td>
       <td>${o.paymentStatus||'-'}</td>
       <td class="action-group" onclick="event.stopPropagation()">
-        ${o.status==='待客户确认'?`<button class="btn btn-sm btn-success" onclick="completeNonWarranty('${o.id}')">维修完成</button>`:''}
-        ${o.status==='维修完成'?`<button class="btn btn-sm btn-outline" onclick="closeNonWarranty('${o.id}')">关闭工单</button>`:''}
+        ${afActionButtons('NW', o)}
       </td>
     </tr>
   `).join('');
@@ -610,7 +877,7 @@ function filterNonWarrantyProject(proj) { nwFilterProject = proj; applyNonWarran
 function searchNonWarranty(text) { nwSearchText = text; applyNonWarrantyFilter(); }
 
 function applyNonWarrantyFilter() {
-  let filtered = APP.nonWarrantyOrders;
+  let filtered = afNonWarranty();
   if(nwFilterStatus) filtered = filtered.filter(o => o.status === nwFilterStatus);
   if(nwFilterEngineer) filtered = filtered.filter(o => o.repairEngineer === nwFilterEngineer);
   if(nwFilterProject) filtered = filtered.filter(o => o.projectType === nwFilterProject);
@@ -833,6 +1100,9 @@ function saveWarranty(editId) {
     data.oldPartReturnDate = '';
     data.engineerPickDate = '';
     data.readyDate = '';
+    data.flowTemplateVersion = AFG.WN_FLOW.version;
+    data.flowTemplateEffectiveAt = AFG.WN_FLOW.effectiveAt;
+    AFG.appendAudit(data, { action: 'create', from: '', to: data.status, actor: ME, note: '新建保内工单' });
     APP.warrantyOrders.push(data);
   }
   saveData(APP);
@@ -1117,6 +1387,9 @@ function saveNonWarranty(editId) {
     data.id = genId('nw');
     data.status = '待客户确认';
     data.orderNo = '';
+    data.flowTemplateVersion = AFG.NW_FLOW.version;
+    data.flowTemplateEffectiveAt = AFG.NW_FLOW.effectiveAt;
+    AFG.appendAudit(data, { action: 'create', from: '', to: data.status, actor: ME, note: '新建保外工单' });
     APP.nonWarrantyOrders.push(data);
   }
   saveData(APP);
@@ -1136,7 +1409,7 @@ function viewWarranty(id) {
     <div class="modal-body">
       <div class="detail-header">
         <span class="detail-id">${o.id}</span>
-        <span class="status-pill status-${o.status}">${o.status}</span>
+        ${afStatusPill('WN', o)}
         ${o.urgent==='1'?'<span class="badge badge-red">加急</span>':''}
       </div>
       <div class="detail-section">
@@ -1195,6 +1468,12 @@ function viewWarranty(id) {
           ${o.oldPartNote?`<div class="detail-field"><div class="detail-field-label">旧件备注</div><div class="detail-field-value">${o.oldPartNote}</div></div>`:''}
         </div>
       </div>` : ''}
+      <div class="detail-section">
+        <div class="detail-section-title">🔍 质检事实与操作留痕</div>
+        ${afQcFactsHtml(o)}
+        <div class="audit-list">${afAuditHtml(o)}</div>
+        <div class="qc-version">流转模板：${afEsc(o.flowTemplateVersion || ('（历史单，尚未盖章）' + AFG.WN_FLOW.version))}${o.flowTemplateEffectiveAt ? ' · 生效日 ' + afEsc(o.flowTemplateEffectiveAt) : ''}</div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="openWarrantyForm('${o.id}')">编辑</button>
@@ -1215,7 +1494,7 @@ function viewNonWarranty(id) {
     <div class="modal-body">
       <div class="detail-header">
         <span class="detail-id">${o.id}</span>
-        <span class="status-pill status-${o.status}">${o.status}</span>
+        ${afStatusPill('NW', o)}
         <span class="badge ${o.productType==='乘用'?'badge-blue':'badge-green'}">${o.productType}</span>
       </div>
       <div class="detail-section">
@@ -1270,6 +1549,12 @@ function viewNonWarranty(id) {
           ${o.remark?`<div class="detail-field"><div class="detail-field-label">备注</div><div class="detail-field-value">${o.remark}</div></div>`:''}
         </div>
       </div>` : ''}
+      <div class="detail-section">
+        <div class="detail-section-title">🔍 质检事实与操作留痕</div>
+        ${afQcFactsHtml(o)}
+        <div class="audit-list">${afAuditHtml(o)}</div>
+        <div class="qc-version">流转模板：${afEsc(o.flowTemplateVersion || ('（历史单，尚未盖章）' + AFG.NW_FLOW.version))}${o.flowTemplateEffectiveAt ? ' · 生效日 ' + afEsc(o.flowTemplateEffectiveAt) : ''}</div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="openNonWarrantyForm('${o.id}')">编辑</button>
@@ -1315,50 +1600,7 @@ function dispatchWarranty(id) {
 function confirmDispatchWarranty(id) {
   const eng = document.getElementById('dispatch_eng').value;
   if(!eng) { alert('请选择工程师'); return; }
-  const o = APP.warrantyOrders.find(x => x.id === id);
-  o.engineer = eng;
-  o.status = '未开工';
-  saveData(APP);
-  closeModal();
-  renderPage();
-}
-
-function startWarranty(id) {
-  const o = APP.warrantyOrders.find(x => x.id === id);
-  o.status = '在修';
-  o.startDate = todayStr();
-  saveData(APP);
-  renderPage();
-}
-
-function completeWarranty(id) {
-  const o = APP.warrantyOrders.find(x => x.id === id);
-  const html = `
-    <div class="modal-header"><div class="modal-title">竣工 - ${o.id}</div><button class="modal-close" onclick="closeModal()">&times;</button></div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">完工日期</label><input class="form-input" type="date" id="comp_date" value="${todayStr()}"></div>
-        <div class="form-group full"><label class="form-label">工程师备注</label><textarea class="form-textarea" id="comp_note" placeholder="维修情况、更换配件等"></textarea></div>
-        <div class="form-group"><label class="form-label">工程师产值</label><input class="form-input" type="number" id="comp_output" step="0.1"></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-success" onclick="confirmCompleteWarranty('${id}')">确认竣工</button>
-    </div>
-  `;
-  showModal(html);
-}
-
-function confirmCompleteWarranty(id) {
-  const o = APP.warrantyOrders.find(x => x.id === id);
-  o.status = '已竣工';
-  o.completeDate = document.getElementById('comp_date').value;
-  o.engineerNote = document.getElementById('comp_note').value;
-  o.engineerOutput = document.getElementById('comp_output').value;
-  saveData(APP);
-  closeModal();
-  renderPage();
+  afCommit('WN', id, 'dispatch', { engineer: eng, note: '派单给 ' + eng });
 }
 
 function settleWarranty(id) {
@@ -1388,31 +1630,12 @@ function settleWarranty(id) {
 
 function confirmSettleWarranty(id) {
   const o = APP.warrantyOrders.find(x => x.id === id);
-  o.status = '已结算';
   o.reporter = document.getElementById('settle_reporter').value;
   o.gssFee = document.getElementById('settle_gssFee').value;
   o.totalFee = document.getElementById('settle_totalFee').value;
   o.outWarrantyAmount = document.getElementById('settle_outAmt').value;
   o.settledDate = todayStr();
-  saveData(APP);
-  closeModal();
-  renderPage();
-}
-
-function completeNonWarranty(id) {
-  const o = APP.nonWarrantyOrders.find(x => x.id === id);
-  o.status = '维修完成';
-  o.dealDate = todayStr();
-  saveData(APP);
-  renderPage();
-}
-
-function closeNonWarranty(id) {
-  if(!confirm('确认关闭此工单？')) return;
-  const o = APP.nonWarrantyOrders.find(x => x.id === id);
-  o.status = '关闭工单';
-  saveData(APP);
-  renderPage();
+  afCommit('WN', id, 'settle', { note: 'GSS总费用 ' + (o.gssFee || '-') + ' / 总费用 ' + (o.totalFee || '-') });
 }
 
 // ===== WAREHOUSE =====
@@ -1814,7 +2037,8 @@ function normHeader(h) {
 // 保内 / 保外 特征列（模糊匹配，包含即可，兼容同义词/错字）
 const WN_SIG = ['编号','登记日期','维修类型','完成状态','责任工程师','gss工单号','工程师产值','中台备注','旧件返厂','申领物料','工单提交时间','建单日期','gss总费用','派工'];
 const NW_SIG = ['签约客户名称','报价单','分润','车牌号','车架号','维修状态','业务对接人','物流往返','宁德','实际业务毛利润','barcode号','产品pn','工单号','序号','城市'];
-// 状态枚举（行级兜底判定：这些值本身即可区分保内/保外）
+// 状态枚举（行级兜底判定）：只用于导入行的保内/保外判别，两套刻意互不重叠；
+// 流转模板的全量状态请看 AFG.WN_FLOW/NW_FLOW.states
 const WN_STATUS = ['未派工','未开工','在修','已竣工','已结算','已结清','已终止'];
 const NW_STATUS = ['待客户确认','维修完成','关闭工单'];
 
@@ -1937,14 +2161,14 @@ function handleExcelUpload(input) {
         wn.forEach(row => {
           const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
           if (!mapped.id) mapped.id = genId('wn');
-          if (!WN_STATUS.includes(mapped.status)) mapped.status = '未派工';
+          afAssignIncomingStatus('WN', mapped, mapped.status);
           newWnData.push(mapped);
           totalWn++;
         });
         nw.forEach(row => {
           const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
           if (!mapped.seq) mapped.seq = String(newNwData.length + 1);
-          if (!NW_STATUS.includes(mapped.status)) mapped.status = '待客户确认';
+          afAssignIncomingStatus('NW', mapped, mapped.status);
           newNwData.push(mapped);
           totalNw++;
         });
@@ -1957,21 +2181,19 @@ function handleExcelUpload(input) {
         return;
       }
 
-      // 合并到现有数据（追加，不覆盖）
-      if (totalWn > 0) {
-        APP.warrantyOrders = APP.warrantyOrders.concat(newWnData);
-      }
-      if (totalNw > 0) {
-        APP.nonWarrantyOrders = APP.nonWarrantyOrders.concat(newNwData);
-      }
+      // 合并到现有台账：按匹配键去重，空值不覆盖；已存在单据的状态以本机流转为准，不被表里的旧状态冲掉
+      const wnRes = totalWn > 0 ? afMergeInto(APP.warrantyOrders, newWnData, AFG.wnMatchKey) : null;
+      if (wnRes) APP.warrantyOrders = wnRes.merged.concat(wnRes.added);
+      const nwMerge = totalNw > 0 ? afMergeInto(APP.nonWarrantyOrders, newNwData, AFG.nwMatchKey) : null;
+      if (nwMerge) APP.nonWarrantyOrders = nwMerge.merged.concat(nwMerge.added);
       saveData(APP);
       renderPage();
 
-      let msg = '✅ 导入成功！';
+      let msg = '✅ 导入完成（已按匹配键去重合并）：';
       const parts = [];
-      if (totalWn > 0) parts.push('保内 <span class="upload-badge">' + totalWn + ' 条</span>');
-      if (totalNw > 0) parts.push('保外 <span class="upload-badge">' + totalNw + ' 条</span>');
-      msg += ' ' + parts.join(' · ') + ' — 来自 <b>' + file.name + '</b>';
+      if (wnRes) parts.push('保内 ' + wnRes.summary);
+      if (nwMerge) parts.push('保外 ' + nwMerge.summary);
+      msg += parts.join(' · ') + ' — 来自 <b>' + file.name + '</b>';
       if (skipped > 0) msg += ' <span style="opacity:.8">（' + skipped + ' 行无法识别已跳过）</span>';
       showUploadStatus(msg, 'success');
 
@@ -2048,6 +2270,8 @@ async function initApp() {
     }
   }
   
+  renderIdentityBar();
+  afApplyNavPermission();
   renderPage();
 }
 
