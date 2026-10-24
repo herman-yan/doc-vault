@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用印管理系统 · 宁家(北京)汽车服务有限公司</title>
+<style>
+:root{
+  --bg:#0a0c10; --bg2:#101319; --panel:#141821; --panel2:#1a1f2a;
+  --line:#232a36; --line2:#2d3542;
+  --fg:#e8ecf2; --fg2:#9aa5b5; --fg3:#6b7686;
+  --accent:#e8452c; --accent2:#ff6b4a;
+  --ok:#2ecc71; --warn:#f5a623; --err:#e8452c; --info:#4a9eff;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--fg);
+  font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--info);text-decoration:none}
+button,input,select{font:inherit;color:inherit;outline:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#2b3340;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#3a4453}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- 布局 ---------- */
+.wrap{display:flex;min-height:100vh}
+.side{
+  width:212px;flex:0 0 212px;background:var(--bg2);border-right:1px solid var(--line);
+  padding:22px 0;position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.brand{padding:0 20px 22px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.brand h1{font-size:15px;font-weight:600;letter-spacing:.3px}
+.brand .sub{font-size:11px;color:var(--fg3);margin-top:5px;line-height:1.5}
+.nav{display:flex;flex-direction:column;gap:1px;padding:0 10px}
+.nav button{
+  display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border:0;
+  background:transparent;border-radius:8px;cursor:pointer;text-align:left;
+  color:var(--fg2);font-size:13.5px;transition:.14s;
+}
+.nav button:hover{background:var(--panel);color:var(--fg)}
+.nav button.on{background:var(--panel2);color:var(--fg);box-shadow:inset 2px 0 0 var(--accent)}
+.nav .ico{width:15px;text-align:center;opacity:.75;font-size:13px}
+.main{flex:1;min-width:0;padding:26px 30px 60px}
+
+/* ---------- 头部 ---------- */
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
+.top h2{font-size:22px;font-weight:600;letter-spacing:.2px}
+.top .desc{color:var(--fg3);font-size:12.5px;margin-top:6px}
+.acts{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.btn{
+  padding:8px 15px;border:1px solid var(--line2);background:var(--panel);
+  border-radius:8px;cursor:pointer;font-size:13px;transition:.14s;white-space:nowrap;
+}
+.btn:hover{background:var(--panel2);border-color:#3b4553}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.p{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.p:hover{background:var(--accent2);border-color:var(--accent2)}
+.btn:disabled{opacity:.5}
+
+/* 后端地址控件（部署到静态站点时用于连接本机后端） */
+.bk{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.bk label{font-size:11px;color:var(--fg3);white-space:nowrap}
+.bk input{width:168px;background:var(--bg2);border:1px solid var(--line2);border-radius:6px;color:var(--fg);font-size:12px;padding:5px 8px;outline:none}
+.bk input:focus{border-color:#3b4553}
+.bk .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:var(--fg3)}
+.bk .dot.ok{background:var(--ok)} .bk .dot.bad{background:var(--err)}
+.bk .go{padding:5px 9px;font-size:12px;border:1px solid var(--line2);background:var(--panel2);border-radius:6px;cursor:pointer;color:var(--fg2);white-space:nowrap}
+.bk .go:hover{background:#232a36;color:var(--fg)}
+.bkbanner{display:none;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:9px;padding:11px 15px;margin-bottom:18px;font-size:12.5px;color:var(--fg2);flex-wrap:wrap}
+.bkbanner.on{display:flex}
+.bkbanner code{background:var(--bg2);padding:2px 7px;border-radius:5px;color:var(--fg);font-size:12px}
+.bkbanner .go{padding:5px 11px;font-size:12px;border:1px solid var(--line2);background:var(--panel2);border-radius:6px;cursor:pointer;color:var(--fg2)}
+.bkbanner .go:hover{background:#232a36;color:var(--fg)}
+
+/* ---------- 卡片 ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-bottom:20px}
+.kpi{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:15px 17px;position:relative;overflow:hidden;transition:.16s;
+}
+.kpi:hover{border-color:var(--line2);transform:translateY(-1px)}
+.kpi .lab{font-size:11.5px;color:var(--fg3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:9px}
+.kpi .val{font-size:27px;font-weight:600;letter-spacing:-.5px;line-height:1.1}
+.kpi .val small{font-size:13px;font-weight:400;color:var(--fg2);margin-left:3px}
+.kpi .foot{font-size:11.5px;color:var(--fg3);margin-top:7px}
+.kpi::after{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--fg3);opacity:.6}
+.kpi.a::after{background:var(--accent)} .kpi.g::after{background:var(--ok)}
+.kpi.w::after{background:var(--warn)} .kpi.i::after{background:var(--info)}
+
+.grid{display:grid;gap:14px;margin-bottom:18px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.card h3{font-size:14px;font-weight:600;margin-bottom:3px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.card .hint{font-size:11.5px;color:var(--fg3);margin-bottom:15px}
+.card .hint.plain{margin-bottom:0}
+
+/* ---------- 图表 ---------- */
+.bars{display:flex;flex-direction:column;gap:9px}
+.bar{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:13px;align-items:center}
+.bar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg2)}
+.bar.clk:hover .nm{color:var(--accent2)}
+.bar.clk:hover .track{filter:brightness(1.25)}
+.bar .ct{font-variant-numeric:tabular-nums;color:var(--fg);font-size:12.5px}
+.track{grid-column:1/-1;height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-top:-3px}
+.fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.fill.i{background:linear-gradient(90deg,#2f6fd0,#4a9eff)}
+.fill.g{background:linear-gradient(90deg,#1f9d55,#2ecc71)}
+.fill.w{background:linear-gradient(90deg,#c9820f,#f5a623)}
+
+/* 月度柱状 */
+.mchart{display:flex;align-items:flex-end;gap:7px;height:150px;padding-top:12px}
+.mcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.mstack{width:100%;display:flex;flex-direction:column-reverse;border-radius:4px 4px 0 0;overflow:hidden;position:relative;transition:.2s}
+.mcol:hover .mstack{filter:brightness(1.18)}
+.mseg{width:100%}
+.mlab{font-size:10.5px;color:var(--fg3);white-space:nowrap}
+.mval{font-size:10.5px;color:var(--fg2);font-variant-numeric:tabular-nums}
+
+/* ---------- 表格 ---------- */
+.tools{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.inp,.sel{
+  padding:8px 11px;background:var(--panel);border:1px solid var(--line2);
+  border-radius:8px;font-size:13px;min-width:0;
+}
+.inp{flex:1;min-width:190px}
+.inp:focus,.sel:focus{border-color:var(--accent)}
+.sel{cursor:pointer;padding-right:26px;appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%236b7686'/></svg>");
+  background-repeat:no-repeat;background-position:right 10px center}
+.tblwrap{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{
+  background:var(--bg2);text-align:left;padding:11px 13px;font-weight:500;font-size:11.5px;
+  color:var(--fg3);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;
+  border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2;
+}
+tbody td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover{background:var(--panel2)}
+.doc{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{
+  display:inline-block;padding:2.5px 8px;border-radius:20px;font-size:11px;
+  background:var(--panel2);border:1px solid var(--line2);color:var(--fg2);white-space:nowrap;
+}
+.tag.seal{background:rgba(232,69,44,.13);border-color:rgba(232,69,44,.35);color:#ff8f78}
+.tag.ok{background:rgba(46,204,113,.13);border-color:rgba(46,204,113,.32);color:#63d68f}
+.tag.run{background:rgba(74,158,255,.13);border-color:rgba(74,158,255,.32);color:#7db9ff}
+.tag.term{background:rgba(120,130,145,.15);border-color:rgba(120,130,145,.3);color:#98a3b3}
+.tag.no{background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.3);color:#f0b74d}
+.tag.biz{background:rgba(155,120,255,.13);border-color:rgba(155,120,255,.3);color:#b7a3ff;white-space:nowrap}
+.mono{font-variant-numeric:tabular-nums;color:var(--fg2);white-space:nowrap}
+.pager{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;border-top:1px solid var(--line);font-size:12.5px;color:var(--fg3);flex-wrap:wrap;gap:10px}
+.pager .pgs{display:flex;gap:5px}
+.pager button{padding:5px 11px;border:1px solid var(--line2);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12.5px}
+.pager button:hover:not(:disabled){background:var(--panel2)}
+.pager button:disabled{opacity:.35;cursor:not-allowed}
+.empty{padding:52px 20px;text-align:center;color:var(--fg3);font-size:13.5px}
+
+/* ---------- 抽屉 ---------- */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:50;opacity:0;pointer-events:none;transition:.22s}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{
+  position:fixed;top:0;right:0;height:100vh;width:min(620px,94vw);background:var(--bg2);
+  border-left:1px solid var(--line);z-index:51;transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;
+}
+.drawer.on{transform:none}
+.dhead{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.dhead h3{font-size:16px;font-weight:600;line-height:1.45;margin-bottom:8px}
+.dhead .meta{font-size:12px;color:var(--fg3);display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.x{border:0;background:transparent;font-size:20px;color:var(--fg3);cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px}
+.x:hover{background:var(--panel2);color:var(--fg)}
+.dbody{flex:1;overflow-y:auto;padding:20px 24px 40px}
+.sec{margin-bottom:24px}
+.sec>h4{font-size:11.5px;color:var(--fg3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.kv{display:grid;grid-template-columns:104px 1fr;gap:8px 14px;font-size:13.5px}
+.kv dt{color:var(--fg3);font-size:12.5px}
+.kv dd{word-break:break-word}
+.att{display:flex;align-items:center;gap:11px;padding:11px 13px;background:var(--panel);border:1px solid var(--line);border-radius:9px;margin-bottom:8px}
+.att .ext{width:34px;height:34px;flex:0 0 34px;border-radius:7px;background:var(--panel2);display:grid;place-items:center;font-size:9.5px;font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:.3px}
+.att .info{flex:1;min-width:0}
+.att .fn{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.att .fs{font-size:11.5px;color:var(--fg3);margin-top:2px}
+.tl{position:relative;padding-left:20px}
+.tl::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--line2)}
+.tl .it{position:relative;padding-bottom:15px;font-size:13px}
+.tl .it::before{content:'';position:absolute;left:-18px;top:6px;width:7px;height:7px;border-radius:50%;background:var(--fg3);border:2px solid var(--bg2)}
+.tl .it.agree::before{background:var(--ok)}
+.tl .it.start::before{background:var(--info)}
+.tl .it.term::before{background:var(--err)}
+.tl .t1{color:var(--fg2);font-size:12.5px}
+.tl .t2{color:var(--fg3);font-size:11.5px;margin-top:2px}
+.note{background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--warn);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--fg2);line-height:1.75}
+.risk{display:flex;gap:13px;align-items:flex-start;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px}
+.risk .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;margin-top:6px}
+.risk.error .dot{background:var(--err)} .risk.warn .dot{background:var(--warn)} .risk.info .dot{background:var(--info)}
+.risk .tt{font-size:13.5px;font-weight:500}
+.risk .ds{font-size:12px;color:var(--fg3);margin-top:3px}
+.risk .list{font-size:12.5px;color:var(--fg2);margin-top:9px;display:flex;flex-direction:column;gap:5px;max-height:190px;overflow-y:auto}
+.risk .list span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 0;border-bottom:1px dashed var(--line)}
+
+/* ---------- 相对方：统计条 / 操作按钮 / 材料抽屉 ---------- */
+.pstats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.pstat{
+  flex:1;min-width:104px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:9px;padding:10px 13px;
+}
+.pstat b{display:block;font-size:17px;font-weight:600;letter-spacing:.2px}
+.pstat span{display:block;font-size:11px;color:var(--fg3);margin-top:3px}
+.mini{
+  padding:4px 10px;border:1px solid var(--line2);background:var(--panel2);
+  border-radius:6px;cursor:pointer;font-size:11.5px;white-space:nowrap;transition:.14s;
+}
+.mini:hover:not(:disabled){background:#232a36;border-color:#3b4553;color:var(--fg)}
+.mini:disabled{opacity:.35;cursor:not-allowed}
+td.nowrap{white-space:nowrap}
+td.nowrap .mini+.mini{margin-left:5px}
+
+.pact{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:14px 16px;margin-bottom:14px}
+.pact-info{font-size:12.5px;color:var(--fg2);line-height:1.8;margin-bottom:11px}
+.pact-btns{display:flex;gap:9px;flex-wrap:wrap}
+.pdoc{border:1px solid var(--line);border-radius:9px;margin-bottom:11px;overflow:hidden;background:var(--panel2)}
+.pdh{padding:11px 14px;border-bottom:1px solid var(--line)}
+.pdt{font-size:13px;font-weight:500;line-height:1.5;word-break:break-word}
+.pdm{font-size:11.5px;color:var(--fg3);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pdm i{font-style:normal;opacity:.5}
+.pfile{padding:8px 14px}
+.pfl{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:12.5px}
+.pfl+.pfl{border-top:1px dashed var(--line)}
+.pfl.none{color:var(--fg3);font-size:12px;padding:9px 0}
+.fext{
+  flex:0 0 auto;font-size:9.5px;font-weight:600;letter-spacing:.4px;
+  background:var(--panel);border:1px solid var(--line2);border-radius:4px;
+  padding:2px 6px;color:var(--fg3);
+}
+.fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg2)}
+.fsz{flex:0 0 auto;color:var(--fg3);font-size:11.5px;font-variant-numeric:tabular-nums}
+
+/* ---------- 相对方分类卡片 ---------- */
+.bcats{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:10px}
+.bcat{
+  background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:11px 13px;cursor:pointer;transition:.15s;text-align:left;
+}
+.bcat:hover{border-color:#3b4553;background:#232a36;transform:translateY(-1px)}
+.bcat.on{border-color:#3f7fd0;background:rgba(63,127,208,.13)}
+.bcat .bn{font-size:12.5px;font-weight:500;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.bcat .bn em{font-style:normal;font-size:11px;color:var(--fg3);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.bcat .bv{font-size:19px;font-weight:600;margin-top:7px;letter-spacing:.2px}
+.bcat .bv s{text-decoration:none;font-size:11px;font-weight:400;color:var(--fg3);margin-left:5px}
+.bcat .bf{font-size:11px;color:var(--fg3);margin-top:5px}
+.bcat.on .bn em{color:var(--fg2)}
+
+.toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--panel2);border:1px solid var(--line2);padding:11px 20px;border-radius:9px;
+  font-size:13px;z-index:99;opacity:0;transition:.28s;box-shadow:0 8px 30px rgba(0,0,0,.45);max-width:80vw;
+}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.syncing{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--warn)}
+.spin{width:12px;height:12px;border:2px solid var(--line2);border-top-color:var(--warn);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.view{display:none}.view.on{display:block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.side{display:none}.main{padding:18px 15px 50px}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side">
+    <div class="brand">
+      <h1>用印管理系统</h1>
+      <div class="sub">宁家(北京)汽车服务有限公司<br>数据源：钉钉「用印申请」审批</div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-v="dash" class="on"><span class="ico">◫</span>总览看板</button>
+      <button data-v="ledger"><span class="ico">☰</span>用印台账</button>
+      <button data-v="pending"><span class="ico">◷</span>在途审批</button>
+      <button data-v="party"><span class="ico">◈</span>相对方档案</button>
+      <button data-v="risk"><span class="ico">⚠</span>风险提示</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <div>
+        <h2 id="title">总览看板</h2>
+        <div class="desc" id="subtitle">加载中…</div>
+      </div>
+      <div class="acts">
+        <div class="syncing" id="syncBadge" style="display:none"><span class="spin"></span><span id="syncTxt">同步中</span></div>
+        <select class="sel" id="range" title="统计区间">
+          <option value="30">近 30 天</option>
+          <option value="90" selected>近 90 天</option>
+          <option value="180">近 180 天</option>
+          <option value="365">近 365 天</option>
+          <option value="all">全部</option>
+        </select>
+        <button class="btn" id="btnSync">同步最新数据</button>
+        <div class="bk" id="bk">
+          <span class="dot" id="bkDot" title="后端连接状态"></span>
+          <label>后端</label>
+          <input id="bkUrl" placeholder="http://localhost:8790" value="">
+          <button class="go" id="bkGo">连接</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bkbanner" id="bkBanner">
+      <span>⚠ 未连接到后端，无法加载真实数据。本页部署在静态站点上，请填写本机运行中的后端地址（默认 <code>http://localhost:8790</code>）后点「连接」；或在本地用 <code>node server.js</code> 打开 <code>http://localhost:8790/</code> 直接使用。</span>
+      <button class="go" id="bkBannerGo">前往设置</button>
+    </div>
+
+    <!-- 总览 -->
+    <section class="view on" id="v-dash">
+      <div class="kpis" id="kpis"></div>
+      <div class="grid g2">
+        <div class="card">
+          <h3>用印趋势 <span class="tag" id="trendTag"></span></h3>
+          <div class="hint">按用印日期统计，蓝色=已通过，红色=已终止</div>
+          <div class="mchart" id="mchart"></div>
+        </div>
+        <div class="card">
+          <h3>印章类型分布</h3>
+          <div class="hint">各印章使用次数</div>
+          <div class="bars" id="bSeal"></div>
+        </div>
+      </div>
+      <div class="grid g2">
+        <div class="card">
+          <h3>合同类型分布</h3>
+          <div class="hint">按用印事由分类</div>
+          <div class="bars" id="bType"></div>
+        </div>
+        <div class="card">
+          <h3>申请部门分布</h3>
+          <div class="hint">按发起人所在部门</div>
+          <div class="bars" id="bDept"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>申请人排行 <span class="hint plain" id="applicantHint"></span></h3>
+        <div class="bars" id="bUser"></div>
+      </div>
+    </section>
+
+    <!-- 台账 -->
+    <section class="view" id="v-ledger">
+      <div class="tools">
+        <input class="inp" id="kw" placeholder="搜索文件名称 / 申请人 / 收付款方 / 用途…">
+        <select class="sel" id="fStatus"><option value="">全部状态</option><option value="COMPLETED">已通过</option><option value="RUNNING">审批中</option><option value="TERMINATED">已终止</option></select>
+        <select class="sel" id="fSeal"><option value="">全部印章</option></select>
+        <select class="sel" id="fType"><option value="">全部合同类型</option></select>
+        <select class="sel" id="fDept"><option value="">全部部门</option></select>
+        <select class="sel" id="fApplicant"><option value="">全部申请人</option></select>
+        <button class="btn" id="btnReset">重置</button>
+        <button class="btn" id="btnExport">导出 CSV</button>
+        <button class="btn" id="btnExportZip">导出材料包 (ZIP)</button>
+      </div>
+      <div class="tblwrap">
+        <table>
+          <thead><tr>
+            <th>用印文件名称</th><th>印章</th><th>合同类型</th><th>申请人</th>
+            <th>用印日期</th><th>份数</th><th>附件</th><th>状态</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="pager" id="pager"></div>
+      </div>
+    </section>
+
+    <!-- 在途 -->
+    <section class="view" id="v-pending">
+      <div class="card">
+        <h3>在途审批 <span class="tag" id="pendTag"></span></h3>
+        <div class="hint">当前处于审批中、尚未完结的用印申请，含当前处理人</div>
+        <div id="pendList"></div>
+      </div>
+    </section>
+
+    <!-- 相对方 -->
+    <section class="view" id="v-party">
+      <div class="tools">
+        <input class="inp" id="pKw" placeholder="搜索相对方名称…">
+        <select class="sel" id="pBiz"><option value="">全部分类</option></select>
+        <select class="sel" id="pKind"><option value="">全部类型</option><option value="org">单位</option><option value="person">个人</option></select>
+        <select class="sel" id="pSrc"><option value="">全部来源</option><option value="收款方">收款方</option><option value="付款方">付款方</option><option value="名称推断">名称推断</option><option value="简称推断">简称推断</option></select>
+        <select class="sel" id="pSeal"><option value="">全部印章</option></select>
+        <select class="sel" id="pMin"><option value="0">不限次数</option><option value="2">≥2 次</option><option value="3">≥3 次</option><option value="5">≥5 次</option><option value="10">≥10 次</option></select>
+        <select class="sel" id="pFile"><option value="">全部</option><option value="1">仅有附件可下载</option></select>
+        <select class="sel" id="pRange" title="统计区间（档案默认全部时间）">
+          <option value="all" selected>全部时间</option>
+          <option value="365">近 365 天</option>
+          <option value="180">近 180 天</option>
+          <option value="90">近 90 天</option>
+          <option value="30">近 30 天</option>
+        </select>
+        <select class="sel" id="pSort"><option value="count">按用印次数</option><option value="files">按附件数量</option><option value="size">按附件体积</option><option value="recent">按最近用印</option><option value="name">按名称</option></select>
+        <button class="btn" id="pReset">重置</button>
+      </div>
+
+      <div class="card">
+        <h3>按分类查看 <span class="tag" id="partyTag"></span></h3>
+        <div class="hint">
+          点任一类目即可筛选。分类依据相对方名称关键词自动归类；无命中的归入「其他单位」，不硬凑。
+        </div>
+        <div id="bizCats" class="bcats"></div>
+      </div>
+
+      <div class="card">
+        <h3>相对方档案 <span class="tag" id="partyFilterTag"></span>
+          <button class="mini" id="pExport" style="float:right">导出分类清单 CSV</button>
+        </h3>
+        <div class="hint">
+          汇总用印材料涉及的外部单位。来源优先级：收款方 → 付款方 → 文件名称推断 → 简称推断（推断值已标注，未识别的留空不猜）。
+          同一主体的简称与全称已自动合并（如「宁德时代」并入全称）。点开任一单位可查看其名下全部用印单据，并按单位打包下载材料。
+        </div>
+        <div id="partyStats"></div>
+        <div id="partyList"></div>
+      </div>
+    </section>
+
+    <!-- 风险 -->
+    <section class="view" id="v-risk">
+      <div id="riskList"></div>
+      <div class="card">
+        <h3>数据完整性说明</h3>
+        <div class="note" id="integrity"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="mask" id="mask"></div>
+<aside class="drawer" id="drawer">
+  <div class="dhead">
+    <div>
+      <h3 id="dTitle">—</h3>
+      <div class="meta" id="dMeta"></div>
+    </div>
+    <button class="x" id="dClose">✕</button>
+  </div>
+  <div class="dbody" id="dBody"></div>
+</aside>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const $ = (s) => document.querySelector(s);
+const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtN = (n) => (n == null ? '—' : Number(n).toLocaleString('zh-CN'));
+const fmtSize = (b) => b == null ? '—' : b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(0) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
+const fmtDate = (ms) => ms ? new Date(ms + 8 * 3600000).toISOString().slice(0, 16).replace('T', ' ') : '—';
+
+let STATE = { view: 'dash', page: 1, size: 25, q: {}, range: '90', rows: [] };
+
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+/* 后端地址：本地（localhost）直连同源；部署到 GitHub Pages 等静态站点时，
+   改为手动填写的本机后端地址（默认 http://localhost:8790），否则无法取数。 */
+const SELF_HOSTED = typeof location !== 'undefined' && /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.host);
+let BACKEND_URL = SELF_HOSTED ? location.origin : (localStorage.getItem('sm.backendUrl') || 'http://localhost:8790');
+const apiUrl = (p) => (typeof p === 'string' && p.indexOf('/api') === 0) ? (BACKEND_URL + p) : p;
+
+async function api(path, opt) {
+  const r = await fetch(apiUrl(path), opt);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j;
+}
+
+/** 统计区间 → {from,to} */
+function rangeParams() {
+  if (STATE.range === 'all') return {};
+  const days = Number(STATE.range);
+  const now = new Date(Date.now() + 8 * 3600000);
+  const to = now.toISOString().slice(0, 10);
+  const from = new Date(now.getTime() - days * 86400000).toISOString().slice(0, 10);
+  return { from, to };
+}
+const qs = (o) => Object.entries(o).filter(([, v]) => v !== '' && v != null)
+  .map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
+
+/* ---------------- 总览 ---------------- */
+function barList(host, rows, cls, onClick) {
+  host.innerHTML = '';
+  if (!rows.length) { host.appendChild(el('div', 'empty', '暂无数据')); return; }
+  const max = Math.max(...rows.map((r) => r.c)) || 1;
+  for (const r of rows) {
+    // 兼容两种返回结构：/api/group → {k}，/api/top-applicants → {name}
+    const label = r.k != null ? r.k : r.name;
+    const tip = (r.ok != null || r.bad != null)
+      ? `${label}：共 ${r.c}，通过 ${r.ok || 0}，终止 ${r.bad || 0}`
+      : label;
+    const b = el('div', 'bar' + (onClick ? ' clk' : ''));
+    b.innerHTML = `<div class="nm" title="${esc(tip)}">${esc(label)}</div>
+      <div class="ct">${fmtN(r.c)}</div>
+      <div class="track"><div class="fill ${cls || ''}" style="width:${(r.c / max * 100).toFixed(1)}%"></div></div>`;
+    if (onClick) {
+      b.style.cursor = 'pointer';
+      b.title = tip + '（点击查看明细）';
+      b.addEventListener('click', () => onClick(label));
+    }
+    host.appendChild(b);
+  }
+}
+
+function monthChart(rows) {
+  const host = $('#mchart'); host.innerHTML = '';
+  if (!rows.length) { host.appendChild(el('div', 'empty', '暂无数据')); return; }
+  const max = Math.max(...rows.map((r) => r.c)) || 1;
+  for (const r of rows) {
+    const col = el('div', 'mcol');
+    const h = Math.max((r.c / max) * 118, 3);
+    const okH = r.c ? (r.ok / r.c) * h : 0;
+    const badH = r.c ? (r.bad / r.c) * h : 0;
+    const otherH = Math.max(h - okH - badH, 0);
+    col.innerHTML = `
+      <div class="mval">${r.c}</div>
+      <div class="mstack" style="height:${h}px" title="${esc(r.ym)}：共 ${r.c}，通过 ${r.ok}，终止 ${r.bad}">
+        <div class="mseg" style="height:${otherH}px;background:#3a4453"></div>
+        <div class="mseg" style="height:${badH}px;background:var(--err)"></div>
+        <div class="mseg" style="height:${okH}px;background:#2f6fd0"></div>
+      </div>
+      <div class="mlab">${esc(String(r.ym).slice(2).replace('-', '/'))}</div>`;
+    host.appendChild(col);
+  }
+}
+
+async function loadDash() {
+  const rp = rangeParams();
+  const [ov, month, gSeal, gType, gDept, users] = await Promise.all([
+    api('/api/overview?' + qs(rp)),
+    api('/api/monthly?' + qs(rp)),
+    api('/api/group?field=seal_type&' + qs(rp)),
+    api('/api/group?field=contract_type&' + qs(rp)),
+    api('/api/group?field=originator_dept_name&' + qs(rp)),
+    api('/api/top-applicants?' + qs(rp)),
+  ]);
+
+  $('#kpis').innerHTML = `
+    <div class="kpi a"><div class="lab">用印申请总数</div><div class="val">${fmtN(ov.total)}<small>份</small></div>
+      <div class="foot">区间内提交的用印单</div></div>
+    <div class="kpi g"><div class="lab">已通过</div><div class="val">${fmtN(ov.completed)}<small>份</small></div>
+      <div class="foot">占 ${ov.total ? (ov.completed / ov.total * 100).toFixed(0) : 0}%</div></div>
+    <div class="kpi i"><div class="lab">审批中</div><div class="val">${fmtN(ov.running)}<small>份</small></div>
+      <div class="foot">在途待处理</div></div>
+    <div class="kpi w"><div class="lab">已终止</div><div class="val">${fmtN(ov.terminated)}<small>份</small></div>
+      <div class="foot">撤销或未通过</div></div>
+    <div class="kpi"><div class="lab">归档附件</div><div class="val">${fmtN(ov.attachments)}<small>个</small></div>
+      <div class="foot">合计 ${fmtSize(ov.attachmentMB * 1048576)}</div></div>
+    <div class="kpi"><div class="lab">电子盖章</div><div class="val">${fmtN(ov.esign)}<small>份</small></div>
+      <div class="foot">使用电子章</div></div>
+    <div class="kpi"><div class="lab">骑缝章</div><div class="val">${fmtN(ov.ridge)}<small>份</small></div>
+      <div class="foot">需加盖骑缝章</div></div>
+    <div class="kpi"><div class="lab">用印总份数</div><div class="val">${fmtN(ov.copies)}<small>份</small></div>
+      <div class="foot">文件份数累计</div></div>`;
+
+  monthChart(month);
+  barList($('#bSeal'), gSeal, '');
+  barList($('#bType'), gType, 'i');
+  barList($('#bDept'), gDept, 'g');
+  barList($('#bUser'), users, 'w', (name) => gotoApplicant(name));
+
+  const rl = STATE.range === 'all' ? '全部时间' : '近 ' + STATE.range + ' 天';
+  $('#subtitle').textContent = `${rl} · 共 ${fmtN(ov.total)} 份用印申请 · 附件 ${fmtSize(ov.attachmentMB * 1048576)}`
+    + (ov.lastListSync ? ` · 最近同步 ${fmtDate(ov.lastListSync)}` : '');
+  $('#trendTag').textContent = rl;
+  $('#applicantHint').textContent = '按申请份数排序';
+  if (ov.detailPending) $('#subtitle').textContent += ` · ${ov.detailPending} 份详情待补全`;
+}
+
+/* ---------------- 台账 ---------------- */
+/** 从申请人排行点入台账，自动带上该申请人筛选 */
+async function gotoApplicant(name) {
+  STATE.pendingApplicant = name;
+  await switchView('ledger');
+  STATE.pendingApplicant = '';
+}
+
+async function loadFacets() {
+  const f = await api('/api/facets');
+  const fill = (sel, arr) => {
+    const cur = sel.value;
+    sel.innerHTML = sel.querySelector('option').outerHTML
+      + arr.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    sel.value = cur;
+  };
+  fill($('#fSeal'), f.sealTypes || []);
+  fill($('#fType'), f.contractTypes || []);
+  fill($('#fDept'), f.depts || []);
+  fill($('#fApplicant'), f.applicants || []);
+  fill($('#pSeal'), f.sealTypes || []);   // 相对方页的印章筛选共用同一份口径
+  // 从「申请人排行」点入时，选项填充完成后再落到该申请人
+  if (STATE.pendingApplicant) {
+    $('#fApplicant').value = STATE.pendingApplicant;
+    if ($('#fApplicant').value !== STATE.pendingApplicant) $('#fApplicant').value = '';
+  }
+}
+
+async function loadLedger() {
+  STATE.q = {
+    keyword: $('#kw').value.trim(),
+    status: $('#fStatus').value,
+    sealType: $('#fSeal').value,
+    contractType: $('#fType').value,
+    dept: $('#fDept').value,
+    applicant: $('#fApplicant').value,
+    ...rangeParams(),                    // 与总览看板共用同一时间区间，避免两处口径不一致
+    page: STATE.page, size: STATE.size,
+  };
+  const d = await api('/api/search?' + qs(STATE.q));
+  STATE.rows = d.rows;
+  const tb = $('#tbody');
+  if (!d.rows.length) {
+    tb.innerHTML = '<tr><td colspan="8"><div class="empty">没有符合条件的用印记录</div></td></tr>';
+  } else {
+    tb.innerHTML = d.rows.map((r, i) => {
+      const st = r.status === 'COMPLETED' ? 'ok' : r.status === 'RUNNING' ? 'run' : 'term';
+      const att = r.attachment_count
+        ? `<span class="tag seal">${r.attachment_count} 个</span>`
+        : `<span class="tag no">无</span>`;
+      return `<tr data-i="${i}">
+        <td class="doc" title="${esc(r.doc_name)}">${esc(r.doc_name || '(未填写)')}
+          ${r.is_eseal === '是' ? '<span class="tag" style="margin-left:6px">电子章</span>' : ''}</td>
+        <td><span class="tag">${esc(r.seal_type || '—')}</span></td>
+        <td>${esc(r.contract_type || '—')}</td>
+        <td>${esc(r.applicant || '—')}</td>
+        <td class="mono">${esc(r.seal_date || '—')}</td>
+        <td class="mono">${esc(r.copies || '—')}</td>
+        <td>${att}</td>
+        <td><span class="tag ${st}">${esc(r.status_cn || r.status)}</span></td>
+      </tr>`;
+    }).join('');
+  }
+  const rl = STATE.range === 'all' ? '全部时间' : `近 ${STATE.range} 天`;
+  const who = $('#fApplicant').value ? ` · 申请人：${esc($('#fApplicant').value)}` : '';
+  $('#pager').innerHTML = `
+    <div>共 ${fmtN(d.total)} 条 · 第 ${d.page} / ${d.pages} 页 · ${rl}${who}</div>
+    <div class="pgs">
+      <button ${d.page <= 1 ? 'disabled' : ''} data-p="1">首页</button>
+      <button ${d.page <= 1 ? 'disabled' : ''} data-p="${d.page - 1}">上一页</button>
+      <button ${d.page >= d.pages ? 'disabled' : ''} data-p="${d.page + 1}">下一页</button>
+      <button ${d.page >= d.pages ? 'disabled' : ''} data-p="${d.pages}">末页</button>
+    </div>`;
+}
+
+/* ---------------- 在途 ---------------- */
+async function loadPending() {
+  const d = await api('/api/pending?limit=80');
+  $('#pendTag').textContent = d.length + ' 份在途';
+  const host = $('#pendList');
+  if (!d.length) { host.innerHTML = '<div class="empty">当前没有在途的用印申请</div>'; return; }
+  host.innerHTML = '<div class="tblwrap"><table><thead><tr><th>用印文件名称</th><th>印章</th><th>申请人</th><th>部门</th><th>用印日期</th><th>当前处理人</th></tr></thead><tbody>'
+    + d.map((r, i) => `<tr data-pi="${i}">
+        <td class="doc" title="${esc(r.doc_name)}">${esc(r.doc_name || '(未填写)')}</td>
+        <td><span class="tag">${esc(r.seal_type || '—')}</span></td>
+        <td>${esc(r.applicant || '—')}</td>
+        <td>${esc(r.originator_dept_name || '—')}</td>
+        <td class="mono">${esc(r.seal_date || '—')}</td>
+        <td>${r.approvers && r.approvers.length ? r.approvers.map((a) => `<span class="tag run">${esc(a)}</span>`).join(' ') : '<span class="tag term">未取到</span>'}</td>
+      </tr>`).join('') + '</tbody></table></div>';
+  host.querySelectorAll('tr[data-pi]').forEach((tr) => {
+    tr.onclick = () => openDetail(d[+tr.dataset.pi].id);
+  });
+}
+
+/* ---------------- 相对方 ---------------- */
+const P_STATE = { page: 1, size: 30, list: [] };
+
+/** 相对方档案的时间区间（独立于全局区间，默认全部时间） */
+function partyRangeParams() {
+  const r = $('#pRange').value;
+  if (r === 'all') return {};
+  const days = Number(r);
+  const now = new Date(Date.now() + 8 * 3600000);
+  return {
+    to: now.toISOString().slice(0, 10),
+    from: new Date(now.getTime() - days * 86400000).toISOString().slice(0, 10),
+  };
+}
+
+function partyParams() {
+  // 相对方档案默认「全部时间」——档案类页面按 90 天截断会漏掉大量历史主体
+  return Object.assign({}, partyRangeParams(), {
+    keyword: $('#pKw').value.trim(),
+    biz: $('#pBiz').value,
+    kind: $('#pKind').value,
+    src: $('#pSrc').value,
+    sealType: $('#pSeal').value,
+    minCount: $('#pMin').value,
+    hasFile: $('#pFile').value,
+    sort: $('#pSort').value,
+    limit: 500,
+  });
+}
+
+/** 渲染「按分类查看」卡片 */
+function renderBizCats(fc) {
+  const agg = (fc && fc.bizAgg) || {};
+  const order = (fc && fc.bizList) || Object.keys(agg);
+  const rows = order.filter((k) => agg[k]).map((k) => [k, agg[k]]);
+  if (!rows.length) { $('#bizCats').innerHTML = '<div class="empty">暂无分类数据</div>'; return; }
+  const cur = $('#pBiz').value;
+  $('#bizCats').innerHTML = rows.map(([k, v]) => `
+    <button class="bcat${k === cur ? ' on' : ''}" data-biz="${esc(k)}">
+      <div class="bn"><span>${esc(k)}</span><em>${fmtN(v.parties)} 家</em></div>
+      <div class="bv">${fmtN(v.count)}<s>次用印</s></div>
+      <div class="bf">${v.files ? fmtN(v.files) + ' 个附件 · ' + fmtSize(v.size) : '无附件'}</div>
+    </button>`).join('');
+  $('#bizCats').querySelectorAll('[data-biz]').forEach((b) => {
+    b.onclick = () => {
+      const v = b.dataset.biz;
+      $('#pBiz').value = ($('#pBiz').value === v) ? '' : v;
+      loadParty();
+    };
+  });
+}
+
+async function loadParty() {
+  const d = await api('/api/parties?' + qs(partyParams()));
+  const list = d.list || [];
+  const st = d.stats || {};
+  const fc = d.facets || { bySrc: {}, byKind: {}, bySeal: {}, byBiz: {}, bizAgg: {} };
+
+  P_STATE.list = list;
+  P_STATE.page = 1;
+  $('#partyTag').textContent = list.length + ' 家';
+  $('#pSeal').dataset.keep = $('#pSeal').value;
+
+  // 分类下拉（首次填充，保留当前选中）
+  const bizSel = $('#pBiz');
+  if (bizSel.options.length <= 1 && fc.bizList) {
+    const keep = bizSel.value;
+    bizSel.innerHTML = '<option value="">全部分类</option>'
+      + fc.bizList.map((b) => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    bizSel.value = keep;
+  }
+
+  renderBizCats(fc);
+
+  const rl = $('#pRange').value === 'all' ? '全部时间' : '近 ' + $('#pRange').value + ' 天';
+  const stat = `<div class="hint" style="margin-bottom:14px">
+    【${rl}】共 ${fmtN(st.total)} 份单据：识别到相对方 <b>${fmtN(st.identified)}</b> 份
+    （其中 ${fmtN(list.filter((x) => x.src === '名称推断').length)} 家来自文件名称推断、
+    ${fmtN(list.filter((x) => x.src === '简称推断').length)} 家来自简称推断，已在「来源」列标注），
+    未填写收付款方且无法从名称判断 <b>${fmtN(st.none)}</b> 份（多为内部人事/事务文档，属正常留空）；
+    已剔除「我方主体」写法 <b>${fmtN(st.skippedOwn)}</b> 处、占位脏值 <b>${fmtN(st.skippedJunk)}</b> 份。
+  </div>`;
+
+  const bizCur = $('#pBiz').value;
+  const hasFilter = $('#pKw').value || bizCur || $('#pKind').value || $('#pSrc').value || $('#pSeal').value
+    || ($('#pMin').value !== '0') || $('#pFile').value;
+  $('#partyFilterTag').textContent = hasFilter
+    ? (bizCur ? '分类：' + bizCur : '已筛选') + ' · ' + fmtN(list.length) + ' 家'
+    : '';
+
+  const cls = `<div class="pstats">
+    <div class="pstat"><b>${fmtN(list.length)}</b><span>相对方${hasFilter ? '（已筛选）' : ''}</span></div>
+    <div class="pstat"><b>${fmtN(st.count || 0)}</b><span>用印次数</span></div>
+    <div class="pstat"><b>${fmtN(st.files || 0)}</b><span>可下载附件</span></div>
+    <div class="pstat"><b>${fmtSize(st.size || 0)}</b><span>材料体积</span></div>
+    <div class="pstat"><b>${fmtN(fc.byKind.org || 0)}</b><span>单位</span></div>
+    <div class="pstat"><b>${fmtN(fc.byKind.person || 0)}</b><span>个人</span></div>
+    <div class="pstat"><b>${fmtN(fc.bySrc['收款方'] || 0)}/${fmtN(fc.bySrc['付款方'] || 0)}</b><span>收款方 / 付款方</span></div>
+  </div>`;
+  $('#partyStats').innerHTML = stat + cls;
+
+  const host = $('#partyList');
+  if (!list.length) {
+    host.innerHTML = '<div class="empty">当前条件下未匹配到相对方</div>';
+    return;
+  }
+  host.innerHTML = '<div class="tblwrap"><table><thead><tr>'
+    + '<th>单位 / 个人</th><th>分类</th><th>来源</th><th>类型</th><th>用印次数</th><th>附件</th><th>材料体积</th>'
+    + '<th>最近用印</th><th>涉及印章</th><th>操作</th>'
+    + '</tr></thead><tbody>'
+    + list.map((p, i) => `<tr data-p="${i}">
+        <td class="doc" title="${esc(p.name)}">${esc(p.name)}${(p.mergedFrom && p.mergedFrom.length) ? `<span class="tag no" title="已合并简称：${esc(p.mergedFrom.join('、'))}">含简称</span>` : ''}</td>
+        <td><span class="tag biz">${esc(p.biz || '—')}</span></td>
+        <td><span class="tag ${p.src.indexOf('推断') >= 0 ? 'no' : 'ok'}">${esc(p.src)}</span></td>
+        <td>${p.kind === 'person' ? '<span class="tag">个人</span>' : '<span class="tag">单位</span>'}</td>
+        <td class="mono">${p.count}</td>
+        <td class="mono">${p.files ? `<span class="tag seal">${p.files} 个</span>` : '<span class="tag no">无</span>'}</td>
+        <td class="mono">${p.files ? fmtSize(p.size) : '—'}</td>
+        <td class="mono">${esc(p.lastDate || '—')}</td>
+        <td>${(p.sealTypes || []).map((s) => `<span class="tag">${esc(s)}</span>`).join(' ')}</td>
+        <td class="nowrap">
+          <button class="mini" data-open="${i}">查看材料</button>
+          <button class="mini" data-zip="${i}" ${p.files ? '' : 'disabled title="该相对方名下没有附件"'}>打包下载</button>
+        </td>
+      </tr>`).join('') + '</tbody></table></div>';
+
+  host.querySelectorAll('[data-open]').forEach((b) => {
+    b.onclick = () => openParty(+b.dataset.open);
+  });
+  host.querySelectorAll('[data-zip]').forEach((b) => {
+    b.onclick = () => downloadPartyZip(list[+b.dataset.zip], b);
+  });
+  host.querySelectorAll('tr[data-p]').forEach((tr) => {
+    tr.onclick = (e) => { if (!e.target.closest('button')) openParty(+tr.dataset.p); };
+  });
+}
+
+/** 打包下载某相对方的全部材料 */
+async function downloadPartyZip(p, btn) {
+  if (!p.files) return toast('该相对方名下没有可下载的附件');
+  const rp = partyRangeParams();
+  const q = Object.assign({}, rp, { name: p.key });
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = '打包中…';
+  try {
+    const r = await fetch(apiUrl('/api/party-zip?' + qs(q)));
+    if (!r.ok) {
+      let msg = 'HTTP ' + r.status;
+      try { const j = await r.json(); if (j.error) msg = j.error; } catch {}
+      throw new Error(msg);
+    }
+    const blob = await r.blob();
+    if (!blob.size) throw new Error('返回内容为空');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${p.name}_用印材料_${new Date().toISOString().slice(0, 10)}.zip`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast(`已打包 ${p.files} 个附件（${fmtSize(p.size)}）`);
+  } catch (e) {
+    toast('打包失败：' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = old;
+  }
+}
+
+/** 打开某相对方的材料抽屉 */
+async function openParty(i) {
+  const p = P_STATE.list[i];
+  if (!p) return;
+  const rp = partyRangeParams();
+  $('#dTitle').textContent = p.name;
+  $('#dMeta').innerHTML = [
+    `<span class="tag biz">${esc(p.biz || '—')}</span>`,
+    `<span class="tag ${p.src.indexOf('推断') >= 0 ? 'no' : 'ok'}">${esc(p.src)}</span>`,
+    p.kind === 'person' ? '个人' : '单位',
+    `${p.count} 份用印单据`,
+    p.files ? `${p.files} 个附件 · ${fmtSize(p.size)}` : '无附件',
+    p.lastDate ? `最近 ${esc(p.lastDate)}` : '',
+    (p.mergedFrom && p.mergedFrom.length) ? `含简称：${esc(p.mergedFrom.join('、'))}` : '',
+  ].filter(Boolean).map((x) => `<span>${x}</span>`).join('<i>·</i>');
+
+  $('#dBody').innerHTML = '<div class="empty">加载中…</div>';
+  openDrawer();
+  try {
+    const d = await api('/api/party-files?' + qs(Object.assign({}, rp, { name: p.key })));
+    const s = d.stats || {};
+    const canZip = s.files > 0;
+
+    const head = `<div class="pact">
+      <div class="pact-info">
+        共 <b>${s.docs}</b> 份用印单据，其中 <b>${s.withFiles}</b> 份含附件，
+        合计 <b>${s.files}</b> 个文件（${fmtSize(s.size)}）。
+      </div>
+      <div class="pact-btns">
+        <button class="btn" id="pZip" ${canZip ? '' : 'disabled'}>打包下载全部材料 (ZIP)</button>
+        <button class="btn" id="pCsv">导出材料清单 (CSV)</button>
+      </div>
+    </div>
+    <div class="note" style="margin-bottom:14px">
+      ZIP 内含按「日期_印章」分目录的原始附件，并附「材料清单.csv」。
+      若个别附件因钉钉侧限制无法下载，会单独生成「下载失败清单.csv」如实列出，不做静默跳过。
+    </div>`;
+
+    const body = d.docs.map((doc) => {
+      const st = doc.status === 'COMPLETED' ? 'ok' : doc.status === 'RUNNING' ? 'run' : 'term';
+      const fl = doc.files.length
+        ? '<div class="pfile">' + doc.files.map((f) => `
+            <div class="pfl">
+              <span class="fext">${esc((f.fileType || 'file').toUpperCase().slice(0, 4))}</span>
+              <span class="fname" title="${esc(f.fileName)}">${esc(f.fileName)}</span>
+              <span class="fsz">${fmtSize(f.fileSize)}</span>
+              <button class="mini" data-att="${esc(f.fileId)}" data-inst="${esc(doc.id)}">下载</button>
+            </div>`).join('') + '</div>'
+        : '<div class="pfile"><div class="pfl none">该单据未上传附件</div></div>';
+      return `<div class="pdoc">
+        <div class="pdh">
+          <div class="pdt" title="${esc(doc.doc)}">${esc(doc.doc || '(未填写)')}</div>
+          <div class="pdm">
+            <span class="tag ${st}">${esc(doc.status_cn || doc.status)}</span>
+            <span>${esc(doc.seal || '—')}</span><i>·</i>
+            <span>${esc(doc.date || '—')}</span><i>·</i>
+            <span>${esc(doc.applicant || '—')}</span>
+          </div>
+        </div>
+        ${fl}
+      </div>`;
+    }).join('');
+
+    $('#dBody').innerHTML = head + (d.docs.length ? body : '<div class="empty">该相对方名下暂无用印单据</div>');
+
+    const zb = $('#pZip');
+    if (zb && canZip) zb.onclick = () => downloadPartyZip(p, zb);
+    $('#pCsv').onclick = () => {
+      const url = '/api/party-csv?' + qs(Object.assign({}, rp, { name: p.key }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${p.name}_用印材料清单.csv`;
+      a.click();
+      toast('已导出材料清单');
+    };
+
+    $('#dBody').querySelectorAll('[data-att]').forEach((b) => {
+      b.onclick = async () => {
+        b.disabled = true; const o = b.textContent; b.textContent = '获取中…';
+        try {
+          const r = await api('/api/attachment-url?instanceId=' + encodeURIComponent(b.dataset.inst)
+            + '&fileId=' + encodeURIComponent(b.dataset.att));
+          window.open(r.url, '_blank');
+          b.textContent = '已打开';
+          setTimeout(() => { b.disabled = false; b.textContent = o; }, 2200);
+        } catch (e) {
+          toast('下载失败：' + e.message);
+          b.disabled = false; b.textContent = '重试';
+        }
+      };
+    });
+  } catch (e) {
+    $('#dBody').innerHTML = `<div class="note">加载失败：${esc(e.message)}</div>`;
+  }
+}
+
+/* ---------------- 风险 ---------------- */
+async function loadRisk() {
+  const rp = rangeParams();
+  const [d, ov] = await Promise.all([api('/api/risks?' + qs(rp)), api('/api/overview?' + qs(rp))]);
+  const host = $('#riskList');
+  if (!d.length) { host.innerHTML = '<div class="card"><div class="empty">未发现需要关注的风险项</div></div>'; }
+  else {
+    host.innerHTML = d.map((r) => `<div class="risk ${r.level}">
+      <div class="dot"></div>
+      <div style="flex:1;min-width:0">
+        <div class="tt">${esc(r.title)} <span class="tag">${r.count} 项</span></div>
+        ${r.items && r.items.length ? '<div class="list">' + r.items.map((x) => `<span title="${esc(x.doc_name)}">${esc(x.doc_name || x.id)} · ${esc(x.applicant || '')} · ${esc(x.seal_date || '')}</span>`).join('') + '</div>' : ''}
+      </div></div>`).join('');
+  }
+  const rl = STATE.range === 'all' ? '全部时间' : '近 ' + STATE.range + ' 天';
+  $('#integrity').innerHTML = `
+    本系统数据全部来自钉钉「用印申请」审批单的接口读取，未做任何补写或推测填充。<br>
+    · 当前统计区间（<b>${rl}</b>）内 <b>${fmtN(ov.total)}</b> 份用印申请，其中 <b>${fmtN(ov.detailPending)}</b> 份详情尚未补全；<br>
+    · 接口单次查询时间跨度上限为 120 天，系统已自动分窗口抓取，历史可回溯至 2025 年 11 月；<br>
+    · 「合同金额」「收付款方」「合同起止日期」等字段仅在申请人填写时才有值，未填写的一律显示为空，不做推断；<br>
+    · 相对方档案中标注「名称推断」「简称推断」的条目来自文件名称识别，非权威登记信息，请以合同原件为准；<br>
+    · 切换右上角时间区间可查看全部历史数据。`;
+}
+
+/* ---------------- 详情抽屉 ---------------- */
+const OP_CN = {
+  START_PROCESS_INSTANCE: ['start', '提交申请'],
+  EXECUTE_TASK_NORMAL: ['agree', '审批同意'],
+  EXECUTE_TASK_AUTO: ['agree', '自动通过'],
+  EXECUTE_TASK_AUTO_AGREE: ['agree', '自动通过'],
+  ADD_REMARK: ['', '添加评论'],
+  TERMINATE_PROCESS_INSTANCE: ['term', '终止流程'],
+  FINISH_PROCESS_INSTANCE: ['agree', '流程结束'],
+  REDIRECT_TASK: ['', '转交'],
+};
+const RESULT_CN = { AGREE: '同意', REFUSE: '拒绝', NONE: '', null: '' };
+
+async function openDetail(id) {
+  $('#drawer').classList.add('on'); $('#mask').classList.add('on');
+  $('#dTitle').textContent = '加载中…'; $('#dBody').innerHTML = ''; $('#dMeta').innerHTML = '';
+  try {
+    const d = await api('/api/detail/' + encodeURIComponent(id));
+    const st = d.status === 'COMPLETED' ? 'ok' : d.status === 'RUNNING' ? 'run' : 'term';
+    $('#dTitle').textContent = d.doc_name || '(未填写用印文件名称)';
+    const metaBits = [
+      `<span class="tag ${st}">${esc(d.status_cn || d.status)}</span>`,
+      d.seal_type ? esc(d.seal_type) : '',
+      d.seal_date ? esc(d.seal_date) : '',
+      d.originator_dept_name ? esc(d.originator_dept_name) : '',
+      d.attachment_count ? `<span class="tag">${d.attachment_count} 个附件</span>` : '',
+    ].filter(Boolean);
+    $('#dMeta').innerHTML = metaBits.join('<span style="opacity:.4">·</span>');
+
+    const kv = (k, v, mono) => v ? `<dt>${esc(k)}</dt><dd class="${mono ? 'mono' : ''}">${esc(v)}</dd>` : '';
+    const atts = (d.attachments || []).map((a, i) => `
+      <div class="att">
+        <div class="ext">${esc((a.fileType || '?').slice(0, 4))}</div>
+        <div class="info"><div class="fn" title="${esc(a.fileName)}">${esc(a.fileName)}</div>
+          <div class="fs">${fmtSize(a.fileSize)}</div></div>
+        <button class="btn" data-att="${i}">下载</button>
+      </div>`).join('') || '<div class="empty" style="padding:22px">该单据未上传用印文件附件</div>';
+
+    const tl = (d.timeline || []).map((o) => {
+      const [cls, cn] = OP_CN[o.type] || ['', o.type];
+      const res = RESULT_CN[o.result] || '';
+      return `<div class="it ${cls}">
+        <div class="t1">${esc(cn)}${res ? ' · ' + esc(res) : ''}</div>
+        <div class="t2">${esc(o.user || '')} ${o.at ? '· ' + fmtDate(o.at) : ''}</div></div>`;
+    }).join('') || '<div class="t2">无操作记录</div>';
+
+    $('#dBody').innerHTML = `
+      <div class="sec"><h4>申请信息</h4><dl class="kv">
+        ${kv('申请人', d.applicant)}${kv('经手人', d.handler)}
+        ${kv('申请部门', d.originator_dept_name)}
+        ${kv('提交时间', fmtDate(d.create_time))}
+        ${kv('用印日期', d.seal_date)}
+        ${kv('合同类型', d.contract_type)}
+        ${kv('用途说明', d.usage)}
+      </dl></div>
+
+      <div class="sec"><h4>用印要求</h4><dl class="kv">
+        ${kv('加盖印章', d.seal_type)}${kv('签章顺序', d.sign_order)}
+        ${kv('文件份数', d.copies)}${kv('电子盖章', d.is_eseal)}
+        ${kv('骑缝章', d.is_ridge)}${kv('骑缝章位置', d.ridge_pos)}
+        ${kv('外出携带', d.is_carry)}${kv('特殊盖章位置', d.special_pos)}
+        ${kv('付款方', d.payer)}${kv('收款方', d.payee)}
+        ${kv('合同金额', d.amount ? d.amount + ' 元' : '')}
+        ${kv('合同起止', (d.eff_start || d.eff_end) ? (d.eff_start || '?') + ' ~ ' + (d.eff_end || '?') : '')}
+        ${kv('对方签章人', d.counterparty_contact)}
+      </dl></div>
+
+      <div class="sec"><h4>用印文件附件（${(d.attachments || []).length}）</h4>${atts}</div>
+      <div class="sec"><h4>审批流转（${(d.timeline || []).length}）</h4><div class="tl">${tl}</div></div>
+      ${d.approvers && d.approvers.length ? `<div class="sec"><h4>当前处理人</h4><div>${d.approvers.map((a) => `<span class="tag run">${esc(a)}</span>`).join(' ')}</div></div>` : ''}
+      ${!d.detail_fetched ? '<div class="note">该单据的详情尚未从钉钉补全，字段可能不完整。可在总览页点击「同步最新数据」补齐。</div>' : ''}
+    `;
+
+    $('#dBody').querySelectorAll('[data-att]').forEach((b) => {
+      b.onclick = async () => {
+        const a = d.attachments[+b.dataset.att];
+        b.disabled = true; b.textContent = '获取中…';
+        try {
+          const r = await api('/api/attachment-url?instanceId=' + encodeURIComponent(d.id) + '&fileId=' + encodeURIComponent(a.fileId));
+          window.open(r.url, '_blank');
+          b.textContent = '已打开';
+          setTimeout(() => { b.disabled = false; b.textContent = '下载'; }, 2200);
+        } catch (e) {
+          toast('下载失败：' + e.message); b.disabled = false; b.textContent = '重试';
+        }
+      };
+    });
+  } catch (e) {
+    $('#dTitle').textContent = '加载失败';
+    $('#dBody').innerHTML = `<div class="note">${esc(e.message)}</div>`;
+  }
+}
+
+function openDrawer() { $('#drawer').classList.add('on'); $('#mask').classList.add('on'); }
+function closeDrawer() { $('#drawer').classList.remove('on'); $('#mask').classList.remove('on'); }
+
+/* ---------------- 视图切换 ---------------- */
+const TITLES = {
+  dash: ['总览看板', '用印申请全景数据'],
+  ledger: ['用印台账', '全部用印申请明细，可检索、筛选与导出'],
+  pending: ['在途审批', '尚未完结的用印申请'],
+  party: ['相对方档案', '用印材料涉及的外部单位汇总'],
+  risk: ['风险提示', '基于真实数据的合规与完整性提示'],
+};
+async function switchView(v) {
+  STATE.view = v;
+  document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
+  document.querySelectorAll('.view').forEach((s) => s.classList.toggle('on', s.id === 'v-' + v));
+  $('#title').textContent = TITLES[v][0];
+  $('#subtitle').textContent = TITLES[v][1];
+  try {
+    if (v === 'dash') await loadDash();
+    if (v === 'ledger') { await loadFacets(); STATE.page = 1; await loadLedger(); }
+    if (v === 'pending') await loadPending();
+    if (v === 'party') { await loadFacets(); await loadParty(); }
+    if (v === 'risk') await loadRisk();
+  } catch (e) { toast('加载失败：' + e.message); }
+}
+
+/* ---------------- 同步 ---------------- */
+let syncTimer = null;
+let syncTracked = false;   // 只有用户主动触发的同步才提示「完成」，避免开页误弹
+async function pollSync() {
+  try {
+    const s = await api('/api/sync/status');
+    if (s.running) {
+      syncTracked = true;
+      $('#syncBadge').style.display = 'flex';
+      $('#btnSync').disabled = true;
+      const txt = s.phase === 'detail'
+        ? `补全详情 ${s.done}/${s.total}`
+        : s.phase === 'list' ? `抓取列表（已 ${s.listed} 条）` : '同步中…';
+      $('#syncTxt').textContent = txt;
+      $('#btnSync').textContent = txt;
+    } else {
+      $('#syncBadge').style.display = 'none';
+      $('#btnSync').disabled = false;
+      $('#btnSync').textContent = '同步最新数据';
+      if (syncTracked) {
+        syncTracked = false;
+        if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
+        const r = s.lastResult;
+        toast(r ? `同步完成：列表 ${r.listed} 条，详情 ${r.fetched} 条` : '同步结束');
+        await switchView(STATE.view);
+      }
+    }
+  } catch {}
+}
+async function startSync() {
+  const days = STATE.range === 'all' ? 360 : Number(STATE.range);
+  $('#btnSync').disabled = true;
+  try {
+    const r = await api('/api/sync/start', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ days: Math.max(days, 100) }),
+    });
+    syncTracked = true;
+    toast('已开始同步 ' + r.range.start.slice(0, 10) + ' ~ ' + r.range.end.slice(0, 10));
+    if (!syncTimer) syncTimer = setInterval(pollSync, 1500);
+    pollSync();
+  } catch (e) { toast('无法开始同步：' + e.message); $('#btnSync').disabled = false; }
+}
+
+/* ---------------- 导出 ---------------- */
+// 导出「当前筛选条件下的全部记录」，而非仅当前页。
+// 逐页向 /api/search 取数（接口单页上限 200 条），避免只导出 25 条造成误解。
+async function exportCsv() {
+  const btn = $('#btnExport');
+  const q = Object.assign({}, STATE.q);
+  delete q.page; delete q.size;
+  btn.disabled = true;
+  const old = btn.textContent;
+  btn.textContent = '导出中…';
+  try {
+    const PAGE = 200;
+    let page = 1, pages = 1, all = [];
+    do {
+      const d = await api('/api/search?' + qs(Object.assign({}, q, { page, size: PAGE })));
+      pages = d.pages;
+      all = all.concat(d.rows);
+      if (all.length > 20000) break; // 安全上限
+      page += 1;
+    } while (page <= pages);
+
+    if (!all.length) { toast('当前筛选条件下无数据可导出'); return; }
+    const head = ['用印文件名称', '印章', '合同类型', '申请人', '经手人', '部门', '用印日期', '份数', '电子章', '骑缝章', '签章顺序', '状态', '附件数'];
+    const lines = [head.join(',')];
+    for (const r of all) {
+      lines.push([r.doc_name, r.seal_type, r.contract_type, r.applicant, r.handler,
+        r.originator_dept_name, r.seal_date, r.copies, r.is_eseal, r.is_ridge, r.sign_order,
+        r.status_cn, r.attachment_count]
+        .map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
+    }
+    const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '用印台账_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('已导出 ' + all.length + ' 条记录（当前筛选条件下的全部数据）');
+  } catch (e) {
+    toast('导出失败：' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = old;
+  }
+}
+
+/**
+ * 导出「当前筛选条件下的全部材料包」ZIP（含附件 + 台账材料清单 + 失败清单）。
+ * 与导出 CSV 共用 STATE.q，保证两者筛选口径一致。
+ */
+async function exportLedgerZip() {
+  const btn = $('#btnExportZip');
+  const q = Object.assign({}, STATE.q);
+  delete q.page; delete q.size;
+  btn.disabled = true;
+  const old = btn.textContent;
+  btn.textContent = '打包中…';
+  try {
+    const r = await fetch(apiUrl('/api/ledger-zip?' + qs(q)));
+    if (!r.ok) {
+      let msg = 'HTTP ' + r.status;
+      try { const j = await r.json(); if (j.error) msg = j.error; } catch {}
+      throw new Error(msg);
+    }
+    const blob = await r.blob();
+    if (!blob.size) throw new Error('返回内容为空');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '台账材料_' + new Date().toISOString().slice(0, 10) + '.zip';
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('已打包当前筛选条件下的材料（含清单与失败清单）');
+  } catch (e) {
+    toast('打包失败：' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = old;
+  }
+}
+
+/* ---------------- 事件 ---------------- */
+$('#nav').onclick = (e) => { const b = e.target.closest('button'); if (b) switchView(b.dataset.v); };
+$('#range').onchange = (e) => { STATE.range = e.target.value; switchView(STATE.view); };
+$('#btnSync').onclick = startSync;
+$('#dClose').onclick = closeDrawer;
+$('#mask').onclick = closeDrawer;
+document.onkeydown = (e) => { if (e.key === 'Escape') closeDrawer(); };
+$('#tbody').onclick = (e) => { const tr = e.target.closest('tr[data-i]'); if (tr) openDetail(STATE.rows[+tr.dataset.i].id); };
+$('#pager').onclick = (e) => {
+  const b = e.target.closest('button[data-p]');
+  if (b && !b.disabled) { STATE.page = +b.dataset.p; loadLedger().catch((x) => toast(x.message)); }
+};
+$('#btnReset').onclick = () => {
+  $('#kw').value = ''; $('#fStatus').value = ''; $('#fSeal').value = '';
+  $('#fType').value = ''; $('#fDept').value = ''; $('#fApplicant').value = '';
+  STATE.page = 1; loadLedger();
+};
+$('#btnExport').onclick = exportCsv;
+$('#btnExportZip').onclick = exportLedgerZip;
+let deb;
+$('#kw').oninput = () => { clearTimeout(deb); deb = setTimeout(() => { STATE.page = 1; loadLedger(); }, 320); };
+['#fStatus', '#fSeal', '#fType', '#fDept', '#fApplicant'].forEach((s) => {
+  $(s).onchange = () => { STATE.page = 1; loadLedger(); };
+});
+
+/* 相对方筛选 */
+let pdeb;
+$('#pKw').oninput = () => { clearTimeout(pdeb); pdeb = setTimeout(loadParty, 320); };
+['#pBiz', '#pSrc', '#pKind', '#pSeal', '#pMin', '#pFile', '#pSort', '#pRange'].forEach((s) => {
+  $(s).onchange = () => loadParty();
+});
+$('#pReset').onclick = () => {
+  $('#pKw').value = ''; $('#pBiz').value = ''; $('#pSrc').value = ''; $('#pKind').value = '';
+  $('#pSeal').value = ''; $('#pMin').value = '0'; $('#pFile').value = ''; $('#pSort').value = 'count';
+  $('#pRange').value = 'all';
+  loadParty();
+};
+$('#pExport').onclick = async () => {
+  const btn = $('#pExport');
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = '导出中…';
+  try {
+    const r = await fetch(apiUrl('/api/parties-csv?' + qs(partyParams())));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `相对方分类清单_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('分类清单已导出');
+  } catch (e) {
+    toast('导出失败：' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = old;
+  }
+};
+
+/* ---------------- 启动 ---------------- */
+/* ---------------- 后端地址控件（静态部署时连接本机后端） ---------------- */
+async function checkBackend() {
+  try {
+    const r = await fetch(apiUrl('/api/overview?range=90'), { method: 'GET' });
+    return r.ok;
+  } catch (e) { return false; }
+}
+async function initBackend() {
+  const inp = $('#bkUrl'), dot = $('#bkDot'), go = $('#bkGo');
+  inp.value = (BACKEND_URL && BACKEND_URL !== location.origin) ? BACKEND_URL : '';
+  const apply = async () => {
+    const url = inp.value.trim().replace(/\/+$/, '');
+    if (!url) return;
+    BACKEND_URL = url;
+    localStorage.setItem('sm.backendUrl', BACKEND_URL);
+    dot.className = 'dot';
+    const ok = await checkBackend();
+    dot.className = 'dot ' + (ok ? 'ok' : 'bad');
+    if (ok) {
+      $('#bkBanner').classList.remove('on');
+      toast('已连接后端，正在刷新数据…');
+      try { await switchView(STATE.view); } catch (e) {}
+    } else {
+      toast('后端不可达，请确认地址与本地服务已启动');
+    }
+  };
+  go.onclick = apply;
+  $('#bkBannerGo').onclick = () => { inp.focus(); inp.scrollIntoView({ block: 'center' }); };
+  const ok = await checkBackend();
+  dot.className = 'dot ' + (ok ? 'ok' : 'bad');
+  if (!ok && !SELF_HOSTED) $('#bkBanner').classList.add('on');
+}
+
+(async function init() {
+  await initBackend();
+  await switchView('dash');
+  pollSync();
+  if (!syncTimer) syncTimer = setInterval(pollSync, 5000);
+})();
+</script>
+</body>
+</html>
