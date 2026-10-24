@@ -268,7 +268,29 @@ td.nowrap .mini+.mini{margin-left:5px}
 @keyframes sp{to{transform:rotate(360deg)}}
 .view{display:none}.view.on{display:block}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:900px){.side{display:none}.main{padding:18px 15px 50px}.two{grid-template-columns:1fr}}
+
+/* 静态快照提示条（info 配色） */
+.bkbanner.info{border-left-color:var(--info)}
+
+/* 手机端导航：窄屏用顶部「☰」抽屉替代被隐藏的侧栏 */
+.mnav{display:none;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid var(--line2);background:var(--panel);border-radius:8px;cursor:pointer;font-size:18px;color:var(--fg2);flex:0 0 auto}
+.mnav:hover{background:var(--panel2);color:var(--fg)}
+.mmenu{display:none;position:fixed;top:60px;left:12px;right:12px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;z-index:60;padding:8px;flex-direction:column;gap:2px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.mmenu.on{display:flex}
+.mmenu button{padding:13px 14px;text-align:left;background:transparent;border:0;color:var(--fg);font-size:15px;border-radius:8px;cursor:pointer;min-height:44px}
+.mmenu button:hover{background:var(--panel2)}
+.mmenu button.on{background:var(--panel);color:var(--accent2)}
+
+@media(max-width:900px){
+  .mnav{display:inline-flex}
+  .side{display:none}
+  .main{padding:14px 12px 50px}
+  .two{grid-template-columns:1fr}
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .top{margin-bottom:16px}
+  .acts{gap:7px}
+  .top h2{font-size:19px}
+}
 </style>
 </head>
 <body>
@@ -294,6 +316,7 @@ td.nowrap .mini+.mini{margin-left:5px}
         <div class="desc" id="subtitle">加载中…</div>
       </div>
       <div class="acts">
+        <button class="mnav" id="mMenuBtn" aria-label="菜单" title="菜单">☰</button>
         <div class="syncing" id="syncBadge" style="display:none"><span class="spin"></span><span id="syncTxt">同步中</span></div>
         <select class="sel" id="range" title="统计区间">
           <option value="30">近 30 天</option>
@@ -316,6 +339,16 @@ td.nowrap .mini+.mini{margin-left:5px}
       <span>⚠ 未连接到后端，无法加载真实数据。本页部署在静态站点上，请填写本机运行中的后端地址（默认 <code>http://localhost:8790</code>）后点「连接」；或在本地用 <code>node server.js</code> 打开 <code>http://localhost:8790/</code> 直接使用。</span>
       <button class="go" id="bkBannerGo">前往设置</button>
     </div>
+
+    <nav class="mmenu" id="mMenu">
+      <button data-v="dash" class="on">总览看板</button>
+      <button data-v="ledger">用印台账</button>
+      <button data-v="pending">在途审批</button>
+      <button data-v="party">相对方档案</button>
+      <button data-v="risk">风险提示</button>
+    </nav>
+
+    <div class="bkbanner info" id="staticBanner"></div>
 
     <!-- 总览 -->
     <section class="view on" id="v-dash">
@@ -450,8 +483,12 @@ td.nowrap .mini+.mini{margin-left:5px}
 </aside>
 <div class="toast" id="toast"></div>
 
+<script src="data.js"></script>
 <script>
 'use strict';
+const SELF_HOSTED = typeof location !== 'undefined' && /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.host);
+const STATIC = !!window.__DATA && !SELF_HOSTED;   // 静态快照模式：经 GitHub Pages 发布，数据已内嵌，无需后端
+const D = window.__DATA || null;
 const $ = (s) => document.querySelector(s);
 const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -468,15 +505,183 @@ function toast(msg) {
 
 /* 后端地址：本地（localhost）直连同源；部署到 GitHub Pages 等静态站点时，
    改为手动填写的本机后端地址（默认 http://localhost:8790），否则无法取数。 */
-const SELF_HOSTED = typeof location !== 'undefined' && /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.host);
 let BACKEND_URL = SELF_HOSTED ? location.origin : (localStorage.getItem('sm.backendUrl') || 'http://localhost:8790');
 const apiUrl = (p) => (typeof p === 'string' && p.indexOf('/api') === 0) ? (BACKEND_URL + p) : p;
 
 async function api(path, opt) {
+  if (STATIC) return staticApi(path, opt);
   const r = await fetch(apiUrl(path), opt);
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
   return j;
+}
+
+/* ============================================================
+   静态模式（STATIC）：经 GitHub Pages 发布时，数据已预计算进
+   data.js（window.__DATA），无需后端即可查看。本段把各读取接口
+   路由到本地快照；写入 / 下载类操作在静态模式下禁用并提示「需后端」。
+   ============================================================ */
+const REC_BY_ID = (() => { const m = {}; if (D) for (const r of D.records) m[r.id] = r; return m; })();
+const PARTY_BY_KEY = (() => { const m = {}; if (D) for (const p of D.parties.list) { m[p.key] = p; if (p.name) m[p.name] = p; } return m; })();
+function curRange() { return (D && D.ranges[STATE.range]) ? STATE.range : 'all'; }
+function inRange(date, from, to) {
+  if (!date) return false;
+  if (from && String(date) < from) return false;
+  if (to && String(date) > to) return false;
+  return true;
+}
+
+function staticApi(path) {
+  if (!D) throw new Error('静态数据未加载');
+  const qi = path.indexOf('?');
+  const base = qi >= 0 ? path.slice(0, qi) : path;
+  const q = qi >= 0 ? new URLSearchParams(path.slice(qi + 1)) : new URLSearchParams();
+  const R = (D.ranges[curRange()] || D.ranges.all);
+  if (base === '/api/facets') return D.facets;
+  if (base === '/api/overview') return R.overview;
+  if (base === '/api/monthly') return R.monthly;
+  if (base === '/api/group') { const f = q.get('field'); return (R.groups[f] || []); }
+  if (base === '/api/top-applicants') return R.topApplicants;
+  if (base === '/api/risks') return R.risks;
+  if (base === '/api/pending') return D.pending;
+  if (base === '/api/search') return staticSearch(q);
+  if (base === '/api/parties') return staticParties(q);
+  if (base.indexOf('/api/detail/') === 0) {
+    const id = decodeURIComponent(base.slice('/api/detail/'.length));
+    return REC_BY_ID[id] || {};
+  }
+  throw new Error('静态模式下不支持：' + path);
+}
+
+function staticSearch(q) {
+  const kw = (q.get('keyword') || '').trim().toLowerCase();
+  const status = q.get('status') || '';
+  const sealType = q.get('sealType') || '';
+  const contractType = q.get('contractType') || '';
+  const dept = q.get('dept') || '';
+  const applicant = q.get('applicant') || '';
+  const from = q.get('from') || '';
+  const to = q.get('to') || '';
+  const rows = D.records.filter((r) => {
+    if (kw) {
+      const hay = `${r.doc_name || ''} ${r.applicant || ''} ${r.payee || ''} ${r.payer || ''} ${r.usage || ''}`.toLowerCase();
+      if (hay.indexOf(kw) < 0) return false;
+    }
+    if (status && r.status !== status) return false;
+    if (sealType && r.seal_type !== sealType) return false;
+    if (contractType && r.contract_type !== contractType) return false;
+    if (dept && r.originator_dept_name !== dept) return false;
+    if (applicant && r.applicant !== applicant) return false;
+    if (!inRange(r.seal_date, from, to)) return false;
+    return true;
+  }).sort((a, b) => String(b.seal_date).localeCompare(String(a.seal_date)));
+  const size = parseInt(q.get('size') || '25', 10);
+  const page = parseInt(q.get('page') || '1', 10);
+  const total = rows.length;
+  const pages = Math.max(1, Math.ceil(total / size));
+  const start = (page - 1) * size;
+  return { rows: rows.slice(start, start + size), total, page, pages, size };
+}
+
+function staticParties(q) {
+  const from = q.get('from') || '';
+  const to = q.get('to') || '';
+  const biz = q.get('biz') || '';
+  const kind = q.get('kind') || '';
+  const src = q.get('src') || '';
+  const sealType = q.get('sealType') || '';
+  const minCount = parseInt(q.get('minCount') || '0', 10);
+  const hasFile = q.get('hasFile') || '';
+  const keyword = (q.get('keyword') || '').trim().toLowerCase();
+  const sort = q.get('sort') || 'count';
+  const name = q.get('name') || '';
+
+  const agg = [];
+  for (const p of D.parties.list) {
+    const docs = (p.docs || []).filter((d) => inRange(d.date, from, to));
+    let count = 0, files = 0, size = 0, last = '';
+    const sealSet = new Set(), appSet = new Set();
+    for (const d of docs) {
+      const r = REC_BY_ID[d.id];
+      count += 1;
+      if (r) {
+        files += (r.attachment_count || 0);
+        size += (r.attachment_bytes || 0);
+        if (r.seal_type) sealSet.add(r.seal_type);
+        if (r.applicant) appSet.add(r.applicant);
+      }
+      if (d.date && d.date > last) last = d.date;
+    }
+    agg.push({ _p: p, count, files, size, sealTypes: Array.from(sealSet), applicants: Array.from(appSet), lastDate: last || p.lastDate });
+  }
+
+  const inRangeParties = agg.filter((a) => a.count > 0);
+  const recsInRange = D.records.filter((r) => inRange(r.seal_date, from, to));
+  const total = recsInRange.length;
+  const identified = recsInRange.filter((r) => (r.party_keys && r.party_keys.length)).length;
+  const stats = {
+    total,
+    identified,
+    none: total - identified,
+    skippedOwn: D.parties.stats.skippedOwn,
+    skippedJunk: D.parties.stats.skippedJunk,
+  };
+
+  const byKind = { org: 0, person: 0 }, bySrc = {}, bySeal = {}, bizAgg = {};
+  for (const a of inRangeParties) {
+    const p = a._p;
+    if (p.kind === 'person') byKind.person++; else byKind.org++;
+    bySrc[p.src] = (bySrc[p.src] || 0) + 1;
+    for (const s of a.sealTypes) bySeal[s] = (bySeal[s] || 0) + 1;
+    const b = p.biz || '其他单位';
+    if (!bizAgg[b]) bizAgg[b] = { parties: 0, count: 0, files: 0, size: 0 };
+    bizAgg[b].parties++; bizAgg[b].count += a.count; bizAgg[b].files += a.files; bizAgg[b].size += a.size;
+  }
+  const facets = { bySrc, byKind, bySeal, byBiz: bizAgg, bizAgg, bizList: D.parties.bizList };
+
+  let list = agg.filter((a) => {
+    const p = a._p;
+    if (name && p.key !== name && p.name !== name) return false;
+    if (biz && p.biz !== biz) return false;
+    if (kind && p.kind !== kind) return false;
+    if (src && p.src !== src) return false;
+    if (sealType && a.sealTypes.indexOf(sealType) < 0) return false;
+    if (minCount && a.count < minCount) return false;
+    if (hasFile === '1' && a.files <= 0) return false;
+    if (keyword && (p.name || '').toLowerCase().indexOf(keyword) < 0) return false;
+    return true;
+  });
+  list.sort((a, b) => {
+    switch (sort) {
+      case 'files': return b.files - a.files;
+      case 'size': return b.size - a.size;
+      case 'recent': return String(b.lastDate).localeCompare(String(a.lastDate));
+      case 'name': return String(a._p.name).localeCompare(String(b._p.name), 'zh');
+      default: return b.count - a.count;
+    }
+  });
+  const out = list.map((a) => Object.assign({}, a._p, {
+    count: a.count, files: a.files, size: a.size,
+    lastDate: a.lastDate, sealTypes: a.sealTypes, applicants: a.applicants,
+  }));
+  return { list: out, stats, facets };
+}
+
+/** 静态模式下，按相对方抽屉的 docs 生成材料清单 CSV（无需后端） */
+function exportPartyDocsCsv(docs, name) {
+  const head = ['单据', '用印日期', '状态', '印章', '申请人', '附件数', '附件明细'];
+  const lines = [head.join(',')];
+  for (const doc of docs) {
+    const files = (doc.files || []).map((f) => f.fileName).join('; ');
+    lines.push([doc.doc, doc.date, doc.status_cn || doc.status, doc.seal || '', doc.applicant || '', (doc.files || []).length, files]
+      .map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
+  }
+  const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${name}_用印材料清单.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('已导出材料清单');
 }
 
 /** 统计区间 → {from,to} */
@@ -860,7 +1065,20 @@ async function openParty(i) {
   $('#dBody').innerHTML = '<div class="empty">加载中…</div>';
   openDrawer();
   try {
-    const d = await api('/api/party-files?' + qs(Object.assign({}, rp, { name: p.key })));
+    let d;
+    if (STATIC) {
+      const docs = (p.docs || []).filter((x) => inRange(x.date, rp.from, rp.to)).map((x) => {
+        const r = REC_BY_ID[x.id];
+        return { id: x.id, doc: x.doc, date: x.date, status: x.status,
+          files: r ? (r.attachments || []).map((a) => ({ fileType: a.fileType, fileName: a.fileName, fileSize: a.fileSize, fileId: a.fileId })) : [] };
+      });
+      const s0 = { docs: docs.length, withFiles: docs.filter((x) => x.files.length).length,
+        files: docs.reduce((t, x) => t + x.files.length, 0),
+        size: docs.reduce((t, x) => t + x.files.reduce((u, f) => u + (f.fileSize || 0), 0), 0) };
+      d = { stats: s0, docs };
+    } else {
+      d = await api('/api/party-files?' + qs(Object.assign({}, rp, { name: p.key })));
+    }
     const s = d.stats || {};
     const canZip = s.files > 0;
 
@@ -870,7 +1088,7 @@ async function openParty(i) {
         合计 <b>${s.files}</b> 个文件（${fmtSize(s.size)}）。
       </div>
       <div class="pact-btns">
-        <button class="btn" id="pZip" ${canZip ? '' : 'disabled'}>打包下载全部材料 (ZIP)</button>
+        ${STATIC ? `<button class="btn" disabled title="静态快照不支持打包下载，请连接本机后端">打包下载 (需后端)</button>` : `<button class="btn" id="pZip" ${canZip ? '' : 'disabled'}>打包下载全部材料 (ZIP)</button>`}
         <button class="btn" id="pCsv">导出材料清单 (CSV)</button>
       </div>
     </div>
@@ -887,7 +1105,7 @@ async function openParty(i) {
               <span class="fext">${esc((f.fileType || 'file').toUpperCase().slice(0, 4))}</span>
               <span class="fname" title="${esc(f.fileName)}">${esc(f.fileName)}</span>
               <span class="fsz">${fmtSize(f.fileSize)}</span>
-              <button class="mini" data-att="${esc(f.fileId)}" data-inst="${esc(doc.id)}">下载</button>
+              ${STATIC ? `<button class="mini" disabled title="静态快照不支持下载，请连接本机后端">需后端</button>` : `<button class="mini" data-att="${esc(f.fileId)}" data-inst="${esc(doc.id)}">下载</button>`}
             </div>`).join('') + '</div>'
         : '<div class="pfile"><div class="pfl none">该单据未上传附件</div></div>';
       return `<div class="pdoc">
@@ -909,6 +1127,7 @@ async function openParty(i) {
     const zb = $('#pZip');
     if (zb && canZip) zb.onclick = () => downloadPartyZip(p, zb);
     $('#pCsv').onclick = () => {
+      if (STATIC) { exportPartyDocsCsv(d.docs, p.name); return; }
       const url = '/api/party-csv?' + qs(Object.assign({}, rp, { name: p.key }));
       const a = document.createElement('a');
       a.href = url;
@@ -996,7 +1215,7 @@ async function openDetail(id) {
         <div class="ext">${esc((a.fileType || '?').slice(0, 4))}</div>
         <div class="info"><div class="fn" title="${esc(a.fileName)}">${esc(a.fileName)}</div>
           <div class="fs">${fmtSize(a.fileSize)}</div></div>
-        <button class="btn" data-att="${i}">下载</button>
+        ${STATIC ? `<button class="btn" disabled title="静态快照不支持下载，请连接本机后端">需后端</button>` : `<button class="btn" data-att="${i}">下载</button>`}
       </div>`).join('') || '<div class="empty" style="padding:22px">该单据未上传用印文件附件</div>';
 
     const tl = (d.timeline || []).map((o) => {
@@ -1068,6 +1287,7 @@ const TITLES = {
 async function switchView(v) {
   STATE.view = v;
   document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
+  document.querySelectorAll('#mMenu button').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
   document.querySelectorAll('.view').forEach((s) => s.classList.toggle('on', s.id === 'v-' + v));
   $('#title').textContent = TITLES[v][0];
   $('#subtitle').textContent = TITLES[v][1];
@@ -1110,6 +1330,7 @@ async function pollSync() {
   } catch {}
 }
 async function startSync() {
+  if (STATIC) return;
   const days = STATE.range === 'all' ? 360 : Number(STATE.range);
   $('#btnSync').disabled = true;
   try {
@@ -1173,6 +1394,7 @@ async function exportCsv() {
  * 与导出 CSV 共用 STATE.q，保证两者筛选口径一致。
  */
 async function exportLedgerZip() {
+  if (STATIC) { toast('静态快照不支持打包下载，请连接本机后端以导出材料包'); return; }
   const btn = $('#btnExportZip');
   const q = Object.assign({}, STATE.q);
   delete q.page; delete q.size;
@@ -1203,6 +1425,9 @@ async function exportLedgerZip() {
 
 /* ---------------- 事件 ---------------- */
 $('#nav').onclick = (e) => { const b = e.target.closest('button'); if (b) switchView(b.dataset.v); };
+$('#mMenuBtn').onclick = (e) => { e.stopPropagation(); $('#mMenu').classList.toggle('on'); };
+$('#mMenu').onclick = (e) => { const b = e.target.closest('button'); if (b) { switchView(b.dataset.v); $('#mMenu').classList.remove('on'); } };
+document.addEventListener('click', (e) => { if (!e.target.closest('#mMenu') && !e.target.closest('#mMenuBtn')) $('#mMenu').classList.remove('on'); });
 $('#range').onchange = (e) => { STATE.range = e.target.value; switchView(STATE.view); };
 $('#btnSync').onclick = startSync;
 $('#dClose').onclick = closeDrawer;
@@ -1239,6 +1464,22 @@ $('#pReset').onclick = () => {
   loadParty();
 };
 $('#pExport').onclick = async () => {
+  if (STATIC) {
+    if (!P_STATE.list.length) return toast('当前条件下无数据可导出');
+    const head = ['单位/个人', '分类', '来源', '类型', '用印次数', '附件', '材料体积', '最近用印', '涉及印章'];
+    const lines = [head.join(',')];
+    for (const p of P_STATE.list) {
+      lines.push([p.name, p.biz, p.src, p.kind === 'person' ? '个人' : '单位', p.count, p.files, fmtSize(p.size), p.lastDate, (p.sealTypes || []).join('/')]
+        .map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
+    }
+    const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `相对方分类清单_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('分类清单已导出');
+    return;
+  }
   const btn = $('#pExport');
   const old = btn.textContent;
   btn.disabled = true; btn.textContent = '导出中…';
@@ -1294,6 +1535,19 @@ async function initBackend() {
 }
 
 (async function init() {
+  if (STATIC) {
+    $('#bk').style.display = 'none';
+    $('#btnSync').style.display = 'none';
+    $('#syncBadge').style.display = 'none';
+    const b = $('#staticBanner');
+    const gen = D.meta && D.meta.generatedAt
+      ? new Date(Date.parse(D.meta.generatedAt) + 8 * 3600000).toISOString().slice(0, 10)
+      : '';
+    b.textContent = '📄 静态快照' + (gen ? ' · 生成于 ' + gen : '') + ' · 数据由本机后端真实算法导出，无需登录即可查看';
+    b.classList.add('on');
+    await switchView('dash');
+    return;
+  }
   await initBackend();
   await switchView('dash');
   pollSync();
