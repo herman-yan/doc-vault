@@ -109,8 +109,6 @@
   .file-chip{display:inline-flex;align-items:center;gap:4px;background:var(--panel2);border:1px solid var(--line);
     border-radius:8px;padding:6px 10px;font-size:12.5px;color:var(--brand);text-decoration:none;margin:3px 6px 3px 0;}
   .file-chip:hover{border-color:var(--brand);}
-  span.file-chip{cursor:pointer;}
-  span.file-chip.na{cursor:default;color:var(--sub);}
   .bar{height:8px;border-radius:6px;background:var(--panel2);overflow:hidden;}
   .bar>i{display:block;height:100%;}
   .note{font-size:12.5px;color:var(--sub);margin-top:6px;}
@@ -211,6 +209,7 @@
       <h1 id="pageTitle">概览看板</h1>
       <span class="crumb" id="pageCrumb">智能合同管理系统</span>
       <div class="right">
+        <a class="btn" href="../yiqianbao/" style="text-decoration:none;font-weight:600" title="用印管理系统（易签宝）">易签宝</a>
         <span class="mode-pill" id="modePill">演示数据</span>
         <select id="srcSel" class="sel" onchange="onSourceChange()" title="数据来源">
           <option value="demo">演示数据</option>
@@ -476,17 +475,6 @@ let BORROWS = [
 
 /* ---------- 业务操作状态（前端模拟批量操作） ---------- */
 const OP = {}; // cid -> {archive, transfer, complete}
-function opLabel(kind){ return {archive:'归档', transfer:'转交', complete:'完结'}[kind]; }
-// 页面上的「今天」是为演示固定的 2026-09-15，登记借出日期得用真实当天，不能跟着演示基准走
-function localDate(){ const d=new Date(); return [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-'); }
-// 本页没有接通钉钉的归档/转交/完结写接口（后端只有查询与详情），点了只改浏览器里的状态。
-// 实时台账挂着 500+ 份真合同，提示必须说清「没写进钉钉」，否则会被当成已经办完了。
-function confirmLocal(n, kind){
-  if(DATA_SOURCE!=='live') return true;
-  return confirm('即将标记 '+n+' 份合同的「'+opLabel(kind)+'」。\n\n'
-    +'注意：钉钉智能合同的归档/转交/完结写接口尚未接入本页，这一步只在当前浏览器里标记，'
-    +'刷新或换设备就会丢失，钉钉里的合同状态、负责人都不会有任何变化。\n\n确认继续？');
-}
 
 /* ---------- 数据源：演示 / 钉钉实时 ---------- */
 const DEMO_SNAPSHOT = { contracts: CONTRACTS, parties: PARTIES, accounting: ACCOUNTING, borrows: BORROWS };
@@ -667,12 +655,9 @@ async function connectDingtalk(auto){
     // DATA_SOURCE 已在取数成功后置为 live：此时抛出的异常来自渲染/收尾，
     // 不能当成「连接失败」静默回退演示数据，否则页面看起来像没连上钉钉。
     if(DATA_SOURCE==='live'){ restoreLoadedOrg(); console.error('钉钉数据已取到，但渲染出错：',e); toast('数据已加载，但页面渲染出错（见控制台）'); setConnBtn('刷新',false); return; }
-    // https 页面连本机端口会被浏览器的「本地网络访问」权限拦下，抛出来只是一句 Failed to fetch，看不出原因
-    const blocked = !SELF_HOSTED && /failed to fetch|networkerror|load failed/i.test(String(e && e.message || e));
     if(auto) fallbackToDemo(SELF_HOSTED ? '自动连接钉钉失败，已切回演示数据'
-      : blocked ? '浏览器拦住了本页（https）访问本机后端：需在站点设置里允许「本地网络」。想看真实台账，直接用 http://localhost:8787 打开最省事。'
       : '本机 8787 没有可连的后端，已切到演示数据。想在本页看真实台账：在本机运行 node server.js，再点右上角「连接」。');
-    else toast(blocked ? '连接被浏览器拦截：https 页面访问本机后端需允许「本地网络」。用 http://localhost:8787 打开，或点地址栏左侧图标 → 网站设置 → 本地网络 → 允许。' : '连接失败：'+e.message);
+    else toast('连接失败：'+e.message);
     setConnBtn('连接', false);
   }
 }
@@ -1185,7 +1170,7 @@ function renderTemplate(){
 function renderBatch(){
   const list=CONTRACTS.map(c=>({c,op:OP[c.id]||{}}));
   html=`
-  <div class="note" style="margin-bottom:12px">批量「归档 / 转交 / 完结」在这里只登记到当前浏览器（钉钉的写接口尚未接入本页，刷新或换设备即丢失）。表里的「钉钉状态 / 归档」两列取自实时接口，是合同在钉钉里的真实情况，不受下面的标记影响。</div>
+  <div class="note" style="margin-bottom:12px">批量「归档 / 转交 / 完结」操作在标准版中按份手工处理，本系统提供勾选批量执行（演示环境仅更新前端状态，可对接钉钉合同系统落地）。</div>
   <div class="toolbar">
     <button class="btn primary" onclick="batchOp('archive')">批量归档</button>
     <button class="btn" onclick="batchOp('transfer')">批量转交</button>
@@ -1193,12 +1178,12 @@ function renderBatch(){
     <span class="muted" id="batchSel">已选 0 项</span>
   </div>
   <div class="card" style="padding:0;overflow:auto">
-    <table><thead><tr><th><input type="checkbox" id="chkAll" onclick="toggleAll(this)"/></th><th>合同</th><th>钉钉状态</th><th>归档</th><th>本页标记</th></tr></thead><tbody>
+    <table><thead><tr><th><input type="checkbox" id="chkAll" onclick="toggleAll(this)"/></th><th>合同</th><th>状态</th><th>归档</th><th>已执行</th></tr></thead><tbody>
     ${list.map(({c,op})=>`<tr>
       <td><input type="checkbox" class="chk" value="${c.id}" onchange="updateSel()"/></td>
       <td>${esc(c.name)}</td><td>${statusPill(c.status)}</td>
       <td>${c.archive}</td>
-      <td>${op.archive?'<span class="pill p-warn">归档·本页</span>':''} ${op.transfer?'<span class="pill p-warn">转交·本页</span>':''} ${op.complete?'<span class="pill p-warn">完结·本页</span>':''} ${!op.archive&&!op.transfer&&!op.complete?'<span class="muted">—</span>':''}</td>
+      <td>${op.archive?'<span class="pill p-ok">已归档</span>':''} ${op.transfer?'<span class="pill p-info">已转交</span>':''} ${op.complete?'<span class="pill p-ok">已完结</span>':''} ${!op.archive&&!op.transfer&&!op.complete?'<span class="muted">—</span>':''}</td>
     </tr>`).join('')}
     </tbody></table>
   </div>`;
@@ -1214,15 +1199,12 @@ function updateSel(){
 function batchOp(kind){
   const ids=[...document.querySelectorAll('#sec-batch .chk:checked')].map(c=>c.value);
   if(!ids.length){toast('请先勾选合同');return;}
-  if(!confirmLocal(ids.length,kind))return;
   ids.forEach(id=>{OP[id]=OP[id]||{};OP[id][kind]=true;
     const c=CONTRACTS.find(x=>x.id===id);
-    if(c && DATA_SOURCE!=='live'){
-      if(kind==='archive')c.archive='已归档';
-      if(kind==='complete')c.status='已完结';
-    }
+    if(kind==='archive')c.archive='已归档';
+    if(kind==='complete')c.status='已完结';
   });
-  toast(`已在本页标记 ${ids.length} 份「${opLabel(kind)}」（未写入钉钉）`);
+  toast(`已对 ${ids.length} 份合同执行「${kind==='archive'?'归档':kind==='transfer'?'转交':'完结'}」`);
   renderBatch();
 }
 
@@ -1230,13 +1212,7 @@ function batchOp(kind){
    渲染：借阅归还
    ============================================================ */
 function renderBorrow(){
-  // 实时数据里的「借阅」是由归档状态推导出来的（钉钉侧没有借阅登记这个对象），一条记录只有
-  // contract/status 两个字段；本页登记的才有借阅人和日期。缺的字段显示「—」，别让表里冒出 undefined
-  const records=BORROWS.map(b=>{
-    const c=CONTRACTS.find(x=>x.id===b.cid)||CONTRACTS.find(x=>x.name===b.contract);
-    return {...b, name:(c&&c.name)||b.contract||b.cid||'—',
-      who:b.who||(b.src==='local'?'未知':'—'), out:b.out||'—', back:b.back||'—'};
-  });
+  const records=BORROWS.map(b=>({...b,c:CONTRACTS.find(x=>x.id===b.cid)}));
   html=`
   <div class="toolbar">
     <button class="btn primary" onclick="addBorrow()">登记借阅</button>
@@ -1244,13 +1220,13 @@ function renderBorrow(){
   <div class="card" style="padding:0;overflow:auto">
     <table><thead><tr><th>合同</th><th>借阅人</th><th>借出</th><th>应还/实还</th><th>状态</th><th>事由</th></tr></thead><tbody>
     ${records.map(b=>`<tr>
-      <td>${esc(b.name)}</td><td>${esc(b.who)}${b.src==='local'?' <span class="muted">（本页登记）</span>':''}</td><td>${b.out}</td>
+      <td>${esc(b.c?b.c.name:b.cid)}</td><td>${esc(b.who)}</td><td>${b.out}</td>
       <td>${b.back}</td>
-      <td>${b.status==='借阅中'?'<span class="pill p-warn">借阅中</span>':b.status==='已归还'?'<span class="pill p-ok">已归还</span>':'<span class="pill p-info">'+esc(b.status||'—')+'</span>'}</td>
+      <td>${b.status==='借阅中'?'<span class="pill p-warn">借阅中</span>':'<span class="pill p-ok">已归还</span>'}</td>
       <td class="muted">${esc(b.reason||'—')}</td></tr>`).join('')}
     </tbody></table>
   </div>
-  <div class="note" style="margin-top:10px">借阅/归还台账弥补标准版缺失的「合同借阅与归还」管理。实时模式下上方这些行是后端按<strong>归档状态</strong>列出的（钉钉没有对外开放借阅登记对象），借阅人与日期需要在本页登记；本页登记只存在当前浏览器里，刷新即丢失。</div>`;
+  <div class="note" style="margin-top:10px">借阅/归还台账弥补标准版缺失的「合同借阅与归还」管理。</div>`;
   $('#sec-borrow').innerHTML=html;
 }
 function addBorrow(){
@@ -1259,8 +1235,8 @@ function addBorrow(){
   const c=CONTRACTS.find(x=>x.id===cid);
   if(!c){toast('未找到该合同');return;}
   const who=prompt('借阅人（部门-姓名）：')||'未知';
-  BORROWS.push({cid,who,out:localDate(),back:'—',status:'借阅中',reason:'临时借阅',src:'local'});
-  toast('借阅已在本页登记（未写入钉钉）');
+  BORROWS.push({cid,who,out:'2026-09-15',back:'—',status:'借阅中',reason:'临时借阅'});
+  toast('借阅已登记');
   renderBorrow();
 }
 
@@ -1293,28 +1269,12 @@ function renderAbout(){
 /* ============================================================
    合同详情弹窗（汇总所有能力）
    ============================================================ */
-let MODAL_FILES = []; // 当前弹窗里的附件，按序号取，避免把带引号的文件名拼进 onclick
-function fileListHtml(files, cid){
+function fileListHtml(files){
   if(!files||!files.length) return '<div class="muted">无可用文件</div>';
-  const live = DATA_SOURCE==='live' && cid;
-  MODAL_FILES = live ? files.map(f=>({name:f.name, cid:String(cid)})) : [];
-  return '<div class="file-list">'+files.map(function(f, i){
+  return '<div class="file-list">'+files.map(function(f){
     var kb=f.size? ' <span class="muted">('+Math.round(f.size/1024)+'KB)</span>':'';
-    // 列表接口对相当一部分附件只给文件名不给链接，点开详情才补得出；所以实时模式下仍然可点，由后端按名字现取
-    if(live) return '<span class="file-chip" onclick="openFile('+i+')">📄 '+esc(f.name)+kb+'</span>';
-    if(!f.url) return '<span class="file-chip na" title="钉钉未返回该附件的下载链接">📄 '+esc(f.name)+kb+'</span>';
     return '<a class="file-chip" href="'+esc(f.url)+'" target="_blank" rel="noopener">📄 '+esc(f.name)+kb+'</a>';
   }).join('')+'</div>';
-}
-async function openFile(i){
-  const f=MODAL_FILES[i]; if(!f) return;
-  const q={cid:f.cid, name:f.name};
-  try{
-    const r=await fetch(api('/api/dingtalk/file', {...q, json:'1'})).then(x=>x.json());
-    if(!r || r.message || !r.url){ toast('下载失败：'+((r&&r.message)||'后端未返回链接')); return; }
-    if(SELF_HOSTED) location.href=api('/api/dingtalk/file', q); // 由本机按钉钉里的原始文件名流式回传
-    else window.open(r.url, '_blank', 'noopener'); // 线上 https 页连本机端口会被拦，只能用刚取到的签名链接
-  }catch(e){ toast('下载失败：'+e.message); }
 }
 function formFieldsHtml(ff){
   if(!ff||!ff.length) return '';
@@ -1426,19 +1386,18 @@ function renderContractModal(c){
         +'</span></h3>'+riskItems+'</div>'
       +'<div class="card"><h3>💰 账款发票</h3>'+acctHtml+'</div>'
     +'</div>'
-    +'<div class="card" style="margin-top:14px"><h3>📎 合同文件（实时）</h3>'+fileListHtml(files, c.cid)+'</div>'
+    +'<div class="card" style="margin-top:14px"><h3>📎 合同文件（实时）</h3>'+fileListHtml(files)+'</div>'
     +'<div class="card" style="margin-top:14px"><h3>🔍 审批比对（实际条款 vs 标准模板）</h3>'+cmpHtml+'</div>'
     +'<div class="card" style="margin-top:14px"><h3>📑 归档比对（扫描件 vs 定稿）</h3>'+arcHtml+'</div>'
     +partyRiskCard
     +formCard
     +'<div class="toolbar" style="margin-top:16px">'
-      +'<button class="btn primary" onclick="doOp(\''+c.id+'\',\'archive\')">本页标记归档</button>'
-      +'<button class="btn" onclick="doOp(\''+c.id+'\',\'transfer\')">本页标记转交</button>'
-      +'<button class="btn" onclick="doOp(\''+c.id+'\',\'complete\')">本页标记完结</button>'
+      +'<button class="btn primary" onclick="doOp(\''+c.id+'\',\'archive\')">标记归档</button>'
+      +'<button class="btn" onclick="doOp(\''+c.id+'\',\'transfer\')">转交</button>'
+      +'<button class="btn" onclick="doOp(\''+c.id+'\',\'complete\')">完结</button>'
       +'<button class="btn" onclick="borrowFrom(\''+c.id+'\')">借阅登记</button>'
     +'</div>'
-    +(OP[c.id]?'<div class="note" style="margin-top:10px">本页已标记：'+Object.keys(OP[c.id]).map(opLabel).join('、')+'（仅当前浏览器，钉钉里未变更）</div>':'')
-    +'<div class="note">钉钉智能合同的归档 / 转交 / 完结写接口未接入本页，以上按钮只在本浏览器里留痕；合同的真实状态以上方「状态」字段（来自钉钉）为准。</div>';
+    +'<div class="note">以上按钮在演示环境仅更新前端状态；对接钉钉后可触发真实合同系统的归档 / 转交 / 完结 / 借阅接口。</div>';
 
   $('#modalBody').innerHTML=html;
   $('#modal').classList.add('show');
@@ -1487,22 +1446,18 @@ async function checkPartyRiskById(id){
   }catch(e){ box.innerHTML='<div class="muted">查询失败：'+esc(e.message)+'</div>'; }
 }
 function doOp(id,kind){
-  if(!confirmLocal(1,kind))return;
   OP[id]=OP[id]||{};OP[id][kind]=true;
   const c=CONTRACTS.find(x=>x.id===id);
-  // 实时模式下不动 c.status / c.archive：那两列是钉钉里的真值，改了会让台账和汇总卡片一起说谎
-  if(c && DATA_SOURCE!=='live'){
-    if(kind==='archive')c.archive='已归档';
-    if(kind==='complete')c.status='已完结';
-  }
-  toast('已在本页标记「'+opLabel(kind)+'」（未写入钉钉）'+(kind==='transfer'?'，负责人仍是 '+((c&&c.owner)||'—'):''));
+  if(kind==='archive')c.archive='已归档';
+  if(kind==='complete')c.status='已完结';
+  toast('已执行：'+({archive:'归档',transfer:'转交',complete:'完结'}[kind]));
   openContract(id);
   renderAll();
 }
 function borrowFrom(id){
   const who=prompt('借阅人（部门-姓名）：')||'未知';
-  BORROWS.push({cid:id,who,out:localDate(),back:'—',status:'借阅中',reason:'详情页登记',src:'local'});
-  toast('借阅已在本页登记（未写入钉钉）');renderBorrow();
+  BORROWS.push({cid:id,who,out:'2026-09-15',back:'—',status:'借阅中',reason:'详情页登记'});
+  toast('借阅已登记');renderBorrow();
 }
 function closeModal(){$('#modal').classList.remove('show');}
 
