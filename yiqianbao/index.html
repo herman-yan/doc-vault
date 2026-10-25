@@ -531,6 +531,73 @@ function inRange(date, from, to) {
   return true;
 }
 
+/* ---------- 静态模式：前端打包下载（store 法 ZIP，无需后端） ---------- */
+function crc32(buf) {
+  let table = crc32._t;
+  if (!table) {
+    table = crc32._t = [];
+    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); table[n] = c >>> 0; }
+  }
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) crc = (crc >>> 8) ^ table[(crc ^ buf[i]) & 0xFF];
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function safeName(n) { return String(n == null ? 'file' : n).replace(/[\/\\:*?"<>|]/g, '_').slice(0, 120); }
+// 生成 store 法 ZIP（不压缩，适合已压缩的 PDF/图片），返回 Blob
+async function buildZip(files) {  // files: [{name, bytes:Uint8Array}]
+  const enc = new TextEncoder(); const chunks = []; const central = []; let offset = 0;
+  for (const f of files) {
+    const nb = enc.encode(f.name); const data = f.bytes; const crc = crc32(data);
+    const local = new Uint8Array(30 + nb.length); const lv = new DataView(local.buffer);
+    lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true); lv.setUint16(6, 0x0800, true); /* bit11=UTF-8 文件名 */
+    lv.setUint16(8, 0, true); lv.setUint16(10, 0, true); lv.setUint16(12, 0, true);
+    lv.setUint32(14, crc, true); lv.setUint32(18, data.length, true); lv.setUint32(22, data.length, true);
+    lv.setUint16(26, nb.length, true); lv.setUint16(28, 0, true); local.set(nb, 30);
+    chunks.push(local, data);
+    const c = new Uint8Array(46 + nb.length); const cv = new DataView(c.buffer);
+    cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true); /* bit11=UTF-8 文件名 */ cv.setUint16(10, 0, true); cv.setUint16(12, 0, true); cv.setUint16(14, 0, true);
+    cv.setUint32(16, crc, true); cv.setUint32(20, data.length, true); cv.setUint32(24, data.length, true);
+    cv.setUint16(28, nb.length, true); cv.setUint16(30, 0, true); cv.setUint16(32, 0, true); cv.setUint16(34, 0, true); cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true); cv.setUint32(42, offset, true); c.set(nb, 46); central.push(c);
+    offset += local.length + data.length;
+  }
+  const cenLen = central.reduce((s, c) => s + c.length, 0);
+  const end = new Uint8Array(22); const ev = new DataView(end.buffer);
+  ev.setUint32(0, 0x06054b50, true); ev.setUint16(4, 0, true); ev.setUint16(6, 0, true);
+  ev.setUint16(8, central.length, true); ev.setUint16(10, central.length, true);
+  ev.setUint32(12, cenLen, true); ev.setUint32(16, offset, true); ev.setUint16(20, 0, true);
+  const all = new Uint8Array(offset + cenLen + 22); let p = 0;
+  for (const ch of chunks) { all.set(ch, p); p += ch.length; }
+  for (const c of central) { all.set(c, p); p += c.length; }
+  all.set(end, p);
+  return new Blob([all], { type: 'application/zip' });
+}
+async function fetchBytes(url) { const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); return new Uint8Array(await r.arrayBuffer()); }
+function clickBlob(blob, name) {
+  const u = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = u; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(u); a.remove(); }, 4000);
+}
+// items: [{name, url}] —— 抓取每个附件并打包成 ZIP 下载
+async function zipAndDownload(items, zipName) {
+  toast('正在打包 ' + items.length + ' 个文件…');
+  try {
+    const seen = {}; const withBytes = [];
+    for (const it of items) {
+      const m = String(it.name || '').match(/\.[^.]+$/); const ext = m ? m[0] : '';
+      const base = safeName(String(it.name || '').replace(/\.[^.]+$/, '')) || 'file';
+      let nm = base + ext;
+      if (seen[base]) { seen[base]++; nm = base + '_' + seen[base] + ext; } else seen[base] = 1;
+      try { withBytes.push({ name: nm, bytes: await fetchBytes(it.url) }); } catch (e) { console.warn('skip', nm, e.message); }
+    }
+    if (!withBytes.length) { toast('没有可下载的附件'); return; }
+    const blob = await buildZip(withBytes);
+    clickBlob(blob, zipName);
+    toast('已生成 ZIP（' + withBytes.length + ' 个文件）');
+  } catch (e) { toast('打包失败：' + e.message); }
+}
+
 function staticApi(path) {
   if (!D) throw new Error('静态数据未加载');
   const qi = path.indexOf('?');
@@ -1070,7 +1137,7 @@ async function openParty(i) {
       const docs = (p.docs || []).filter((x) => inRange(x.date, rp.from, rp.to)).map((x) => {
         const r = REC_BY_ID[x.id];
         return { id: x.id, doc: x.doc, date: x.date, status: x.status,
-          files: r ? (r.attachments || []).map((a) => ({ fileType: a.fileType, fileName: a.fileName, fileSize: a.fileSize, fileId: a.fileId })) : [] };
+          files: r ? (r.attachments || []).map((a) => ({ fileType: a.fileType, fileName: a.fileName, fileSize: a.fileSize, fileId: a.fileId, url: a.url })) : [] };
       });
       const s0 = { docs: docs.length, withFiles: docs.filter((x) => x.files.length).length,
         files: docs.reduce((t, x) => t + x.files.length, 0),
@@ -1088,7 +1155,7 @@ async function openParty(i) {
         合计 <b>${s.files}</b> 个文件（${fmtSize(s.size)}）。
       </div>
       <div class="pact-btns">
-        ${STATIC ? `<button class="btn" disabled title="静态快照不支持打包下载，请连接本机后端">打包下载 (需后端)</button>` : `<button class="btn" id="pZip" ${canZip ? '' : 'disabled'}>打包下载全部材料 (ZIP)</button>`}
+        ${STATIC ? `<button class="btn" id="pZip" ${(d.docs || []).some((doc) => (doc.files || []).some((f) => f.url)) ? '' : 'disabled'}>打包下载全部材料</button>` : `<button class="btn" id="pZip" ${canZip ? '' : 'disabled'}>打包下载全部材料 (ZIP)</button>`}
         <button class="btn" id="pCsv">导出材料清单 (CSV)</button>
       </div>
     </div>
@@ -1105,7 +1172,7 @@ async function openParty(i) {
               <span class="fext">${esc((f.fileType || 'file').toUpperCase().slice(0, 4))}</span>
               <span class="fname" title="${esc(f.fileName)}">${esc(f.fileName)}</span>
               <span class="fsz">${fmtSize(f.fileSize)}</span>
-              ${STATIC ? `<button class="mini" disabled title="静态快照不支持下载，请连接本机后端">需后端</button>` : `<button class="mini" data-att="${esc(f.fileId)}" data-inst="${esc(doc.id)}">下载</button>`}
+              ${STATIC ? (f.url ? `<a class="mini" href="${esc(f.url)}" download="${esc(f.fileName || 'file')}">下载</a>` : `<button class="mini" disabled title="未收录进静态快照">需后端</button>`) : `<button class="mini" data-att="${esc(f.fileId)}" data-inst="${esc(doc.id)}">下载</button>`}
             </div>`).join('') + '</div>'
         : '<div class="pfile"><div class="pfl none">该单据未上传附件</div></div>';
       return `<div class="pdoc">
@@ -1125,7 +1192,16 @@ async function openParty(i) {
     $('#dBody').innerHTML = head + (d.docs.length ? body : '<div class="empty">该相对方名下暂无用印单据</div>');
 
     const zb = $('#pZip');
-    if (zb && canZip) zb.onclick = () => downloadPartyZip(p, zb);
+    if (zb) zb.onclick = () => {
+      if (STATIC) {
+        const items = [];
+        (d.docs || []).forEach((doc) => (doc.files || []).forEach((f) => { if (f.url) items.push({ name: f.fileName || f.fileId, url: f.url }); }));
+        if (!items.length) return toast('静态快照中无可下载附件');
+        zipAndDownload(items, p.name + '_用印材料.zip');
+      } else {
+        downloadPartyZip(p, zb);
+      }
+    };
     $('#pCsv').onclick = () => {
       if (STATIC) { exportPartyDocsCsv(d.docs, p.name); return; }
       const url = '/api/party-csv?' + qs(Object.assign({}, rp, { name: p.key }));
@@ -1215,7 +1291,7 @@ async function openDetail(id) {
         <div class="ext">${esc((a.fileType || '?').slice(0, 4))}</div>
         <div class="info"><div class="fn" title="${esc(a.fileName)}">${esc(a.fileName)}</div>
           <div class="fs">${fmtSize(a.fileSize)}</div></div>
-        ${STATIC ? `<button class="btn" disabled title="静态快照不支持下载，请连接本机后端">需后端</button>` : `<button class="btn" data-att="${i}">下载</button>`}
+        ${STATIC ? (a.url ? `<a class="btn" href="${esc(a.url)}" download="${esc(a.fileName || ('file.' + (a.fileType || 'bin')))}">下载</a>` : `<button class="btn" disabled title="该附件未收录进静态快照，请连接本机后端下载">需后端</button>`) : `<button class="btn" data-att="${i}">下载</button>`}
       </div>`).join('') || '<div class="empty" style="padding:22px">该单据未上传用印文件附件</div>';
 
     const tl = (d.timeline || []).map((o) => {
@@ -1394,7 +1470,28 @@ async function exportCsv() {
  * 与导出 CSV 共用 STATE.q，保证两者筛选口径一致。
  */
 async function exportLedgerZip() {
-  if (STATIC) { toast('静态快照不支持打包下载，请连接本机后端以导出材料包'); return; }
+  if (STATIC) {
+    const q = STATE.q || {};
+    const kw = (q.keyword || '').trim().toLowerCase();
+    const status = q.status || ''; const sealType = q.sealType || '';
+    const contractType = q.contractType || ''; const dept = q.dept || ''; const applicant = q.applicant || '';
+    const rp = rangeParams();
+    const from = q.from || rp.from || ''; const to = q.to || rp.to || '';
+    const items = [];
+    for (const r of D.records) {
+      if (kw) { const hay = `${r.doc_name || ''} ${r.applicant || ''} ${r.payee || ''} ${r.payer || ''} ${r.usage || ''}`.toLowerCase(); if (hay.indexOf(kw) < 0) continue; }
+      if (status && r.status !== status) continue;
+      if (sealType && r.seal_type !== sealType) continue;
+      if (contractType && r.contract_type !== contractType) continue;
+      if (dept && r.originator_dept_name !== dept) continue;
+      if (applicant && r.applicant !== applicant) continue;
+      if (!inRange(r.seal_date, from, to)) continue;
+      for (const a of (r.attachments || [])) if (a.url) items.push({ name: a.fileName || a.fileId, url: a.url });
+    }
+    if (!items.length) return toast('当前筛选条件下没有可下载的附件');
+    zipAndDownload(items, '台账材料_' + new Date().toISOString().slice(0, 10) + '.zip');
+    return;
+  }
   const btn = $('#btnExportZip');
   const q = Object.assign({}, STATE.q);
   delete q.page; delete q.size;
