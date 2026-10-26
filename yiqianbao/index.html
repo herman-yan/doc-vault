@@ -947,6 +947,8 @@ async function loadFacets() {
   fill($('#fApplicant'), f.applicants || []);
   fill($('#pSeal'), f.sealTypes || []);   // 相对方页的印章筛选共用同一份口径
   // 组织 / 流程筛选（多组织改造后新增）
+  // 新组织简称自适应：facets 里带了 org_short，首见组织写进 ORG_SHORT，免改硬编码
+  for (const o of f.orgs || []) if (o.org_key && !ORG_SHORT[o.org_key]) ORG_SHORT[o.org_key] = o.org_short || o.org_name;
   fillPairs($('#fOrg'), (f.orgs || []).map((o) => [o.org_key, ORG_SHORT[o.org_key] || o.org_name]));
   fillPairs($('#fFlow'), (f.flows || []).map((o) => [o.flow_key, o.flow_name]));
   fillPairs($('#pOrg'), (f.orgs || []).map((o) => [o.org_key, ORG_SHORT[o.org_key] || o.org_name]));
