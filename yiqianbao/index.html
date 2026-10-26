@@ -123,9 +123,6 @@ button,input,select{font:inherit;color:inherit;outline:none}
 
 /* ---------- 表格 ---------- */
 .tools{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
-.searchbox{display:flex;gap:8px;flex:1 1 320px;min-width:0;align-items:stretch}
-.searchbox .inp{flex:1 1 auto;min-width:0}
-.sbtn{flex:0 0 auto;white-space:nowrap;padding:0 18px}
 .inp,.sel{
   padding:8px 11px;background:var(--panel);border:1px solid var(--line2);
   border-radius:8px;font-size:13px;min-width:0;
@@ -293,44 +290,10 @@ td.nowrap .mini+.mini{margin-left:5px}
   .top{margin-bottom:16px}
   .acts{gap:7px}
   .top h2{font-size:19px}
-  /* 手机端：检索键加大、独占一行，确保一眼可见可点 */
-  .searchbox{flex:1 1 100%;width:100%}
-  .searchbox .inp{font-size:16px}   /* ≥16px 防止 iOS 聚焦时页面自动缩放 */
-  .sbtn{padding:0 20px;min-height:42px;font-weight:600;background:var(--accent);border-color:var(--accent);color:#fff}
-  .sbtn:hover{background:var(--accent2);border-color:var(--accent2)}
-  .tools .sel,.tools .btn{flex:1 1 calc(50% - 5px);min-height:42px}
-  .tools .btn.p{flex:1 1 100%}
 }
-
-/* ---------- 访问密码门 ---------- */
-body.locked .wrap{display:none}
-.gate{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:var(--bg);padding:20px}
-.gate.on{display:flex}
-.gate .card{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 18px 60px rgba(0,0,0,.55)}
-.gate .lg{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.gate .lg .mk{width:34px;height:34px;flex:0 0 auto;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px}
-.gate h3{font-size:16px;font-weight:600;letter-spacing:.2px}
-.gate .hint{font-size:12.5px;color:var(--fg3);line-height:1.6;margin:6px 0 16px}
-.gate input{width:100%;padding:11px 13px;background:var(--bg2);border:1px solid var(--line2);border-radius:9px;font-size:14px;letter-spacing:1px}
-.gate input:focus{border-color:var(--accent)}
-.gate button{margin-top:12px;width:100%;padding:11px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
-.gate button:hover{background:var(--accent2)}
-.gate .err{color:var(--err);font-size:12.5px;margin-top:10px;min-height:17px}
-.gate .foot{margin-top:18px;font-size:11px;color:var(--fg3);text-align:center}
 </style>
 </head>
-<body class="locked">
-<!-- 访问密码门：默认显示，输入正确密码后隐藏。未解锁时主体内容由 CSS 隐藏（fail-safe） -->
-<div class="gate on" id="gate">
-  <div class="card">
-    <div class="lg"><div class="mk">🔒</div><h3>用印管理系统</h3></div>
-    <div class="hint">请输入访问密码后查看。数据来源：钉钉「用印申请」审批。</div>
-    <input id="gateInput" type="password" placeholder="访问密码" autocomplete="current-password" aria-label="访问密码" />
-    <button id="gateBtn">进入</button>
-    <div class="err" id="gateErr"></div>
-    <div class="foot">宁家(北京)汽车服务有限公司</div>
-  </div>
-</div>
+<body>
 <div class="wrap">
   <aside class="side">
     <div class="brand">
@@ -423,12 +386,7 @@ body.locked .wrap{display:none}
     <!-- 台账 -->
     <section class="view" id="v-ledger">
       <div class="tools">
-        <span class="searchbox">
-          <input class="inp" id="kw" type="search" enterkeyhint="search" placeholder="搜索文件名称 / 申请人 / 收付款方 / 用途…">
-          <button class="btn sbtn" id="btnSearch" type="button">检索</button>
-        </span>
-        <select class="sel" id="fOrg"><option value="">全部组织</option></select>
-        <select class="sel" id="fFlow"><option value="">全部流程</option></select>
+        <input class="inp" id="kw" placeholder="搜索文件名称 / 申请人 / 收付款方 / 用途…">
         <select class="sel" id="fStatus"><option value="">全部状态</option><option value="COMPLETED">已通过</option><option value="RUNNING">审批中</option><option value="TERMINATED">已终止</option></select>
         <select class="sel" id="fSeal"><option value="">全部印章</option></select>
         <select class="sel" id="fType"><option value="">全部合同类型</option></select>
@@ -441,7 +399,7 @@ body.locked .wrap{display:none}
       <div class="tblwrap">
         <table>
           <thead><tr>
-            <th>组织</th><th>用印文件名称</th><th>印章</th><th>合同类型</th><th>申请人</th>
+            <th>用印文件名称</th><th>印章</th><th>合同类型</th><th>申请人</th>
             <th>用印日期</th><th>份数</th><th>附件</th><th>状态</th>
           </tr></thead>
           <tbody id="tbody"></tbody>
@@ -462,10 +420,7 @@ body.locked .wrap{display:none}
     <!-- 相对方 -->
     <section class="view" id="v-party">
       <div class="tools">
-        <span class="searchbox">
-          <input class="inp" id="pKw" type="search" enterkeyhint="search" placeholder="搜索相对方名称…">
-          <button class="btn sbtn" id="pBtnSearch" type="button">检索</button>
-        </span>
+        <input class="inp" id="pKw" placeholder="搜索相对方名称…">
         <select class="sel" id="pBiz"><option value="">全部分类</option></select>
         <select class="sel" id="pKind"><option value="">全部类型</option><option value="org">单位</option><option value="person">个人</option></select>
         <select class="sel" id="pSrc"><option value="">全部来源</option><option value="收款方">收款方</option><option value="付款方">付款方</option><option value="名称推断">名称推断</option><option value="简称推断">简称推断</option></select>
@@ -567,9 +522,6 @@ async function api(path, opt) {
    路由到本地快照；写入 / 下载类操作在静态模式下禁用并提示「需后端」。
    ============================================================ */
 const REC_BY_ID = (() => { const m = {}; if (D) for (const r of D.records) m[r.id] = r; return m; })();
-
-/* 组织短名（多组织改造后新增；台账「组织」列与筛选器共用） */
-const ORG_SHORT = { ningjia: '宁家北京', zhongneng: '中能集团' };
 const PARTY_BY_KEY = (() => { const m = {}; if (D) for (const p of D.parties.list) { m[p.key] = p; if (p.name) m[p.name] = p; } return m; })();
 function curRange() { return (D && D.ranges[STATE.range]) ? STATE.range : 'all'; }
 function inRange(date, from, to) {
@@ -675,8 +627,6 @@ function staticSearch(q) {
   const contractType = q.get('contractType') || '';
   const dept = q.get('dept') || '';
   const applicant = q.get('applicant') || '';
-  const org = q.get('org') || '';
-  const flow = q.get('flow') || '';
   const from = q.get('from') || '';
   const to = q.get('to') || '';
   const rows = D.records.filter((r) => {
@@ -689,8 +639,6 @@ function staticSearch(q) {
     if (contractType && r.contract_type !== contractType) return false;
     if (dept && r.originator_dept_name !== dept) return false;
     if (applicant && r.applicant !== applicant) return false;
-    if (org && r.org_key !== org) return false;
-    if (flow && r.flow_key !== flow) return false;
     if (!inRange(r.seal_date, from, to)) return false;
     return true;
   }).sort((a, b) => String(b.seal_date).localeCompare(String(a.seal_date)));
@@ -920,21 +868,11 @@ async function loadFacets() {
       + arr.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
     sel.value = cur;
   };
-  // value / text 不同（组织与流程用 key 作值、简称作显示）
-  const fillPairs = (sel, pairs) => {
-    const cur = sel.value;
-    sel.innerHTML = sel.querySelector('option').outerHTML
-      + pairs.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join('');
-    sel.value = cur;
-  };
   fill($('#fSeal'), f.sealTypes || []);
   fill($('#fType'), f.contractTypes || []);
   fill($('#fDept'), f.depts || []);
   fill($('#fApplicant'), f.applicants || []);
   fill($('#pSeal'), f.sealTypes || []);   // 相对方页的印章筛选共用同一份口径
-  // 组织 / 流程筛选（多组织改造后新增）
-  fillPairs($('#fOrg'), (f.orgs || []).map((o) => [o.org_key, ORG_SHORT[o.org_key] || o.org_name]));
-  fillPairs($('#fFlow'), (f.flows || []).map((o) => [o.flow_key, o.flow_name]));
   // 从「申请人排行」点入时，选项填充完成后再落到该申请人
   if (STATE.pendingApplicant) {
     $('#fApplicant').value = STATE.pendingApplicant;
@@ -950,8 +888,6 @@ async function loadLedger() {
     contractType: $('#fType').value,
     dept: $('#fDept').value,
     applicant: $('#fApplicant').value,
-    org: $('#fOrg').value,
-    flow: $('#fFlow').value,
     ...rangeParams(),                    // 与总览看板共用同一时间区间，避免两处口径不一致
     page: STATE.page, size: STATE.size,
   };
@@ -959,7 +895,7 @@ async function loadLedger() {
   STATE.rows = d.rows;
   const tb = $('#tbody');
   if (!d.rows.length) {
-    tb.innerHTML = '<tr><td colspan="9"><div class="empty">没有符合条件的用印记录</div></td></tr>';
+    tb.innerHTML = '<tr><td colspan="8"><div class="empty">没有符合条件的用印记录</div></td></tr>';
   } else {
     tb.innerHTML = d.rows.map((r, i) => {
       const st = r.status === 'COMPLETED' ? 'ok' : r.status === 'RUNNING' ? 'run' : 'term';
@@ -967,7 +903,6 @@ async function loadLedger() {
         ? `<span class="tag seal">${r.attachment_count} 个</span>`
         : `<span class="tag no">无</span>`;
       return `<tr data-i="${i}">
-        <td class="mono" title="${esc(r.org_name || '')}">${esc(ORG_SHORT[r.org_key] || r.org_name || '—')}</td>
         <td class="doc" title="${esc(r.doc_name)}">${esc(r.doc_name || '(未填写)')}
           ${r.is_eseal === '是' ? '<span class="tag" style="margin-left:6px">电子章</span>' : ''}</td>
         <td><span class="tag">${esc(r.seal_type || '—')}</span></td>
@@ -982,11 +917,8 @@ async function loadLedger() {
   }
   const rl = STATE.range === 'all' ? '全部时间' : `近 ${STATE.range} 天`;
   const who = $('#fApplicant').value ? ` · 申请人：${esc($('#fApplicant').value)}` : '';
-  const orgSel = $('#fOrg');
-  const orgWho = orgSel && orgSel.value
-    ? ` · 组织：${esc(orgSel.options[orgSel.selectedIndex].text)}` : '';
   $('#pager').innerHTML = `
-    <div>共 ${fmtN(d.total)} 条 · 第 ${d.page} / ${d.pages} 页 · ${rl}${orgWho}${who}</div>
+    <div>共 ${fmtN(d.total)} 条 · 第 ${d.page} / ${d.pages} 页 · ${rl}${who}</div>
     <div class="pgs">
       <button ${d.page <= 1 ? 'disabled' : ''} data-p="1">首页</button>
       <button ${d.page <= 1 ? 'disabled' : ''} data-p="${d.page - 1}">上一页</button>
@@ -1606,41 +1538,19 @@ $('#pager').onclick = (e) => {
 $('#btnReset').onclick = () => {
   $('#kw').value = ''; $('#fStatus').value = ''; $('#fSeal').value = '';
   $('#fType').value = ''; $('#fDept').value = ''; $('#fApplicant').value = '';
-  $('#fOrg').value = ''; $('#fFlow').value = '';
   STATE.page = 1; loadLedger();
 };
 $('#btnExport').onclick = exportCsv;
 $('#btnExportZip').onclick = exportLedgerZip;
 let deb;
 $('#kw').oninput = () => { clearTimeout(deb); deb = setTimeout(() => { STATE.page = 1; loadLedger(); }, 320); };
-// 显式检索键（手机端主要入口）：立即搜索，不等防抖
-(function () {
-  const b = $('#btnSearch');
-  if (b) b.onclick = () => { clearTimeout(deb); STATE.page = 1; loadLedger(); };
-})();
-// 输入框回车即搜（含手机输入法「搜索」键）
-(function () {
-  const k = $('#kw');
-  if (k && k.addEventListener) k.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.keyCode === 13) { clearTimeout(deb); STATE.page = 1; loadLedger(); }
-  });
-})();
-['#fStatus', '#fSeal', '#fType', '#fDept', '#fApplicant', '#fOrg', '#fFlow'].forEach((s) => {
+['#fStatus', '#fSeal', '#fType', '#fDept', '#fApplicant'].forEach((s) => {
   $(s).onchange = () => { STATE.page = 1; loadLedger(); };
 });
 
 /* 相对方筛选 */
 let pdeb;
 $('#pKw').oninput = () => { clearTimeout(pdeb); pdeb = setTimeout(loadParty, 320); };
-// 相对方页显式检索键 + 回车
-(function () {
-  const b = $('#pBtnSearch');
-  if (b) b.onclick = () => { clearTimeout(pdeb); loadParty(); };
-  const k = $('#pKw');
-  if (k && k.addEventListener) k.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.keyCode === 13) { clearTimeout(pdeb); loadParty(); }
-  });
-})();
 ['#pBiz', '#pSrc', '#pKind', '#pSeal', '#pMin', '#pFile', '#pSort', '#pRange'].forEach((s) => {
   $(s).onchange = () => loadParty();
 });
@@ -1687,77 +1597,6 @@ $('#pExport').onclick = async () => {
   }
 };
 
-/* ---------------- 访问密码门 ----------------
-   纯静态站点没有服务端可校验，故用「本地校验密码哈希」的方式加一道访问门：
-   页面默认隐藏（body.locked），输入正确密码后显示。密码校验在浏览器内完成，
-   不联网、不发送明文。解锁状态记在 localStorage（sm.gate.ok），同一浏览器免重复输入。
-   注意：这是「页面级」访问门，并非内容加密——底层 data.js / 附件仍是明文文件。 */
-const GATE_HASH = 'dd45894ef4b1637bb8384204aa9418b2e05e1536e01863e831fd567cfe6d2d2d'; // sha256('ningjia123')
-function sha256(input) {
-  function utf8Bytes(str) {
-    if (typeof TextEncoder !== 'undefined') { const b = new TextEncoder().encode(str); let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return s; }
-    return unescape(encodeURIComponent(str));
-  }
-  function rr(v, a) { return (v >>> a) | (v << (32 - a)); }
-  var ascii = utf8Bytes(String(input)), mathPow = Math.pow, maxWord = mathPow(2, 32), result = '';
-  var i, j, words = [], asciiBitLength = ascii.length * 8;
-  var hash = sha256.h = sha256.h || [], k = sha256.k = sha256.k || [], primeCounter = k.length, isComposite = {};
-  for (var candidate = 2; primeCounter < 64; candidate++) {
-    if (!isComposite[candidate]) {
-      for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
-      hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
-      k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
-    }
-  }
-  ascii += '\x80';
-  while (ascii.length % 64 - 56) ascii += '\x00';
-  for (i = 0; i < ascii.length; i++) { j = ascii.charCodeAt(i); if (j >> 8) return; words[i >> 2] |= j << ((3 - i) % 4) * 8; }
-  words[words.length] = ((asciiBitLength / maxWord) | 0);
-  words[words.length] = (asciiBitLength);
-  for (j = 0; j < words.length;) {
-    var w = words.slice(j, j += 16), oldHash = hash; hash = hash.slice(0, 8);
-    for (i = 0; i < 64; i++) {
-      var w15 = w[i - 15], w2 = w[i - 2], a = hash[0], e = hash[4];
-      var temp1 = hash[7] + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & hash[5]) ^ ((~e) & hash[6])) + k[i]
-        + (w[i] = (i < 16) ? w[i] : (w[i - 16] + (rr(w15, 7) ^ rr(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rr(w2, 17) ^ rr(w2, 19) ^ (w2 >>> 10))) | 0);
-      var temp2 = (rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
-      hash = [(temp1 + temp2) | 0].concat(hash); hash[4] = (hash[4] + temp1) | 0;
-    }
-    for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
-  }
-  for (i = 0; i < 8; i++) for (j = 3; j + 1; j--) { var b = (hash[i] >> (j * 8)) & 255; result += ((b < 16) ? 0 : '') + b.toString(16); }
-  return result;
-}
-let GATE_OK = false;
-function gateUnlock(persist) {
-  GATE_OK = true;
-  document.body.classList.remove('locked');
-  const g = document.getElementById('gate'); if (g) g.classList.remove('on');
-  if (persist) { try { localStorage.setItem('sm.gate.ok', '1'); } catch (e) {} }
-}
-// 返回 Promise：解锁后 resolve，初始化照常继续。本机（localhost，后端模式）不设门。
-function gateGuard() {
-  return new Promise((resolve) => {
-    if (SELF_HOSTED) { gateUnlock(false); return resolve(); }
-    let saved = null; try { saved = localStorage.getItem('sm.gate.ok'); } catch (e) {}
-    if (saved === '1') { gateUnlock(false); return resolve(); }
-    const inp = document.getElementById('gateInput'), btn = document.getElementById('gateBtn'), err = document.getElementById('gateErr');
-    const submit = () => {
-      const v = inp ? inp.value : '';
-      if (sha256(v) === GATE_HASH) {
-        gateUnlock(true);
-        resolve();
-      } else {
-        if (err) err.textContent = '密码错误，请重试';
-        if (inp) { inp.value = ''; if (inp.focus) inp.focus(); }
-      }
-    };
-    if (btn) btn.onclick = submit;
-    if (inp && inp.addEventListener) inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
-    if (inp && inp.focus) inp.focus();
-  });
-}
-
 /* ---------------- 启动 ---------------- */
 /* ---------------- 后端地址控件（静态部署时连接本机后端） ---------------- */
 async function checkBackend() {
@@ -1793,7 +1632,6 @@ async function initBackend() {
 }
 
 (async function init() {
-  await gateGuard();   // 先过访问密码门（本机 localhost 自动放行）
   if (STATIC) {
     $('#bk').style.display = 'none';
     $('#btnSync').style.display = 'none';
