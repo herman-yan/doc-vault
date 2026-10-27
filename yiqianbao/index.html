@@ -690,8 +690,10 @@ function staticSearch(q) {
   const to = q.get('to') || '';
   const rows = D.records.filter((r) => {
     if (kw) {
-      const hay = `${r.doc_name || ''} ${r.applicant || ''} ${r.payee || ''} ${r.payer || ''} ${r.usage || ''}`.toLowerCase();
-      if (hay.indexOf(kw) < 0) return false;
+      // 多词空格分隔 → AND 语义；匹配范围含「用印主体」（劳动合同类单据标题只有人名，公司名只在用印主体里）
+      const hay = `${r.doc_name || ''} ${r.title || ''} ${r.applicant || ''} ${r.handler || ''} ${r.payee || ''} ${r.payer || ''} ${r.usage || ''} ${r.seal_owner || ''} ${r.counterparty_signer || ''}`.toLowerCase();
+      const words = kw.split(/\s+/).filter(Boolean);
+      if (words.some((w) => hay.indexOf(w) < 0)) return false;
     }
     if (status && r.status !== status) return false;
     if (sealType && r.seal_type !== sealType) return false;
