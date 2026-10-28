@@ -2638,7 +2638,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 999px;
@@ -2675,16 +2675,16 @@ body {
 }
 .cust-chip:hover { border-color: var(--accent); color: var(--text-primary); background: var(--bg-hover); }
 .cust-chip .cc-dot {
-  width: 17px; height: 17px;
+  width: 18px; height: 18px;
   border-radius: 50%;
   display: grid; place-items: center;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
 }
 .cust-chip .cc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 108px; }
-.cust-chip .cc-cat { font-size: 9.5px; color: var(--text-dim); }
+.cust-chip .cc-cat { font-size: 10.5px; color: var(--text-dim); }
 .cust-chip.cc-empty {
   border-style: dashed;
   color: var(--text-dim);
@@ -2732,7 +2732,7 @@ body {
 }
 .pcard-name:hover { color: var(--accent); }
 .pcard-idx {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
@@ -2947,7 +2947,7 @@ body {
 }
 .daygroup-wd { font-size: 11px; color: var(--text-dim); }
 .daygroup-count {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--accent);
   background: var(--accent-soft);
@@ -3007,14 +3007,18 @@ body {
   white-space: nowrap;
 }
 .who .who-av {
-  width: 16px; height: 16px;
+  width: 18px; height: 18px;
   border-radius: 50%;
   display: grid; place-items: center;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
 }
+
+/* ---------------- 字号可读性兜底（覆盖原页面内联小字号） ---------------- */
+#databaseView .tag-risk { font-size: 10.5px !important; }
+#databaseView .cc-cat   { font-size: 10.5px !important; }
 
 /* ---------------- 客户资源矩阵 ---------------- */
 .matrix-wrap {
@@ -3061,10 +3065,10 @@ body {
   gap: 7px;
 }
 .mx-av {
-  width: 22px; height: 22px;
+  width: 24px; height: 24px;
   border-radius: 6px;
   display: grid; place-items: center;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
@@ -5410,7 +5414,7 @@ function customerChips(projectName, limit) {
     return `<span class="cust-chip" onclick="event.stopPropagation();gotoCustomer('${esc2(c.name)}')" title="${esc2(c.category)}${c.status ? ' · ' + esc2(c.status) : ''}">
       <span class="cc-dot" style="background:${m.color}">${esc2(String(c.name).charAt(0))}</span>
       <span class="cc-name">${esc2(c.name)}</span>
-      ${c.issue ? '<span class="tag tag-risk" style="padding:0 5px;font-size:9.5px">风险</span>' : ''}
+      ${c.issue ? '<span class="tag tag-risk" style="padding:0 5px">风险</span>' : ''}
     </span>`;
   }).join('') + (rest > 0 ? `<span class="cust-chip cc-empty">+${rest}</span>` : '');
 }
