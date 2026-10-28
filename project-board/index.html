@@ -2395,6 +2395,805 @@ body {
 @media (max-width: 640px) {
   .proj-grid { grid-template-columns: 1fr; }
 }
+
+/* ===== v2 override layer ===== */
+/* ============================================================
+   Project Board v2 — 汇报型项目管理看板
+   样式层（覆盖式，兼容原有 CSS 变量与类名）
+   ============================================================ */
+
+:root {
+  --bg-primary: #0b1016;
+  --bg-secondary: #121a24;
+  --bg-card: #161f2b;
+  --bg-soft: #1b2534;
+  --bg-hover: #1f2b3c;
+  --border-color: #263345;
+  --border-soft: #1e2836;
+  --text-primary: #e9eef5;
+  --text-soft: #8b9bb0;
+  --text-secondary: #8b9bb0;
+  --text-dim: #5f7085;
+  --accent: #3b9eff;
+  --accent-soft: rgba(59, 158, 255, 0.14);
+  --red: #ff5a5f;
+  --green: #22c55e;
+  --orange: #f59e0b;
+  --yellow: #eab308;
+  --purple: #8b5cf6;
+  --teal: #14b8a6;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 14px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 10px 34px rgba(0, 0, 0, 0.42);
+}
+
+body {
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(59, 158, 255, 0.07), transparent 62%),
+    radial-gradient(900px 460px at 92% 0%, rgba(139, 92, 246, 0.06), transparent 58%),
+    var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------- Header ---------------- */
+.header {
+  background: rgba(18, 26, 36, 0.9);
+  backdrop-filter: saturate(160%) blur(14px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0;
+}
+
+.header-top {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 14px 26px 10px;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 18px;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.header h1 .h1-sub {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-dim);
+  padding-left: 11px;
+  margin-left: 3px;
+  border-left: 1px solid var(--border-color);
+  letter-spacing: 0;
+}
+
+.header-meta {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  padding: 4px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--bg-soft);
+}
+
+/* Tabs —— 顶部导航条 */
+.tabs {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 26px;
+  gap: 4px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.tab {
+  position: relative;
+  padding: 12px 18px 11px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-soft);
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.tab .tab-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  color: var(--text-dim);
+  border: 1px solid var(--border-soft);
+}
+.tab:hover { background: transparent; color: var(--text-primary); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab.active .tab-badge {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: rgba(59, 158, 255, 0.3);
+}
+.tab.tab-alert .tab-badge { background: rgba(255, 90, 95, 0.16); color: var(--red); border-color: rgba(255, 90, 95, 0.32); }
+
+/* ---------------- Layout ---------------- */
+.container { max-width: 1480px; padding: 22px 26px 70px; }
+
+.section { margin-bottom: 26px; }
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 13px;
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.2px;
+}
+.section-title .st-ico { font-size: 15px; }
+.section-desc { font-size: 12px; color: var(--text-dim); }
+.section-line { flex: 1; height: 1px; background: var(--border-soft); }
+
+/* ---------------- KPI ---------------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(196px, 1fr));
+  gap: 13px;
+}
+.kpi-card {
+  position: relative;
+  background: linear-gradient(160deg, var(--bg-card), var(--bg-secondary));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px 17px 15px;
+  overflow: hidden;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--kpi-color, var(--accent));
+  opacity: 0.85;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--kpi-color, var(--accent)) 46%, var(--border-color));
+  box-shadow: var(--shadow);
+}
+.kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.kpi-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+  letter-spacing: 0.4px;
+}
+.kpi-ico {
+  width: 24px; height: 24px;
+  display: grid; place-items: center;
+  border-radius: 7px;
+  font-size: 12px;
+  background: color-mix(in srgb, var(--kpi-color, var(--accent)) 16%, transparent);
+}
+.kpi-value {
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+.kpi-value .kpi-unit { font-size: 12.5px; font-weight: 500; color: var(--text-dim); margin-left: 3px; }
+.kpi-sub { font-size: 11.5px; color: var(--text-dim); margin-top: 6px; }
+.kpi-sub b { color: var(--text-soft); font-weight: 600; }
+
+/* ---------------- 风险预警 ---------------- */
+.alert-panel {
+  background: linear-gradient(150deg, rgba(255, 90, 95, 0.06), rgba(245, 158, 11, 0.04));
+  border: 1px solid rgba(255, 90, 95, 0.22);
+  border-radius: var(--radius);
+  padding: 15px 17px;
+}
+.alert-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 10px; }
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--alert-color, var(--orange));
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.alert-item:hover { background: var(--bg-hover); transform: translateX(3px); }
+.alert-ico { font-size: 14px; line-height: 1.4; flex-shrink: 0; }
+.alert-main { min-width: 0; flex: 1; }
+.alert-title { font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.alert-desc { font-size: 11.5px; color: var(--text-soft); margin-top: 3px; line-height: 1.55; }
+.alert-empty {
+  text-align: center;
+  padding: 26px;
+  color: var(--text-dim);
+  font-size: 13px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius);
+}
+
+/* ---------------- 通用标签 ---------------- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  line-height: 1.6;
+  border: 1px solid transparent;
+}
+.tag-high   { background: rgba(255, 90, 95, 0.14); color: #ff7b80; border-color: rgba(255, 90, 95, 0.26); }
+.tag-mid    { background: rgba(245, 158, 11, 0.14); color: #fbbf24; border-color: rgba(245, 158, 11, 0.26); }
+.tag-low    { background: rgba(139, 155, 176, 0.13); color: var(--text-soft); border-color: rgba(139, 155, 176, 0.22); }
+.tag-lost   { background: rgba(120, 134, 152, 0.12); color: #7f8fa3; border-color: rgba(120, 134, 152, 0.2); text-decoration: line-through; }
+.tag-done   { background: rgba(34, 197, 94, 0.14); color: #4ade80; border-color: rgba(34, 197, 94, 0.26); }
+.tag-active { background: rgba(34, 197, 94, 0.13); color: #4ade80; border-color: rgba(34, 197, 94, 0.24); }
+.tag-run    { background: rgba(59, 158, 255, 0.14); color: #6cb6ff; border-color: rgba(59, 158, 255, 0.26); }
+.tag-stall  { background: rgba(255, 90, 95, 0.13); color: #ff7b80; border-color: rgba(255, 90, 95, 0.24); }
+.tag-risk   { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+.tag-ghost  { background: var(--bg-soft); color: var(--text-soft); border-color: var(--border-soft); }
+
+/* 客户 chip（项目卡上挂的关联客户） */
+.cust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px 3px 4px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-color);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  max-width: 100%;
+}
+.cust-chip:hover { border-color: var(--accent); color: var(--text-primary); background: var(--bg-hover); }
+.cust-chip .cc-dot {
+  width: 17px; height: 17px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.cust-chip .cc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 108px; }
+.cust-chip .cc-cat { font-size: 9.5px; color: var(--text-dim); }
+.cust-chip.cc-empty {
+  border-style: dashed;
+  color: var(--text-dim);
+  cursor: default;
+  padding: 3px 9px;
+}
+.cust-chip.cc-empty:hover { border-color: var(--border-color); background: var(--bg-soft); color: var(--text-dim); }
+
+/* ---------------- 项目主线卡片 ---------------- */
+.plist { display: flex; flex-direction: column; gap: 11px; }
+
+.pcard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.pcard:hover { border-color: #33465e; box-shadow: var(--shadow); }
+.pcard.pcard-stall { border-left: 3px solid rgba(255, 90, 95, 0.55); }
+.pcard.pcard-done  { opacity: 0.72; }
+.pcard.pcard-lost  { opacity: 0.6; }
+
+.pcard-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 15px 18px;
+  align-items: start;
+}
+
+.pcard-titlerow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 9px;
+}
+.pcard-name {
+  font-size: 15.5px;
+  font-weight: 650;
+  color: var(--text-primary);
+  cursor: pointer;
+  letter-spacing: 0.2px;
+}
+.pcard-name:hover { color: var(--accent); }
+.pcard-idx {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-soft);
+}
+
+.pcard-metrics {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  margin-bottom: 9px;
+}
+.pcard-metric { display: inline-flex; align-items: center; gap: 5px; }
+.pcard-metric b { color: var(--text-soft); font-weight: 600; font-variant-numeric: tabular-nums; }
+.pcard-metric .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border-color); }
+
+/* 进度条 */
+.pbar {
+  position: relative;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--bg-primary);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.pbar > i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), #62c8ff);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pbar > i.done { background: linear-gradient(90deg, #16a34a, var(--green)); }
+.pbar-wrap { max-width: 420px; }
+.pbar-txt {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.pbar-txt b { color: var(--text-soft); font-variant-numeric: tabular-nums; }
+
+/* 关联客户区 */
+.pcard-res {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px dashed var(--border-soft);
+}
+.pcard-res-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* 右侧：最近更新 + 操作 */
+.pcard-side {
+  text-align: right;
+  min-width: 264px;
+  max-width: 330px;
+}
+.pcard-side-date {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+.pcard-side-content {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.pcard-side-content:hover { color: var(--text-primary); }
+.pcard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 10px;
+}
+.btn-mini {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 5px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-soft);
+  border: 1px solid var(--border-color);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.btn-mini:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-mini.btn-mini-accent { color: var(--accent); border-color: rgba(59, 158, 255, 0.34); background: var(--accent-soft); }
+.btn-mini.btn-mini-accent:hover { background: var(--accent); color: #fff; }
+
+/* 展开的更新流 */
+.pcard-feed {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.36s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-soft);
+}
+.pcard-feed.open { max-height: 1400px; }
+.pcard-feed-inner { padding: 14px 18px 16px; }
+
+.feed-item {
+  position: relative;
+  padding: 0 0 13px 20px;
+  border-left: 1.5px solid var(--border-color);
+}
+.feed-item:last-child { border-left-color: transparent; padding-bottom: 0; }
+.feed-item::before {
+  content: '';
+  position: absolute;
+  left: -5.5px;
+  top: 4px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+}
+.feed-item:first-child::before { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.feed-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.feed-date { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text-soft); }
+.feed-body { font-size: 12.5px; color: var(--text-soft); line-height: 1.65; word-break: break-word; }
+.feed-next {
+  display: inline-block;
+  margin-top: 5px;
+  font-size: 11.5px;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  border-radius: 6px;
+  padding: 3px 9px;
+  line-height: 1.5;
+}
+
+/* ---------------- 更新动态 Feed ---------------- */
+.feed-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.chipbar { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-color);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--accent); color: var(--text-primary); }
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.daygroup { margin-bottom: 20px; }
+.daygroup-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  position: sticky;
+  top: 108px;
+  z-index: 5;
+  background: linear-gradient(90deg, var(--bg-primary) 70%, transparent);
+  padding: 5px 0;
+}
+.daygroup-date {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.daygroup-wd { font-size: 11px; color: var(--text-dim); }
+.daygroup-count {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid rgba(59, 158, 255, 0.24);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.feedcard {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  margin-bottom: 9px;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+.feedcard:hover { border-color: #33465e; background: var(--bg-hover); }
+.feedcard-left { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.feedcard-proj {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  min-width: 0;
+}
+.feedcard-proj:hover { color: var(--accent); }
+.feedcard-proj .fp-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.feedcard-proj .fp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feedcard-right { min-width: 0; }
+.feedcard-text { font-size: 13px; color: var(--text-soft); line-height: 1.68; word-break: break-word; }
+.feedcard-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+/* 人徽章 */
+.who {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px 2px 3px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-color);
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+.who .who-av {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* ---------------- 客户资源矩阵 ---------------- */
+.matrix-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.matrix-scroll { overflow-x: auto; }
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 880px;
+}
+.matrix thead th {
+  background: var(--bg-secondary);
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-align: left;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.matrix tbody td {
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-soft);
+  vertical-align: top;
+}
+.matrix tbody tr:last-child td { border-bottom: none; }
+.matrix tbody tr:hover td { background: rgba(59, 158, 255, 0.035); }
+.mx-cust {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.mx-av {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.mx-proj-list { display: flex; flex-direction: column; gap: 5px; }
+.mx-proj {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  cursor: pointer;
+  color: var(--text-soft);
+}
+.mx-proj:hover { color: var(--accent); }
+.mx-proj .mx-pd { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.mx-none { color: var(--text-dim); font-style: italic; font-size: 11.5px; }
+.mx-status { font-size: 11.5px; line-height: 1.55; }
+.mx-date { font-variant-numeric: tabular-nums; font-size: 11.5px; white-space: nowrap; }
+
+/* ---------------- 详情视图 ---------------- */
+.detail-header {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 17px 20px;
+  margin-bottom: 15px;
+}
+.back-btn {
+  background: var(--bg-soft);
+  border: 1px solid var(--border-color);
+  color: var(--text-soft);
+  font-size: 12px;
+  padding: 6px 13px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-bottom: 13px;
+  transition: all 0.15s ease;
+}
+.back-btn:hover { border-color: var(--accent); color: var(--accent); }
+.detail-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 13px;
+}
+.detail-meta { display: flex; gap: 22px; flex-wrap: wrap; }
+.detail-meta-item { font-size: 11.5px; color: var(--text-dim); }
+.detail-meta-item span {
+  display: block;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text-primary);
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.detail-res {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 15px 18px;
+  margin-bottom: 15px;
+}
+.detail-res-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 11px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* ---------------- 兼容层：原客户资料库 ---------------- */
+.cat-chip, .cat-section, .cust-card, .proj-card, .contact-chip { border-radius: var(--radius); }
+.cat-overview { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.cat-chip { background: var(--bg-card); border: 1px solid var(--border-color); }
+.cat-chip:hover { background: var(--bg-hover); }
+.cat-section { background: var(--bg-card); border: 1px solid var(--border-color); overflow: hidden; }
+.cust-card { background: var(--bg-secondary); border: 1px solid var(--border-color); }
+.cust-card:hover { border-color: #33465e; }
+.proj-card { background: var(--bg-card); border: 1px solid var(--border-color); }
+.search-input {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+}
+.search-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* 统计条（客户资料库顶部） */
+.crm-toolbar { margin-bottom: 15px; }
+.crm-seg { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 3px; }
+.crm-seg button { border-radius: 6px; font-size: 12px; padding: 6px 14px; color: var(--text-soft); }
+.crm-seg button.active { background: var(--accent); color: #fff; }
+
+/* ---------------- 响应式 ---------------- */
+@media (max-width: 1100px) {
+  .pcard-head { grid-template-columns: 1fr; }
+  .pcard-side { text-align: left; min-width: 0; max-width: none; }
+  .pcard-side-date { justify-content: flex-start; }
+  .pcard-actions { justify-content: flex-start; }
+  .feedcard { grid-template-columns: 1fr; gap: 8px; }
+  .feedcard-left { flex-direction: row; align-items: center; flex-wrap: wrap; }
+}
+@media (max-width: 720px) {
+  .header-top, .tabs, .container { padding-left: 14px; padding-right: 14px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-value { font-size: 22px; }
+  .tabs { overflow-x: auto; }
+  .daygroup-head { top: 0; }
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: #2b3a4d; border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4d64; }
+
+/* 打印 / 导出汇报 */
+@media print {
+  body { background: #fff; color: #111; }
+  .header, .fab-add, .pcard-actions, .chipbar, .feed-toolbar { display: none !important; }
+  .kpi-card, .pcard, .feedcard, .matrix-wrap { border-color: #ccc; background: #fff; }
+}
+
 </style>
 </head>
 <body>
@@ -2466,7 +3265,7 @@ body {
 <div class="header">
   <div class="header-top">
     <div class="header-left">
-      <h1>📋 项目管理看板</h1>
+      <h1>📋 项目管理看板 <span class="h1-sub">项目 / 客户 / 进展 一体化汇报</span></h1>
     </div>
     <div class="header-right">
       <div class="header-meta" id="lastUpdated"></div>
@@ -2475,8 +3274,11 @@ body {
     </div>
   </div>
   <div class="tabs">
-    <button class="tab active" data-view="tracking" onclick="switchView('tracking')">项目跟进</button>
-    <button class="tab" data-view="database" onclick="switchView('database')">客户资料库</button>
+    <button class="tab active" data-view="overview" onclick="switchView('overview')">📊 总览 <span class="tab-badge" id="tb-overview"></span></button>
+    <button class="tab" data-view="projects" onclick="switchView('projects')">🗂 项目主线 <span class="tab-badge" id="tb-projects"></span></button>
+    <button class="tab" data-view="match" onclick="switchView('match')">🤝 客户资源 <span class="tab-badge" id="tb-match"></span></button>
+    <button class="tab" data-view="feed" onclick="switchView('feed')">📡 更新动态 <span class="tab-badge" id="tb-feed"></span></button>
+    <button class="tab" data-view="database" onclick="switchView('database')">📇 客户资料库</button>
   </div>
 </div>
 
@@ -2487,29 +3289,33 @@ body {
     <div>加载数据中...</div>
   </div>
 
-  <!-- View 1: Project Tracking -->
-  <div class="db-view" id="trackingView">
-    <div id="projectListView">
-      <div class="stats-grid" id="statsGrid"></div>
-      <div class="latest-updates" id="latestUpdates"></div>
-      <div class="project-list" id="projectList"></div>
-    </div>
-    <div class="detail-view" id="detailView"></div>
-  </div>
+  <!-- 总览 -->
+  <div class="db-view" id="overviewView"></div>
+  <!-- 项目主线 -->
+  <div class="db-view" id="projectBoardView"></div>
+  <!-- 客户资源矩阵 -->
+  <div class="db-view" id="matchView"></div>
+  <!-- 更新动态 -->
+  <div class="db-view" id="feedView"></div>
 
-  <!-- View 2: Customer Database -->
+  <!-- 客户资料库（保留原功能） -->
   <div class="db-view" id="databaseView">
     <div class="search-box">
-      <input type="text" class="search-input" placeholder="🔍 搜索客户名称、类型、合作方向..." oninput="filterTable(this.value)">
+      <input type="text" class="search-input" placeholder="🔍 搜索客户名称、类型、合作方向、对接人..." oninput="filterTable(this.value)">
     </div>
     <div class="crm-toolbar">
       <div class="crm-seg" id="groupModeSeg">
         <button class="active" data-mode="type" onclick="setGroupMode('type')">按合作类型</button>
         <button data-mode="industry" onclick="setGroupMode('industry')">按行业</button>
       </div>
-      <span class="crm-hint" id="crmHint">点击上方分类卡片可快速筛选；点击客户卡展开项目与对接人</span>
+      <span class="crm-hint" id="crmHint">点击分类卡片可快速筛选；点击客户卡展开项目与对接人</span>
     </div>
     <div id="customerTables"></div>
+  </div>
+
+  <!-- 项目详情 -->
+  <div class="db-view" id="detailViewWrap">
+    <div class="detail-view" id="detailView"></div>
   </div>
 </div>
 
@@ -2564,6 +3370,7 @@ body {
   </div>
 </div>
 
+<script>window.__PB_BOOTSTRAP__={"projects":[{"id":1,"name":"危化经营","priority":"高","completion":"0.99","latestUpdate":"2026-07-02","timeline":[{"date":"2026-07-02","content":"许可证发来，备案项还未确认，金总也在找，同步准备酒精","updater":"陈熙源"},{"date":"2026-06-30","content":"生产商许可证周二提供，备案大类，同时一手经销商提出涨价需求","updater":"陈熙源"},{"date":"2026-06-29","content":"宁德生产商资质拖到明日下午，去大厅办手续需要我和祥英俩人到现场","updater":"陈熙源"},{"date":"2026-06-26","content":"催备案制度编写","updater":"陈熙源"},{"date":"2026-06-25","content":"双签完成，准备招商引资免租合同","updater":"陈熙源"},{"date":"2026-06-24","content":"明日去应急局市局","updater":"陈熙源"},{"date":"2026-06-23","content":"催检测报告，周四早上去市局","updater":"陈熙源"},{"date":"2026-06-22","content":"安全生产规章制度和岗位操作规程，全生产规章制度和岗位操作规程准备，明天面谈","updater":"陈熙源"},{"date":"2026-06-18","content":"正在催，有结果今晚更新","updater":"陈熙源"},{"date":"2026-06-16","content":"已催","updater":"陈熙源"},{"date":"2026-06-12","content":"三日后","updater":"陈熙源"},{"date":"2026-06-10","content":"三方评审第一天","updater":"陈熙源"},{"date":"2026-06-09","content":"确认三方评审明日进行","updater":"陈熙源"},{"date":"2026-06-05","content":"新白名单三方评审单位刚刚签约完成，周一继续追评审预约时间和完成情况","updater":"陈熙源"},{"date":"2026-06-04","content":"明日追榆垡镇三方评审完成情况","updater":"陈熙源"},{"date":"2026-06-03","content":"今日联系告知正在签合同，本周五追结果","updater":"陈熙源"},{"date":"2026-06-02","content":"榆垡镇见面沟通，钱收，目前还缺榆垡镇，应急局，三方评审机构过会，由于浏阳爆炸之前评审机构作废新的在签合同，告知最晚下周初完成三方评审后应急局三个工作日内下证","updater":"陈熙源"},{"date":"2026-05-27","content":"电话沟通告知手续齐全，风头紧，耐心等待片刻","updater":"陈熙源"},{"date":"2026-05-19","content":"刷题备考，明天约见办事中间人","updater":"陈熙源"},{"date":"2026-05-14","content":"原定是周六参加完培训，周一考试。但是5月涉及到一个危化安全证的复核，需要周五下午或周六报名的时候通知具体考试时间。到时候我再和您说，然后执照具体什么时候能增下项来，我尽量催着盯着，按照市场董局说，应急局已前置所有流程，安全员证下来后很快很快","updater":"陈熙源"},{"date":"2026-05-11","content":"完成线上32小时学习，本周提供可信政府文件","updater":"陈熙源"},{"date":"2026-05-08","content":"市场局已批复，安全员考试已预约5.15-5.16日天津考试","updater":"陈熙源"},{"date":"2026-05-07","content":"榆垡镇招商函已提交至应急局，北京安全员资质办理渠道已对接","updater":"陈熙源"},{"date":"2026-05-06","content":"应急局提供地址已变更，现场核地已前置到五一假期中完成，榆垡镇提供招商函暂时跳过法人安全员资质，仍需后期补齐安全员资质","updater":"陈熙源"}],"totalUpdates":24},{"id":2,"name":"场地合作","priority":"高","completion":"累计合作","latestUpdate":"2026-07-02","timeline":[{"date":"2026-07-02","content":"过会提供佐证陪标地","updater":"陈熙源"},{"date":"2026-06-30","content":"补齐京沪东侧另一方案，询问刘晓鹏是否可以协助","updater":"陈熙源"},{"date":"2026-06-29","content":"询问结果","updater":"陈熙源"},{"date":"2026-06-26","content":"今晚见蔚来，下周一过会","updater":"陈熙源"},{"date":"2026-06-23","content":"下周一过会","updater":"陈熙源"},{"date":"2026-06-17","content":"照片补齐，等待过会","updater":"陈熙源"},{"date":"2026-06-16","content":"蔚来同步需求，解决车位问题","updater":"陈熙源"},{"date":"2026-06-15","content":"月底争取一次过会，七月敲定合同，提供短暂免租期","updater":"陈熙源"},{"date":"2026-06-11","content":"蔚来主推，近期走客情，我的思路是先走开店部门关系，等月底例会过会后结果不行联系北京城总，具体思路和鑫总再确认","updater":"陈熙源"},{"date":"2026-06-10","content":"蔚来参观完毕需过会","updater":"陈熙源"},{"date":"2026-06-08","content":"蔚来确认本周四上午十点到访","updater":"陈熙源"},{"date":"2026-06-05","content":"吉漾中国是一家专注汽车后市场贴膜改装品牌，考虑租用展厅以及开展自身教培业务","updater":"陈熙源"},{"date":"2026-06-03","content":"张雪网发负责人已建联，邀约中","updater":"陈熙源"},{"date":"2026-06-01","content":"蔚来确认本周到访","updater":"陈熙源"},{"date":"2026-05-19","content":"行业及头部企业整理完成详见子表","updater":"陈熙源"},{"date":"2026-05-18","content":"机器人企业今日通过渠道对接松延动力告知暂不需要展厅，博清科技公司认为场地面积过大合作模式还需确认，明天整理各行业头部企业","updater":"陈熙源"},{"date":"2026-05-12","content":"新能源品牌蔚来和魏派下周实地到访，各行业头部品牌整理中","updater":"陈熙源"},{"date":"2026-05-11","content":"整理可合作行业及行业头部企业","updater":"陈熙源"},{"date":"2026-05-09","content":"已联系智元机器人，银河通用，优必选机器人公司，挚达，国轩高科","updater":"陈熙源"},{"date":"2026-05-08","content":"到访项目更新子表","updater":"陈熙源"},{"date":"2026-05-07","content":"今日到访居然人车家合作中心，汽车博物馆","updater":"陈熙源"},{"date":"2026-05-06","content":"车展添加B1、B2、W1、W2馆汽车产业链先关企业联系方式","updater":"陈熙源"}],"totalUpdates":22},{"id":3,"name":"设备、人才出海","priority":"高","completion":"0.1","latestUpdate":"2026-07-02","timeline":[{"date":"2026-07-02","content":"推进研学资源平台","updater":"陈熙源"},{"date":"2026-06-26","content":"研学公司下周来宁家","updater":"陈熙源"},{"date":"2026-06-24","content":"跟进研学活动","updater":"陈熙源"},{"date":"2026-06-17","content":"项目提高优先级最近推动","updater":"陈熙源"},{"date":"2026-06-08","content":"接此次天津港看的外企沟通能否将设备直接出口给他们","updater":"陈熙源"},{"date":"2026-05-19","content":"需商议尽快提交对方合作方案","updater":"陈熙源"},{"date":"2026-05-09","content":"对方询问见面沟通时间","updater":"陈熙源"},{"date":"2026-05-07","content":"寻求我司在三方合作中抓手提高利益点","updater":"陈熙源"},{"date":"2026-05-06","content":"面谈四川远海北京公司副总，该公司为服务咨询公司，宁德匈牙利出海，选址，政府关系皆为该公司执行，所覆盖范围不止匈牙利一国，详细出口细节五一后需两位张总配合一起去北京公司面谈","updater":"陈熙源"}],"totalUpdates":9},{"id":4,"name":"点亮乡村","priority":"高","completion":"0.1","latestUpdate":"2026-07-12","timeline":[{"date":"2026-07-12","content":"测试","updater":"测试"},{"date":"2026-07-11","content":"测试","updater":"测试"},{"date":"2026-05-09","content":"等待危化完成","updater":"陈熙源"},{"date":"2026-05-06","content":"中电建牵头，中国铁塔执行，目前房山两个村已动工，预计发电量均超过1兆瓦，每度电0.16元利润，寻找我司可切入点","updater":"陈熙源"}],"totalUpdates":4},{"id":5,"name":"榆垡镇政府","priority":"高","completion":"0.1","latestUpdate":"2026-06-25","timeline":[{"date":"2026-06-25","content":"准备招商引资免租合同","updater":"陈熙源"},{"date":"2026-06-23","content":"同步零碳事宜","updater":"陈熙源"},{"date":"2026-06-22","content":"明天现场沟通","updater":"陈熙源"},{"date":"2026-06-15","content":"专精特新榆垡镇申请要求询问中","updater":"陈熙源"},{"date":"2026-06-10","content":"区域内储能政策确认中","updater":"陈熙源"},{"date":"2026-06-08","content":"不了解每个区会给两个回收中心指标问题，当地给厂房政策等危化走完可聊","updater":"陈熙源"},{"date":"2026-06-05","content":"同时沟通每个区两个指标问题","updater":"陈熙源"},{"date":"2026-06-03","content":"沟通昨日联系固安厂房相关事宜","updater":"陈熙源"},{"date":"2026-05-06","content":"北野园区内用车，目前刚开始土建医药园区近期踏勘跟进","updater":"陈熙源"}],"totalUpdates":9},{"id":6,"name":"中国铁塔","priority":"高","completion":"0.1","latestUpdate":"2026-07-02","timeline":[{"date":"2026-07-02","content":"房山项目确认身份","updater":"陈熙源"},{"date":"2026-06-29","content":"成功不成功的零碳方案还在催，针对于某个具体园区或场景的","updater":"陈熙源"},{"date":"2026-06-26","content":"垫款利率等待确定，零碳方案欠缺","updater":"陈熙源"},{"date":"2026-06-25","content":"欠零碳方案","updater":"陈熙源"},{"date":"2026-06-24","content":"尽快准备零碳方案提供以及河南项目","updater":"陈熙源"},{"date":"2026-06-23","content":"房山园区信息准备","updater":"陈熙源"},{"date":"2026-06-18","content":"主推零碳，下周实地","updater":"陈熙源"},{"date":"2026-06-17","content":"一亿多可行，成为房山零碳采购方","updater":"陈熙源"},{"date":"2026-06-16","content":"本周面谈","updater":"陈熙源"},{"date":"2026-06-15","content":"加急先确认邯郸换电可行性","updater":"陈熙源"},{"date":"2026-06-12","content":"约下周面谈","updater":"陈熙源"},{"date":"2026-06-11","content":"河北项目试点沟通中","updater":"陈熙源"},{"date":"2026-06-10","content":"提交一版电池银行方案尽快发对方","updater":"陈熙源"},{"date":"2026-06-01","content":"已联系铁塔沟通可行性","updater":"陈熙源"},{"date":"2026-05-28","content":"研究公交换电借助铁塔以租代售","updater":"陈熙源"},{"date":"2026-05-09","content":"等待危化完成","updater":"陈熙源"},{"date":"2026-05-06","content":"北京450-500个换电柜，对接人直接决策，节后跟进","updater":"陈熙源"}],"totalUpdates":17},{"id":7,"name":"首钢基金","priority":"高","completion":"0.1","latestUpdate":"2026-06-29","timeline":[{"date":"2026-06-29","content":"还半年退休了，催着呢","updater":"陈熙源"},{"date":"2026-06-22","content":"首钢环境沟通","updater":"陈熙源"},{"date":"2026-06-18","content":"等待方案","updater":"陈熙源"},{"date":"2026-06-15","content":"由下向上拉通北京办推动","updater":"陈熙源"},{"date":"2026-06-09","content":"内部需确认整体项目利益比例，确认是否先推荐基金投资合作","updater":"陈熙源"},{"date":"2026-06-08","content":"建议由宁德牵头先和首钢基金建联后由中间人推动此事","updater":"陈熙源"},{"date":"2026-06-05","content":"已宁德和首钢现有的前端箱体供应商和首钢基金投资宁德低空基金，北京市国资委发文作为切入口","updater":"陈熙源"},{"date":"2026-06-04","content":"沟通思路：互为供应商，厂区车辆，零碳，整体后市场生态投资合作","updater":"陈熙源"},{"date":"2026-06-03","content":"周五约见投资事宜","updater":"陈熙源"},{"date":"2026-05-27","content":"详细沟通投资问题以及光储项目","updater":"陈熙源"},{"date":"2026-05-12","content":"暂延后","updater":"陈熙源"},{"date":"2026-05-09","content":"光储充一体暂定下周二面谈","updater":"陈熙源"}],"totalUpdates":12},{"id":8,"name":"天津滨环再生资源","priority":"高","completion":"0.2","latestUpdate":"2026-06-25","timeline":[{"date":"2026-06-25","content":"方案收尾，这两天鑫总过没问题发给对方","updater":"陈熙源"},{"date":"2026-06-22","content":"还是希望我司先给予一版方案后拿着和天津区政府沟通的结果再来面谈","updater":"陈熙源"},{"date":"2026-06-18","content":"约下周面谈","updater":"陈熙源"},{"date":"2026-06-16","content":"提供给对方的方案制作中","updater":"陈熙源"},{"date":"2026-06-15","content":"提供给对方的方案制作中","updater":"陈熙源"},{"date":"2026-06-11","content":"同步思路注资直营站，后期五中心政府背书介入","updater":"陈熙源"},{"date":"2026-06-09","content":"希望我司给予一般方案对方入股公司拉着区政府一起","updater":"陈熙源"},{"date":"2026-06-08","content":"投资占直营站以及后期中心方案接受，具体执行方案内部研判","updater":"陈熙源"},{"date":"2026-06-05","content":"周末先去沟通，下周可能带着区政府一起到访做背书","updater":"陈熙源"},{"date":"2026-06-01","content":"下周带着中资环一起来","updater":"陈熙源"},{"date":"2026-05-28","content":"下周到访，希望中资环给出政策支持，如可行少比例入股更好","updater":"陈熙源"},{"date":"2026-05-27","content":"接受投资，确认政府关系，合作模式研判","updater":"陈熙源"},{"date":"2026-05-20","content":"我司提供宁德授权，共同打造个回收在制造的产线","updater":"陈熙源"},{"date":"2026-05-19","content":"邀约来京，确认拆解中心以及后续备件、梯次、再利用","updater":"陈熙源"}],"totalUpdates":14},{"id":9,"name":"光储","priority":"高","completion":"0.2","latestUpdate":"2026-07-02","timeline":[{"date":"2026-07-02","content":"数据中心渠道建联","updater":"陈熙源"},{"date":"2026-06-30","content":"实地踏勘，但如果1500度电配储100，规格过小考虑直接和十倍以上体量永辉本体合作","updater":"陈熙源"},{"date":"2026-06-29","content":"超市明早实地面谈","updater":"陈熙源"},{"date":"2026-06-26","content":"超市延期到下周二","updater":"陈熙源"},{"date":"2026-06-25","content":"明早超市面谈","updater":"陈熙源"},{"date":"2026-06-23","content":"超市约周四下午","updater":"陈熙源"},{"date":"2026-06-18","content":"超市表格已整理，下周整体面谈","updater":"陈熙源"},{"date":"2026-06-16","content":"沟通商储以及超市场景","updater":"陈熙源"},{"date":"2026-06-12","content":"背书后争取承接华电小部分业务","updater":"陈熙源"},{"date":"2026-06-11","content":"储能政策基本确认，联系场地场景中","updater":"陈熙源"},{"date":"2026-06-10","content":"铁塔跟进拉通京津冀园区商储，确认政策中","updater":"陈熙源"},{"date":"2026-06-09","content":"搞定投资后有国央企背书或贸促会战略合作后提高成功率","updater":"陈熙源"},{"date":"2026-06-08","content":"天津港发掘一批可国内直接交付后期全包的储能出海外企","updater":"陈熙源"},{"date":"2026-06-05","content":"项目确认要等联合国组织提需求，","updater":"陈熙源"},{"date":"2026-06-04","content":"今日确认进展","updater":"陈熙源"},{"date":"2026-05-29","content":"确认将我方设备技术参数放到招标文件技术标部分","updater":"陈熙源"},{"date":"2026-05-28","content":"光大已中标，等待具体光储要求后参与投标","updater":"陈熙源"}],"totalUpdates":17},{"id":10,"name":"无人车","priority":"高","completion":"0.2","latestUpdate":"2026-06-12","timeline":[{"date":"2026-06-12","content":"下周提供对方方案","updater":"陈熙源"},{"date":"2026-06-09","content":"周五上午同对方先进行电话会议讨论梯次，售后","updater":"陈熙源"},{"date":"2026-06-05","content":"已追进度告知新电池供应涉及利益较多，梯次，售后可研究下周同对方电话会","updater":"陈熙源"},{"date":"2026-05-28","content":"电池为宁德特制无pn，72v300ah，合作方向：新电池，梯次电池售卖，售后，市场推广，返修整备中心","updater":"陈熙源"}],"totalUpdates":4},{"id":11,"name":"投资合作","priority":"高","completion":"","latestUpdate":"2026-06-25","timeline":[{"date":"2026-06-25","content":"京能沟通的零碳负责人寻找切入点","updater":"陈熙源"},{"date":"2026-06-17","content":"欠京能未沟通","updater":"陈熙源"},{"date":"2026-06-15","content":"多资方同时跟进","updater":"陈熙源"},{"date":"2026-06-12","content":"还欠京能未沟通","updater":"陈熙源"},{"date":"2026-06-10","content":"首钢、京能、天津同时进行，最近和铁塔沟通是否提投资合作问题","updater":"陈熙源"},{"date":"2026-06-09","content":"京能时间已约，同时跟进贸促会战略合作相关事项","updater":"陈熙源"},{"date":"2026-06-08","content":"目前剩余京能集团未沟通，本周约个午饭时间见面沟通","updater":"陈熙源"},{"date":"2026-06-05","content":"京能集团，首钢基金，天津企业等多线合作","updater":"陈熙源"}],"totalUpdates":8},{"id":12,"name":"专利","priority":"战败","completion":"0.2","latestUpdate":"2026-07-02","timeline":[{"date":"2026-07-02","content":"放弃","updater":"陈熙源"},{"date":"2026-06-30","content":"方案已报，明日面谈","updater":"陈熙源"},{"date":"2026-06-26","content":"先专利方案可行，下周初提供方案","updater":"陈熙源"},{"date":"2026-06-24","content":"先申请专利","updater":"陈熙源"},{"date":"2026-06-22","content":"制作样品","updater":"陈熙源"},{"date":"2026-06-18","content":"方案未提交等待中","updater":"陈熙源"},{"date":"2026-06-16","content":"明日提供方案给我方","updater":"陈熙源"}],"totalUpdates":7},{"id":13,"name":"测试","priority":"低","completion":"1","latestUpdate":"2026-07-15","totalUpdates":1,"timeline":[{"date":"2026-07-15","content":"测试","updater":"测试"}]}],"venuePartners":[{"name":"居然之家","content":"目前正在和小鹏和华为合作，我这边提供了咱们展厅的图片等等，他们会内部过一下，然后需要咱们确认门头是否可以挂他们的logo，另外看看目前北京6个居然，全国80多家居然咱们能提供什么服务","contact":[]},{"name":"汽车博物馆","content":"3层把老车那部分区域改造成新能源汽车，电池展示等","contact":[]}],"industryPartners":[{"industry":"新能源整车","company":"蔚来","direction":"售前","status":"本周到访","issue":"","contact":[]},{"industry":"","company":"长城","direction":"售前","status":"","issue":"后期蜂巢电池为主","contact":[]},{"industry":"","company":"鸿蒙智行","direction":"售前","status":"方案提交对方需过会","issue":"","contact":[]},{"industry":"二手车","company":"瓜子","direction":"展厅+售后","status":"展厅+检测点+延保服务，等待回复","issue":"","contact":[]},{"industry":"","company":"中盛","direction":"销售","status":"下周到访","issue":"","contact":[]},{"industry":"机器人","company":"埃斯顿","direction":"","status":"工业机械臂、光伏 / 锂电自动化设备展示，新能源工厂产线方案","issue":"渠道建联中","contact":[]},{"industry":"","company":"宇树科技","direction":"","status":"四足巡检机器人、人形机器人、新能源智能安防设备","issue":"渠道建联中","contact":[]},{"industry":"","company":"优必选","direction":"","status":"人形机器人体验区、商用服务机器人","issue":"渠道建联中","contact":[]},{"industry":"","company":"新松机器人","direction":"","status":"移动机器人、巡检机器人、储能配套自动化设备展示","issue":"渠道建联中","contact":[]},{"industry":"","company":"博清科技","direction":"","status":"产业链工业机器人","issue":"匹配度不高","contact":[]},{"industry":"摩托车","company":"张雪","direction":"","status":"","issue":"销售渠道联系总部尝试建联","contact":[]}],"businessPartners":[{"name":"天津滨环再生资源","type":"业务合作方","direction":"注资直营站，拆解中心，备件/梯次/再利用","status":"邀约来京确认合作","relatedProject":"天津滨环再生资源","issue":"需中资环背书","contact":[]},{"name":"中国铁塔","type":"业务合作方","direction":"换电柜、零碳方案、电池银行","status":"推进房山项目","relatedProject":"中国铁塔","issue":"欠零碳方案","contact":[]},{"name":"首钢基金","type":"业务合作方","direction":"光储充投资合作","status":"约见投资事宜","relatedProject":"首钢基金","issue":"需确认利益比例","contact":[]},{"name":"京能集团","type":"业务合作方","direction":"零碳合作","status":"已约时间","relatedProject":"投资合作","issue":"","contact":[]},{"name":"蔚来","type":"潜在客户","direction":"场地合作/售前","status":"确认到访","relatedProject":"场地合作","issue":"需过会","contact":[]},{"name":"榆垡镇政府","type":"政府合作方","direction":"招商引资、储能政策","status":"推进中","relatedProject":"榆垡镇政府","issue":"危化证完成后深入","contact":[]},{"name":"贸促会","type":"战略合作方","direction":"战略合作背书","status":"跟进中","relatedProject":"投资合作","issue":"","contact":[]},{"name":"四川远海","type":"业务合作方","direction":"设备出海/匈牙利项目","status":"待面谈","relatedProject":"设备、人才出海","issue":"需两位张总配合","contact":[]},{"name":"吉漾中国","type":"潜在客户","direction":"展厅租用+教培","status":"初步接触","relatedProject":"场地合作","issue":"","contact":[]},{"name":"瓜子","type":"潜在客户","direction":"展厅+检测+延保","status":"等待回复","relatedProject":"场地合作","issue":"","contact":[]},{"name":"中盛","type":"潜在客户","direction":"销售","status":"下周到访","relatedProject":"场地合作","issue":"","contact":[]}],"lastUpdated":"2026-07-15","projectCustomers":{"危化经营":["榆垡镇政府"],"点亮乡村":["中国铁塔"],"光储":["中国铁塔"]}};</script>
 <script>
 // ===================== 存储层（Supabase，与 CRM 同一项目，免 Token） =====================
 const PB_SB_URL = 'https://bbiddukkkxthtairizlk.supabase.co';
@@ -2573,24 +3380,33 @@ const PB_SB = (typeof supabase !== 'undefined') ? supabase.createClient(PB_SB_UR
 const PB_TABLE = 'project_board';
 const PB_KEY_VAL = 'main';
 
-// 读取看板数据：优先 Supabase → 本地缓存 → 静态 project-data.json（公开可匿名访问）
+// 读取看板数据：Supabase(带超时) → 本地缓存 → 内联兜底 → 静态 project-data.json
 async function loadAppData() {
-  // 1. Supabase（若已建表并配置 RLS）
+  // 1. Supabase（2.5s 超时，避免慢网长时间白屏）
   if (PB_SB) {
     try {
-      const { data, error } = await PB_SB.from(PB_TABLE).select('value').eq('key', PB_KEY_VAL).single();
-      if (data && data.value) {
-        localStorage.setItem('pb_cache', JSON.stringify(data.value));
-        return data.value;
+      const q = PB_SB.from(PB_TABLE).select('value').eq('key', PB_KEY_VAL).single();
+      const r = await Promise.race([
+        q,
+        new Promise(res => setTimeout(() => res(null), 2500))
+      ]);
+      if (r && r.data && r.data.value) {
+        localStorage.setItem('pb_cache', JSON.stringify(r.data.value));
+        return r.data.value;
       }
     } catch (e) { /* 表未建或不可达，继续兜底 */ }
   }
   // 2. 本地缓存
   const cache = localStorage.getItem('pb_cache');
   if (cache) { try { return JSON.parse(cache); } catch (e) {} }
-  // 3. 静态文件初始化
+  // 3. 内联兜底（随页面一同下发，保证离线/慢网也能出内容）
+  if (window.__PB_BOOTSTRAP__ && window.__PB_BOOTSTRAP__.projects) return window.__PB_BOOTSTRAP__;
+  // 4. 静态文件（5s 超时）
   try {
-    const resp = await fetch('project-data.json?t=' + Date.now());
+    const ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    const tid = ctl ? setTimeout(() => ctl.abort(), 5000) : null;
+    const resp = await fetch('project-data.json?t=' + Date.now(), ctl ? { signal: ctl.signal } : undefined);
+    if (tid) clearTimeout(tid);
     if (resp.ok) {
       const d = await resp.json();
       localStorage.setItem('pb_cache', JSON.stringify(d));
@@ -3020,16 +3836,35 @@ async function submitContact() {
 
 // ===================== Data Loading =====================
 async function loadData() {
-  try {
-    const d = await loadAppData();
-    if (!d) throw new Error('数据为空');
+  const paint = (d) => {
     appData = d;
+    invalidatePCIndex();
     document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('lastUpdated').textContent = '数据更新: ' + (appData.lastUpdated || '');
+    document.getElementById('lastUpdated').textContent = '数据更新: ' + (d.lastUpdated || '');
     renderTrackingView();
     renderDatabaseView();
+    updateTabBadges();
+  };
+
+  // ---- 首屏：本地缓存 / 内联兜底，立即渲染（不等网络） ----
+  let boot = null;
+  try { boot = JSON.parse(localStorage.getItem('pb_cache') || 'null'); } catch (e) {}
+  if ((!boot || !boot.projects) && window.__PB_BOOTSTRAP__ && window.__PB_BOOTSTRAP__.projects) {
+    boot = window.__PB_BOOTSTRAP__;
+  }
+  if (boot && boot.projects) paint(boot);
+  const bootKey = (boot && boot.projects) ? ((boot.lastUpdated || '') + '|' + boot.projects.length) : null;
+
+  // ---- 后台拉取权威数据，有差异才覆盖 ----
+  try {
+    const d = await loadAppData();
+    if (!d || !d.projects) throw new Error('数据为空');
+    const key = (d.lastUpdated || '') + '|' + d.projects.length;
+    if (bootKey === null || key !== bootKey) paint(d);
   } catch (e) {
-    document.getElementById('loadingState').innerHTML = '<div style="color:var(--red)">数据加载失败，请刷新页面重试</div>';
+    if (!boot) {
+      document.getElementById('loadingState').innerHTML = '<div style="color:var(--red)">数据加载失败，请刷新页面重试</div>';
+    }
   }
 }
 
@@ -3037,233 +3872,69 @@ async function loadData() {
 function switchView(view) {
   currentView = view;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
-  
-  const trackingView = document.getElementById('trackingView');
-  const databaseView = document.getElementById('databaseView');
-  
-  if (view === 'tracking') {
-    trackingView.style.display = 'block';
-    trackingView.classList.add('view');
-    databaseView.classList.remove('active');
-    databaseView.style.display = 'none';
-    showProjectList();
-  } else {
-    trackingView.style.display = 'none';
-    databaseView.style.display = 'block';
-    databaseView.classList.add('active', 'view');
-  }
+  showView(view);
+  if (view === 'database') renderDatabaseView();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Render tracking view
+// ===================== v2 渲染入口 =====================
 function renderTrackingView() {
-  renderStats();
-  renderLatestUpdates();
-  renderProjectList();
+  renderOverview();
+  renderProjectBoard();
+  renderMatchView();
+  renderFeedView();
+  updateTabBadges();
 }
 
-function renderStats() {
-  const projects = appData.projects;
-  const totalProjects = projects.length;
-  const highPriorityActive = projects.filter(p => p.priority === '高' && parseFloat(p.completion) < 1).length;
-  
-  let latestProject = '';
-  let latestDate = '';
-  projects.forEach(p => {
-    if (p.latestUpdate > latestDate) {
-      latestDate = p.latestUpdate;
-      latestProject = p.name;
-    }
-  });
-  
-  const totalUpdates = projects.reduce((sum, p) => sum + p.totalUpdates, 0);
-  
-  document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">项目总数</div>
-      <div class="stat-value">${totalProjects}</div>
-      <div class="stat-sub">个在跟项目</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">高优先级进行中</div>
-      <div class="stat-value" style="color:var(--red)">${highPriorityActive}</div>
-      <div class="stat-sub">个高优先级项目推进中</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">最近更新</div>
-      <div class="stat-value" style="font-size:18px">${latestProject}</div>
-      <div class="stat-sub">${latestDate}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">跟进记录</div>
-      <div class="stat-value">${totalUpdates}</div>
-      <div class="stat-sub">条总记录</div>
-    </div>
-  `;
+// 兼容旧调用点：这些函数名在提交/导入流程中被复用
+function renderStats() { renderOverview(); updateTabBadges(); }
+function renderLatestUpdates() { renderFeedView(); updateTabBadges(); }
+function renderProjectList() { renderProjectBoard(); renderMatchView(); updateTabBadges(); }
+
+function updateTabBadges() {
+  if (!appData) return;
+  const projects = visibleProjects();
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('tb-overview', projects.length);
+  set('tb-projects', projects.filter(p => p.priority !== '战败').length);
+
+  const idx = pcIndex();
+  const custCount = Object.keys(idx.byCustomer).filter(k => idx.byCustomer[k].projects.length).length;
+  set('tb-match', custCount);
+
+  const week = [];
+  projects.forEach(p => (p.timeline || []).forEach(e => {
+    const d = daysAgo(e.date);
+    if (d !== null && d >= 0 && d <= 7) week.push(e);
+  }));
+  set('tb-feed', week.length);
+
+  // 停滞预警高亮
+  const tab = document.querySelector('.tab[data-view="projects"]');
+  if (tab) {
+    const stall = projects.filter(p => projStatus(p).key === 'stall').length;
+    tab.classList.toggle('tab-alert', stall > 0);
+  }
 }
 
-function renderLatestUpdates() {
-  const projects = appData.projects;
-  const projectColors = {};
-  const colorPalette = [
-    { bg: 'rgba(29, 155, 240, 0.15)', color: '#1d9bf0' },
-    { bg: 'rgba(0, 186, 124, 0.15)', color: '#00ba7c' },
-    { bg: 'rgba(255, 122, 0, 0.15)', color: '#ff7a00' },
-    { bg: 'rgba(120, 86, 255, 0.15)', color: '#7856ff' },
-    { bg: 'rgba(255, 212, 0, 0.15)', color: '#ffd400' },
-    { bg: 'rgba(244, 33, 46, 0.15)', color: '#f4212e' },
-    { bg: 'rgba(0, 186, 124, 0.15)', color: '#00ba7c' },
-    { bg: 'rgba(29, 155, 240, 0.15)', color: '#1d9bf0' },
-    { bg: 'rgba(255, 122, 0, 0.15)', color: '#ff7a00' },
-    { bg: 'rgba(120, 86, 255, 0.15)', color: '#7856ff' },
-    { bg: 'rgba(255, 212, 0, 0.15)', color: '#ffd400' },
-    { bg: 'rgba(244, 33, 46, 0.15)', color: '#f4212e' },
-  ];
-  projects.forEach((p, i) => {
-    projectColors[p.id] = colorPalette[i % colorPalette.length];
+// 视图切换
+function showView(view) {
+  const map = {
+    overview: 'overviewView', projects: 'projectBoardView',
+    match: 'matchView', feed: 'feedView', database: 'databaseView'
+  };
+  Object.keys(map).forEach(k => {
+    const el = document.getElementById(map[k]);
+    if (el) el.style.display = (k === view) ? 'block' : 'none';
   });
-
-  // 每个项目只取最新一条 timeline 记录
-  const allEntries = [];
-  projects.forEach(p => {
-    if (p.timeline && p.timeline.length > 0) {
-      const latest = p.timeline[0];
-      allEntries.push({
-        projectId: p.id,
-        projectName: p.name,
-        date: latest.date,
-        content: latest.content,
-        updater: latest.updater || '',
-        color: projectColors[p.id]
-      });
-    }
-  });
-
-  allEntries.sort((a, b) => b.date.localeCompare(a.date));
-  const topEntries = allEntries;
-  
-  const lastUpdater = localStorage.getItem('lastUpdater') || '';
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-  const html = topEntries.map((entry, idx) => {
-    const summary = entry.content.length > 60 ? entry.content.substring(0, 60) + '...' : entry.content;
-    const dateFormatted = entry.date.substring(5).replace('-', '/');
-    const updaterHtml = entry.updater ? `<span class="updater-badge" data-initial="${entry.updater.charAt(0)}">${entry.updater}</span>` : '';
-    return `
-      <div class="latest-update-item" onclick="showDetail(${entry.projectId})">
-        <span class="latest-project-tag" style="background:${entry.color.bg};color:${entry.color.color}">${entry.projectName}</span>
-        <button class="latest-edit-btn" onclick="toggleLatestQuickEdit(${entry.projectId}, event)" title="快捷更新">✏️</button>
-        <div class="latest-update-right">
-          <div class="latest-update-date">${dateFormatted}${updaterHtml}</div>
-          <div class="latest-update-content">${summary}</div>
-        </div>
-        <div class="latest-quick-edit" id="latestQuickEdit-${entry.projectId}-${idx}" onclick="event.stopPropagation()">
-          <div class="lq-row">
-            <div class="form-group narrow">
-              <label class="form-label">日期</label>
-              <input type="date" class="form-input lq-date" value="${todayStr}">
-            </div>
-            <div class="form-group updater-field">
-              <label class="form-label">填写人</label>
-              <input type="text" class="form-input lq-updater" placeholder="填写人" value="${lastUpdater}">
-            </div>
-          </div>
-          <textarea class="form-textarea lq-content" placeholder="填写新进展..."></textarea>
-          <div class="lq-actions" style="margin-top:8px">
-            <button class="lq-submit" onclick="submitLatestQuickEdit(${entry.projectId}, ${idx}, event)">提交</button>
-            <button class="lq-cancel" onclick="closeLatestQuickEdit(${entry.projectId}, ${idx}, event)">取消</button>
-            <span class="lq-status"></span>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  document.getElementById('latestUpdates').innerHTML = `
-    <div class="latest-updates-header">
-      <span class="icon">📡</span> 最新动态
-    </div>
-    <div class="latest-updates-list">
-      ${html}
-    </div>
-  `;
+  const dw = document.getElementById('detailViewWrap');
+  if (dw) dw.style.display = 'none';
+  const dv = document.getElementById('detailView');
+  if (dv) { dv.style.display = 'none'; dv.classList.remove('active'); }
+  currentProjectId = null;
 }
 
-function renderProjectList() {
-  const projects = appData.projects;
-  const sorted = [...projects].sort((a, b) => {
-    if (a.priority === '战败' && b.priority !== '战败') return 1;
-    if (b.priority === '战败' && a.priority !== '战败') return -1;
-    return b.latestUpdate.localeCompare(a.latestUpdate);
-  });
-  
-  const lastUpdater = localStorage.getItem('lastUpdater') || '';
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  
-  document.getElementById('projectList').innerHTML = sorted.map(p => {
-    const completionVal = parseFloat(p.completion);
-    const completionPct = isNaN(completionVal) ? 0 : Math.round(completionVal * 100);
-    const isComplete = completionPct >= 99;
-    const priorityClass = p.priority === '高' ? 'high' : 'lost';
-    const latestContent = p.timeline[0] ? p.timeline[0].content : '';
-    const latestUpdater = p.timeline[0] ? (p.timeline[0].updater || '') : '';
-    const truncated = latestContent.length > 40 ? latestContent.substring(0, 40) + '...' : latestContent;
-    
-    const updaterBadgeHtml = latestUpdater ? `<span class="updater-badge" data-initial="${latestUpdater.charAt(0)}">${latestUpdater}</span>` : '';
-    
-    return `
-      <div class="project-card-wrapper">
-        <div class="project-card">
-          <div class="project-left" onclick="showDetail(${p.id})">
-            <div class="project-name">
-              ${p.name}
-              <span class="priority-tag ${priorityClass}">${p.priority}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill ${isComplete ? 'complete' : ''}" style="width:${completionPct}%"></div>
-            </div>
-            <div class="progress-label">${isNaN(completionVal) ? '累计合作' : '完成度 ' + completionPct + '%'} · ${p.totalUpdates}次更新</div>
-          </div>
-          <div class="project-right" onclick="toggleInlineEdit(${p.id}, event)">
-            <div class="project-date">${p.latestUpdate}${updaterBadgeHtml}</div>
-            <div class="project-latest-row">
-              <span class="project-latest">${truncated}</span>
-              <span class="edit-hint">✏️ 点击编辑</span>
-            </div>
-          </div>
-        </div>
-        <div class="inline-edit-panel" id="inlineEdit-${p.id}">
-          <div class="inline-edit-row">
-            <div class="form-group narrow">
-              <label class="form-label">日期</label>
-              <input type="date" class="form-input inline-date" value="${todayStr}">
-            </div>
-            <div class="form-group updater-field">
-              <label class="form-label">更新人</label>
-              <input type="text" class="form-input inline-updater" placeholder="填写人" value="${lastUpdater}">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">进展内容</label>
-            <textarea class="form-textarea inline-content" placeholder="填写今日进展..." rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-label">下一步计划（可选）</label>
-            <input type="text" class="form-input inline-nextstep" placeholder="例如：明天约见客户面谈">
-          </div>
-          <div class="inline-edit-actions">
-            <button class="btn-inline-submit" onclick="submitInlineUpdate(${p.id}, event)">提交</button>
-            <button class="btn-inline-cancel" onclick="cancelInlineEdit(${p.id}, event)">取消</button>
-          </div>
-          <div class="inline-status-msg"></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// Show project detail / timeline
 function showDetail(projectId) {
   currentProjectId = projectId;
   const p = appData.projects.find(x => x.id === projectId);
@@ -3349,17 +4020,21 @@ function showDetail(projectId) {
     </div>
   `;
   
-  document.getElementById('projectListView').style.display = 'none';
-  document.getElementById('detailView').style.display = 'block';
-  document.getElementById('detailView').classList.add('active');
-  document.getElementById('detailView').classList.add('view');
+  showView(null);
+  const _dw = document.getElementById('detailViewWrap');
+  if (_dw) _dw.style.display = 'block';
+  const _dv = document.getElementById('detailView');
+  if (_dv) { _dv.style.display = 'block'; _dv.classList.add('active', 'view'); }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function showProjectList() {
-  document.getElementById('projectListView').style.display = 'block';
-  document.getElementById('detailView').style.display = 'none';
-  document.getElementById('detailView').classList.remove('active');
+  const _dw = document.getElementById('detailViewWrap');
+  if (_dw) _dw.style.display = 'none';
+  const _dv = document.getElementById('detailView');
+  if (_dv) { _dv.style.display = 'none'; _dv.classList.remove('active'); }
   currentProjectId = null;
+  switchView('projects');
 }
 
 // ===================== Customer Database =====================
@@ -3983,9 +4658,11 @@ async function submitDetailQuickEdit(projectId, event) {
     
     setTimeout(() => {
       appData = data;
+      invalidatePCIndex();
       showDetail(projectId);
       renderLatestUpdates();
       renderProjectList();
+      renderStats();
     }, 1200);
   } catch (err) {
     statusEl.textContent = '❌ ' + err.message;
@@ -4460,6 +5137,7 @@ async function submitImport() {
     
     setTimeout(() => {
       appData = newData;
+      invalidatePCIndex();
       renderTrackingView();
       renderDatabaseView();
       document.getElementById('lastUpdated').textContent = '数据更新: ' + newData.lastUpdated;
@@ -4480,9 +5158,915 @@ function showImportStatus(msg, type) {
 }
 
 // ===================== Init =====================
-loadData().then(() => {
-  switchView('tracking');
-});
+window.__pbInit = function () {
+  return loadData().then(() => {
+    if (!applyHashRoute()) switchView('overview');
+  });
+};
 </script>
+<script>
+// ============================================================
+// Project Board v2 — 汇报型项目管理看板（核心逻辑层）
+// 依赖：appData / esc / showDetail / showInlineEdit 等原有全局函数
+// ============================================================
+
+// ---------- 0. 工具 ----------
+const CAT_META = {
+  '政府合作方': { icon: '🏛', color: '#4a7bd6' },
+  '战略合作方': { icon: '⭐', color: '#b08d4f' },
+  '业务合作方': { icon: '🤝', color: '#2f8fb0' },
+  '潜在客户':   { icon: '🔍', color: '#71829a' },
+  '场地合作方': { icon: '📍', color: '#2f9d8a' },
+  '未分类':     { icon: '📁', color: '#6b7280' }
+};
+
+const PROJ_COLORS = ['#3b9eff', '#22c55e', '#f59e0b', '#8b5cf6', '#14b8a6',
+                     '#ff5a5f', '#eab308', '#ec4899', '#0ea5e9', '#84cc16'];
+
+function projColor(id) { return PROJ_COLORS[(Number(id) || 0) % PROJ_COLORS.length]; }
+
+// 汇报视图过滤：排除测试/占位数据，避免污染对外汇报口径
+const HIDDEN_PROJECT_RE = /^(测试|test|demo|示例|样例)$/i;
+function visibleProjects() {
+  return (appData && appData.projects ? appData.projects : [])
+    .filter(p => p && p.name && !HIDDEN_PROJECT_RE.test(String(p.name).trim()));
+}
+function catMeta(k) { return CAT_META[k] || { icon: '🏷', color: '#6b7280' }; }
+
+function esc2(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function rgba(hex, a) {
+  const h = String(hex).replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map(x => x + x).join('') : h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+
+function personColor2(name) {
+  const P = ['#3b9eff', '#22c55e', '#f59e0b', '#8b5cf6', '#ff5a5f', '#14b8a6',
+             '#eab308', '#ec4899', '#0ea5e9', '#a3e635'];
+  let h = 0;
+  const s = String(name || '?');
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return P[Math.abs(h) % P.length];
+}
+
+function whoBadge(name) {
+  if (!name) return '';
+  const c = personColor2(name);
+  return `<span class="who"><span class="who-av" style="background:${c}">${esc2(String(name).charAt(0))}</span>${esc2(name)}</span>`;
+}
+
+// 今日日期
+function todayStr2() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// 距今天数
+function daysAgo(dateStr) {
+  if (!dateStr) return null;
+  const t = new Date(String(dateStr).replace(/-/g, '/') + ' 00:00:00').getTime();
+  if (isNaN(t)) return null;
+  const now = new Date(todayStr2().replace(/-/g, '/') + ' 00:00:00').getTime();
+  return Math.round((now - t) / 86400000);
+}
+
+// 项目状态判定（老板视角）
+function projStatus(p) {
+  if (p.priority === '战败') return { key: 'lost', label: '已战败', cls: 'tag-lost', ico: '✕' };
+  const pct = parseFloat(p.completion);
+  if (!isNaN(pct) && pct >= 0.99) return { key: 'done', label: '已完成', cls: 'tag-done', ico: '✓' };
+  const d = daysAgo(p.latestUpdate);
+  if (d !== null && d >= 14) return { key: 'stall', label: `停滞 ${d} 天`, cls: 'tag-stall', ico: '⚠' };
+  if (d !== null && d <= 7) return { key: 'active', label: '本周活跃', cls: 'tag-active', ico: '●' };
+  return { key: 'run', label: '推进中', cls: 'tag-run', ico: '→' };
+}
+
+function prioTag(p) {
+  const pr = String(p.priority || '');
+  const cls = pr === '高' ? 'tag-high' : pr === '中' ? 'tag-mid' : pr === '低' ? 'tag-low' : 'tag-ghost';
+  return `<span class="tag ${cls}">${esc2(pr || '未定')}</span>`;
+}
+
+// 从进展文本中抽取"下一步"提示
+function extractNextStep(content) {
+  if (!content) return null;
+  const lines = String(content).split('\n');
+  const tagged = lines.find(l => /^(📌)?下一步[：:]/.test(l.trim()));
+  if (tagged) return tagged.replace(/^(📌)?下一步[：:]\s*/, '').trim();
+  const pats = [
+    /(?:明天|明日|后天|下周[一二三四五六日]?|本周[一二三四五六日]?|周[一二三四五六日]|今晚|月底|月初)[^，。；\n]{2,26}/,
+    /(?:准备|催|追|约|沟通|面谈|实地|拜访|提交|提供|确认|推进|对接)[^，。；\n]{3,26}/
+  ];
+  for (const re of pats) {
+    const m = String(content).match(re);
+    if (m && m[0].length > 4) return m[0].replace(/[，,。].*$/, '').trim();
+  }
+  return null;
+}
+
+// ---------- 1. 客户-项目匹配引擎 ----------
+// 优先级：显式映射 projectCustomers > businessPartners.relatedProject > 名称/关键词推断
+function buildProjectCustomerIndex() {
+  const byProject = {};   // projectName -> [{name, category, industry, status, issue, direction, source, confidence}]
+  const byCustomer = {};  // customerName -> {name, category, industry, projects:[...], status, issue, direction, latestUpdate}
+  if (!appData) return { byProject, byCustomer };
+
+  const push = (projName, cust) => {
+    if (!projName) return;
+    if (!byProject[projName]) byProject[projName] = [];
+    if (!byProject[projName].some(x => x.name === cust.name)) byProject[projName].push(cust);
+  };
+
+  // 1.1 显式映射（数据层 projectCustomers: { "项目名": ["客户名", ...] }）
+  const explicit = appData.projectCustomers || {};
+
+  // 1.2 业务合作方（自带 relatedProject，最可信）
+  (appData.businessPartners || []).forEach(p => {
+    const cust = {
+      name: p.name,
+      category: p.type || '业务合作方',
+      industry: '',
+      status: p.status || '',
+      issue: p.issue || '',
+      direction: p.direction || '',
+      source: 'business',
+      confidence: 'high'
+    };
+    const target = p.relatedProject || p.name;
+    if ((appData.projects || []).some(x => x.name === target)) push(target, cust);
+    else if ((appData.projects || []).some(x => x.name === p.name)) push(p.name, cust);
+    else push(target, cust); // 保留无主关联，便于排查
+  });
+
+  // 1.3 场地合作方 → 归属「场地合作」项目
+  (appData.venuePartners || []).forEach(p => {
+    push('场地合作', {
+      name: p.name,
+      category: '场地合作方',
+      industry: '',
+      status: '合作洽谈中',
+      issue: '',
+      direction: String(p.content || '').slice(0, 40),
+      source: 'venue',
+      confidence: 'high'
+    });
+  });
+
+  // 1.4 行业伙伴：按方向/状态关键词归属
+  (appData.industryPartners || []).forEach(p => {
+    const text = (p.direction || '') + ' ' + (p.status || '');
+    const cust = {
+      name: p.company,
+      category: '潜在客户',
+      industry: p.industry || '',
+      status: p.status || '',
+      issue: p.issue || '',
+      direction: p.direction || '',
+      source: 'industry',
+      confidence: 'medium'
+    };
+    if (/展厅|检测|延保|销售|售前/.test(text)) push('场地合作', cust);
+    else if (!byProject[p.company]) { /* 无匹配项目时仅在客户侧保留 */ }
+  });
+
+  // 1.5 显式映射覆盖/补充（最高优先级，可指定多个项目）
+  Object.keys(explicit).forEach(projName => {
+    (explicit[projName] || []).forEach(custName => {
+      const exists = (byProject[projName] || []).some(x => x.name === custName);
+      if (exists) return;
+      const bp = (appData.businessPartners || []).find(x => x.name === custName);
+      const vp = (appData.venuePartners || []).find(x => x.name === custName);
+      const ip = (appData.industryPartners || []).find(x => x.company === custName);
+      push(projName, {
+        name: custName,
+        category: (bp && bp.type) || (vp ? '场地合作方' : (ip ? '潜在客户' : '未分类')),
+        industry: (ip && ip.industry) || '',
+        status: (bp && bp.status) || (ip && ip.status) || '',
+        issue: (bp && bp.issue) || (ip && ip.issue) || '',
+        direction: (bp && bp.direction) || (ip && ip.direction) || (vp ? String(vp.content || '').slice(0, 40) : ''),
+        source: bp ? 'business' : (vp ? 'venue' : 'industry'),
+        confidence: 'explicit'
+      });
+    });
+  });
+
+  // 1.6 反向索引：客户 → 项目
+  Object.keys(byProject).forEach(projName => {
+    const proj = (appData.projects || []).find(x => x.name === projName);
+    byProject[projName].forEach(c => {
+      if (!byCustomer[c.name]) {
+        byCustomer[c.name] = {
+          name: c.name, category: c.category, industry: c.industry,
+          status: c.status, issue: c.issue, direction: c.direction,
+          projects: [], latestUpdate: '', totalUpdates: 0
+        };
+      }
+      const rec = byCustomer[c.name];
+      if (!rec.projects.some(x => x.name === projName)) {
+        rec.projects.push({
+          name: projName,
+          projectId: proj ? proj.id : null,
+          priority: proj ? proj.priority : '',
+          completion: proj ? proj.completion : '',
+          latestUpdate: proj ? proj.latestUpdate : '',
+          totalUpdates: proj ? proj.totalUpdates : 0,
+          latestContent: proj && proj.timeline && proj.timeline[0] ? proj.timeline[0].content : ''
+        });
+      }
+      if (!rec.status && c.status) rec.status = c.status;
+      if (!rec.issue && c.issue) rec.issue = c.issue;
+      if (!rec.direction && c.direction) rec.direction = c.direction;
+      if (!rec.industry && c.industry) rec.industry = c.industry;
+      const lu = proj ? proj.latestUpdate : '';
+      if (lu && lu > rec.latestUpdate) rec.latestUpdate = lu;
+      rec.totalUpdates += proj ? (proj.totalUpdates || 0) : 0;
+    });
+  });
+
+  return { byProject, byCustomer };
+}
+
+// 全局索引缓存（数据变化时重建）
+let PC_INDEX = null;
+function pcIndex() {
+  if (!PC_INDEX) PC_INDEX = buildProjectCustomerIndex();
+  return PC_INDEX;
+}
+function invalidatePCIndex() { PC_INDEX = null; }
+
+// 项目 → 关联客户 chip 组
+function customerChips(projectName, limit) {
+  const list = (pcIndex().byProject[projectName] || []);
+  if (!list.length) return '<span class="cust-chip cc-empty">未关联客户</span>';
+  const shown = limit ? list.slice(0, limit) : list;
+  const rest = list.length - shown.length;
+  return shown.map(c => {
+    const m = catMeta(c.category);
+    return `<span class="cust-chip" onclick="event.stopPropagation();gotoCustomer('${esc2(c.name)}')" title="${esc2(c.category)}${c.status ? ' · ' + esc2(c.status) : ''}">
+      <span class="cc-dot" style="background:${m.color}">${esc2(String(c.name).charAt(0))}</span>
+      <span class="cc-name">${esc2(c.name)}</span>
+      ${c.issue ? '<span class="tag tag-risk" style="padding:0 5px;font-size:9.5px">风险</span>' : ''}
+    </span>`;
+  }).join('') + (rest > 0 ? `<span class="cust-chip cc-empty">+${rest}</span>` : '');
+}
+
+// 跳转到客户资源视图并定位客户
+function gotoCustomer(name) {
+  currentView = 'database';
+  switchView('database');
+  setTimeout(() => {
+    const el = document.querySelector(`.cust-card[data-name="${String(name).replace(/"/g, '\\"')}"]`);
+    if (el) {
+      el.classList.remove('collapsed');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.transition = 'box-shadow .3s';
+      el.style.boxShadow = '0 0 0 2px var(--accent)';
+      setTimeout(() => { el.style.boxShadow = ''; }, 2200);
+    }
+  }, 120);
+}
+
+// ---------- 2. KPI 统计 ----------
+function computeStats() {
+  const projects = visibleProjects();
+  const active = projects.filter(p => p.priority !== '战败' && !(parseFloat(p.completion) >= 0.99));
+  const totalUpdates = projects.reduce((s, p) => s + (p.totalUpdates || 0), 0);
+
+  let weekUpdates = 0;
+  projects.forEach(p => {
+    (p.timeline || []).forEach(e => {
+      const d = daysAgo(e.date);
+      if (d !== null && d >= 0 && d <= 7) weekUpdates++;
+    });
+  });
+
+  const stalled = projects.filter(p => {
+    const st = projStatus(p);
+    return st.key === 'stall';
+  });
+
+  // 数据整体陈旧时（最新一条也超过 30 天），停滞指标会失真，需向老板标注
+  const newestOverall = projects.reduce((m, p) => (p.latestUpdate > m ? p.latestUpdate : m), '');
+  const dataAge = daysAgo(newestOverall);
+  const stallReliable = dataAge === null || dataAge <= 30;
+  const stallExcluded = !stallReliable ? projects.filter(p => projStatus(p).key === 'stall').length : 0;
+
+  const risks = [];
+  projects.forEach(p => {
+    const st = projStatus(p);
+    const custs = pcIndex().byProject[p.name] || [];
+    const issueCusts = custs.filter(c => c.issue);
+    if (st.key === 'stall') {
+      risks.push({ type: 'stall', ico: '⏱', projectId: p.id, projectName: p.name,
+        desc: `已 ${daysAgo(p.latestUpdate)} 天无更新，最后进展：${String((p.timeline[0] || {}).content || '').slice(0, 42)}`,
+        color: '#ff5a5f' });
+    }
+    issueCusts.forEach(c => {
+      risks.push({ type: 'issue', ico: '⚠', projectId: p.id, projectName: p.name,
+        desc: `${c.name} 待解决：${c.issue}`, color: '#f59e0b' });
+    });
+    if (!custs.length && p.priority !== '战败' && !/测试/.test(p.name)) {
+      risks.push({ type: 'noref', ico: '🔗', projectId: p.id, projectName: p.name,
+        desc: '尚未关联客户/合作方，建议补充对接主体', color: '#8b9bb0' });
+    }
+  });
+
+  const customers = Object.values(pcIndex().byCustomer);
+  const orphanCustomers = customers.filter(c => !c.projects.length);
+
+  return {
+    totalProjects: projects.length,
+    activeProjects: active.length,
+    totalUpdates, weekUpdates,
+    stalled, risks, customers,
+    orphanCustomers,
+    dataAge, stallReliable, stallExcluded,
+    activeCustomers: customers.filter(c => c.projects.length).length,
+    recentDays: (() => {
+      const d = new Date(); d.setDate(d.getDate() - 7);
+      return `${d.getMonth() + 1}/${d.getDate()} 起`;
+    })()
+  };
+}
+
+// ---------- 3. 总览视图 ----------
+function renderOverview() {
+  const s = computeStats();
+  const el = document.getElementById('overviewView');
+  if (!el) return;
+
+  // 3.1 项目主线状态分布
+  const statusBuckets = { active: 0, run: 0, stall: 0, done: 0, lost: 0 };
+  visibleProjects().forEach(p => { statusBuckets[projStatus(p).key]++; });
+
+  // 3.2 最近有更新的项目（优先近 7 天；数据陈旧时退化为最近更新 Top6，避免空面板）
+  let hot = visibleProjects()
+    .filter(p => { const d = daysAgo(p.latestUpdate); return d !== null && d <= 7 && p.priority !== '战败'; })
+    .sort((a, b) => String(b.latestUpdate).localeCompare(String(a.latestUpdate)));
+  let hotTitle = '本周有更新的项目';
+  let hotDesc = '近 7 天内产生过进展的项目';
+  let hotStale = false;
+  if (!hot.length) {
+    hot = visibleProjects()
+      .filter(p => p.priority !== '战败' && (p.timeline || []).length)
+      .sort((a, b) => String(b.latestUpdate).localeCompare(String(a.latestUpdate)))
+      .slice(0, 6);
+    hotTitle = '最近有更新的项目';
+    hotDesc = '近 7 天无新增动态，以下为最近更新的项目';
+    hotStale = true;
+  }
+
+  // 3.3 客户资源覆盖：项目 × 客户
+  const totalRefs = Object.keys(pcIndex().byProject).reduce((n, k) => n + pcIndex().byProject[k].length, 0);
+  const coveredProjects = visibleProjects().filter(p => (pcIndex().byProject[p.name] || []).length).length;
+  const coverage = s.totalProjects ? Math.round(coveredProjects / s.totalProjects * 100) : 0;
+
+  el.innerHTML = `
+    ${(() => {
+      const newest = (appData.projects || []).reduce((m, p) => (p.latestUpdate > m ? p.latestUpdate : m), '');
+      const nd = daysAgo(newest);
+      if (nd === null || nd <= 14) return '';
+      return `<div class="alert-panel" style="margin-bottom:20px;border-color:rgba(245,158,11,.24);background:linear-gradient(150deg,rgba(245,158,11,.06),rgba(59,158,255,.03))">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:17px;line-height:1.3">🕐</span>
+          <div style="font-size:12.5px;color:var(--text-soft);line-height:1.7">
+            <b style="color:#fbbf24">数据新鲜度提醒</b>：看板内最新一条进展为 <b>${esc2(newest)}</b>（${nd} 天前）。
+            因此下方「停滞预警」会集中出现，属于数据未及时填报所致，而非项目真实停摆。建议按周填报进展后该指标会自动回归正常。
+          </div>
+        </div>
+      </div>`;
+    })()}
+    <div class="section">
+      <div class="kpi-grid">
+        <div class="kpi-card" style="--kpi-color:#3b9eff">
+          <div class="kpi-top"><span class="kpi-label">在跟项目</span><span class="kpi-ico">📁</span></div>
+          <div class="kpi-value">${s.activeProjects}<span class="kpi-unit">/ ${s.totalProjects} 个</span></div>
+          <div class="kpi-sub">活跃推进 <b>${statusBuckets.active + statusBuckets.run}</b> 个 · 已完成 <b>${statusBuckets.done}</b> 个</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:#f59e0b">
+          <div class="kpi-top"><span class="kpi-label">近 7 天动态</span><span class="kpi-ico">📡</span></div>
+          <div class="kpi-value">${s.weekUpdates}<span class="kpi-unit">条</span></div>
+          <div class="kpi-sub">${s.weekUpdates ? `覆盖 <b>${hot.length}</b> 个项目 · ${s.recentDays}` : '本期无新增动态，可查看「更新动态」全部历史'}</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:${s.stalled.length ? '#ff5a5f' : '#22c55e'}">
+          <div class="kpi-top"><span class="kpi-label">停滞预警</span><span class="kpi-ico">⏱</span></div>
+          <div class="kpi-value" style="${s.stalled.length ? 'color:var(--red)' : ''}">${s.stalled.length}<span class="kpi-unit">个</span></div>
+          <div class="kpi-sub">${s.stalled.length
+            ? (s.stallReliable ? '超过 14 天无更新，建议逐一确认' : `数据 ${s.dataAge} 天未更新，该指标暂不可比`)
+            : '全部项目保持跟进节奏'}</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:#22c55e">
+          <div class="kpi-top"><span class="kpi-label">客户资源</span><span class="kpi-ico">🤝</span></div>
+          <div class="kpi-value">${s.activeCustomers}<span class="kpi-unit">家</span></div>
+          <div class="kpi-sub">关联 <b>${totalRefs}</b> 条项目关系 · 项目覆盖 <b>${coverage}%</b></div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:#8b5cf6">
+          <div class="kpi-top"><span class="kpi-label">跟进记录</span><span class="kpi-ico">🗂</span></div>
+          <div class="kpi-value">${s.totalUpdates}<span class="kpi-unit">条</span></div>
+          <div class="kpi-sub">累计沉淀的进展条目</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title"><span class="st-ico">⚠️</span>需要关注的事项</div>
+        <div class="section-desc">停滞项目 / 待解决风险 / 未关联客户的孤岛项目</div>
+        <div class="section-line"></div>
+      </div>
+      ${s.risks.length ? `<div class="alert-panel"><div class="alert-list">
+        ${s.risks.slice(0, 12).map(r => `
+          <div class="alert-item" style="--alert-color:${r.color}" onclick="showDetail(${r.projectId})">
+            <span class="alert-ico">${r.ico}</span>
+            <div class="alert-main">
+              <div class="alert-title">${esc2(r.projectName)}</div>
+              <div class="alert-desc">${esc2(r.desc)}</div>
+            </div>
+          </div>`).join('')}
+      </div></div>` : `<div class="alert-empty">✅ 当前没有需要重点关注的事项</div>`}
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title"><span class="st-ico">${hotStale ? '🕐' : '🔥'}</span>${hotTitle}</div>
+        <div class="section-desc">${hotDesc}</div>
+        <div class="section-line"></div>
+      </div>
+      ${hot.length ? `<div class="plist">${hot.map(p => projCardHTML(p, { compact: true })).join('')}</div>`
+        : `<div class="alert-empty">暂无项目更新记录</div>`}
+    </div>
+  `;
+}
+
+// ---------- 4. 项目卡 HTML ----------
+function projCardHTML(p, opts) {
+  const o = opts || {};
+  const st = projStatus(p);
+  const pctRaw = parseFloat(p.completion);
+  const hasPct = !isNaN(pctRaw) && p.completion !== '' && p.completion != null;
+  const pct = hasPct ? Math.min(100, Math.round(pctRaw <= 1 ? pctRaw * 100 : pctRaw)) : 0;
+  const latest = (p.timeline && p.timeline[0]) || null;
+  const d = daysAgo(p.latestUpdate);
+  const custs = pcIndex().byProject[p.name] || [];
+  const color = projColor(p.id);
+  const cls = st.key === 'stall' ? ' pcard-stall' : (st.key === 'done' ? ' pcard-done' : (st.key === 'lost' ? ' pcard-lost' : ''));
+
+  const timelineRows = (p.timeline || []).slice(0, 8).map(e => {
+    const nx = extractNextStep(e.content);
+    const main = String(e.content || '').split('\n')[0];
+    return `<div class="feed-item">
+      <div class="feed-meta">
+        <span class="feed-date">${esc2(String(e.date || '').substring(5).replace('-', '/'))}</span>
+        ${whoBadge(e.updater)}
+      </div>
+      <div class="feed-body">${esc2(main)}</div>
+      ${nx ? `<div class="feed-next">📌 ${esc2(nx)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="pcard${cls}" id="pcard-${p.id}">
+      <div class="pcard-head">
+        <div class="pcard-main">
+          <div class="pcard-titlerow">
+            <span class="pcard-idx">#${p.id}</span>
+            <span class="pcard-name" onclick="showDetail(${p.id})">${esc2(p.name)}</span>
+            ${prioTag(p)}
+            <span class="tag ${st.cls}">${st.ico} ${esc2(st.label)}</span>
+            ${custs.filter(c => c.issue).length ? `<span class="tag tag-risk">⚠ ${custs.filter(c => c.issue).length} 项风险</span>` : ''}
+          </div>
+          <div class="pcard-metrics">
+            <span class="pcard-metric">📅 最近更新 <b>${esc2(p.latestUpdate || '—')}</b>${d !== null ? ` <span style="color:var(--text-dim)">(${d === 0 ? '今天' : d + ' 天前'})</span>` : ''}</span>
+            <span class="dot"></span>
+            <span class="pcard-metric">🗂 累计 <b>${p.totalUpdates || 0}</b> 次更新</span>
+            ${custs.length ? `<span class="dot"></span><span class="pcard-metric">🤝 关联 <b>${custs.length}</b> 家客户</span>` : ''}
+          </div>
+          <div class="pbar-wrap">
+            <div class="pbar-txt">
+              <span>完成度</span>
+              <b>${hasPct ? pct + '%' : '累计合作'}</b>
+            </div>
+            <div class="pbar"><i class="${pct >= 99 ? 'done' : ''}" style="width:${hasPct ? pct : 0}%"></i></div>
+          </div>
+          <div class="pcard-res">
+            <span class="pcard-res-label">👥 关联客户</span>
+            ${customerChips(p.name, 6)}
+          </div>
+        </div>
+        <div class="pcard-side">
+          <div class="pcard-side-date">
+            <span>${esc2(String(p.latestUpdate || '').substring(5).replace('-', '/'))}</span>
+            ${latest ? whoBadge(latest.updater) : ''}
+          </div>
+          <div class="pcard-side-content" onclick="showDetail(${p.id})" title="点击查看完整进展">
+            ${esc2(latest ? String(latest.content || '').split('\n')[0] : '暂无进展记录')}
+          </div>
+          <div class="pcard-actions">
+            <button class="btn-mini" onclick="toggleProjFeed(${p.id}, this)">📜 更新记录</button>
+            <button class="btn-mini btn-mini-accent" onclick="showDetail(${p.id})">详情 →</button>
+          </div>
+        </div>
+      </div>
+      <div class="pcard-feed" id="pfeed-${p.id}">
+        <div class="pcard-feed-inner">${timelineRows || '<div class="mx-none">暂无更新记录</div>'}</div>
+      </div>
+    </div>`;
+}
+
+function toggleProjFeed(id, btn) {
+  const el = document.getElementById('pfeed-' + id);
+  if (!el) return;
+  const open = el.classList.toggle('open');
+  if (btn) btn.textContent = open ? '📜 收起记录' : '📜 更新记录';
+}
+
+// ---------- 5. 项目主线视图 ----------
+let projectSort = 'priority';   // priority | latest | progress | name
+let projectFilter = 'all';      // all | high | active | stall | risk
+
+function setProjectSort(mode, btn) {
+  projectSort = mode;
+  document.querySelectorAll('#projSortBar .chip').forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
+  renderProjectBoard();
+}
+
+function setProjectFilter(mode, btn) {
+  projectFilter = mode;
+  document.querySelectorAll('#projFilterBar .chip').forEach(b => b.classList.toggle('active', b.dataset.filter === mode));
+  renderProjectBoard();
+}
+
+function renderProjectBoard() {
+  const el = document.getElementById('projectBoardView');
+  if (!el) return;
+  const allVisible = visibleProjects();
+  let list = allVisible.slice();
+
+  // 过滤
+  if (projectFilter === 'high') list = list.filter(p => p.priority === '高');
+  else if (projectFilter === 'active') list = list.filter(p => projStatus(p).key === 'active');
+  else if (projectFilter === 'stall') list = list.filter(p => projStatus(p).key === 'stall');
+  else if (projectFilter === 'risk') list = list.filter(p => {
+    const st = projStatus(p);
+    return st.key === 'stall' || (pcIndex().byProject[p.name] || []).some(c => c.issue);
+  });
+
+  // 排序
+  const prioRank = { '高': 0, '中': 1, '低': 2, '战败': 9 };
+  if (projectSort === 'priority') {
+    list.sort((a, b) => {
+      const ra = prioRank[a.priority] != null ? prioRank[a.priority] : 5;
+      const rb = prioRank[b.priority] != null ? prioRank[b.priority] : 5;
+      if (ra !== rb) return ra - rb;
+      return String(b.latestUpdate).localeCompare(String(a.latestUpdate));
+    });
+  } else if (projectSort === 'latest') {
+    list.sort((a, b) => String(b.latestUpdate).localeCompare(String(a.latestUpdate)));
+  } else if (projectSort === 'progress') {
+    list.sort((a, b) => {
+      const pa = parseFloat(a.completion); const pb = parseFloat(b.completion);
+      return (isNaN(pb) ? -1 : pb) - (isNaN(pa) ? -1 : pa);
+    });
+  } else {
+    list.sort((a, b) => String(a.name).localeCompare(String(b.name), 'zh'));
+  }
+
+  el.innerHTML = `
+    <div class="feed-toolbar">
+      <div class="chipbar" id="projFilterBar">
+        <button class="chip${projectFilter === 'all' ? ' active' : ''}" data-filter="all" onclick="setProjectFilter('all')">全部 ${allVisible.length}</button>
+        <button class="chip${projectFilter === 'high' ? ' active' : ''}" data-filter="high" onclick="setProjectFilter('high')">高优先级 ${allVisible.filter(p => p.priority === '高').length}</button>
+        <button class="chip${projectFilter === 'active' ? ' active' : ''}" data-filter="active" onclick="setProjectFilter('active')">本周活跃 ${allVisible.filter(p => projStatus(p).key === 'active').length}</button>
+        <button class="chip${projectFilter === 'stall' ? ' active' : ''}" data-filter="stall" onclick="setProjectFilter('stall')">停滞预警 ${(appData.projects || []).filter(p => projStatus(p).key === 'stall').length}</button>
+        <button class="chip${projectFilter === 'risk' ? ' active' : ''}" data-filter="risk" onclick="setProjectFilter('risk')">含风险 ${(appData.projects || []).filter(p => projStatus(p).key === 'stall' || (pcIndex().byProject[p.name] || []).some(c => c.issue)).length}</button>
+      </div>
+      <div style="flex:1"></div>
+      <div class="chipbar" id="projSortBar">
+        <span style="font-size:11px;color:var(--text-dim);align-self:center;margin-right:2px">排序</span>
+        <button class="chip${projectSort === 'priority' ? ' active' : ''}" data-sort="priority" onclick="setProjectSort('priority')">优先级</button>
+        <button class="chip${projectSort === 'latest' ? ' active' : ''}" data-sort="latest" onclick="setProjectSort('latest')">最近更新</button>
+        <button class="chip${projectSort === 'progress' ? ' active' : ''}" data-sort="progress" onclick="setProjectSort('progress')">完成度</button>
+        <button class="chip${projectSort === 'name' ? ' active' : ''}" data-sort="name" onclick="setProjectSort('name')">名称</button>
+      </div>
+    </div>
+    ${list.length ? `<div class="plist">${list.map(p => projCardHTML(p)).join('')}</div>`
+      : `<div class="alert-empty">该筛选条件下暂无项目</div>`}
+  `;
+}
+
+// ---------- 6. 更新动态 Feed ----------
+let feedRange = 0;         // 0=全部(默认，避免数据陈旧时空白) | 7 | 30
+let feedProjectId = 'all';
+
+function setFeedRange(v) {
+  feedRange = Number(v);
+  document.querySelectorAll('#feedRangeBar .chip').forEach(b => b.classList.toggle('active', Number(b.dataset.range) === feedRange));
+  renderFeedView();
+}
+function setFeedProject(v) {
+  feedProjectId = v;
+  document.querySelectorAll('#feedProjBar .chip').forEach(b => b.classList.toggle('active', b.dataset.pid === v));
+  renderFeedView();
+}
+
+const WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+function weekdayOf(dateStr) {
+  const d = new Date(String(dateStr).replace(/-/g, '/') + ' 00:00:00');
+  return isNaN(d.getTime()) ? '' : WD[d.getDay()];
+}
+
+function renderFeedView() {
+  const el = document.getElementById('feedView');
+  if (!el) return;
+
+  // 收集全部进展条目
+  let entries = [];
+  visibleProjects().forEach(p => {
+    (p.timeline || []).forEach(e => {
+      entries.push({
+        projectId: p.id, projectName: p.name, priority: p.priority,
+        date: e.date, content: e.content, updater: e.updater || '',
+        color: projColor(p.id)
+      });
+    });
+  });
+
+  if (feedProjectId !== 'all') entries = entries.filter(e => String(e.projectId) === String(feedProjectId));
+  if (feedRange > 0) entries = entries.filter(e => { const d = daysAgo(e.date); return d !== null && d >= 0 && d <= feedRange; });
+  entries.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+  // 按日期分组
+  const groups = {};
+  entries.forEach(e => { (groups[e.date] = groups[e.date] || []).push(e); });
+  const dates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+  const projOptions = visibleProjects()
+    .filter(p => (p.timeline || []).length)
+    .sort((a, b) => String(b.latestUpdate).localeCompare(String(a.latestUpdate)));
+
+  // 数据整体较旧时的提示
+  const newest = (appData.projects || []).reduce((m, p) => (p.latestUpdate > m ? p.latestUpdate : m), '');
+  const newestDays = daysAgo(newest);
+  const staleHint = (newestDays !== null && newestDays > 30)
+    ? `<div class="alert-panel" style="margin-bottom:16px;border-color:rgba(245,158,11,.22)">
+         <div style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--text-soft)">
+           <span style="font-size:15px">🕐</span>
+           <span>数据最近一次更新为 <b style="color:#fbbf24">${esc2(newest)}</b>（${newestDays} 天前），已默认展示<b>全部历史动态</b>。</span>
+         </div>
+       </div>` : '';
+
+  el.innerHTML = `
+    ${staleHint}
+    <div class="feed-toolbar">
+      <div class="chipbar" id="feedRangeBar">
+        <button class="chip${feedRange === 0 ? ' active' : ''}" data-range="0" onclick="setFeedRange(0)">全部</button>
+        <button class="chip${feedRange === 7 ? ' active' : ''}" data-range="7" onclick="setFeedRange(7)">近 7 天</button>
+        <button class="chip${feedRange === 30 ? ' active' : ''}" data-range="30" onclick="setFeedRange(30)">近 30 天</button>
+      </div>
+      <div style="flex:1"></div>
+      <div class="section-desc">共 <b style="color:var(--accent)">${entries.length}</b> 条进展</div>
+    </div>
+    <div class="chipbar" id="feedProjBar" style="margin-bottom:16px">
+      <button class="chip${feedProjectId === 'all' ? ' active' : ''}" data-pid="all" onclick="setFeedProject('all')">全部项目</button>
+      ${projOptions.map(p => `<button class="chip${String(feedProjectId) === String(p.id) ? ' active' : ''}" data-pid="${p.id}" onclick="setFeedProject(${p.id})">
+        <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${projColor(p.id)};margin-right:5px;vertical-align:middle"></span>${esc2(p.name)}</button>`).join('')}
+    </div>
+    ${dates.length ? dates.map(date => {
+      const d = daysAgo(date);
+      const dayLabel = d === 0 ? '今天' : d === 1 ? '昨天' : `${d} 天前`;
+      return `
+        <div class="daygroup">
+          <div class="daygroup-head">
+            <span class="daygroup-date">${esc2(date.substring(5).replace('-', '/'))}</span>
+            <span class="daygroup-wd">${weekdayOf(date)} · ${dayLabel}</span>
+            <span class="daygroup-count">${groups[date].length} 条</span>
+            <div class="section-line"></div>
+          </div>
+          ${groups[date].map(e => {
+            const nx = extractNextStep(e.content);
+            const lines = String(e.content || '').split('\n').filter(Boolean);
+            const main = lines.filter(l => !/^(📌)?下一步[：:]/.test(l.trim())).join(' ');
+            return `
+              <div class="feedcard">
+                <div class="feedcard-left">
+                  <span class="feedcard-proj" onclick="showDetail(${e.projectId})">
+                    <span class="fp-dot" style="background:${e.color}"></span>
+                    <span class="fp-name">${esc2(e.projectName)}</span>
+                  </span>
+                  ${whoBadge(e.updater)}
+                </div>
+                <div class="feedcard-right">
+                  <div class="feedcard-text">${esc2(main)}</div>
+                  ${nx ? `<div class="feedcard-foot"><span class="feed-next">📌 下一步：${esc2(nx)}</span></div>` : ''}
+                </div>
+              </div>`;
+          }).join('')}
+        </div>`;
+    }).join('') : `<div class="alert-empty">该时间范围内暂无更新记录</div>`}
+  `;
+}
+
+// ---------- 7. 客户资源矩阵 ----------
+function renderMatchView() {
+  const el = document.getElementById('matchView');
+  if (!el) return;
+
+  const idx = pcIndex();
+  const projects = visibleProjects();
+  const custs = Object.values(idx.byCustomer)
+    .sort((a, b) => (b.projects.length - a.projects.length) || String(b.latestUpdate).localeCompare(String(a.latestUpdate)));
+
+  const covered = projects.filter(p => (idx.byProject[p.name] || []).length).length;
+  const uncovered = projects.filter(p => !(idx.byProject[p.name] || []).length);
+  const totalRefs = Object.keys(idx.byProject).reduce((n, k) => n + idx.byProject[k].length, 0);
+
+  el.innerHTML = `
+    <div class="section">
+      <div class="kpi-grid">
+        <div class="kpi-card" style="--kpi-color:#22c55e">
+          <div class="kpi-top"><span class="kpi-label">关联客户</span><span class="kpi-ico">🤝</span></div>
+          <div class="kpi-value">${custs.filter(c => c.projects.length).length}<span class="kpi-unit">家</span></div>
+          <div class="kpi-sub">库内共 <b>${custs.length}</b> 家主体</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:#3b9eff">
+          <div class="kpi-top"><span class="kpi-label">项目客户关系</span><span class="kpi-ico">🔗</span></div>
+          <div class="kpi-value">${totalRefs}<span class="kpi-unit">条</span></div>
+          <div class="kpi-sub">项目与客户的多对多关联</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:${uncovered.length ? '#f59e0b' : '#22c55e'}">
+          <div class="kpi-top"><span class="kpi-label">项目覆盖度</span><span class="kpi-ico">📊</span></div>
+          <div class="kpi-value">${projects.length ? Math.round(covered / projects.length * 100) : 0}<span class="kpi-unit">%</span></div>
+          <div class="kpi-sub">${covered} / ${projects.length} 个项目已挂客户</div>
+        </div>
+      </div>
+    </div>
+
+    ${uncovered.length ? `
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title"><span class="st-ico">🔗</span>待补充客户关联的项目</div>
+        <div class="section-desc">这些项目暂未匹配到客户主体，建议在数据中补充 projectCustomers 映射</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="alert-panel"><div class="alert-list">
+        ${uncovered.map(p => `
+          <div class="alert-item" style="--alert-color:#8b9bb0" onclick="showDetail(${p.id})">
+            <span class="alert-ico">📁</span>
+            <div class="alert-main">
+              <div class="alert-title">${esc2(p.name)} ${prioTag(p)}</div>
+              <div class="alert-desc">最近更新 ${esc2(p.latestUpdate || '—')} · 累计 ${p.totalUpdates || 0} 次更新</div>
+            </div>
+          </div>`).join('')}
+      </div></div>
+    </div>` : ''}
+
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title"><span class="st-ico">📇</span>客户 × 项目 资源矩阵</div>
+        <div class="section-desc">一行一家客户，直接看清它对接了哪些项目、当前状态与风险</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="matrix-wrap"><div class="matrix-scroll">
+        <table class="matrix">
+          <thead><tr>
+            <th style="min-width:180px">客户 / 合作方</th>
+            <th style="min-width:96px">合作类型</th>
+            <th style="min-width:200px">对接项目</th>
+            <th style="min-width:170px">当前状态</th>
+            <th style="min-width:150px">待解决问题</th>
+            <th style="min-width:96px">最近更新</th>
+          </tr></thead>
+          <tbody>
+            ${custs.map(c => {
+              const m = catMeta(c.category);
+              return `<tr>
+                <td>
+                  <div class="mx-cust">
+                    <span class="mx-av" style="background:${m.color}">${esc2(String(c.name).charAt(0))}</span>
+                    <span>${esc2(c.name)}</span>
+                  </div>
+                  ${c.industry ? `<div class="mx-none" style="font-style:normal;margin-top:4px">${esc2(c.industry)}</div>` : ''}
+                </td>
+                <td><span class="tag tag-ghost">${m.icon} ${esc2(c.category)}</span></td>
+                <td>
+                  ${c.projects.length ? `<div class="mx-proj-list">${c.projects.map(pj => `
+                    <span class="mx-proj" ${pj.projectId ? `onclick="showDetail(${pj.projectId})"` : ''}>
+                      <span class="mx-pd" style="background:${pj.projectId ? projColor(pj.projectId) : '#6b7280'}"></span>
+                      ${esc2(pj.name)}
+                      ${pj.totalUpdates ? `<span style="color:var(--text-dim)">· ${pj.totalUpdates}次</span>` : ''}
+                    </span>`).join('')}</div>`
+                    : `<span class="mx-none">暂无关联项目</span>`}
+                </td>
+                <td class="mx-status">${c.status ? esc2(c.status) : '<span class="mx-none">—</span>'}${c.direction ? `<div class="mx-none" style="font-style:normal">方向：${esc2(c.direction)}</div>` : ''}</td>
+                <td>${c.issue ? `<span class="tag tag-risk">⚠ ${esc2(c.issue)}</span>` : '<span class="mx-none">—</span>'}</td>
+                <td class="mx-date">${c.latestUpdate ? esc2(c.latestUpdate.substring(5).replace('-', '/')) : '<span class="mx-none">—</span>'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+  `;
+}
+
+// ---------- 8. 项目详情（含关联客户） ----------
+function renderDetailExtra(p) {
+  const custs = pcIndex().byProject[p.name] || [];
+  if (!custs.length) {
+    return `<div class="detail-res">
+      <div class="detail-res-title">👥 关联客户</div>
+      <div class="mx-none">该项目暂未关联客户/合作方主体。可在数据文件的 <code>projectCustomers</code> 中补充映射。</div>
+    </div>`;
+  }
+  return `<div class="detail-res">
+    <div class="detail-res-title">👥 关联客户 / 合作方（${custs.length}）</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:10px">
+      ${custs.map(c => {
+        const m = catMeta(c.category);
+        return `<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:11px 13px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+            <span class="mx-av" style="background:${m.color}">${esc2(String(c.name).charAt(0))}</span>
+            <span style="font-size:13px;font-weight:600;color:var(--text-primary)">${esc2(c.name)}</span>
+            <span class="tag tag-ghost">${m.icon} ${esc2(c.category)}</span>
+          </div>
+          ${c.status ? `<div style="font-size:11.5px;color:var(--text-soft);margin-bottom:4px">状态：${esc2(c.status)}</div>` : ''}
+          ${c.direction ? `<div style="font-size:11.5px;color:var(--text-dim);margin-bottom:4px">方向：${esc2(c.direction)}</div>` : ''}
+          ${c.issue ? `<div><span class="tag tag-risk">⚠ ${esc2(c.issue)}</span></div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+// 包裹原有 showDetail，追加关联客户区块
+(function patchShowDetail() {
+  if (typeof window === 'undefined') return;
+  const _orig = window.showDetail;
+  window.showDetail = function (projectId) {
+    _orig.apply(this, arguments);
+    try {
+      const p = appData && appData.projects.find(x => x.id === projectId);
+      if (!p) return;
+      const dv = document.getElementById('detailView');
+      if (!dv) return;
+      const holder = document.createElement('div');
+      holder.innerHTML = renderDetailExtra(p);
+      const qe = dv.querySelector('.detail-quick-edit');
+      if (qe && qe.parentNode) qe.parentNode.insertBefore(holder.firstElementChild, qe);
+      else dv.appendChild(holder.firstElementChild);
+    } catch (e) { console.warn('detail extra failed', e); }
+  };
+})();
+
+// ---------- 9. URL 深链（便于把指定视图直接发给老板） ----------
+const VIEW_KEYS = ['overview', 'projects', 'match', 'feed', 'database'];
+(function patchHashRouting() {
+  if (typeof window === 'undefined') return;
+
+  const _sw = window.switchView;
+  window.switchView = function (view) {
+    _sw.apply(this, arguments);
+    const h = '#' + (view || 'overview');
+    if (location.hash !== h) { try { history.replaceState(null, '', h); } catch (e) {} }
+  };
+
+  const _sd = window.showDetail;
+  window.showDetail = function (id) {
+    _sd.apply(this, arguments);
+    const h = '#project-' + id;
+    if (location.hash !== h) { try { history.replaceState(null, '', h); } catch (e) {} }
+  };
+
+  // 浏览器前进/后退 & 手动改 hash
+  window.addEventListener('hashchange', () => {
+    const h = String(location.hash || '').replace(/^#/, '');
+    if (/^project-\d+$/.test(h)) {
+      const id = Number(h.split('-')[1]);
+      if (appData && appData.projects.some(p => p.id === id)) window.showDetail(id);
+    } else if (VIEW_KEYS.indexOf(h) !== -1 && h !== currentView) {
+      _sw.call(window, h);
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === h));
+    }
+  });
+})();
+
+// 应用启动时的 hash 深链
+function applyHashRoute() {
+  const h = String(location.hash || '').replace(/^#/, '');
+  if (/^project-\d+$/.test(h)) {
+    const id = Number(h.split('-')[1]);
+    if (appData && appData.projects.some(p => p.id === id)) { showDetail(id); return true; }
+  }
+  if (VIEW_KEYS.indexOf(h) !== -1) { switchView(h); return true; }
+  return false;
+}
+
+</script>
+<script>window.__pbInit && window.__pbInit();</script>
 </body>
 </html>
