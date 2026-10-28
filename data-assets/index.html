@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>宁家服务 · 数据资产管理系统</title>
+<style>
+  /* ===== 设计系统 Token ===== */
+  :root{
+    --bg:#0A0A0B;          /* 背景 */
+    --card:#141417;        /* 卡片 */
+    --raised:#1C1C20;      /* 浮起 */
+    --border:#27272A;      /* 弱边框 */
+    --border-strong:#3F3F46;
+    --text:#FAFAFA;        /* 主文字 */
+    --text-2:#A1A1AA;      /* 次文字 */
+    --text-3:#71717A;      /* 弱文字 */
+    --cyan:#22D3EE;        /* 品牌青 */
+    --cyan-light:#67E8F9;
+    --green:#10B981;       /* 正常 */
+    --orange:#F59E0B;      /* 预警 */
+    --red:#F43F5E;         /* 严重 */
+    --r-lg:8px; --r-md:6px; --r-sm:4px;
+    --sidebar-w:248px;
+    --topbar-h:60px;
+    --font:"Noto Sans SC","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    --num:"Inter","Noto Sans SC",sans-serif;
+    /* 高科技增强 token */
+    --glass:rgba(20,20,23,.72);
+    --grid-line:rgba(255,255,255,.035);
+    --cyan-glow:rgba(34,211,238,.45);
+    --accent-grad:linear-gradient(135deg,#22D3EE,#0EA5B7);
+    --hair:rgba(255,255,255,.07);
+    --shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 10px 34px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;}
+  body{display:flex;justify-content:center;min-height:100vh;
+    background:
+      radial-gradient(1200px 620px at 78% -12%,rgba(34,211,238,.10),transparent 60%),
+      radial-gradient(900px 520px at 8% 112%,rgba(16,185,129,.07),transparent 60%),
+      var(--bg);}
+  .num{font-family:var(--num);font-variant-numeric:tabular-nums;}
+
+  /* ===== 应用骨架 ===== */
+  .app{width:1440px;display:flex;min-height:1024px;background:var(--bg);position:relative;}
+
+  /* 侧栏 */
+  .sidebar{width:var(--sidebar-w);flex:0 0 var(--sidebar-w);background:var(--card);
+    border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 14px;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 18px;border-bottom:1px solid var(--border);}
+  .brand .logo{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#22D3EE,#0E7C8C);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#04222A;font-size:17px;
+    box-shadow:0 0 0 1px rgba(34,211,238,.35),0 6px 18px rgba(34,211,238,.25);position:relative;}
+  .brand .logo::after{content:"";position:absolute;inset:3px;border-radius:6px;border:1px solid rgba(4,34,42,.35);}
+  .brand .name{font-size:15px;font-weight:700;line-height:1.2;}
+  .brand .sub{font-size:11px;color:var(--text-3);}
+  .nav{margin-top:14px;display:flex;flex-direction:column;gap:2px;}
+  .nav-group{font-size:11px;color:var(--text-3);padding:12px 10px 6px;letter-spacing:.5px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-md);
+    color:var(--text-2);font-size:13.5px;cursor:pointer;transition:.15s;border:1px solid transparent;}
+  .nav-item:hover{background:var(--raised);color:var(--text);}
+  .nav-item.active{background:linear-gradient(90deg,rgba(34,211,238,.18),rgba(34,211,238,.03));
+    color:var(--cyan);border-color:rgba(34,211,238,.30);box-shadow:0 0 0 1px rgba(34,211,238,.08) inset,3px 0 0 var(--cyan) inset;}
+  .nav-item .ic{width:18px;height:18px;flex:0 0 18px;border-radius:4px;background:currentColor;opacity:.9;
+    -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;}
+  .nav-item .dot{width:6px;height:6px;border-radius:50%;background:var(--orange);margin-left:auto;}
+  .side-foot{margin-top:auto;font-size:11px;color:var(--text-3);padding:10px;border-top:1px solid var(--border);}
+
+  /* 主区 */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .topbar{height:var(--topbar-h);flex:0 0 var(--topbar-h);border-bottom:1px solid var(--hair);
+    display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--glass);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);position:relative;z-index:5;
+    box-shadow:0 1px 0 rgba(34,211,238,.12),0 10px 30px rgba(0,0,0,.35);}
+  .topbar .title{font-size:16px;font-weight:600;}
+  .topbar .crumb{font-size:12px;color:var(--text-3);margin-left:-8px;}
+  .search{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--card);
+    border:1px solid var(--border);border-radius:var(--r-md);padding:7px 12px;width:260px;color:var(--text-3);font-size:13px;}
+  .live{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-2);}
+  .live .pulse{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 0 rgba(34,211,238,.6);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,211,238,.55)}70%{box-shadow:0 0 0 7px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
+  .clock{font-family:var(--num);font-size:13px;color:var(--text-2);font-variant-numeric:tabular-nums;padding:4px 10px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--card);}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#22D3EE);
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#04222A;}
+
+  .content{padding:24px;display:flex;flex-direction:column;gap:18px;overflow:auto;
+    background-image:radial-gradient(rgba(255,255,255,.028) 1px,transparent 1px);background-size:26px 26px;}
+
+  /* 卡片 */
+  .card{background:linear-gradient(180deg,rgba(28,28,32,.92),var(--card));border:1px solid var(--hair);border-radius:var(--r-lg);padding:16px;position:relative;
+    box-shadow:var(--shadow);animation:cardIn .5s ease both;}
+  .card::before,.card::after{content:"";position:absolute;width:13px;height:13px;pointer-events:none;
+    border-color:rgba(34,211,238,.5);border-style:solid;border-width:0;}
+  .card::before{top:8px;left:8px;border-top-width:1.6px;border-left-width:1.6px;border-top-left-radius:4px;}
+  .card::after{bottom:8px;right:8px;border-bottom-width:1.6px;border-right-width:1.6px;border-bottom-right-radius:4px;}
+  .card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .card-h .t{font-size:14px;font-weight:600;}
+  .card-h .s{font-size:12px;color:var(--text-3);}
+
+  /* KPI */
+  .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+  .kpi{background:linear-gradient(180deg,rgba(28,28,32,.85),var(--card));border:1px solid var(--hair);border-radius:var(--r-lg);padding:16px;position:relative;overflow:hidden;
+    box-shadow:var(--shadow);animation:cardIn .5s ease both;}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-grad);opacity:.85;box-shadow:0 0 12px rgba(34,211,238,.5);}
+  .kpi:hover{border-color:rgba(34,211,238,.35);}
+  .kpi .lab{font-size:12.5px;color:var(--text-2);display:flex;align-items:center;gap:6px;}
+  .kpi .lab .ic{width:8px;height:8px;border-radius:2px;background:var(--cyan);box-shadow:0 0 8px rgba(34,211,238,.6);}
+  .kpi .val{font-size:26px;font-weight:700;margin-top:10px;letter-spacing:.5px;font-family:var(--num);
+    text-shadow:0 0 18px rgba(34,211,238,.28);}
+  .kpi .val .u{font-size:13px;color:var(--text-2);font-weight:500;margin-left:3px;}
+  .kpi .sub{font-size:12px;margin-top:8px;color:var(--text-3);}
+  .kpi .sub .up{color:var(--green);} .kpi .sub .down{color:var(--red);}
+
+  /* 两列网格 */
+  .grid-2{display:grid;grid-template-columns:2fr 1fr;gap:18px;}
+  .grid-2b{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+
+  /* 芯片 */
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid transparent;}
+  .chip.crit{color:var(--red);background:rgba(244,63,94,.12);border-color:rgba(244,63,94,.3);}
+  .chip.warn{color:var(--orange);background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);}
+  .chip.ok{color:var(--green);background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.3);}
+  .chip.info{color:var(--cyan);background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.3);}
+  .chip .d{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+  /* 列表 / 表格 */
+  .list{display:flex;flex-direction:column;}
+  .list .row{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--border);font-size:13px;}
+  .list .row:last-child{border-bottom:none;}
+  .list .row .tt{font-weight:600;} .list .row .mt{color:var(--text-3);font-size:12px;}
+  .list .row .r{margin-left:auto;color:var(--text-2);font-size:12px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;color:var(--text-3);font-weight:500;font-size:12px;padding:10px 12px;border-bottom:1px solid var(--border);}
+  td{padding:12px;border-bottom:1px solid var(--border);color:var(--text);}
+  tr:hover td{background:var(--raised);}
+  .aid{font-family:var(--num);font-weight:600;color:var(--cyan);}
+
+  .pager{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 4px;font-size:12.5px;color:var(--text-2);}
+  .pager .pg{padding:5px 10px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--card);cursor:pointer;}
+  .pager .pg.cur{color:var(--cyan);border-color:rgba(34,211,238,.4);}
+
+  .filterbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .fsel{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);
+    border-radius:var(--r-md);padding:8px 12px;font-size:13px;color:var(--text-2);}
+  .fsel b{color:var(--text);font-weight:500;}
+  .fsearch{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--card);
+    border:1px solid var(--border);border-radius:var(--r-md);padding:8px 12px;color:var(--text-3);font-size:13px;width:240px;}
+
+  /* 资产条 */
+  .assetbar{display:flex;align-items:center;gap:14px;background:var(--raised);border:1px solid var(--border);
+    border-radius:var(--r-lg);padding:12px 16px;flex-wrap:wrap;}
+  .assetbar .aid-big{font-family:var(--num);font-weight:700;font-size:15px;color:var(--text);}
+  .assetbar .seg{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-2);
+    padding:4px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);}
+  .assetbar .seg .d{width:7px;height:7px;border-radius:50%;}
+  .assetbar .sp{margin-left:auto;display:flex;gap:8px;}
+
+  /* 电芯快照条（资产条第二行） */
+  .snap-strip{position:relative;flex-basis:100%;display:flex;align-items:center;gap:26px;flex-wrap:wrap;
+    margin-top:11px;padding-top:12px;border-top:1px dashed var(--hair);}
+  .snap-grp{display:flex;align-items:center;gap:16px;}
+  .snap-grp .gt{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-3);
+    letter-spacing:.5px;padding-right:14px;border-right:1px solid var(--border);white-space:nowrap;}
+  .snap-grp .gt i{width:6px;height:6px;border-radius:50%;flex:0 0 6px;}
+  .snap-it{display:flex;align-items:baseline;gap:6px;white-space:nowrap;}
+  .snap-it .k{font-size:11.5px;color:var(--text-3);}
+  .snap-it .v{font-family:var(--num);font-weight:700;font-size:15px;letter-spacing:-.3px;color:var(--text);}
+  .snap-it .v small{font-size:10.5px;font-weight:600;color:var(--text-2);margin-left:2px;letter-spacing:0;}
+  .snap-it .a{font-family:var(--num);font-size:10px;color:var(--text-3);background:rgba(255,255,255,.045);
+    border:1px solid var(--hair);border-radius:4px;padding:1px 5px;line-height:1.5;}
+  .snap-it.hi .v{color:var(--cyan);text-shadow:0 0 12px rgba(34,211,238,.4);}
+  .snap-it.lo .v{color:#FDA4AF;text-shadow:0 0 12px rgba(244,63,94,.35);}
+  .snap-it.dv .v{color:var(--orange);text-shadow:0 0 12px rgba(245,158,11,.35);}
+  .snap-it .a.warn{color:var(--orange);background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);}
+  .snap-it .a.crit{color:var(--red);background:rgba(244,63,94,.12);border-color:rgba(244,63,94,.3);}
+  .snap-it .a.ok{color:var(--green);background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.3);}
+
+  /* 状态点 */
+  .sdot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+  .sdot.ok{background:var(--green);} .sdot.warn{background:var(--orange);} .sdot.crit{background:var(--red);} .sdot.info{background:var(--cyan);} .sdot.mute{background:#8B8D98;}
+
+  /* 地图节点 */
+  .map-wrap{position:relative;height:300px;border-radius:var(--r-md);overflow:hidden;
+    background:
+      radial-gradient(circle at 30% 40%,rgba(34,211,238,.07),transparent 40%),
+      radial-gradient(circle at 70% 60%,rgba(16,185,129,.06),transparent 45%),
+      repeating-linear-gradient(0deg,transparent 0 23px,rgba(255,255,255,.025) 23px 24px),
+      repeating-linear-gradient(90deg,transparent 0 23px,rgba(255,255,255,.025) 23px 24px),
+      var(--bg);
+    border:1px solid var(--border);}
+  .map-wrap .node{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--cyan);
+    box-shadow:0 0 12px 2px rgba(34,211,238,.7);}
+  .map-wrap .node.o{background:var(--orange);box-shadow:0 0 12px 2px rgba(245,158,11,.6);}
+  .map-wrap .node.r{background:var(--red);box-shadow:0 0 12px 2px rgba(244,63,94,.6);}
+  .map-legend{display:flex;gap:18px;margin-top:12px;font-size:12px;color:var(--text-2);flex-wrap:wrap;}
+  .map-legend .it{display:flex;align-items:center;gap:6px;}
+  .map-wrap svg{display:block;width:100%;height:100%;}
+  .map-wrap .pr{fill-opacity:.16;stroke:rgba(255,255,255,.13);stroke-width:.1;transition:fill-opacity .2s;cursor:default;}
+  .map-wrap .pr.hd{fill:#22D3EE} .map-wrap .pr.hb{fill:#10B981} .map-wrap .pr.hn{fill:#F59E0B}
+  .map-wrap .pr.xb{fill:#F43F5E} .map-wrap .pr.qt{fill:#A1A1AA}
+  .map-wrap .pr:hover{fill-opacity:.45}
+  .map-wrap .pr.s{stroke-width:.18}
+  .map-wrap .jd{fill:none;stroke:rgba(250,250,250,.5);stroke-width:.14;}
+  .map-wrap .jd.s{stroke-width:.2}
+  .map-wrap .dot{fill-opacity:1} .map-wrap .halo{opacity:.22}
+  .map-wrap .dot.hd,.map-wrap .halo.hd{fill:#22D3EE}
+  .map-wrap .dot.hb,.map-wrap .halo.hb{fill:#10B981}
+  .map-wrap .dot.hn,.map-wrap .halo.hn{fill:#F59E0B}
+  .map-wrap .dot.xb,.map-wrap .halo.xb{fill:#F43F5E}
+  .map-wrap .dot.qt,.map-wrap .halo.qt{fill:#A1A1AA}
+  .map-wrap .lb{font-size:1.35px;fill:#FAFAFA;text-anchor:middle;font-family:inherit;paint-order:stroke;stroke:rgba(10,10,11,.8);stroke-width:.3px;}
+  .map-wrap .ins-bg{fill:rgba(20,20,23,.72);stroke:rgba(255,255,255,.18);stroke-width:.1;}
+  .map-wrap .ins-t{font-size:1.1px;fill:#A1A1AA;text-anchor:middle;}
+
+  /* 仪表盘 */
+  .gauge{display:flex;align-items:center;gap:20px;}
+  .gauge .num-big{font-size:34px;font-weight:700;font-family:var(--num);}
+
+  /* 热力图 */
+  .heat{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;}
+  .heat .c{aspect-ratio:1/1;border-radius:3px;background:var(--green);}
+
+  /* 柱状图 */
+  .bars{display:flex;align-items:flex-end;gap:10px;height:200px;padding-top:8px;}
+  .bars .g{display:flex;align-items:flex-end;gap:3px;flex:1;}
+  .bars .g .b{width:8px;border-radius:3px 3px 0 0;}
+  .bars .g .b.c{background:var(--cyan);} .bars .g .b.o{background:var(--orange);}
+  .bar10{display:flex;align-items:flex-end;gap:8px;height:200px;}
+  .bar10 .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;height:100%;}
+  .bar10 .col .bk{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--cyan),rgba(34,211,238,.35));}
+  .bar10 .col .xl{font-size:11px;color:var(--text-3);}
+
+  .axis{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-top:8px;}
+
+  .page{display:none;} .page.active{display:block;}
+
+  /* ===== 设计规范页 ===== */
+  .ds-hero{padding:8px 4px 18px;border-bottom:1px solid var(--border);margin-bottom:22px;}
+  .ds-hero h1{font-size:28px;font-weight:700;} .ds-hero .en{color:var(--cyan);font-family:var(--num);font-size:14px;letter-spacing:2px;}
+  .ds-hero p{color:var(--text-2);font-size:13.5px;margin-top:8px;max-width:760px;line-height:1.7;}
+  .ds-sec{margin-bottom:30px;}
+  .ds-sec h2{font-size:16px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .ds-sec h2::before{content:"";width:4px;height:16px;background:var(--cyan);border-radius:2px;}
+  .swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+  .sw{background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;}
+  .sw .clr{height:74px;}
+  .sw .meta{padding:9px 10px;}
+  .sw .meta .n{font-size:12.5px;font-weight:600;} .sw .meta .h{font-size:11px;color:var(--text-3);font-family:var(--num);}
+  .type-row{display:flex;align-items:baseline;gap:18px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .type-row .tag{width:70px;color:var(--text-3);font-size:12px;}
+  .type-row .ex{color:var(--text);}
+  .principle{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .principle .p{background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;}
+  .principle .p h3{font-size:14px;color:var(--cyan);margin-bottom:6px;}
+  .principle .p p{font-size:12.5px;color:var(--text-2);line-height:1.6;}
+  .comp-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;}
+  .btn.primary{background:var(--cyan);color:#04222A;} .btn.ghost{background:transparent;border-color:var(--border-strong);color:var(--text);}
+  .btn.danger{background:rgba(244,63,94,.15);color:var(--red);border-color:rgba(244,63,94,.3);}
+  /* ===== 数据源配置面板 ===== */
+  .ds-fab{position:fixed;right:20px;bottom:20px;width:44px;height:44px;border-radius:50%;background:#141417;border:1px solid #27272A;color:#22D3EE;font-size:20px;cursor:pointer;z-index:60;display:flex;align-items:center;justify-content:center;}
+  .ds-fab:hover{border-color:#22D3EE;}
+  .ds-panel{position:fixed;right:20px;bottom:74px;width:340px;background:#141417;border:1px solid #27272A;border-radius:8px;padding:14px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.5);}
+  .ds-panel[hidden]{display:none;}
+  .ds-head{display:flex;justify-content:space-between;align-items:center;color:#FAFAFA;font-size:14px;font-weight:500;margin-bottom:10px;}
+  .ds-x{background:none;border:none;color:#A1A1AA;cursor:pointer;font-size:14px;}
+  .ds-x:hover{color:#FAFAFA;}
+  .ds-mode{display:flex;gap:8px;margin-bottom:10px;}
+  .ds-tab{flex:1;padding:6px;border-radius:6px;background:#1C1C20;border:1px solid #27272A;color:#A1A1AA;cursor:pointer;font-size:13px;}
+  .ds-tab.active{background:#22D3EE;color:#0A0A0B;border-color:#22D3EE;font-weight:500;}
+  .ds-body{color:#A1A1AA;font-size:12px;line-height:1.6;}
+  .ds-body[hidden]{display:none;}
+  .ds-body label{display:block;color:#A1A1AA;margin:8px 0 4px;}
+  .ds-input{width:100%;box-sizing:border-box;background:#0A0A0B;border:1px solid #27272A;border-radius:6px;color:#FAFAFA;padding:8px;font-size:12px;font-family:monospace;}
+  .ds-input:focus{outline:none;border-color:#22D3EE;}
+  .ds-actions{display:flex;gap:8px;margin-top:8px;}
+  .ds-status{margin-top:8px;font-size:12px;}
+  .ds-status.ok{color:#10B981;} .ds-status.err{color:#F43F5E;} .ds-status.demo{color:#22D3EE;}
+  .ds-fmt{margin-top:10px;border-top:1px solid #27272A;padding-top:8px;}
+  .ds-fmt-t{color:#71717A;margin-bottom:4px;}
+  .ds-fmt pre{background:#0A0A0B;border:1px solid #27272A;border-radius:6px;padding:8px;color:#A1A1AA;font-size:11px;white-space:pre-wrap;max-height:150px;overflow:auto;margin:0;}
+
+  /* ===== 高科技增强层 ===== */
+  @keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes scan{0%{transform:translateX(-130px);opacity:0}12%{opacity:1}88%{opacity:1}100%{transform:translateX(720px);opacity:0}}
+  @keyframes hubpulse{0%{r:1.2;opacity:.7}70%{r:3.6;opacity:0}100%{r:3.6;opacity:0}}
+  @keyframes dash{to{stroke-dashoffset:-2}}
+  @keyframes drawln{to{stroke-dashoffset:0}}
+  @keyframes barShimmer{0%{opacity:.85}50%{opacity:1}100%{opacity:.85}}
+
+  .kpi-row .kpi:nth-child(2){animation-delay:.05s}
+  .kpi-row .kpi:nth-child(3){animation-delay:.1s}
+  .kpi-row .kpi:nth-child(4){animation-delay:.15s}
+  .kpi-row .kpi:nth-child(5){animation-delay:.2s}
+  .grid-2>.card:nth-child(1){animation-delay:.1s}
+  .grid-2>.card:nth-child(2){animation-delay:.18s}
+  .grid-2b>.card:nth-child(1){animation-delay:.22s}
+  .grid-2b>.card:nth-child(2){animation-delay:.28s}
+
+  /* 面积图容器 */
+  .area-host{height:200px;width:100%;position:relative;}
+  .area-chart{display:block;width:100%;height:100%;overflow:visible;}
+  .area-chart .grid-line{stroke:rgba(255,255,255,.05);stroke-width:1;vector-effect:non-scaling-stroke;}
+  .area-chart .ar{opacity:.24;}
+  .area-chart .ln{fill:none;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round;
+    filter:drop-shadow(0 0 5px currentColor);}
+  .area-chart .now{stroke:rgba(34,211,238,.28);stroke-width:1;vector-effect:non-scaling-stroke;}
+  .area-chart.draw .ln{stroke-dasharray:520;stroke-dashoffset:520;animation:drawln 1.5s ease forwards;}
+
+  /* 地图高科技增强 */
+  .map-wrap .scan{position:absolute;top:0;bottom:0;width:130px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(34,211,238,.16),transparent);
+    animation:scan 5.5s linear infinite;}
+  .map-wrap .conn{stroke:rgba(34,211,238,.32);stroke-width:.05;fill:none;
+    stroke-dasharray:1.1 0.9;animation:dash 2.4s linear infinite;}
+  .map-wrap .hubring{fill:none;stroke:#22D3EE;stroke-width:.12;animation:hubpulse 2.6s ease-out infinite;}
+  .map-wrap .pr{filter:drop-shadow(0 0 1.4px rgba(34,211,238,.12));}
+
+  /* 柱图增强 */
+  .bar10 .col .bk{box-shadow:0 0 12px rgba(34,211,238,.35),0 0 0 1px rgba(34,211,238,.18) inset;
+    transition:height .45s cubic-bezier(.2,.8,.2,1);animation:barShimmer 3s ease-in-out infinite;}
+  .bars .b{box-shadow:0 0 8px rgba(34,211,238,.22);}
+
+  /* ===== 电芯监控页 ===== */
+  .socbar{display:flex;gap:3px;align-items:center;margin-right:8px;}
+  .socbar i{width:6px;height:15px;border-radius:2px;background:var(--green);
+    box-shadow:0 0 7px rgba(16,185,129,.55);transition:.3s;}
+  .socbar i.off{background:#27272A;box-shadow:none;}
+
+  .cellgrid-wrap{position:relative;overflow:hidden;border-radius:var(--r-md);padding:16px 14px;
+    border:1px solid var(--border);
+    background:
+      radial-gradient(circle at 50% 130%,rgba(34,211,238,.11),transparent 62%),
+      repeating-linear-gradient(0deg,transparent 0 21px,rgba(255,255,255,.022) 21px 22px),
+      var(--bg);}
+  .cellgrid{display:grid;grid-template-columns:repeat(24,1fr);gap:4px;}
+  .cellgrid .cell{aspect-ratio:1/1.5;border-radius:2.5px;background:#10B981;position:relative;
+    transition:background .5s ease,box-shadow .5s ease,transform .15s ease;cursor:default;}
+  .cellgrid .cell::after{content:"";position:absolute;inset:0;border-radius:2.5px;
+    box-shadow:0 0 0 1px rgba(255,255,255,.07) inset;}
+  .cellgrid .cell:hover{transform:scale(1.4);z-index:3;box-shadow:0 0 12px rgba(34,211,238,.75);}
+  .cellgrid .cell.weak{animation:cellAlarm 1.5s ease-in-out infinite;}
+  @keyframes cellAlarm{0%,100%{box-shadow:0 0 0 0 rgba(244,63,94,.75)}50%{box-shadow:0 0 11px 2px rgba(244,63,94,.95)}}
+  .cellscan{position:absolute;left:0;right:0;height:74px;pointer-events:none;
+    background:linear-gradient(180deg,transparent,rgba(34,211,238,.13),transparent);
+    animation:cellscan 4.6s linear infinite;}
+  @keyframes cellscan{0%{top:-74px}100%{top:100%}}
+
+  .cell-legend{display:flex;align-items:center;gap:12px;margin-top:14px;font-size:11.5px;
+    color:var(--text-3);flex-wrap:wrap;}
+  .cell-legend .scale{width:150px;height:8px;border-radius:4px;border:1px solid var(--hair);
+    background:linear-gradient(90deg,#F43F5E,#F59E0B,#10B981,#22D3EE);}
+  .cell-legend b{font-family:var(--num);}
+
+  /* ===== 数据资产管理（首页展示页）——作用域隔离 ===== */
+  #page-assets{display:none;}
+  #page-assets.active{display:flex;flex-direction:column;gap:18px;}
+  #page-assets .card::before,#page-assets .card::after{display:none;}
+  #page-assets .kpi::before{display:none;}
+#page-assets{
+    --bg:#0A0A0B;
+    --card:#141417;
+    --raised:#1C1C20;
+    --border:#27272A;
+    --border-strong:#3F3F46;
+    --text:#FAFAFA;
+    --text-2:#A1A1AA;
+    --text-3:#71717A;
+    --cyan:#22D3EE;
+    --cyan-light:#67E8F9;
+    --green:#10B981;
+    --green-light:#34D399;
+    --orange:#F59E0B;
+    --purple:#9381FF;
+    --red:#F43F5E;
+    --r-lg:10px; --r-md:6px; --r-sm:4px;
+    --topbar-h:60px;
+    --font:"Noto Sans SC","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    --num:"Inter","Noto Sans SC",sans-serif;
+    --glass:rgba(20,20,23,.72);
+    --grid-line:rgba(255,255,255,.035);
+    --cyan-glow:rgba(34,211,238,.45);
+    --accent-grad:linear-gradient(135deg,#22D3EE,#0EA5B7);
+    --hair:rgba(255,255,255,.07);
+    --shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 10px 34px rgba(0,0,0,.45);
+  }
+#page-assets .num{font-family:var(--num);font-variant-numeric:tabular-nums;}
+#page-assets .app{width:1440px;display:flex;flex-direction:column;background:var(--bg);position:relative;}
+#page-assets .topbar{height:var(--topbar-h);display:flex;align-items:center;gap:16px;padding:0 28px;
+    background:var(--glass);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:20;}
+#page-assets .brand{display:flex;align-items:center;gap:10px;}
+#page-assets .brand .logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#22D3EE,#0E7C8C);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#04222A;font-size:15px;
+    box-shadow:0 0 0 1px rgba(34,211,238,.35),0 6px 18px rgba(34,211,238,.25);position:relative;}
+#page-assets .brand .logo::after{content:"";position:absolute;inset:3px;border-radius:6px;border:1px solid rgba(4,34,42,.35);}
+#page-assets .brand .txt .name{font-size:14px;font-weight:700;line-height:1.15;}
+#page-assets .brand .txt .sub{font-size:10.5px;color:var(--text-3);letter-spacing:.4px;}
+#page-assets .crumb{margin-left:6px;font-size:12.5px;color:var(--text-3);display:flex;align-items:center;gap:8px;}
+#page-assets .crumb b{color:var(--text-2);font-weight:500;}
+#page-assets .crumb i{opacity:.45;font-style:normal;}
+#page-assets .topbar .spacer{flex:1}
+#page-assets .search{display:flex;align-items:center;gap:8px;width:280px;height:36px;padding:0 12px;border-radius:var(--r-md);
+    background:var(--raised);border:1px solid var(--border);color:var(--text-3);font-size:12.5px;}
+#page-assets .search kbd{margin-left:auto;font-family:var(--num);font-size:10.5px;padding:2px 6px;border-radius:4px;
+    background:rgba(255,255,255,.05);border:1px solid var(--hair);color:var(--text-3);}
+#page-assets .tbtn{width:36px;height:36px;border-radius:var(--r-md);background:var(--raised);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;color:var(--text-2);cursor:pointer;transition:.18s;}
+#page-assets .tbtn:hover{border-color:var(--border-strong);color:var(--text);}
+#page-assets .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#22D3EE,#9381FF);
+    display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;color:#04222A;}
+#page-assets .main{padding:26px 28px 40px;display:flex;flex-direction:column;gap:18px;}
+#page-assets .phead{position:relative;border-radius:var(--r-lg);overflow:hidden;
+    background:linear-gradient(120deg,rgba(34,211,238,.10),rgba(147,129,255,.06) 45%,transparent 78%);
+    border:1px solid var(--border);padding:22px 26px;display:flex;align-items:flex-end;gap:24px;}
+#page-assets .phead::before{content:"";position:absolute;right:-60px;top:-120px;width:340px;height:340px;border-radius:50%;
+    background:radial-gradient(circle,rgba(34,211,238,.22),transparent 66%);pointer-events:none;}
+#page-assets .phead::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+    background-size:34px 34px;mask-image:linear-gradient(120deg,#000,transparent 72%);}
+#page-assets .phead .left{position:relative;z-index:1;flex:1}
+#page-assets .eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:1.2px;color:var(--cyan);
+    text-transform:uppercase;margin-bottom:9px;}
+#page-assets .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+#page-assets .phead h1{font-size:26px;font-weight:700;letter-spacing:-.4px;line-height:1.15;}
+#page-assets .phead p{margin-top:8px;font-size:13px;color:var(--text-2);max-width:640px;line-height:1.6;}
+#page-assets .phead .right{position:relative;z-index:1;display:flex;gap:10px;}
+#page-assets .btn{height:38px;padding:0 18px;border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--raised);color:var(--text-2);
+    transition:.18s;}
+#page-assets .btn:hover{border-color:var(--border-strong);color:var(--text);}
+#page-assets .btn.primary{background:var(--accent-grad);border-color:transparent;color:#04222A;
+    box-shadow:0 6px 20px rgba(34,211,238,.28);}
+#page-assets .btn.primary:hover{box-shadow:0 8px 26px rgba(34,211,238,.4);}
+#page-assets .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+#page-assets .kpi{position:relative;border-radius:var(--r-lg);background:var(--card);border:1px solid var(--border);
+    padding:18px 18px 16px;overflow:hidden;transition:.2s;}
+#page-assets .kpi:hover{border-color:var(--border-strong);transform:translateY(-2px);}
+#page-assets .kpi .glow{position:absolute;right:-40px;top:-40px;width:120px;height:120px;border-radius:50%;
+    background:radial-gradient(circle,rgba(34,211,238,.16),transparent 68%);pointer-events:none;}
+#page-assets .kpi .k-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+#page-assets .kpi .k-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.22);color:var(--cyan);}
+#page-assets .kpi .k-tag{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;}
+#page-assets .tag-up{color:var(--green-light);background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);}
+#page-assets .tag-warn{color:#FCD34D;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);}
+#page-assets .tag-cyan{color:var(--cyan-light);background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.25);}
+#page-assets .kpi .k-val{font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1;}
+#page-assets .kpi .k-val span{font-size:14px;font-weight:600;color:var(--text-2);margin-left:3px;letter-spacing:0;}
+#page-assets .kpi .k-lb{margin-top:9px;font-size:12.5px;color:var(--text-2);}
+#page-assets .kpi .k-sub{margin-top:6px;font-size:11.5px;color:var(--text-3);}
+#page-assets .kpi .k-sub b{color:var(--text-2);font-weight:600;}
+#page-assets .card{border-radius:var(--r-lg);background:var(--card);border:1px solid var(--border);overflow:hidden;}
+#page-assets .card-h{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);}
+#page-assets .card-h .t{font-size:14.5px;font-weight:600;}
+#page-assets .card-h .s{font-size:11.5px;color:var(--text-3);}
+#page-assets .card-h .spacer{flex:1}
+#page-assets .seg{display:flex;background:var(--raised);border:1px solid var(--border);border-radius:var(--r-md);padding:2px;}
+#page-assets .seg button{height:26px;padding:0 12px;border:0;background:transparent;color:var(--text-3);font-size:11.5px;
+    font-weight:600;border-radius:4px;cursor:pointer;font-family:var(--font);transition:.15s;}
+#page-assets .seg button.on{background:rgba(34,211,238,.14);color:var(--cyan-light);}
+#page-assets .card-b{padding:18px 20px;}
+#page-assets .row2{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start;}
+#page-assets .chart-wrap{position:relative;height:248px;}
+#page-assets .chart-legend{display:flex;gap:18px;align-items:center;}
+#page-assets .lg{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-2);}
+#page-assets .lg i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+#page-assets .chart-y{position:absolute;left:0;top:0;bottom:26px;width:44px;display:flex;flex-direction:column;
+    justify-content:space-between;font-size:10.5px;color:var(--text-3);font-family:var(--num);}
+#page-assets .chart-x{position:absolute;left:52px;right:0;bottom:0;display:flex;justify-content:space-between;
+    font-size:10.5px;color:var(--text-3);font-family:var(--num);}
+#page-assets .chart-svg{position:absolute;left:52px;right:0;top:0;bottom:26px;width:calc(100% - 52px);height:calc(100% - 26px);}
+#page-assets .comp{display:flex;flex-direction:column;gap:14px;}
+#page-assets .comp-row .c-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;}
+#page-assets .comp-row .c-name{font-size:12.5px;color:var(--text-2);display:flex;align-items:center;gap:8px;}
+#page-assets .comp-row .c-name i{width:8px;height:8px;border-radius:2px;display:inline-block;}
+#page-assets .comp-row .c-val{font-size:12.5px;font-weight:600;font-family:var(--num);}
+#page-assets .comp-row .c-val small{color:var(--text-3);font-weight:400;margin-left:5px;font-size:11px;}
+#page-assets .bar{height:7px;border-radius:4px;background:rgba(255,255,255,.05);overflow:hidden;}
+#page-assets .bar i{display:block;height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+#page-assets .donut-wrap{display:flex;align-items:center;gap:20px;margin-bottom:18px;}
+#page-assets .donut{position:relative;width:132px;height:132px;flex:0 0 132px;}
+#page-assets .donut .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+#page-assets .donut .center .v{font-size:21px;font-weight:700;letter-spacing:-.5px;font-family:var(--num);}
+#page-assets .donut .center .l{font-size:10.5px;color:var(--text-3);margin-top:2px;}
+#page-assets .donut .stat{display:flex;flex-direction:column;gap:11px;flex:1;}
+#page-assets .src{display:flex;align-items:center;gap:13px;padding:13px 20px;border-bottom:1px solid var(--border);transition:.16s;}
+#page-assets .src:last-child{border-bottom:0;}
+#page-assets .src:hover{background:rgba(255,255,255,.02);}
+#page-assets .src .ico{width:36px;height:36px;border-radius:9px;flex:0 0 36px;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;font-family:var(--num);}
+#page-assets .src .info{flex:1;min-width:0;}
+#page-assets .src .info .n{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+#page-assets .src .info .m{margin-top:3px;font-size:11.5px;color:var(--text-3);display:flex;gap:12px;font-family:var(--num);}
+#page-assets .src .info .m em{font-style:normal;color:var(--text-2);}
+#page-assets .pill{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+#page-assets .pill.ok{color:var(--green-light);background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);}
+#page-assets .pill.sync{color:var(--cyan-light);background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.25);}
+#page-assets .pill.warn{color:#FCD34D;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);}
+#page-assets .pill.err{color:#FDA4AF;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.25);}
+#page-assets .dot-pulse{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 0 var(--cyan-glow);
+    animation:dapulse 2s infinite;}
+@keyframes dapulse{0%{box-shadow:0 0 0 0 rgba(34,211,238,.5)}70%{box-shadow:0 0 0 7px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
+#page-assets table{width:100%;border-collapse:collapse;}
+#page-assets thead th{text-align:left;font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:.4px;
+    padding:10px 16px;border-bottom:1px solid var(--border);text-transform:uppercase;white-space:nowrap;}
+#page-assets tbody td{padding:13px 16px;font-size:12.5px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text-2);}
+#page-assets tbody tr:last-child td{border-bottom:0;}
+#page-assets tbody tr:hover{background:rgba(255,255,255,.02);}
+#page-assets tbody td.name{color:var(--text);font-weight:600;}
+#page-assets tbody td.name .sub{display:block;font-size:11px;color:var(--text-3);font-weight:400;margin-top:3px;font-family:var(--num);}
+#page-assets .q-bar{display:flex;align-items:center;gap:9px;}
+#page-assets .q-bar .q{width:52px;height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden;}
+#page-assets .q-bar .q i{display:block;height:100%;border-radius:3px;}
+#page-assets .q-bar span{font-family:var(--num);font-size:12px;font-weight:600;}
+#page-assets .mono{font-family:var(--num);}
+#page-assets .chev{color:var(--text-3);cursor:pointer;}
+#page-assets .foot{display:flex;align-items:center;justify-content:space-between;padding:0 4px;font-size:11.5px;color:var(--text-3);}
+#page-assets .foot .l{display:flex;align-items:center;gap:8px;}
+#page-assets .foot .live{display:flex;align-items:center;gap:6px;color:var(--green-light);}
+
+
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 侧栏 -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">宁</div>
+      <div>
+        <div class="name">宁家服务</div>
+        <div class="sub">数据资产管理系统</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-group">监控中心</div>
+      <div class="nav-item" data-page="overview"><span class="ic" style="background:#22D3EE"></span>总览驾驶舱</div>
+      <div class="nav-item" data-page="alert"><span class="ic" style="background:#F59E0B"></span>安全预警中心<span class="dot"></span></div>
+      <div class="nav-item" data-page="realtime"><span class="ic" style="background:#10B981"></span>实时监控</div>
+      <div class="nav-item" data-page="cell"><span class="ic" style="background:#22D3EE"></span>电芯监控<span class="dot" style="background:var(--red)"></span></div>
+      <div class="nav-group">资产管理</div>
+      <div class="nav-item active" data-page="assets"><span class="ic" style="background:#22D3EE"></span>数据资产目录</div>
+      <div class="nav-item" data-page="overview"><span class="ic" style="background:#A1A1AA"></span>采集接入管理</div>
+      <div class="nav-item" data-page="overview"><span class="ic" style="background:#A1A1AA"></span>数据质量中心</div>
+      <div class="nav-item" data-page="overview"><span class="ic" style="background:#A1A1AA"></span>血缘图谱</div>
+      <div class="nav-group">系统</div>
+      <div class="nav-item" data-page="design"><span class="ic" style="background:#71717A"></span>设计系统</div>
+      <div class="nav-item" data-page="overview"><span class="ic" style="background:#71717A"></span>系统设置</div>
+    </nav>
+    <div class="side-foot">v1.0 · 数据资产管控平台<br/>CATL 授权服务网点</div>
+  </aside>
+
+  <!-- 主区 -->
+  <div class="main">
+    <!-- ===== 顶栏（动态标题） ===== -->
+    <header class="topbar">
+      <div>
+        <div class="title" id="pageTitle">数据资产管理</div>
+        <div class="crumb" id="pageCrumb">资产管理 / 数据资产目录</div>
+      </div>
+      <div class="search">🔍 搜索资产、任务、告警…</div>
+      <div class="clock num" id="clock">--:--:--</div>
+      <div class="live"><span class="pulse"></span>实时</div>
+      <div class="avatar">宁</div>
+    </header>
+
+    <div class="content">
+      <!-- ============ 数据资产管理（首页展示页） ============ -->
+      <section class="page active" id="page-assets">
+
+          <!-- 页头 -->
+          <div class="phead">
+            <div class="left">
+              <div class="eyebrow"><span class="dot"></span>Data Asset Management</div>
+              <h1>数据资产管理</h1>
+              <p>统一纳管电池全生命周期数据资产：从数据源接入、质量治理到资产编目与服务开放，形成可追溯、可度量、可复用的数据资产底座。</p>
+            </div>
+            <div class="right">
+              <button class="btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+                同步数据源
+              </button>
+              <button class="btn primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                新建数据资产
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI -->
+          <div class="kpis">
+            <div class="kpi">
+              <div class="glow"></div>
+              <div class="k-top">
+                <div class="k-ico">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+                </div>
+                <span class="k-tag tag-up">↑ 8.4%</span>
+              </div>
+              <div class="k-val num">1,286<span>张</span></div>
+              <div class="k-lb">已纳管数据表</div>
+              <div class="k-sub">覆盖 <b>14</b> 个业务域</div>
+            </div>
+
+            <div class="kpi">
+              <div class="glow"></div>
+              <div class="k-top">
+                <div class="k-ico">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/></svg>
+                </div>
+                <span class="k-tag tag-cyan">18 在线</span>
+              </div>
+              <div class="k-val num">23<span>个</span></div>
+              <div class="k-lb">数据源接入</div>
+              <div class="k-sub">今日同步 <b>4.2</b> 亿条</div>
+            </div>
+
+            <div class="kpi">
+              <div class="glow"></div>
+              <div class="k-top">
+                <div class="k-ico">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7.5 3.6v5.2c0 4.6-3.1 7.8-7.5 9.2-4.4-1.4-7.5-4.6-7.5-9.2V6.6z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <span class="k-tag tag-up">↑ 1.6pt</span>
+              </div>
+              <div class="k-val num">96.8<span>%</span></div>
+              <div class="k-lb">数据质量得分</div>
+              <div class="k-sub">异常表 <b>7</b> 张待处理</div>
+            </div>
+
+            <div class="kpi">
+              <div class="glow"></div>
+              <div class="k-top">
+                <div class="k-ico">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 14 3.5-4 3 2.5L20 6"/></svg>
+                </div>
+                <span class="k-tag tag-up">↑ 12.1%</span>
+              </div>
+              <div class="k-val num">8.6<span>万</span></div>
+              <div class="k-lb">今日资产调用量</div>
+              <div class="k-sub">API 平均时延 <b>42</b> ms</div>
+            </div>
+          </div>
+
+          <!-- Row 1: 趋势 + 构成 -->
+          <div class="row2">
+            <div class="card">
+              <div class="card-h">
+                <div>
+                  <div class="t">数据资产增长趋势</div>
+                  <div class="s">近 12 个月 · 资产规模与调用量</div>
+                </div>
+                <div class="spacer"></div>
+                <div class="chart-legend">
+                  <div class="lg"><i style="background:#22D3EE"></i>资产规模</div>
+                  <div class="lg"><i style="background:#9381FF"></i>调用量</div>
+                </div>
+                <div class="seg" style="margin-left:14px">
+                  <button class="on">12月</button><button>季度</button><button>全年</button>
+                </div>
+              </div>
+              <div class="card-b">
+                <div class="chart-wrap">
+                  <div class="chart-y">
+                    <span>1,300</span><span>1,000</span><span>700</span><span>400</span><span>100</span>
+                  </div>
+                  <svg class="chart-svg" id="trendChart" preserveAspectRatio="none"></svg>
+                  <div class="chart-x">
+                    <span>11月</span><span>1月</span><span>3月</span><span>5月</span><span>7月</span><span>9月</span><span>10月</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-h">
+                <div>
+                  <div class="t">资产构成</div>
+                  <div class="s">按数据域分布</div>
+                </div>
+              </div>
+              <div class="card-b">
+                <div class="donut-wrap">
+                  <div class="donut">
+                    <svg width="132" height="132" viewBox="0 0 132 132" id="donutSvg"></svg>
+                    <div class="center">
+                      <div class="v num">1,286</div>
+                      <div class="l">总资产</div>
+                    </div>
+                  </div>
+                  <div class="stat" id="compLegend"></div>
+                </div>
+                <div class="comp" id="compBars"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: 数据源接入 -->
+          <div class="card">
+            <div class="card-h">
+              <div>
+                <div class="t">数据源接入</div>
+                <div class="s">实时同步状态 · 共 23 个数据源</div>
+              </div>
+              <div class="spacer"></div>
+              <div class="lg" style="margin-right:6px"><span class="dot-pulse"></span><span style="font-size:11.5px;color:var(--text-2)">实时同步中</span></div>
+              <button class="btn" style="height:32px;padding:0 14px;font-size:12px">查看全部</button>
+            </div>
+            <div id="srcList"></div>
+          </div>
+
+          <!-- Row 3: 资产目录 -->
+          <div class="card">
+            <div class="card-h">
+              <div>
+                <div class="t">核心数据资产目录</div>
+                <div class="s">按热度排序 · 更新于 5 分钟前</div>
+              </div>
+              <div class="spacer"></div>
+              <div class="search" style="width:200px;height:32px;font-size:12px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                筛选资产…
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:30%">资产名称</th>
+                  <th style="width:14%">数据域</th>
+                  <th style="width:12%">数据量</th>
+                  <th style="width:18%">质量得分</th>
+                  <th style="width:14%">更新频率</th>
+                  <th style="width:12%">调用 / 日</th>
+                </tr>
+              </thead>
+              <tbody id="assetRows"></tbody>
+            </table>
+          </div>
+
+          <div class="foot">
+            <div class="l">
+              <span class="live"><span class="dot-pulse"></span>系统运行正常</span>
+              <span style="opacity:.4">·</span>
+              <span>最后同步 15:26:04</span>
+            </div>
+            <div class="l">
+              <span>数据血缘已覆盖 92%</span>
+              <span style="opacity:.4">·</span>
+              <span>版本 v3.2.0</span>
+            </div>
+          </div>
+
+      </section>
+
+      <!-- ============ 设计规范页 ============ -->
+      <section class="page" id="page-design">
+        <div class="ds-hero">
+          <div class="en">DESIGN SYSTEM</div>
+          <h1>宁家服务 · 数据资产管理系统 — 设计规范</h1>
+          <p>深色「指挥中心」风格。以近黑背景承载高密度数据，使用品牌青作为主强调色，绿/橙/红三级告警语义色区分资产健康与风险等级。圆角克制（4/6/8px），间距基于 8px 栅格。</p>
+        </div>
+
+        <div class="ds-sec">
+          <h2>色彩规范 Color</h2>
+          <div class="swatches" id="swatches"></div>
+        </div>
+
+        <div class="ds-sec">
+          <h2>字体规范 Typography</h2>
+          <div class="card">
+            <div class="type-row"><span class="tag">H1</span><span class="ex" style="font-size:28px;font-weight:700">数据资产总览驾驶舱</span><span class="tag" style="width:auto;color:var(--text-3)">28 / 700</span></div>
+            <div class="type-row"><span class="tag">H2</span><span class="ex" style="font-size:16px;font-weight:600">实时采集趋势</span><span class="tag" style="width:auto;color:var(--text-3)">16 / 600</span></div>
+            <div class="type-row"><span class="tag">Body</span><span class="ex" style="font-size:13.5px">资产健康度、数据质量与接入任务统一纳管</span><span class="tag" style="width:auto;color:var(--text-3)">13.5 / 400</span></div>
+            <div class="type-row"><span class="tag">Num</span><span class="ex num" style="font-size:26px;font-weight:700">94.2%</span><span class="tag" style="width:auto;color:var(--text-3)">26 / 700 · Inter</span></div>
+            <div class="type-row"><span class="tag">Small</span><span class="ex" style="font-size:11.5px;color:var(--text-3)">共 162 条 · 第 1/9 页</span><span class="tag" style="width:auto;color:var(--text-3)">11.5 / 400</span></div>
+          </div>
+        </div>
+
+        <div class="ds-sec">
+          <h2>告警等级语义 Severity</h2>
+          <div class="card" style="display:flex;gap:12px;flex-wrap:wrap">
+            <span class="chip crit"><span class="d"></span>严重 Critical</span>
+            <span class="chip warn"><span class="d"></span>预警 Warning</span>
+            <span class="chip ok"><span class="d"></span>正常 Normal</span>
+            <span class="chip info"><span class="d"></span>信息 Info</span>
+          </div>
+        </div>
+
+        <div class="ds-sec">
+          <h2>组件示例 Components</h2>
+          <div class="comp-gallery">
+            <div class="card">
+              <div class="card-h"><span class="t">按钮 Button</span></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <span class="btn primary">主操作</span>
+                <span class="btn ghost">次操作</span>
+                <span class="btn danger">处置</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h"><span class="t">KPI 卡片</span></div>
+              <div class="kpi" style="padding:0;border:none;background:transparent">
+                <div class="lab"><span class="ic"></span>资产健康度</div>
+                <div class="val num">94.2<span class="u">%</span></div>
+                <div class="sub"><span class="up">▲ 1.3%</span> 较昨日</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h"><span class="t">状态点 / 表格行</span></div>
+              <div class="list">
+                <div class="row"><span class="sdot ok"></span><span class="tt">DS-0823</span><span class="r">订单域</span></div>
+                <div class="row"><span class="sdot warn"></span><span class="tt">API-1190</span><span class="r">用户域</span></div>
+                <div class="row"><span class="sdot crit"></span><span class="tt">DS-2210</span><span class="r">库存域</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ds-sec">
+          <h2>设计原则 Principles</h2>
+          <div class="principle">
+            <div class="p"><h3>数据优先</h3><p>信息密度高但层级清晰，关键指标一眼可见，避免装饰性元素喧宾夺主。</p></div>
+            <div class="p"><h3>语义一致</h3><p>绿/橙/红三级告警在全平台含义统一，状态点、芯片、图表配色一一对应。</p></div>
+            <div class="p"><h3>克制的深</h3><p>近黑背景 + 微弱描边划分层级，浮起面板用于强调，不靠重投影。</p></div>
+            <div class="p"><h3>可运维</h3><p>所有模块面向 7×24 值守场景，实时状态与可处置入口就近放置。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 总览驾驶舱 ============ -->
+      <section class="page" id="page-overview">
+        <div class="kpi-row">
+          <div class="kpi"><div class="lab"><span class="ic"></span>数据资产总量</div><div class="val num">1,286<span class="u">个</span></div><div class="sub"><span class="up">▲ 23</span> 本周新增</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>活跃接入任务</div><div class="val num">342</div><div class="sub"><span class="up">▲ 8</span> 运行稳定</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>今日采集量</div><div class="val num">4.72<span class="u">TB</span></div><div class="sub"><span class="down">▼ 0.4</span> 较昨日</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>健康资产占比</div><div class="val num">92.4<span class="u">%</span></div><div class="sub"><span class="up">▲ 0.6%</span> 较上周</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>待处置预警</div><div class="val num">37</div><div class="sub"><span class="down">▲ 5</span> 需关注</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h"><span class="t">数据资产地理分布</span><span class="s">按区域节点统计</span></div>
+            <div class="map-wrap" id="mapWrap"></div>
+            <div class="map-legend">
+              <div class="it"><span class="sdot info"></span>华东 412</div>
+              <div class="it"><span class="sdot ok"></span>华北 308</div>
+              <div class="it"><span class="sdot warn"></span>华南 264（2 预警）</div>
+              <div class="it"><span class="sdot crit"></span>西部 118（1 严重）</div>
+              <div class="it"><span class="sdot mute"></span>其他 184</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><span class="t">近期安全告警</span><span class="s">最近 6 条</span></div>
+            <div class="list">
+              <div class="row"><span class="chip crit"><span class="d"></span>严重</span><span class="tt">DS-2210 库存域 接入中断</span><span class="r">12:04</span></div>
+              <div class="row"><span class="chip warn"><span class="d"></span>预警</span><span class="tt">API-1190 用户域 延迟升高</span><span class="r">11:47</span></div>
+              <div class="row"><span class="chip warn"><span class="d"></span>预警</span><span class="tt">TBL-3391 物流域 质量波动</span><span class="r">11:20</span></div>
+              <div class="row"><span class="chip ok"><span class="d"></span>正常</span><span class="tt">DS-0823 订单域 已恢复</span><span class="r">10:58</span></div>
+              <div class="row"><span class="chip warn"><span class="d"></span>预警</span><span class="tt">DS-5501 营销域 重复采集</span><span class="r">10:31</span></div>
+              <div class="row"><span class="chip ok"><span class="d"></span>正常</span><span class="tt">ETL-0455 财务域 校验通过</span><span class="r">09:55</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2b">
+          <div class="card">
+            <div class="card-h"><span class="t">资产健康度</span><span class="s">综合评分</span></div>
+            <div class="gauge">
+              <svg width="170" height="170" viewBox="0 0 170 170">
+                <defs>
+                  <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#67E8F9"/><stop offset="1" stop-color="#0EA5B7"/>
+                  </linearGradient>
+                  <filter id="gaugeGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+                <circle cx="85" cy="85" r="66" fill="none" stroke="#27272A" stroke-width="12"/>
+                <circle cx="85" cy="85" r="66" fill="none" stroke="url(#gaugeGrad)" stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="414.7" stroke-dashoffset="31.4" transform="rotate(-90 85 85)" filter="url(#gaugeGlow)"/>
+                <circle cx="85" cy="85" r="52" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1" stroke-dasharray="2 4"/>
+                <text x="85" y="80" text-anchor="middle" fill="#FAFAFA" font-size="32" font-weight="700" font-family="Inter">92.4</text>
+                <text x="85" y="100" text-anchor="middle" fill="#A1A1AA" font-size="11" font-family="Inter" letter-spacing="2">HEALTH SCORE</text>
+              </svg>
+              <div>
+                <div style="font-size:13px;color:var(--text-2)">健康资产 <b style="color:var(--green)">1,189</b> / 1,286</div>
+                <div style="font-size:13px;color:var(--text-2);margin-top:6px">预警 <b style="color:var(--orange)">78</b> · 严重 <b style="color:var(--red)">19</b></div>
+                <div style="font-size:12px;color:var(--text-3);margin-top:10px">较上周 <span style="color:var(--green)">▲ 0.6%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><span class="t">采集处理效率</span><span class="s">近 12 小时</span></div>
+            <div class="area-host" id="effBars"></div>
+            <div class="axis"><span>00:00</span><span>04:00</span><span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span><span>现在</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 安全预警中心 ============ -->
+      <section class="page" id="page-alert">
+        <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
+          <div class="kpi"><div class="lab"><span class="ic" style="background:var(--red)"></span>严重告警</div><div class="val num" style="color:var(--red)">3</div><div class="sub">需立即处置</div></div>
+          <div class="kpi"><div class="lab"><span class="ic" style="background:var(--orange)"></span>预警</div><div class="val num" style="color:var(--orange)">34</div><div class="sub">观察中</div></div>
+          <div class="kpi"><div class="lab"><span class="ic" style="background:var(--green)"></span>已处置</div><div class="val num" style="color:var(--green)">128</div><div class="sub">近 24 小时</div></div>
+        </div>
+
+        <div class="card">
+          <div class="filterbar">
+            <div class="fsel">等级 <b>全部</b> ▾</div>
+            <div class="fsel">数据域 <b>全部</b> ▾</div>
+            <div class="fsel">时间 <b>近 24h</b> ▾</div>
+            <div class="fsearch">🔍 按资产 ID / 描述搜索</div>
+          </div>
+          <table>
+            <thead><tr><th>资产 ID</th><th>数据域</th><th>等级</th><th>告警描述</th><th>发现时间</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td class="aid">DS-0823</td><td>订单域</td><td><span class="chip crit"><span class="d"></span>严重</span></td><td>Kafka 消费延迟超阈值</td><td class="num">10:42</td><td><span class="chip warn">处置中</span></td><td><span class="btn ghost" style="padding:5px 12px;font-size:12px">查看</span></td></tr>
+              <tr><td class="aid">API-1190</td><td>用户域</td><td><span class="chip warn"><span class="d"></span>预警</span></td><td>接口响应 P95 升高</td><td class="num">11:47</td><td><span class="chip info">待处理</span></td><td><span class="btn ghost" style="padding:5px 12px;font-size:12px">查看</span></td></tr>
+              <tr><td class="aid">ETL-0455</td><td>财务域</td><td><span class="chip ok"><span class="d"></span>正常</span></td><td>日终对账校验通过</td><td class="num">09:55</td><td><span class="chip ok">已恢复</span></td><td><span class="btn ghost" style="padding:5px 12px;font-size:12px">查看</span></td></tr>
+              <tr><td class="aid">DS-2210</td><td>库存域</td><td><span class="chip crit"><span class="d"></span>严重</span></td><td>采集任务中断</td><td class="num">12:04</td><td><span class="chip warn">处置中</span></td><td><span class="btn ghost" style="padding:5px 12px;font-size:12px">查看</span></td></tr>
+              <tr><td class="aid">TBL-3391</td><td>物流域</td><td><span class="chip warn"><span class="d"></span>预警</span></td><td>数据质量波动</td><td class="num">11:20</td><td><span class="chip info">待处理</span></td><td><span class="btn ghost" style="padding:5px 12px;font-size:12px">查看</span></td></tr>
+              <tr><td class="aid">RPT-7782</td><td>报表域</td><td><span class="chip ok"><span class="d"></span>正常</span></td><td>定时报表生成成功</td><td class="num">08:30</td><td><span class="chip ok">已恢复</span></td><td><span class="btn ghost" style="padding:5px 12px;font-size:12px">查看</span></td></tr>
+              <tr><td class="aid">DS-5501</td><td>营销域</td><td><span class="chip warn"><span class="d"></span>预警</span></td><td>检测到重复采集</td><td class="num">10:31</td><td><span class="chip info">待处理</span></td><td><span class="btn ghost" style="padding:5px 12px;font-size:12px">查看</span></td></tr>
+            </tbody>
+          </table>
+          <div class="pager"><span>共 162 条 · 第 1/9 页</span><span class="pg">‹</span><span class="pg cur">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">…</span><span class="pg">9</span><span class="pg">›</span></div>
+        </div>
+      </section>
+
+      <!-- ============ 实时监控 ============ -->
+      <section class="page" id="page-realtime">
+        <div class="assetbar">
+          <span class="aid-big">DS-0823</span>
+          <span class="seg"><span class="d" style="background:var(--green)"></span>采集中</span>
+          <span class="seg"><span class="d" style="background:var(--orange)"></span>质量预警</span>
+          <span class="seg">Kafka · order-events</span>
+          <div class="sp"><span class="btn primary" id="btnSnap" style="padding:6px 14px;font-size:12px">实时快照</span><span class="btn ghost" style="padding:6px 14px;font-size:12px">导出</span></div>
+        </div>
+
+        <div class="kpi-row" style="grid-template-columns:repeat(6,1fr)">
+          <div class="kpi"><div class="lab"><span class="ic"></span>资产健康度</div><div class="val num"><span id="rtHealth">94.2</span><span class="u">%</span></div><div class="sub"><span class="up">▲ 0.4</span></div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>数据质量</div><div class="val num"><span id="rtQuality">98.6</span><span class="u">%</span></div><div class="sub"><span class="up">▲ 0.2</span></div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>接入任务</div><div class="val num">342</div><div class="sub">运行中 338</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>当前吞吐</div><div class="val num"><span id="rtThru">12.4</span><span class="u">MB/s</span></div><div class="sub"><span class="down">▼ 1.1</span></div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>最高延迟</div><div class="val num"><span id="rtLatency">86</span><span class="u">ms</span></div><div class="sub"><span class="up">▲ 12</span></div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>异常率</div><div class="val num"><span id="rtAnomaly">0.12</span><span class="u">%</span></div><div class="sub"><span class="down">▲ 0.03</span></div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h"><span class="t">实时采集趋势</span><span class="s">成功 / 失败（条/秒）</span></div>
+            <div class="area-host" id="trendBars"></div>
+            <div class="axis"><span>00:00</span><span>04:00</span><span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span><span>现在</span></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><span class="t">数据域健康分布</span><span class="s">96 网格 · 域×时段</span></div>
+            <div class="heat" id="heat"></div>
+            <div class="map-legend">
+              <div class="it"><span class="sdot ok"></span>健康</div>
+              <div class="it"><span class="sdot warn"></span>预警</div>
+              <div class="it"><span class="sdot crit"></span>严重</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2b">
+          <div class="card">
+            <div class="card-h"><span class="t">实时数据质量事件流</span><span class="s">最新在前</span></div>
+            <div class="list" id="rtEvents">
+              <div class="row"><span class="chip warn"><span class="d"></span>预警</span><span class="tt">DS-0823 订单域 空值率 4.2%</span><span class="r num">12:08:21</span></div>
+              <div class="row"><span class="chip ok"><span class="d"></span>正常</span><span class="tt">API-1190 用户域 校验通过</span><span class="r num">12:08:02</span></div>
+              <div class="row"><span class="chip crit"><span class="d"></span>严重</span><span class="tt">DS-2210 库存域 任务中断</span><span class="r num">12:07:55</span></div>
+              <div class="row"><span class="chip ok"><span class="d"></span>正常</span><span class="tt">ETL-0455 财务域 落库完成</span><span class="r num">12:07:40</span></div>
+              <div class="row"><span class="chip warn"><span class="d"></span>预警</span><span class="tt">TBL-3391 物流域 时延 210ms</span><span class="r num">12:07:18</span></div>
+              <div class="row"><span class="chip ok"><span class="d"></span>正常</span><span class="tt">RPT-7782 报表域 生成成功</span><span class="r num">12:06:59</span></div>
+              <div class="row"><span class="chip warn"><span class="d"></span>预警</span><span class="tt">DS-5501 营销域 重复采集</span><span class="r num">12:06:33</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><span class="t">实时处理吞吐</span><span class="s">MB/s · 近 10 分钟</span></div>
+            <div class="bar10" id="thruBars"></div>
+            <div class="axis"><span>-10m</span><span>-8m</span><span>-6m</span><span>-4m</span><span>-2m</span><span>现在</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 电芯监控 ============ -->
+      <section class="page" id="page-cell">
+        <div class="assetbar">
+          <span class="aid-big">PACK-CATL-86S</span>
+          <span class="seg"><span class="d" style="background:var(--green)"></span>放电中</span>
+          <span class="seg"><span class="d" style="background:var(--cyan)"></span>BMS 在线</span>
+          <span class="seg">VIN · LSVAA2A20N2******</span>
+          <div class="sp">
+            <div class="socbar" id="socBar" title="SOC"></div>
+            <span class="btn primary" id="btnCellSnap" style="padding:6px 14px;font-size:12px">电芯快照</span>
+            <span class="btn ghost" style="padding:6px 14px;font-size:12px">导出 DBC</span>
+          </div>
+
+          <!-- 电芯快照：电压 / 温度极值 -->
+          <div class="snap-strip">
+            <div class="snap-grp">
+              <span class="gt"><i style="background:var(--cyan);box-shadow:0 0 8px var(--cyan)"></i>单体电压</span>
+              <span class="snap-it hi"><span class="k">最高</span><span class="v num" id="snapVMax">3.596</span><span class="k">V</span><span class="a num" id="snapVMaxIdx">第 12 串</span></span>
+              <span class="snap-it lo"><span class="k">最低</span><span class="v num" id="snapVMin">3.528</span><span class="k">V</span><span class="a num" id="snapVMinIdx">第 88 串</span></span>
+              <span class="snap-it dv"><span class="k">压差</span><span class="v num" id="snapVDelta">68</span><span class="k">mV</span><span class="a num" id="snapVDeltaTag">预警</span></span>
+            </div>
+            <div class="snap-grp">
+              <span class="gt"><i style="background:var(--orange);box-shadow:0 0 8px var(--orange)"></i>单体温度</span>
+              <span class="snap-it hi"><span class="k">最高</span><span class="v num" id="snapTMax">38.6</span><span class="k">℃</span><span class="a num" id="snapTMaxIdx">探针 48</span></span>
+              <span class="snap-it lo"><span class="k">最低</span><span class="v num" id="snapTMin">33.2</span><span class="k">℃</span><span class="a num" id="snapTMinIdx">探针 03</span></span>
+              <span class="snap-it dv"><span class="k">温差</span><span class="v num" id="snapTDelta">5.4</span><span class="k">℃</span><span class="a num" id="snapTDeltaTag">正常</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-row" style="grid-template-columns:repeat(6,1fr)">
+          <div class="kpi"><div class="lab"><span class="ic"></span>SOC 荷电状态</div><div class="val num"><span id="cSOC">78.4</span><span class="u">%</span></div><div class="sub">剩余续航 312 km</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>SOH 健康度</div><div class="val num"><span id="cSOH">96.2</span><span class="u">%</span></div><div class="sub"><span class="up">▲ 0.1</span> 较上月</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>单体压差</div><div class="val num"><span id="cDelta">68</span><span class="u">mV</span></div><div class="sub"><span class="up">▲ 6</span> 阈值 80mV</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>最高单体温度</div><div class="val num"><span id="cTemp">38.6</span><span class="u">℃</span></div><div class="sub">探针 <span id="cTempProbe">48</span> 号</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>总电压 / 电流</div><div class="val num"><span id="cVolt">312.6</span><span class="u">V</span></div><div class="sub"><span id="cCur">-84.2</span> A · 放电</div></div>
+          <div class="kpi"><div class="lab"><span class="ic"></span>绝缘电阻</div><div class="val num"><span id="cInsul">6.8</span><span class="u">MΩ</span></div><div class="sub"><span class="up">正常</span> 阈值 0.5</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <span class="t">电芯矩阵 · 单体电压实时分布</span>
+            <span class="s" id="cellMatrixSub">96 串 · 采样 1Hz · 色阶按单体电压</span>
+          </div>
+          <div class="cellgrid-wrap">
+            <div class="cellgrid" id="cellGrid"></div>
+            <div class="cellscan"></div>
+          </div>
+          <div class="cell-legend">
+            <span>低压 <b>3.50V</b></span>
+            <span class="scale"></span>
+            <span><b>3.60V</b> 高压</span>
+            <span style="margin-left:auto">均值 <b id="cAvg" style="color:var(--cyan)">3.585</b> V · 最高 <b id="cMax">3.596</b> V · 最低 <b id="cMin">3.528</b> V · 压差 <b id="cSpread" style="color:var(--orange)">68</b> mV</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h"><span class="t">单体电压趋势</span><span class="s">最高 / 最低 / 均值（V）· 近 60 分钟</span></div>
+            <div class="area-host" id="cellTrend"></div>
+            <div class="axis"><span>-60m</span><span>-45m</span><span>-30m</span><span>-15m</span><span>现在</span></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><span class="t">模组温度分布</span><span class="s">8 模组 · 12 探针 / 组</span></div>
+            <div class="heat" id="cellHeat"></div>
+            <div class="map-legend">
+              <div class="it"><span class="sdot ok"></span>正常 &lt;40℃</div>
+              <div class="it"><span class="sdot warn"></span>偏高 40-50℃</div>
+              <div class="it"><span class="sdot crit"></span>过温 &gt;50℃</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2b">
+          <div class="card">
+            <div class="card-h"><span class="t">BMS 电芯告警流</span><span class="s">最新在前</span></div>
+            <div class="list" id="cellEvents">
+              <div class="row"><span class="chip warn"><span class="d"></span>预警</span><span class="tt">第 63 串 单体电压持续偏低</span><span class="r num">14:02:41</span></div>
+              <div class="row"><span class="chip ok"><span class="d"></span>正常</span><span class="tt">模组 #3 温度均衡完成 31.2℃</span><span class="r num">14:02:18</span></div>
+              <div class="row"><span class="chip warn"><span class="d"></span>预警</span><span class="tt">压差高于预警线（60mV），建议触发均衡</span><span class="r num">14:01:55</span></div>
+              <div class="row"><span class="chip ok"><span class="d"></span>正常</span><span class="tt">BMS 绝缘自检通过 6.8MΩ</span><span class="r num">14:01:30</span></div>
+              <div class="row"><span class="chip warn"><span class="d"></span>预警</span><span class="tt">第 88 串 电压持续走低</span><span class="r num">14:00:52</span></div>
+              <div class="row"><span class="chip ok"><span class="d"></span>正常</span><span class="tt">均衡策略已下发 · 目标 3.585V</span><span class="r num">14:00:21</span></div>
+              <div class="row"><span class="chip info"><span class="d"></span>信息</span><span class="tt">OBD 网关心跳正常 · 延迟 82ms</span><span class="r num">13:59:58</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><span class="t">充放电电流</span><span class="s">A · 近 10 分钟（正充负放）</span></div>
+            <div class="area-host" id="cellCur"></div>
+            <div class="axis"><span>-10m</span><span>-8m</span><span>-6m</span><span>-4m</span><span>-2m</span><span>现在</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+  <!-- 数据源配置面板 -->
+  <button class="ds-fab" id="dsFab" title="数据源设置">⚙</button>
+  <div class="ds-panel" id="dsPanel" hidden>
+    <div class="ds-head">数据源设置 <button class="ds-x" id="dsClose" title="关闭">✕</button></div>
+    <div class="ds-mode">
+      <button class="ds-tab active" data-mode="demo">演示数据</button>
+      <button class="ds-tab" data-mode="api">真实 API</button>
+    </div>
+    <div class="ds-body" id="dsDemoNote">当前展示内置演示数据（随机波动）。切换到「真实 API」即可接入你的后端。</div>
+    <div class="ds-body" id="dsApiBox" hidden>
+      <label>后端地址（WebSocket 或 REST）</label>
+      <input id="dsUrl" class="ds-input" placeholder="ws://127.0.0.1:8080 或 http://..." />
+      <div class="ds-actions">
+        <button class="btn primary" id="dsConnect">连接</button>
+        <button class="btn ghost" id="dsDisconnect">断开</button>
+      </div>
+      <div class="ds-status demo" id="dsStatus">未连接</div>
+      <div class="ds-fmt">
+        <div class="ds-fmt-t">后端按此格式推送（示例）：</div>
+        <pre>// 快照：周期或变化时发送
+{"health":94.2,"quality":98.6,"thru":12.4,
+ "latency":86,"anomaly":0.12,
+ "thruBars":[9,11,8,12,10,13,11,12,9,12],
+ "trendBars":[{"a":80,"b":3}...],
+ "heat":[0.9,0.85,0.7,0.95...]}
+
+// 电芯级快照（BMS 经 OBD 网关上报）
+{"soc":78.4,"soh":96.2,"packVoltage":312.6,
+ "packCurrent":-84.2,"cellTempMax":34.6,
+ "insulation":6.8,
+ "cellVoltages":[3.585,3.581,3.412,...],  // 96 串单体电压
+ "cellTemps":[31.2,30.8,43.6,...],        // 96 探针温度
+ "cellTrend":[{"a":3.60,"b":3.57,"c":3.585}...],
+ "cellCur":[{"a":82}...]}
+
+// 事件：WS 实时推送
+{"type":"event","level":"warn",
+ "text":"DS-0823 订单域 空值率波动",
+ "time":"14:03:21"}</pre>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /* ===== 导航切换 ===== */
+  var titles={assets:["数据资产管理","资产管理 / 数据资产目录"],overview:["总览驾驶舱","监控中心 / 总览"],alert:["安全预警中心","监控中心 / 预警"],realtime:["实时监控","监控中心 / 实时"],cell:["电芯监控","监控中心 / 电芯"],design:["设计系统","系统 / 设计规范"]};
+  document.querySelectorAll('#nav .nav-item').forEach(function(it){
+    it.addEventListener('click',function(){
+      var p=it.getAttribute('data-page');
+      if(!p) return;
+      document.querySelectorAll('#nav .nav-item').forEach(function(n){n.classList.remove('active');});
+      it.classList.add('active');
+      document.querySelectorAll('.page').forEach(function(s){s.classList.remove('active');});
+      document.getElementById('page-'+p).classList.add('active');
+      document.getElementById('pageTitle').textContent=titles[p][0];
+      document.getElementById('pageCrumb').textContent=titles[p][1];
+      window.scrollTo(0,0);
+      var _c=document.querySelector('.content'); if(_c) _c.scrollTop=0;
+      if(p==='cell'){ try{updateCell();}catch(e){} }
+    });
+  });
+
+  /* ===== 色板 ===== */
+  var colors=[
+    ["背景 Background","#0A0A0B"],["卡片 Card","#141417"],["浮起 Raised","#1C1C20"],
+    ["弱边框 Border","#27272A"],["主文字 Text","#FAFAFA"],["次文字 Text-2","#A1A1AA"],
+    ["弱文字 Text-3","#71717A"],["品牌青 Cyan","#22D3EE"],["正常绿 Green","#10B981"],
+    ["预警橙 Orange","#F59E0B"],["严重红 Red","#F43F5E"],["青-浅 Cyan-L","#67E8F9"]
+  ];
+  var sw=document.getElementById('swatches');
+  colors.forEach(function(c){
+    var d=document.createElement('div');d.className='sw';
+    d.innerHTML='<div class="clr" style="background:'+c[1]+'"></div><div class="meta"><div class="n">'+c[0]+'</div><div class="h">'+c[1].toUpperCase()+'</div></div>';
+    sw.appendChild(d);
+  });
+
+  /* ===== KPI / 仪表盘数字滚动 ===== */
+  function countUp(el,dur){
+    try{
+      var node=el.firstChild; if(!node||node.nodeType!==3) return;
+      var m=node.nodeValue.match(/[\d.,]+/); if(!m) return;
+      var raw=m[0],dec=(raw.split('.')[1]||'').length,comma=raw.indexOf(',')>=0,target=parseFloat(raw.replace(/,/g,''));
+      var start=performance.now();
+      function step(t){var p=Math.min(1,(t-start)/dur),v=target*(1-Math.pow(1-p,3));
+        var s=dec?v.toFixed(dec):String(Math.round(v));
+        if(comma)s=Number(s).toLocaleString('en-US');
+        node.nodeValue=node.nodeValue.replace(/[\d.,]+/,s);
+        if(p<1)requestAnimationFrame(step);}
+      requestAnimationFrame(step);
+    }catch(e){}
+  }
+  document.querySelectorAll('#page-overview .kpi .val').forEach(function(e){countUp(e,1100);});
+  var gtxt=document.querySelector('#page-overview .gauge svg text');
+  if(gtxt){var gv=parseFloat(gtxt.textContent),gs=gtxt.textContent,st=performance.now();
+    (function step(t){var p=Math.min(1,(t-st)/1100),v=gv*(1-Math.pow(1-p,3));
+      gtxt.textContent=v.toFixed(1);if(p<1)requestAnimationFrame(step);else gtxt.textContent=gs;})(st);}
+
+  var CN_PATHS={"110000":"M36.33 13.42L36.46 13.34L36.01 13.29L35.81 13.09L35.75 12.94L35.71 13.03L35.60 13.02L35.61 13.10L35.50 13.07L35.60 13.23L35.43 13.21L35.36 13.34L35.02 13.46L35.20 13.74L35.10 13.85L35.04 13.82L34.78 13.97L34.75 14.05L34.87 14.18L34.77 14.21L34.83 14.40L34.95 14.38L35.06 14.49L35.15 14.40L35.39 14.41L35.58 14.56L35.55 14.47L35.65 14.40L35.87 14.40L36.00 14.22L35.87 14.11L35.86 13.97L36.06 13.97L36.33 13.86L36.36 13.77L36.23 13.63L36.21 13.50L36.33 13.42Z","120000":"M36.67 14.60L36.76 14.59L36.81 14.43L36.67 14.40L36.63 14.47L36.58 14.42L36.46 14.10L36.49 14.00L36.68 14.03L36.68 13.94L36.49 13.77L36.38 13.75L36.20 13.93L36.18 14.12L36.25 14.17L36.17 14.18L36.19 14.35L36.01 14.36L35.99 14.29L35.89 14.38L35.87 14.53L35.94 14.57L35.89 14.63L35.95 14.66L35.97 14.89L35.84 14.97L35.83 15.25L36.10 15.32L36.13 15.42L36.22 15.36L36.25 15.44L36.64 15.32L36.57 15.17L36.74 15.14L36.76 14.88L36.92 14.77L36.74 14.64L36.47 14.64L36.54 14.58L36.67 14.60Z","130000":"M36.43 13.35L36.21 13.50L36.23 13.63L36.33 13.77L36.49 13.77L36.68 13.94L36.68 14.03L36.49 14.00L36.46 14.05L36.56 14.40L36.63 14.47L36.67 14.40L36.81 14.43L36.71 14.65L36.88 14.71L36.88 14.80L37.05 14.97L37.26 15.09L37.36 15.03L37.34 14.87L37.64 14.82L37.62 14.88L37.90 14.64L37.98 14.27L38.12 14.19L38.12 14.11L38.40 14.04L38.28 13.90L38.29 13.79L38.20 13.77L38.14 13.45L37.89 13.46L37.80 13.37L37.83 13.32L37.73 13.34L37.55 13.18L37.60 13.04L37.68 13.03L37.63 12.95L37.75 12.90L37.88 12.69L37.59 12.70L37.55 12.63L37.15 12.66L37.11 12.45L36.97 12.27L37.01 12.19L37.10 12.23L37.14 12.15L37.06 11.98L37.10 11.94L36.96 11.96L36.95 11.83L36.84 11.77L36.91 11.70L36.88 11.61L36.68 11.38L36.43 11.40L36.36 11.54L36.12 11.52L35.98 11.60L35.96 11.81L35.87 11.80L35.95 11.91L35.88 12.02L35.68 12.07L35.48 12.00L35.30 12.22L35.16 12.05L35.09 12.06L34.69 12.29L34.71 12.40L34.57 12.43L34.29 12.40L34.30 12.19L34.35 12.15L34.29 11.90L34.04 11.87L33.98 11.94L34.00 12.02L33.87 12.05L33.75 12.21L33.77 12.49L33.61 12.47L33.49 12.57L33.60 12.77L33.44 12.90L33.63 13.07L33.62 13.17L33.82 13.41L33.84 13.63L34.02 13.65L33.97 13.73L33.67 13.81L33.66 13.93L33.58 13.89L33.51 13.98L33.62 14.08L33.76 14.08L33.76 14.14L33.91 14.13L33.92 14.35L34.05 14.43L33.94 14.69L33.98 14.78L33.87 14.92L33.67 14.95L33.63 14.86L33.50 14.93L33.39 15.04L33.45 15.24L33.23 15.44L33.21 15.73L33.45 15.83L33.62 16.24L33.58 16.29L33.70 16.32L33.40 16.85L33.40 17.14L33.34 17.12L33.32 17.21L33.15 17.29L33.22 17.51L33.37 17.64L33.87 17.74L34.07 17.88L34.33 17.86L34.33 17.95L34.51 17.79L34.66 17.91L34.80 17.85L34.63 17.50L34.80 17.24L34.96 17.19L35.20 16.66L35.42 16.64L35.41 16.52L35.50 16.42L35.58 16.53L35.88 16.15L36.40 16.15L36.52 15.93L36.67 15.87L36.83 15.62L36.68 15.63L36.57 15.37L36.25 15.44L36.22 15.36L36.13 15.42L36.10 15.32L35.83 15.25L35.84 14.97L35.97 14.89L35.95 14.66L35.89 14.63L35.94 14.57L35.87 14.53L35.89 14.38L35.65 14.40L35.55 14.47L35.58 14.56L35.39 14.41L35.15 14.40L35.02 14.48L34.95 14.38L34.83 14.40L34.76 14.25L34.87 14.18L34.75 14.05L34.78 13.97L35.04 13.82L35.10 13.85L35.20 13.74L35.02 13.46L35.36 13.34L35.43 13.21L35.60 13.23L35.50 13.07L35.61 13.10L35.60 13.02L35.71 13.03L35.73 12.95L36.01 13.29L36.43 13.35ZM36.21 13.92L35.86 13.97L35.87 14.11L35.98 14.15L35.95 14.31L36.01 14.36L36.19 14.35L36.17 14.18L36.25 14.17L36.17 14.06L36.21 13.92ZM36.69 14.62L36.54 14.58L36.47 14.64L36.59 14.68L36.69 14.62Z","140000":"M30.62 19.40L30.98 19.38L31.06 19.27L31.25 19.19L31.60 19.16L31.79 18.94L32.00 18.94L32.00 18.72L32.58 18.79L32.76 18.70L32.76 18.64L32.87 18.67L32.92 18.55L33.02 18.57L33.17 18.47L33.21 18.34L33.28 18.37L33.24 18.18L33.31 18.16L33.37 17.64L33.22 17.51L33.15 17.29L33.32 17.21L33.34 17.12L33.40 17.14L33.40 16.85L33.70 16.32L33.58 16.29L33.62 16.24L33.45 15.83L33.21 15.73L33.23 15.44L33.45 15.24L33.39 15.04L33.50 14.93L33.63 14.86L33.67 14.95L33.87 14.92L33.98 14.78L33.94 14.69L34.05 14.43L33.92 14.35L33.91 14.13L33.76 14.14L33.76 14.08L33.62 14.08L33.51 13.98L33.58 13.89L33.66 13.93L33.67 13.81L33.97 13.73L34.02 13.65L33.84 13.63L33.82 13.41L33.70 13.26L33.64 13.29L33.64 13.47L33.46 13.54L33.42 13.48L33.22 13.65L33.03 13.68L32.97 13.59L32.79 13.63L32.56 13.83L32.32 13.70L32.20 13.74L31.92 14.20L31.90 14.38L31.77 14.41L31.54 14.34L31.42 14.57L31.24 14.59L31.33 14.70L31.24 14.94L31.11 15.03L31.02 15.55L30.73 15.81L30.74 16.04L30.91 16.23L30.96 16.44L30.91 16.55L30.84 16.56L30.87 16.71L30.62 16.98L30.63 17.32L30.72 17.42L30.67 17.84L30.81 18.37L30.50 19.12L30.50 19.31L30.62 19.40Z","150000":"M19.80 11.20L20.35 12.34L20.18 12.56L20.46 12.90L20.75 13.08L20.76 13.43L20.99 13.32L20.95 13.25L21.03 13.23L21.14 13.39L21.13 13.29L21.29 13.22L21.38 13.32L21.44 13.14L21.76 13.15L21.85 13.07L22.21 13.12L22.31 13.28L22.26 13.72L21.99 13.99L21.66 14.11L21.97 14.14L22.32 14.31L22.38 14.49L22.53 14.52L22.53 14.60L22.81 14.59L22.80 14.97L22.91 15.05L23.12 14.98L23.10 15.06L23.21 15.22L23.43 15.34L23.57 15.34L23.82 15.11L23.62 14.91L23.68 14.89L24.13 14.74L24.58 14.90L24.86 14.67L25.27 14.54L25.47 14.58L25.43 14.70L25.55 15.01L25.28 15.36L24.92 15.60L25.01 15.84L24.87 15.96L24.91 16.14L25.13 16.22L25.54 16.59L26.47 16.30L26.70 16.30L26.72 16.22L26.84 16.20L26.90 16.00L26.84 15.88L26.92 15.70L26.91 15.36L27.01 15.09L27.15 14.85L27.27 14.85L27.26 14.74L27.45 14.73L27.53 14.62L27.67 14.63L27.68 14.79L27.83 14.97L27.61 15.28L27.52 15.61L27.43 15.68L27.80 15.87L28.01 15.85L28.21 16.00L28.19 16.05L28.66 16.21L28.69 16.35L29.31 16.32L29.32 15.95L29.44 16.08L29.55 15.98L29.44 15.79L29.53 15.57L29.79 15.37L29.77 15.30L30.00 15.15L30.11 14.94L30.24 14.89L30.23 14.73L30.28 14.79L30.49 14.72L30.43 14.55L30.62 14.69L30.74 14.62L30.82 14.73L31.04 14.49L31.24 14.41L31.20 14.62L31.40 14.58L31.54 14.34L31.77 14.41L31.90 14.38L31.92 14.20L32.20 13.74L32.32 13.70L32.56 13.83L32.79 13.63L32.97 13.59L33.03 13.68L33.18 13.67L33.42 13.48L33.46 13.54L33.64 13.47L33.64 13.29L33.70 13.26L33.63 13.07L33.44 12.90L33.60 12.77L33.48 12.59L33.61 12.47L33.77 12.49L33.75 12.21L33.87 12.05L34.00 12.02L33.98 11.94L34.04 11.87L34.29 11.90L34.35 12.15L34.30 12.19L34.29 12.40L34.57 12.43L34.71 12.40L34.69 12.29L35.09 12.06L35.16 12.05L35.30 12.22L35.48 12.00L35.68 12.07L35.88 12.02L35.95 11.91L35.87 11.80L35.96 11.81L35.98 11.60L36.12 11.52L36.36 11.54L36.43 11.40L36.68 11.38L36.88 11.61L36.91 11.70L36.84 11.77L36.95 11.83L36.96 11.96L37.10 11.94L37.06 11.98L37.14 12.15L37.10 12.23L37.01 12.19L36.97 12.27L37.11 12.45L37.08 12.53L37.17 12.69L37.55 12.63L37.59 12.70L37.84 12.72L37.99 12.58L37.98 12.43L38.03 12.43L37.93 12.34L37.92 12.21L38.00 11.91L37.88 11.80L38.09 11.61L38.19 11.75L38.37 11.78L38.58 12.30L38.72 12.07L38.87 11.98L38.88 11.89L39.22 11.73L39.38 11.75L39.64 11.53L39.82 11.48L39.89 11.56L40.05 11.44L40.09 11.31L40.31 11.31L40.31 11.27L40.46 11.32L40.52 11.24L40.43 11.17L40.50 11.16L40.83 11.29L41.14 11.17L41.10 11.14L41.17 11.01L41.43 11.00L41.53 10.63L41.30 10.59L41.22 10.51L41.21 10.45L41.33 10.45L41.30 10.40L41.40 10.37L41.23 9.97L41.27 9.84L41.06 9.63L41.06 9.49L40.69 9.71L40.36 9.74L40.37 9.52L40.25 9.42L40.27 9.27L40.22 9.26L40.28 9.23L40.18 9.09L40.33 8.72L40.26 8.70L40.28 8.56L40.14 8.49L40.11 8.31L39.85 8.25L39.99 8.12L39.94 8.00L40.01 7.98L40.35 8.20L40.50 8.08L40.55 8.21L40.59 8.18L40.75 8.29L40.82 8.09L40.79 7.93L41.00 7.90L41.10 7.75L40.97 7.57L40.96 7.43L41.45 7.31L41.45 7.11L41.37 7.17L41.39 7.06L41.20 7.00L41.29 7.06L41.26 7.16L41.14 7.15L41.09 7.26L40.96 7.27L40.88 7.19L40.87 7.04L40.77 7.03L40.84 6.93L40.64 6.88L40.48 6.65L40.62 6.45L41.09 6.22L41.20 6.05L41.43 5.95L41.99 5.46L42.17 5.83L42.12 5.91L42.21 5.85L42.20 5.44L42.44 4.88L42.52 4.82L42.69 4.87L42.78 4.81L42.82 4.55L42.70 4.34L42.78 4.33L42.75 4.04L42.86 3.93L42.81 3.90L42.96 3.78L43.04 3.58L43.28 3.44L43.22 3.25L43.41 3.13L43.46 2.96L42.88 2.38L42.70 2.34L42.48 2.62L42.29 2.67L42.18 2.62L42.11 2.73L41.97 2.66L41.72 2.70L41.54 2.60L41.50 2.68L41.32 2.73L40.96 2.69L40.84 2.52L40.73 2.02L40.65 1.93L40.78 1.75L40.53 1.70L40.50 1.61L40.28 1.49L40.10 1.70L39.90 1.68L39.84 1.56L39.47 1.40L39.96 0.98L39.88 0.76L39.73 0.66L39.17 0.73L38.74 1.13L38.53 1.23L38.56 1.41L38.88 1.35L39.10 1.46L39.01 1.68L39.14 1.84L39.04 2.07L38.57 2.32L38.46 2.64L38.30 2.79L38.31 2.91L38.08 3.12L38.10 3.24L37.78 3.61L37.97 3.64L37.97 3.83L37.76 4.01L37.33 4.07L36.71 4.48L35.81 4.15L35.29 5.18L35.06 5.49L35.08 5.74L34.84 5.84L34.88 6.08L35.17 6.32L35.44 6.12L35.59 6.16L35.87 6.10L36.12 6.18L36.36 6.36L36.71 5.98L37.33 6.01L37.50 6.23L37.79 6.34L37.81 6.46L37.98 6.52L37.94 6.57L38.27 6.80L38.44 7.10L38.43 7.33L38.34 7.32L38.24 7.42L37.99 7.40L37.78 7.36L37.61 7.22L37.51 7.31L37.12 7.26L36.66 7.48L36.53 7.40L36.39 7.42L36.35 7.64L35.91 7.62L35.70 7.71L35.45 8.03L35.46 8.22L35.37 8.31L35.25 8.31L34.98 8.54L34.70 8.61L34.20 8.56L34.04 8.61L33.96 8.79L33.68 9.04L33.28 9.25L32.64 9.16L32.31 8.93L31.87 8.95L31.64 9.22L31.47 9.64L31.67 9.94L31.84 10.06L31.91 10.31L31.78 10.33L31.59 10.51L31.14 10.67L30.67 11.22L29.94 11.53L29.36 11.60L28.23 11.54L26.82 12.05L26.40 12.25L26.22 12.42L26.15 12.35L25.82 12.34L25.83 12.12L25.29 12.20L24.92 12.12L24.34 11.85L23.81 11.77L23.59 11.50L22.82 11.33L22.38 11.31L21.72 11.43L19.80 11.20Z","210000":"M41.40 14.21L41.86 14.18L41.90 14.25L42.06 13.92L42.38 13.63L42.53 13.52L42.63 13.53L42.61 13.47L42.82 13.34L42.94 13.36L43.08 13.21L43.16 13.23L43.18 13.13L43.08 13.07L43.24 12.83L43.04 12.60L42.96 12.32L42.86 12.32L42.84 12.18L42.84 12.03L43.00 11.86L42.85 11.85L42.84 11.71L42.74 11.69L42.75 11.57L42.65 11.50L42.68 11.38L42.60 11.37L42.58 11.20L42.49 11.21L42.50 10.87L42.16 11.15L42.08 11.12L42.14 11.04L42.05 11.00L42.13 10.92L42.00 10.77L41.80 10.72L41.61 10.51L41.43 11.00L41.17 11.01L41.10 11.14L41.14 11.17L40.83 11.29L40.50 11.16L40.43 11.17L40.52 11.24L40.46 11.32L40.31 11.27L40.31 11.31L40.09 11.31L40.05 11.44L39.89 11.56L39.82 11.48L39.64 11.53L39.38 11.75L39.22 11.73L38.88 11.89L38.87 11.98L38.72 12.07L38.58 12.30L38.37 11.78L38.19 11.75L38.09 11.61L37.91 11.74L37.88 11.80L38.00 11.91L37.92 12.21L38.01 12.53L37.75 12.90L37.63 12.95L37.68 13.03L37.60 13.04L37.55 13.18L37.73 13.34L37.83 13.32L37.80 13.37L37.89 13.46L38.14 13.45L38.20 13.77L38.29 13.79L38.28 13.90L38.38 14.01L38.90 13.80L39.01 13.54L39.18 13.33L39.35 13.29L39.30 13.19L39.39 13.20L39.42 13.13L39.68 13.17L39.73 13.12L39.77 13.18L39.99 13.11L40.10 13.32L40.26 13.33L40.34 13.48L40.30 13.62L40.09 13.76L40.13 13.87L39.95 14.07L39.76 14.13L39.69 14.38L39.50 14.45L39.57 14.52L39.54 14.63L39.74 14.71L39.91 14.64L39.80 14.74L39.88 14.88L39.84 14.92L39.80 14.85L39.74 14.97L39.62 14.94L39.60 15.02L39.39 15.08L39.43 15.28L39.90 15.13L39.83 15.05L39.87 14.99L40.07 15.03L40.02 14.96L40.19 14.94L40.28 14.84L40.23 14.79L40.48 14.59L40.97 14.34L41.13 14.33L41.18 14.25L41.28 14.28L41.40 14.21Z","220000":"M46.37 11.58L46.49 11.53L46.54 11.15L46.65 10.99L46.92 11.11L46.90 11.29L47.05 11.45L47.12 11.38L47.22 11.57L47.15 11.49L47.18 11.33L47.03 11.27L47.63 11.06L47.59 10.98L47.77 10.50L47.63 10.57L47.53 10.49L47.40 10.56L47.21 10.38L47.03 10.35L46.99 9.96L46.76 10.16L46.65 9.97L46.48 10.12L46.08 10.18L46.06 10.41L45.77 10.46L45.65 10.26L45.68 10.14L45.57 10.11L45.44 9.84L45.45 9.62L45.36 9.49L45.19 9.65L45.09 9.65L45.13 9.87L44.88 9.93L44.63 9.59L44.62 9.48L44.69 9.42L44.38 9.36L44.27 9.43L44.22 9.18L44.31 9.05L44.20 8.87L44.06 8.86L43.88 8.75L43.61 8.86L43.41 8.84L43.17 8.65L43.16 8.49L42.94 8.51L42.89 8.61L42.68 8.62L42.52 8.46L42.50 8.56L42.10 8.56L42.06 8.45L41.78 8.23L41.83 8.16L41.75 8.06L41.81 7.98L41.74 7.71L41.42 7.78L41.16 7.73L41.00 7.90L40.79 7.93L40.82 8.09L40.75 8.29L40.59 8.18L40.55 8.21L40.50 8.08L40.35 8.20L40.17 8.04L39.94 8.00L39.99 8.12L39.85 8.25L40.11 8.31L40.14 8.49L40.28 8.56L40.26 8.70L40.33 8.72L40.18 9.09L40.28 9.23L40.22 9.26L40.27 9.27L40.25 9.42L40.37 9.52L40.36 9.74L40.69 9.71L41.06 9.49L41.06 9.63L41.27 9.84L41.23 9.97L41.38 10.29L41.33 10.45L41.21 10.45L41.30 10.59L41.53 10.63L41.57 10.53L41.66 10.54L41.80 10.72L42.00 10.77L42.13 10.92L42.05 11.00L42.14 11.04L42.08 11.12L42.16 11.15L42.50 10.87L42.49 11.21L42.58 11.20L42.60 11.37L42.68 11.38L42.65 11.50L42.75 11.57L42.74 11.69L42.84 11.71L42.85 11.85L43.00 11.86L42.83 12.04L42.88 12.07L42.86 12.32L42.96 12.32L43.04 12.60L43.24 12.83L43.07 13.11L43.45 13.07L43.52 12.91L43.86 12.63L43.91 12.33L43.98 12.33L43.98 12.25L44.07 12.30L44.18 12.19L44.38 12.40L44.33 12.46L44.44 12.51L44.68 12.52L44.76 12.59L45.05 12.56L45.15 12.64L45.31 12.42L45.08 12.00L45.83 11.97L46.05 11.79L46.07 11.62L46.17 11.54L46.32 11.64L46.37 11.58Z","230000":"M41.42 7.78L41.74 7.71L41.81 7.98L41.75 8.06L41.83 8.16L41.78 8.23L42.06 8.45L42.10 8.56L42.50 8.56L42.52 8.46L42.68 8.62L42.89 8.61L42.94 8.51L43.16 8.49L43.17 8.65L43.41 8.84L43.61 8.86L43.88 8.75L44.06 8.86L44.20 8.87L44.31 9.05L44.22 9.18L44.27 9.43L44.38 9.36L44.69 9.42L44.62 9.48L44.63 9.59L44.88 9.93L45.13 9.87L45.09 9.65L45.19 9.65L45.36 9.49L45.45 9.62L45.44 9.84L45.57 10.11L45.68 10.14L45.65 10.26L45.77 10.46L46.06 10.41L46.08 10.18L46.48 10.12L46.65 9.97L46.76 10.16L46.99 9.96L47.03 10.35L47.21 10.38L47.40 10.56L47.53 10.49L47.63 10.57L47.76 10.50L47.68 10.47L47.77 9.95L47.60 9.29L47.48 9.15L47.64 9.05L47.92 9.02L48.24 8.66L48.33 8.75L49.11 8.98L49.26 8.87L49.27 8.57L49.54 8.37L49.53 8.17L49.70 8.06L49.73 7.84L49.89 7.75L49.86 7.66L49.93 7.60L49.85 7.52L49.98 7.36L50.02 7.02L50.15 6.89L50.11 6.67L50.22 6.57L50.43 6.52L50.61 6.28L50.42 6.02L50.52 5.74L50.87 5.56L50.73 5.55L50.59 5.63L50.14 5.62L49.76 5.75L49.60 5.88L49.26 5.87L49.00 6.06L48.87 6.06L48.79 6.28L48.63 6.23L48.31 6.33L47.99 6.34L47.88 6.25L47.54 6.31L47.24 5.89L47.38 5.70L47.30 5.60L47.32 5.49L47.20 5.50L47.13 5.39L47.25 5.12L46.89 5.13L46.64 4.96L46.47 4.71L46.33 4.70L46.30 4.58L45.94 4.64L45.88 4.54L45.68 4.52L45.72 4.44L45.66 4.40L45.21 4.46L44.90 4.41L44.67 4.17L44.65 3.94L44.73 3.76L44.51 3.66L44.53 3.56L44.47 3.53L44.54 3.42L44.48 3.24L44.17 2.94L44.22 2.68L44.14 2.68L44.16 2.75L44.09 2.72L44.16 2.59L44.06 2.57L44.10 2.46L43.97 2.40L44.02 2.29L43.79 2.05L43.87 1.86L43.67 1.79L43.77 1.70L43.68 1.69L43.70 1.61L43.54 1.43L43.39 1.37L43.51 1.23L43.39 1.24L43.27 1.10L43.15 1.14L43.20 1.01L43.10 0.92L43.03 0.95L42.71 0.80L42.50 0.84L42.49 0.90L42.33 0.79L42.13 0.78L41.97 0.62L41.88 0.65L41.67 0.51L41.47 0.45L41.39 0.49L41.38 0.44L41.37 0.50L41.18 0.44L40.87 0.54L40.49 0.56L40.43 0.49L39.89 0.61L39.73 0.66L39.99 0.94L39.80 1.18L39.47 1.40L39.84 1.56L39.90 1.68L40.01 1.72L40.10 1.70L40.28 1.49L40.50 1.61L40.53 1.70L40.78 1.75L40.65 1.93L40.73 2.02L40.84 2.52L40.96 2.69L41.32 2.73L41.50 2.68L41.54 2.60L41.72 2.70L41.97 2.66L42.11 2.73L42.18 2.62L42.29 2.67L42.48 2.62L42.70 2.34L42.88 2.38L43.46 2.96L43.41 3.13L43.22 3.25L43.28 3.44L43.04 3.58L42.96 3.78L42.81 3.90L42.86 3.93L42.75 4.04L42.78 4.33L42.70 4.34L42.82 4.55L42.78 4.81L42.69 4.87L42.52 4.82L42.44 4.88L42.20 5.44L42.21 5.85L42.12 5.91L42.17 5.83L41.99 5.46L41.43 5.95L41.20 6.05L41.09 6.22L40.62 6.45L40.48 6.65L40.64 6.88L40.84 6.93L40.77 7.03L40.87 7.04L40.88 7.19L40.98 7.28L41.09 7.26L41.14 7.15L41.26 7.16L41.29 7.06L41.20 7.00L41.39 7.06L41.37 7.17L41.45 7.11L41.45 7.31L40.96 7.43L40.97 7.57L41.10 7.75L41.42 7.78Z","310000":"M39.24 22.98L39.31 22.99L39.31 23.16L39.40 23.14L39.54 23.32L39.88 23.18L40.09 23.22L40.13 23.14L40.12 22.98L39.91 22.70L39.60 22.49L39.41 22.63L39.38 22.84L39.22 22.87L39.24 22.98ZM40.12 22.38L39.81 22.30L39.58 22.13L39.42 22.24L39.62 22.45L39.67 22.41L39.99 22.56L40.12 22.54L40.12 22.38ZM39.98 22.64L40.22 22.74L40.24 22.69L39.98 22.64Z","320000":"M36.30 19.44L36.18 19.57L36.10 19.29L35.87 19.02L35.86 19.08L35.73 19.06L35.56 19.15L35.53 19.36L35.90 19.61L36.02 19.61L36.08 19.85L36.20 19.93L36.46 19.94L36.51 20.01L36.56 19.97L36.66 20.11L36.66 20.29L36.99 20.26L36.81 20.78L36.89 20.87L37.04 20.81L37.11 21.03L37.07 21.15L37.17 21.28L37.48 21.26L37.47 21.15L37.56 21.04L37.70 21.04L37.83 21.17L37.87 21.39L37.75 21.55L37.61 21.41L37.33 21.41L37.35 21.52L37.43 21.53L37.44 21.67L37.39 21.79L37.28 21.81L37.18 21.92L37.16 22.07L37.28 22.16L37.26 22.22L37.39 22.24L37.43 22.29L37.39 22.35L37.50 22.32L37.57 22.38L37.56 22.61L37.45 22.68L37.51 22.77L37.97 22.70L38.00 22.83L38.17 22.89L38.44 22.83L38.59 23.04L38.86 23.08L38.91 23.24L39.08 23.12L39.07 23.03L39.24 22.98L39.22 22.87L39.38 22.84L39.41 22.63L39.62 22.45L39.42 22.24L39.48 22.17L39.58 22.13L39.81 22.30L40.12 22.38L40.02 22.04L39.70 21.82L39.67 21.57L39.29 21.39L39.30 21.14L39.18 20.73L39.11 20.66L38.76 19.69L38.21 19.43L38.06 19.33L38.11 19.27L37.99 19.25L38.09 19.25L38.04 19.21L37.88 19.20L37.92 18.88L37.57 18.97L37.45 19.25L37.50 19.28L37.24 19.34L37.17 19.58L37.01 19.62L37.01 19.46L36.82 19.32L36.69 19.35L36.70 19.48L36.60 19.45L36.53 19.54L36.30 19.44Z","330000":"M37.22 25.71L37.26 25.76L37.45 25.69L37.52 25.76L37.46 26.03L37.53 26.08L37.61 26.54L37.70 26.50L37.90 26.58L38.18 26.33L38.31 26.69L38.72 26.57L38.88 26.86L38.95 26.84L39.08 26.52L39.02 26.42L39.14 26.23L39.19 26.24L39.27 26.10L39.43 26.21L39.48 26.18L39.45 26.09L39.31 26.05L39.37 25.90L39.41 25.86L39.43 25.97L39.53 25.97L39.72 25.70L39.83 25.75L39.89 25.59L39.76 25.34L39.88 25.28L39.88 25.14L39.95 25.14L39.82 24.83L39.95 24.83L40.11 24.95L40.14 24.42L40.00 24.35L40.25 24.10L39.91 24.01L39.62 23.63L39.40 23.48L39.37 23.44L39.54 23.28L39.40 23.14L39.31 23.16L39.31 22.99L39.07 23.03L39.08 23.12L38.91 23.24L38.86 23.08L38.59 23.04L38.44 22.83L38.24 22.83L38.05 23.35L38.00 23.31L37.88 23.39L38.01 23.63L37.85 23.71L37.64 23.64L37.58 23.68L37.59 24.06L37.47 24.26L37.27 24.48L37.02 24.60L36.90 24.79L36.94 25.00L37.08 25.08L37.21 25.32L37.22 25.71ZM40.27 24.01L40.40 24.06L40.38 23.90L40.10 23.82L40.16 24.01L40.27 24.01ZM40.27 23.67L40.19 23.71L40.33 23.77L40.33 23.67L40.27 23.67ZM40.44 24.11L40.48 24.17L40.49 24.08L40.43 24.04L40.44 24.11ZM40.49 23.59L40.37 23.53L40.37 23.58L40.49 23.59ZM40.29 24.35L40.21 24.22L40.18 24.28L40.29 24.35ZM40.02 24.02L40.08 24.01L40.01 23.90L40.02 24.02Z","340000":"M35.71 19.99L35.74 20.11L35.35 20.29L35.19 19.99L34.94 19.94L34.85 20.13L34.92 20.13L34.87 20.23L34.93 20.41L34.69 20.50L34.64 20.87L34.32 20.87L34.31 21.01L34.57 21.14L34.57 21.41L34.74 21.42L34.92 21.59L35.15 21.43L35.10 21.50L35.18 21.83L35.15 22.19L34.81 22.33L34.71 22.65L34.88 22.86L34.98 22.80L35.27 22.99L35.03 23.31L35.15 23.48L35.14 23.69L35.28 23.80L35.33 24.18L35.45 24.21L35.68 24.09L35.77 23.92L35.96 24.05L35.78 24.29L35.81 24.44L36.14 24.29L36.10 24.17L36.22 24.07L36.25 24.17L36.38 24.15L36.49 24.41L36.87 24.42L36.97 24.58L37.12 24.58L37.13 24.50L37.27 24.48L37.39 24.36L37.59 24.06L37.58 23.68L37.64 23.64L37.85 23.71L38.01 23.63L37.88 23.39L38.00 23.31L38.05 23.35L38.20 22.98L38.19 22.87L38.00 22.83L37.97 22.70L37.51 22.77L37.45 22.68L37.56 22.61L37.57 22.38L37.50 22.32L37.39 22.35L37.43 22.29L37.29 22.26L37.16 22.07L37.18 21.92L37.28 21.81L37.39 21.79L37.44 21.67L37.43 21.53L37.35 21.52L37.33 21.41L37.61 21.41L37.75 21.55L37.87 21.39L37.83 21.17L37.70 21.04L37.56 21.04L37.47 21.15L37.48 21.26L37.17 21.28L37.07 21.15L37.11 21.03L37.04 20.81L36.89 20.87L36.81 20.78L36.99 20.26L36.66 20.29L36.66 20.11L36.56 19.97L36.51 20.01L36.46 19.94L36.20 19.93L36.06 19.83L36.02 19.61L35.90 19.61L35.53 19.36L35.38 19.42L35.36 19.54L35.53 19.73L35.70 19.73L35.66 19.88L35.71 19.99Z","350000":"M37.68 29.03L37.69 28.94L37.64 28.97L37.59 28.91L37.67 28.83L37.61 28.74L37.74 28.79L37.70 28.86L37.79 28.89L37.78 28.99L37.79 28.78L37.90 28.84L37.99 28.75L37.80 28.61L37.86 28.53L37.97 28.59L37.98 28.48L38.05 28.51L38.04 28.59L38.08 28.56L38.13 28.63L38.15 28.55L38.17 28.67L38.23 28.53L38.31 28.60L38.39 28.54L38.32 28.33L38.23 28.52L38.07 28.37L38.17 28.31L38.27 27.99L38.18 27.83L38.23 27.74L38.46 27.65L38.33 27.42L38.15 27.38L38.23 27.27L38.40 27.36L38.45 27.22L38.55 27.23L38.36 27.48L38.61 27.36L38.61 27.20L38.54 27.14L38.69 27.09L38.73 26.91L38.88 26.86L38.72 26.57L38.31 26.69L38.18 26.33L37.90 26.58L37.70 26.50L37.61 26.54L37.53 26.08L37.46 26.03L37.52 25.76L37.45 25.69L37.26 25.76L37.21 25.71L37.12 25.78L37.15 25.91L36.74 26.05L36.65 26.20L36.47 26.02L36.27 26.13L36.29 26.24L36.21 26.32L36.05 26.37L36.18 26.71L36.09 26.90L35.78 27.02L35.67 27.16L35.72 27.63L35.65 27.59L35.56 27.70L35.54 27.83L35.62 27.89L35.53 28.04L35.33 28.14L35.37 28.22L35.28 28.30L35.23 28.68L35.11 28.79L35.16 28.95L35.12 29.04L35.28 29.15L35.38 29.12L35.42 29.21L35.55 29.12L35.66 29.40L35.89 29.35L35.85 29.45L36.04 29.82L35.99 29.94L36.03 30.14L36.20 30.44L36.29 30.45L36.42 30.42L36.59 30.12L36.69 30.09L36.99 29.73L36.90 29.58L36.96 29.43L37.06 29.49L37.28 29.39L37.37 29.48L37.51 29.22L37.39 29.16L37.67 29.12L37.61 29.07L37.68 29.03ZM37.20 29.49L37.11 29.52L37.13 29.62L37.25 29.56L37.20 29.49Z","360000":"M37.02 24.60L36.87 24.42L36.49 24.41L36.38 24.15L36.25 24.17L36.22 24.07L36.10 24.17L36.14 24.29L35.81 24.44L35.76 24.31L35.96 24.05L35.77 23.92L35.68 24.09L35.45 24.21L35.37 24.17L35.15 24.28L34.95 24.15L34.82 24.16L34.64 24.38L34.50 24.32L34.53 24.49L34.40 24.43L34.29 24.52L34.36 24.53L34.32 24.60L34.01 24.67L33.84 24.63L33.79 24.77L33.64 24.80L33.55 24.91L33.56 25.06L33.71 25.17L33.66 25.44L33.76 25.52L33.73 25.57L33.79 25.68L33.58 25.84L33.61 25.97L33.38 26.07L33.39 26.20L33.24 26.45L33.27 26.65L33.48 26.62L33.40 26.90L33.53 27.05L33.45 27.19L33.47 27.34L33.67 27.43L33.55 27.85L33.73 27.79L33.78 27.85L33.62 27.92L33.52 28.26L33.60 28.73L33.90 28.68L34.03 28.58L34.19 28.73L34.19 28.88L34.05 28.92L33.91 29.05L33.86 29.25L33.72 29.31L33.92 29.50L34.13 29.42L34.16 29.47L34.18 29.39L34.30 29.44L34.33 29.34L34.74 29.21L34.97 29.45L35.10 29.44L35.02 29.25L35.16 29.04L35.11 28.79L35.23 28.68L35.28 28.30L35.37 28.22L35.33 28.14L35.53 28.04L35.62 27.89L35.54 27.83L35.56 27.70L35.65 27.59L35.72 27.63L35.75 27.52L35.67 27.44L35.67 27.16L35.78 27.02L36.09 26.90L36.18 26.71L36.05 26.37L36.21 26.32L36.29 26.24L36.27 26.13L36.47 26.02L36.65 26.20L36.74 26.05L37.15 25.91L37.12 25.78L37.26 25.67L37.16 25.19L36.89 24.90L37.02 24.60Z","370000":"M35.53 19.36L35.59 19.10L35.86 19.08L35.87 19.02L36.10 19.29L36.18 19.57L36.35 19.42L36.48 19.53L36.60 19.45L36.70 19.48L36.69 19.35L36.82 19.32L37.01 19.46L37.01 19.62L37.17 19.58L37.24 19.34L37.50 19.28L37.45 19.25L37.57 18.97L37.89 18.88L37.99 18.92L38.22 18.41L38.44 18.36L38.44 18.24L38.51 18.29L38.55 18.13L38.75 18.03L38.60 17.90L38.65 17.80L38.80 17.80L38.73 17.95L39.08 17.87L39.07 17.61L39.18 17.53L39.21 17.63L39.29 17.53L39.31 17.45L39.19 17.38L39.34 17.43L39.78 17.17L39.72 17.21L39.85 17.28L39.84 17.20L40.15 17.04L40.17 17.13L40.25 17.06L40.28 17.16L40.57 17.10L40.62 16.96L40.52 16.96L40.54 16.87L40.65 16.81L40.61 16.70L40.71 16.58L40.27 16.56L40.26 16.44L39.79 16.56L39.64 16.37L39.50 16.42L39.43 16.28L39.10 16.17L38.69 16.31L38.70 16.44L38.37 16.62L38.41 16.74L38.29 16.87L37.95 16.88L37.85 16.72L37.73 16.75L37.63 16.47L37.70 16.36L37.90 16.34L37.92 16.13L37.81 16.18L37.61 15.86L37.37 15.86L37.31 15.94L36.88 15.80L36.78 15.70L36.62 15.92L36.50 15.95L36.40 16.15L35.88 16.15L35.58 16.53L35.50 16.42L35.41 16.52L35.42 16.64L35.20 16.66L34.96 17.19L34.80 17.24L34.70 17.37L34.63 17.50L34.70 17.69L34.78 17.72L34.80 17.87L34.68 18.20L35.31 17.89L35.26 18.03L35.15 18.04L34.97 18.25L34.80 18.29L34.70 18.51L34.44 18.62L34.26 18.95L34.34 19.03L34.58 19.04L34.61 19.15L34.75 19.19L34.86 19.43L35.22 19.38L35.43 19.45L35.53 19.36Z","410000":"M32.53 21.64L32.94 21.57L33.12 21.73L33.37 21.59L33.36 21.92L33.47 22.16L33.55 22.15L33.58 22.25L33.74 22.15L33.83 22.25L34.07 22.24L34.04 22.44L34.11 22.42L34.27 22.54L34.48 22.49L34.54 22.40L34.65 22.62L34.81 22.33L34.96 22.22L35.13 22.22L35.18 21.83L35.10 21.50L35.15 21.43L34.92 21.59L34.74 21.42L34.57 21.41L34.57 21.14L34.31 21.01L34.32 20.87L34.54 20.91L34.65 20.85L34.69 20.50L34.93 20.41L34.87 20.23L34.92 20.13L34.85 20.13L34.90 19.97L35.01 19.92L35.19 19.99L35.28 20.22L35.35 20.29L35.44 20.27L35.75 20.10L35.66 19.88L35.70 19.73L35.53 19.73L35.36 19.54L35.38 19.42L35.31 19.39L34.83 19.42L34.75 19.19L34.61 19.15L34.58 19.04L34.34 19.03L34.26 18.95L34.44 18.62L34.70 18.51L34.80 18.29L34.97 18.25L35.15 18.04L35.26 18.03L35.31 17.89L34.70 18.22L34.79 17.83L34.66 17.91L34.51 17.79L34.33 17.95L34.33 17.86L34.07 17.88L33.87 17.74L33.37 17.64L33.31 18.16L33.24 18.18L33.28 18.37L33.21 18.34L33.17 18.47L33.02 18.57L32.92 18.55L32.87 18.67L32.76 18.64L32.76 18.70L32.58 18.79L32.00 18.72L32.00 18.94L31.79 18.94L31.60 19.16L31.25 19.19L31.06 19.27L30.98 19.38L30.62 19.40L30.72 19.66L30.67 19.76L30.83 19.84L30.79 19.98L30.85 20.06L30.79 20.11L31.13 20.42L31.12 20.74L31.34 20.99L31.34 21.12L31.52 21.24L31.60 21.41L31.65 21.37L32.07 21.62L32.22 21.68L32.39 21.60L32.53 21.64Z","420000":"M31.17 20.83L31.10 20.75L30.88 20.90L30.78 20.75L30.69 20.83L30.49 20.84L30.00 20.72L29.85 20.85L30.14 20.93L30.14 21.12L30.30 21.11L30.44 21.23L30.48 21.37L30.32 21.45L30.01 21.40L29.90 21.70L30.00 21.89L29.97 22.27L30.09 22.30L30.09 22.45L30.41 22.59L30.47 22.84L30.41 22.91L30.45 23.02L30.38 23.20L30.22 23.10L29.78 23.51L29.73 23.37L29.61 23.48L29.52 23.34L29.33 23.51L29.23 23.41L29.14 23.53L29.02 23.51L29.00 23.62L29.15 23.74L29.09 24.11L28.97 24.16L29.08 24.29L29.21 24.15L29.24 24.31L29.41 24.40L29.42 24.67L29.54 24.60L29.60 24.83L29.71 24.88L29.84 24.47L29.91 24.37L30.08 24.38L30.13 24.24L30.40 24.21L30.61 24.37L30.77 24.29L30.84 24.22L30.72 24.09L30.77 24.01L30.72 23.94L30.89 23.97L31.01 23.87L31.33 23.96L31.45 24.09L31.79 24.10L32.01 24.26L32.00 24.32L32.15 24.34L32.19 24.48L32.31 24.37L32.52 24.40L32.69 24.21L32.72 24.32L32.79 24.23L32.69 24.39L32.73 24.53L32.81 24.48L32.83 24.56L32.89 24.55L33.23 24.15L33.21 24.32L33.31 24.32L33.37 24.42L33.28 24.48L33.38 24.55L33.27 24.75L33.33 24.77L33.34 24.92L33.43 24.89L33.50 24.97L33.64 24.80L33.79 24.77L33.84 24.63L34.01 24.67L34.32 24.60L34.36 24.53L34.29 24.52L34.40 24.43L34.53 24.49L34.50 24.32L34.64 24.38L34.82 24.16L34.95 24.15L35.15 24.28L35.33 24.18L35.28 23.80L35.14 23.69L35.15 23.48L35.03 23.31L35.11 23.14L35.28 23.04L35.11 22.85L35.04 22.89L34.94 22.79L34.88 22.86L34.71 22.59L34.61 22.61L34.54 22.40L34.48 22.49L34.27 22.54L34.11 22.42L34.04 22.44L34.07 22.24L33.83 22.25L33.74 22.15L33.58 22.25L33.39 22.01L33.37 21.59L33.12 21.73L32.94 21.57L32.55 21.64L32.39 21.60L32.22 21.68L31.65 21.37L31.60 21.41L31.52 21.24L31.34 21.12L31.27 20.88L31.17 20.83Z","430000":"M31.97 29.26L32.08 29.14L32.10 28.82L32.49 28.87L32.59 29.10L32.66 29.10L32.76 29.07L32.74 28.86L32.79 28.80L32.66 28.75L32.65 28.66L32.70 28.70L32.97 28.49L33.24 28.69L33.43 28.67L33.54 28.56L33.57 28.40L33.51 28.30L33.61 28.11L33.59 27.98L33.78 27.85L33.73 27.79L33.55 27.85L33.67 27.43L33.47 27.34L33.45 27.19L33.53 27.05L33.40 26.90L33.48 26.62L33.27 26.65L33.24 26.45L33.39 26.20L33.38 26.07L33.61 25.97L33.58 25.84L33.79 25.68L33.73 25.57L33.76 25.52L33.66 25.44L33.71 25.17L33.56 25.06L33.54 24.95L33.34 24.92L33.33 24.77L33.27 24.75L33.38 24.55L33.28 24.48L33.37 24.42L33.31 24.32L33.21 24.32L33.23 24.15L32.83 24.56L32.81 24.48L32.73 24.53L32.69 24.39L32.79 24.23L32.72 24.32L32.65 24.22L32.52 24.40L32.31 24.37L32.19 24.48L32.15 24.34L32.00 24.32L32.01 24.26L31.79 24.10L31.45 24.09L31.33 23.96L30.92 23.89L30.89 23.97L30.72 23.94L30.77 24.01L30.72 24.09L30.84 24.22L30.77 24.29L30.61 24.37L30.40 24.21L30.20 24.23L30.11 24.27L30.08 24.38L29.91 24.37L29.84 24.47L29.70 24.78L29.69 24.91L29.75 24.96L29.69 25.22L29.73 25.25L29.65 25.36L29.75 25.42L29.71 25.66L29.81 25.73L29.74 26.04L29.87 26.43L29.74 26.58L29.61 26.55L29.32 26.92L29.44 26.98L29.52 26.90L29.63 26.93L29.69 26.85L29.88 26.87L29.94 27.05L29.85 27.11L29.91 27.12L29.92 27.26L29.98 27.24L29.72 27.30L29.82 27.47L29.71 27.67L29.78 27.74L29.87 27.69L29.91 27.87L29.86 27.94L30.09 28.01L30.05 28.12L30.15 28.12L30.13 28.00L30.28 27.80L30.39 27.83L30.36 27.95L30.46 27.94L30.52 28.04L30.81 27.67L30.99 27.74L31.11 27.61L31.36 27.73L31.28 28.05L31.33 28.14L31.53 28.14L31.38 28.28L31.40 28.48L31.13 28.84L31.10 29.02L31.21 29.05L31.21 28.96L31.35 28.85L31.51 28.98L31.50 29.33L31.60 29.36L31.71 29.21L31.97 29.26Z","440000":"M33.22 31.79L33.31 31.56L33.24 31.59L33.37 31.47L33.32 31.27L33.50 31.56L33.90 31.40L34.00 31.56L34.10 31.49L34.08 31.36L34.01 31.34L34.17 31.21L34.20 31.42L34.31 31.46L34.47 31.21L34.56 31.18L34.68 31.22L34.72 31.32L34.88 31.35L34.90 31.25L34.85 31.24L34.94 31.13L35.08 31.27L35.47 31.05L35.64 31.07L35.69 30.87L35.88 30.80L35.95 30.50L36.20 30.44L36.01 30.08L36.04 29.82L35.85 29.45L35.89 29.35L35.66 29.40L35.55 29.12L35.42 29.21L35.38 29.12L35.28 29.15L35.14 29.06L35.02 29.25L35.10 29.44L34.97 29.45L34.74 29.21L34.33 29.34L34.30 29.44L34.18 29.39L34.16 29.47L34.13 29.42L33.94 29.51L33.72 29.31L33.86 29.25L33.91 29.05L34.05 28.92L34.19 28.88L34.19 28.73L34.03 28.58L33.62 28.75L33.59 28.56L33.49 28.56L33.43 28.67L33.24 28.69L32.95 28.49L32.70 28.70L32.65 28.66L32.66 28.75L32.79 28.80L32.74 28.86L32.76 29.07L32.66 29.10L32.59 29.10L32.49 28.87L32.10 28.82L32.08 29.14L31.90 29.31L32.00 29.66L31.85 29.77L31.90 30.01L31.79 30.19L31.66 30.17L31.63 30.36L31.53 30.37L31.46 30.53L31.42 30.72L31.48 30.96L31.42 31.11L31.31 31.25L31.18 31.27L31.17 31.35L30.92 31.44L30.87 31.52L30.95 31.72L30.84 31.78L30.86 31.83L30.59 31.80L30.63 32.11L30.31 32.12L30.24 32.33L30.10 32.38L30.13 32.54L30.23 32.57L30.11 32.65L30.03 33.07L30.10 33.38L30.22 33.52L30.25 33.79L30.59 33.74L30.75 33.58L30.63 33.18L30.46 33.11L30.48 32.95L30.65 32.81L30.82 32.78L30.94 32.64L31.16 32.56L31.36 32.51L31.36 32.58L31.49 32.49L31.66 32.49L31.73 32.39L31.79 32.44L31.92 32.40L31.97 32.37L31.91 32.29L32.06 32.21L32.14 32.30L32.24 32.29L32.31 32.20L32.48 32.24L32.60 32.08L32.71 32.16L32.84 31.87L32.98 32.13L33.23 31.92L33.22 31.79ZM36.06 30.56L36.00 30.56L36.16 30.60L36.15 30.52L36.06 30.56ZM32.65 32.26L32.52 32.32L32.59 32.33L32.58 32.44L32.65 32.26ZM32.38 32.42L32.49 32.36L32.49 32.29L32.38 32.42ZM30.66 32.83L30.76 32.92L30.83 32.79L30.66 32.83ZM30.73 32.92L30.56 32.91L30.47 33.06L30.64 33.01L30.75 33.08L30.73 32.92ZM35.85 33.23L35.95 33.32L35.84 33.40L35.93 33.41L35.98 33.27L35.85 33.23Z","450000":"M29.88 27.97L29.77 28.27L29.57 28.19L29.40 28.29L29.55 28.28L29.51 28.49L29.34 28.47L29.31 28.37L29.23 28.38L29.18 28.69L28.96 28.46L28.88 28.57L28.80 28.56L28.76 28.79L28.48 28.87L28.39 28.68L28.24 28.79L28.20 28.61L28.11 28.60L28.02 28.39L27.82 28.56L27.83 28.77L27.15 29.05L27.17 29.24L27.05 29.37L26.98 29.27L26.62 29.19L26.56 29.07L26.43 29.07L26.39 29.00L26.28 29.08L26.24 29.21L25.99 29.38L25.83 29.27L25.79 29.35L25.87 29.58L25.97 29.68L26.02 29.54L26.30 29.59L26.43 29.94L26.48 29.88L26.62 29.98L26.70 29.86L26.74 29.97L26.94 29.96L26.97 29.88L27.07 29.91L27.19 30.12L27.15 30.43L27.03 30.55L26.91 30.47L26.74 30.60L26.79 30.67L26.64 30.77L26.68 30.93L26.81 30.94L26.93 31.08L27.16 31.01L27.33 31.14L27.46 31.05L27.72 31.20L27.49 31.54L27.49 31.65L27.60 31.74L27.60 32.04L27.64 31.99L27.85 32.05L27.90 32.09L27.87 32.18L28.05 32.30L28.11 32.27L28.15 32.40L28.24 32.34L28.30 32.41L28.56 32.35L28.64 32.47L28.76 32.49L28.87 32.40L28.86 32.51L29.07 32.45L29.18 32.32L29.28 32.40L29.60 32.43L29.52 32.54L29.60 32.61L29.92 32.56L29.99 32.44L30.13 32.54L30.10 32.38L30.24 32.33L30.26 32.16L30.63 32.11L30.59 31.80L30.86 31.83L30.84 31.78L30.95 31.72L30.87 31.52L30.92 31.44L31.17 31.35L31.18 31.27L31.31 31.25L31.42 31.11L31.48 30.96L31.42 30.72L31.46 30.53L31.53 30.37L31.63 30.36L31.66 30.17L31.79 30.19L31.90 30.01L31.84 29.82L32.00 29.66L31.89 29.37L31.97 29.26L31.71 29.21L31.60 29.36L31.50 29.33L31.51 28.98L31.35 28.85L31.21 28.96L31.21 29.05L31.10 29.02L31.13 28.84L31.40 28.48L31.38 28.28L31.53 28.14L31.33 28.14L31.28 28.05L31.36 27.73L31.11 27.61L30.99 27.74L30.81 27.67L30.52 28.04L30.46 27.94L30.36 27.95L30.39 27.83L30.28 27.80L30.13 28.00L30.13 28.13L30.05 28.12L30.09 28.01L30.01 27.95L29.88 27.97Z","460000":"M30.40 33.97L30.03 33.99L29.90 34.13L29.74 34.08L29.61 34.30L29.20 34.65L29.16 35.19L29.23 35.55L29.97 35.86L30.10 35.81L30.13 35.66L30.37 35.62L30.51 35.39L30.72 35.35L30.86 34.71L31.18 34.39L31.16 34.24L31.10 33.98L30.97 33.96L30.87 33.84L30.74 33.92L30.57 33.89L30.40 33.97ZM32.98 45.87L33.08 45.76L33.06 45.70L32.98 45.87ZM36.62 38.82L36.64 38.89L36.72 38.89L36.64 38.87L36.65 38.78L36.73 38.84L36.66 38.77L36.62 38.82ZM33.50 46.39L33.63 46.46L33.89 46.36L34.03 46.05L33.93 46.05L33.50 46.39ZM35.09 44.29L35.11 44.35L35.16 44.22L35.09 44.29ZM29.87 46.66L30.07 46.49L30.27 46.48L30.02 46.44L29.87 46.66ZM35.62 43.60L35.61 43.69L35.75 43.66L35.62 43.60ZM34.54 45.61L34.60 45.68L34.66 45.64L34.54 45.61Z","500000":"M27.34 25.47L27.45 25.46L27.42 25.17L27.57 25.35L27.49 25.51L27.61 25.55L27.65 25.39L27.74 25.38L27.71 25.24L27.84 25.22L27.86 25.12L28.02 25.13L28.05 25.24L28.17 25.15L28.18 24.82L28.32 24.78L28.33 24.85L28.43 24.86L28.46 24.80L28.56 25.04L28.73 24.91L28.92 24.92L28.99 25.20L28.94 25.32L29.19 25.38L29.15 25.66L29.22 25.67L29.19 25.54L29.25 25.50L29.31 25.57L29.28 25.77L29.56 25.82L29.62 25.58L29.75 25.42L29.65 25.36L29.73 25.28L29.68 25.12L29.75 24.96L29.60 24.83L29.54 24.60L29.42 24.67L29.41 24.40L29.24 24.31L29.21 24.15L29.08 24.29L28.97 24.16L29.09 24.11L29.15 23.74L29.00 23.62L29.02 23.51L29.14 23.53L29.23 23.41L29.33 23.51L29.52 23.34L29.61 23.48L29.73 23.37L29.78 23.51L30.22 23.10L30.38 23.20L30.45 23.02L30.41 22.91L30.47 22.84L30.41 22.59L30.09 22.45L30.09 22.30L29.72 22.28L29.72 22.20L29.56 22.07L29.09 21.80L29.00 21.81L29.04 21.91L28.88 22.03L29.11 22.24L29.12 22.33L28.95 22.49L28.83 22.51L28.82 22.66L28.70 22.75L28.72 22.95L28.62 23.01L28.67 23.09L28.55 23.21L28.46 23.12L28.38 23.18L28.25 23.16L28.20 23.26L28.27 23.36L27.90 23.96L27.84 23.91L27.63 23.97L27.49 23.68L27.22 23.81L27.14 23.68L26.86 23.57L26.80 23.75L26.72 23.72L26.76 23.79L26.65 23.85L26.83 23.98L26.82 24.11L26.46 24.47L26.57 24.60L26.56 24.69L26.78 24.71L26.87 25.06L27.03 25.03L27.07 25.09L27.20 25.10L27.34 25.47Z","510000":"M23.07 26.80L23.05 26.98L23.24 27.12L23.26 27.28L23.36 27.23L23.26 27.41L23.46 27.61L23.45 27.78L23.54 27.78L23.62 27.95L23.70 27.89L23.84 27.93L24.22 27.64L24.25 27.75L24.34 27.79L24.48 27.64L24.57 27.63L24.62 27.44L24.49 27.09L24.48 26.70L24.53 26.59L24.69 26.58L24.97 26.21L25.03 26.02L24.93 25.96L25.04 25.77L25.10 25.74L25.15 25.80L25.29 25.68L25.22 25.47L25.27 25.33L25.36 25.40L25.74 25.37L25.61 25.46L25.62 25.66L25.77 25.76L25.72 25.80L25.76 25.89L25.64 25.95L25.86 26.16L26.12 26.09L26.26 25.90L26.43 26.00L26.47 26.30L26.63 26.23L26.72 26.33L27.28 26.19L27.30 26.05L27.20 25.87L26.95 25.88L26.89 25.69L26.74 25.68L26.72 25.48L26.82 25.38L26.94 25.40L27.00 25.24L27.34 25.52L27.20 25.10L27.07 25.09L27.03 25.03L26.87 25.06L26.78 24.71L26.59 24.71L26.57 24.60L26.49 24.56L26.46 24.43L26.82 24.11L26.83 23.98L26.65 23.85L26.76 23.79L26.72 23.72L26.80 23.75L26.89 23.56L27.17 23.70L27.22 23.81L27.49 23.68L27.63 23.97L27.83 23.91L27.90 23.96L28.27 23.36L28.20 23.26L28.25 23.16L28.38 23.18L28.46 23.12L28.55 23.21L28.67 23.09L28.62 23.01L28.72 22.95L28.70 22.75L28.82 22.66L28.83 22.51L28.95 22.49L29.12 22.33L29.11 22.24L28.88 22.03L28.97 22.01L28.95 21.93L29.04 21.91L28.97 21.83L29.09 21.75L28.87 21.73L28.65 21.85L28.41 21.60L28.23 21.58L28.21 21.47L28.02 21.57L27.92 21.46L27.91 21.29L27.63 21.26L27.38 21.38L27.13 21.28L27.07 21.14L26.70 21.30L26.60 21.07L26.52 21.12L26.58 21.27L26.36 21.38L25.92 21.34L25.63 21.16L25.63 21.06L25.74 20.99L25.67 20.96L25.64 20.70L25.74 20.67L25.57 20.60L25.54 20.40L25.43 20.31L25.00 20.32L25.00 20.19L24.86 20.26L24.71 20.19L24.67 19.97L24.72 19.92L24.50 19.69L24.25 19.85L24.29 19.92L24.11 19.91L24.08 20.03L23.87 20.03L24.04 20.27L24.04 20.39L24.15 20.46L24.13 20.55L23.91 20.66L23.92 20.78L23.85 20.71L23.83 20.80L23.61 20.88L23.57 20.73L23.71 20.56L23.63 20.40L23.48 20.62L23.54 20.72L23.46 20.90L23.34 20.77L23.25 20.85L23.18 20.74L23.04 20.78L23.09 20.96L23.04 21.09L23.13 21.17L23.07 21.34L22.88 21.40L22.68 21.32L22.65 21.47L22.46 21.27L22.43 21.30L22.44 21.24L22.33 21.26L22.29 21.39L22.21 21.36L22.22 21.16L22.02 20.95L21.89 21.27L21.61 21.10L21.52 21.12L21.46 20.96L21.18 20.85L21.10 20.72L21.02 20.35L20.81 20.13L20.81 19.91L20.50 19.88L20.40 19.79L20.20 19.87L20.18 20.08L19.98 20.11L19.97 20.18L20.00 20.39L20.09 20.42L20.11 20.53L20.28 20.59L20.06 20.83L20.09 21.01L19.94 21.10L20.06 21.35L20.66 21.66L20.66 21.77L20.84 21.99L20.82 22.17L21.21 22.63L21.11 22.75L21.01 22.66L20.97 22.81L21.26 23.23L21.22 23.30L21.35 24.07L21.29 24.32L21.39 24.76L21.43 25.57L21.61 25.82L21.63 25.45L21.89 25.15L21.92 25.30L22.26 25.67L22.24 25.79L22.13 25.85L22.26 26.09L22.37 26.14L22.37 26.28L22.48 26.13L22.56 26.19L22.68 26.08L22.97 26.78L23.07 26.80Z","520000":"M29.71 25.51L29.62 25.58L29.56 25.82L29.30 25.79L29.25 25.50L29.19 25.54L29.22 25.67L29.15 25.66L29.19 25.38L28.94 25.32L28.99 25.20L28.92 24.92L28.73 24.91L28.56 25.04L28.46 24.80L28.43 24.86L28.21 24.80L28.17 25.15L28.05 25.24L28.02 25.13L27.86 25.12L27.84 25.22L27.71 25.24L27.74 25.38L27.65 25.39L27.61 25.55L27.49 25.51L27.57 25.35L27.42 25.17L27.45 25.46L27.36 25.43L27.34 25.52L27.00 25.24L26.94 25.40L26.82 25.38L26.72 25.48L26.74 25.68L26.89 25.69L26.95 25.88L27.15 25.84L27.25 25.93L27.31 26.14L27.23 26.23L26.72 26.33L26.63 26.23L26.50 26.25L26.36 26.63L26.27 26.58L26.11 26.71L26.07 26.65L25.84 26.67L25.69 26.53L25.54 26.74L25.34 26.56L25.28 26.72L25.07 26.94L25.21 27.05L25.15 27.21L25.20 27.41L25.28 27.49L25.45 27.49L25.49 27.36L25.68 27.38L25.74 27.29L25.95 27.62L25.84 27.75L25.65 28.35L25.74 28.42L25.75 28.53L25.85 28.48L25.84 28.60L25.92 28.70L26.07 28.76L25.90 28.94L25.98 29.00L25.83 29.27L25.99 29.38L26.24 29.21L26.28 29.08L26.39 29.00L26.43 29.07L26.56 29.07L26.62 29.19L26.98 29.27L27.05 29.37L27.17 29.24L27.15 29.05L27.83 28.77L27.82 28.56L28.02 28.39L28.11 28.60L28.20 28.61L28.24 28.79L28.39 28.68L28.43 28.81L28.48 28.77L28.48 28.87L28.54 28.88L28.76 28.79L28.80 28.56L28.88 28.57L28.92 28.47L29.18 28.69L29.23 28.38L29.31 28.37L29.34 28.47L29.51 28.49L29.55 28.28L29.40 28.29L29.57 28.19L29.77 28.27L29.91 27.87L29.87 27.69L29.78 27.74L29.71 27.67L29.82 27.47L29.72 27.30L29.89 27.24L29.85 27.11L29.94 27.05L29.92 26.94L29.83 26.85L29.69 26.85L29.63 26.93L29.52 26.90L29.44 26.98L29.32 26.92L29.61 26.55L29.74 26.58L29.87 26.43L29.88 26.32L29.76 26.22L29.74 26.04L29.80 25.97L29.73 25.96L29.81 25.73L29.72 25.69L29.71 25.51ZM29.88 27.17L29.92 27.25L29.89 27.10L29.88 27.17Z","530000":"M26.47 26.30L26.43 26.00L26.26 25.90L26.12 26.09L25.81 26.12L25.64 25.95L25.76 25.89L25.76 25.73L25.60 25.60L25.61 25.46L25.74 25.37L25.36 25.40L25.27 25.33L25.22 25.47L25.29 25.68L25.15 25.80L25.10 25.74L25.04 25.77L24.93 25.96L25.03 26.02L24.97 26.21L24.69 26.58L24.53 26.59L24.48 26.70L24.49 27.09L24.62 27.44L24.55 27.66L24.48 27.64L24.34 27.79L24.25 27.75L24.22 27.64L23.84 27.93L23.70 27.89L23.62 27.95L23.60 27.84L23.42 27.72L23.46 27.61L23.26 27.41L23.36 27.23L23.26 27.28L23.24 27.12L23.05 26.98L23.07 26.80L22.97 26.78L22.68 26.08L22.56 26.19L22.48 26.13L22.37 26.28L22.37 26.14L22.26 26.09L22.13 25.85L22.24 25.79L22.26 25.67L21.92 25.30L21.89 25.15L21.63 25.45L21.61 25.82L21.43 25.57L21.39 24.78L21.27 24.83L21.28 25.17L21.18 25.20L21.12 25.00L20.99 25.04L21.04 25.26L20.97 25.33L21.09 25.65L21.06 25.77L20.80 25.89L20.73 25.62L20.65 25.64L20.70 25.76L20.62 25.79L20.59 26.01L20.74 26.48L20.83 26.45L20.84 26.33L21.06 26.45L21.12 27.38L21.03 27.76L21.07 27.87L20.95 27.88L21.06 28.14L21.00 28.20L20.91 28.16L20.74 28.46L20.62 28.38L20.59 28.62L20.43 28.79L20.35 28.73L20.25 28.92L20.31 29.15L20.11 29.26L20.09 29.56L20.21 29.55L20.28 29.84L20.09 30.07L20.19 30.16L20.55 29.91L20.93 29.87L20.97 29.92L21.20 29.85L21.21 29.90L21.03 30.04L21.03 30.20L21.12 30.22L21.20 30.38L21.14 30.46L21.23 30.57L21.21 30.79L21.39 30.91L21.58 30.87L21.73 30.93L21.76 31.07L21.66 31.07L21.68 31.16L21.56 31.26L21.61 31.51L21.43 31.84L22.09 31.95L22.07 32.18L22.11 32.30L22.26 32.34L22.21 32.41L22.26 32.52L22.48 32.47L22.59 32.55L23.04 32.23L23.12 32.77L23.17 32.82L23.37 32.75L23.56 32.85L23.62 32.75L23.53 32.66L23.55 32.42L23.62 32.38L23.57 32.17L23.43 32.03L23.38 31.76L23.49 31.52L23.57 31.49L23.67 31.62L23.79 31.54L23.98 31.58L24.17 31.23L24.60 31.56L24.84 31.19L25.01 31.41L25.10 31.21L25.36 31.50L25.49 31.19L25.61 31.16L25.62 31.26L25.70 31.31L25.88 31.15L26.00 31.17L26.09 31.07L26.05 30.89L26.12 30.84L26.41 30.74L26.48 30.61L26.66 30.82L26.70 30.69L26.79 30.67L26.74 30.60L26.91 30.47L27.03 30.55L27.15 30.43L27.19 30.12L27.03 29.88L26.87 29.98L26.84 29.93L26.74 29.97L26.70 29.86L26.62 29.98L26.48 29.88L26.43 29.94L26.30 29.59L26.02 29.54L25.97 29.68L25.87 29.58L25.79 29.35L25.98 29.00L25.90 28.94L26.07 28.76L25.92 28.70L25.84 28.60L25.85 28.48L25.75 28.53L25.74 28.42L25.65 28.35L25.94 27.57L25.74 27.29L25.68 27.38L25.49 27.36L25.45 27.49L25.25 27.47L25.15 27.21L25.21 27.05L25.07 26.94L25.28 26.72L25.34 26.56L25.54 26.74L25.69 26.53L25.89 26.69L26.07 26.65L26.11 26.71L26.27 26.58L26.36 26.63L26.47 26.30Z","540000":"M13.69 17.91L13.05 17.64L12.92 17.71L12.67 17.52L11.94 17.66L11.82 17.57L11.59 17.70L11.26 17.71L10.88 17.83L10.80 17.87L10.69 18.16L10.40 18.25L10.33 18.35L10.05 18.21L9.87 18.25L9.38 18.45L9.38 18.53L9.14 18.64L9.02 18.58L8.70 18.66L8.30 18.60L8.19 18.52L8.16 18.33L7.97 18.36L7.76 18.28L7.65 18.35L7.64 18.44L7.40 18.55L7.40 18.68L7.12 18.76L6.97 18.76L6.85 18.65L6.73 18.68L6.63 18.59L6.52 18.69L6.09 18.55L5.95 18.70L6.03 18.79L5.76 18.97L5.57 19.52L4.95 19.58L4.85 19.84L4.64 19.91L4.73 20.27L4.66 20.35L5.04 20.82L5.17 21.40L5.00 21.63L4.89 21.67L4.74 21.52L4.70 21.30L4.42 21.47L4.51 21.70L4.45 21.79L4.48 21.87L4.72 22.05L4.63 22.18L4.79 22.39L4.70 22.47L4.71 22.64L4.80 22.69L4.99 23.01L5.19 23.03L5.25 22.93L5.40 23.07L5.46 23.02L5.66 23.17L5.77 23.40L6.25 23.54L6.58 23.75L6.66 23.98L6.76 23.99L6.77 23.85L6.88 23.80L6.90 23.58L7.01 23.63L7.07 23.55L7.37 23.68L7.46 23.65L7.52 23.93L7.83 24.04L8.05 24.31L8.15 24.30L8.41 24.43L8.68 24.83L8.94 24.68L9.11 24.71L9.18 24.76L9.20 25.11L9.35 25.15L9.41 25.26L9.52 25.27L9.71 25.43L9.93 25.32L9.99 25.38L9.92 25.66L10.14 25.73L10.26 25.67L10.32 25.75L10.42 25.63L10.65 26.09L10.75 26.08L10.72 25.91L10.81 25.83L10.84 26.03L10.99 26.10L11.11 25.90L11.22 25.90L11.65 26.19L11.94 26.14L12.06 26.20L12.15 26.07L12.38 26.14L12.42 26.04L12.62 26.02L12.82 25.89L12.91 25.93L13.02 26.15L12.93 26.53L13.09 26.79L13.26 26.63L13.18 26.53L13.30 26.20L13.53 25.91L13.75 25.76L13.95 25.86L14.03 25.81L14.17 25.85L14.24 25.94L14.41 25.98L14.50 25.92L14.77 26.14L14.84 26.15L15.00 25.94L15.13 26.00L15.25 26.11L15.19 26.18L15.27 26.23L15.22 26.46L15.33 26.53L15.57 26.53L15.62 26.61L15.67 26.73L15.59 26.89L15.65 27.15L16.09 27.05L16.47 27.12L17.05 26.97L17.08 26.83L17.43 26.42L17.63 26.40L17.93 26.26L18.26 26.06L18.35 25.86L18.70 25.70L18.83 25.80L19.07 25.77L19.08 25.86L19.19 25.84L19.74 26.26L19.87 26.11L19.98 26.12L20.00 25.99L19.91 25.93L19.95 25.76L20.08 25.67L20.13 25.46L20.22 25.48L20.32 25.67L20.40 25.64L20.59 25.86L20.70 25.76L20.65 25.64L20.73 25.62L20.80 25.89L21.06 25.77L21.09 25.65L20.97 25.33L21.04 25.26L20.99 25.04L21.12 25.00L21.18 25.20L21.28 25.17L21.27 24.83L21.39 24.78L21.29 24.32L21.35 24.07L21.22 23.30L21.26 23.23L20.97 22.81L21.01 22.66L21.11 22.75L21.21 22.63L20.82 22.17L20.84 21.99L20.66 21.77L20.66 21.66L20.31 21.48L19.95 21.44L20.01 21.68L19.91 21.71L19.91 21.92L19.67 21.93L19.55 22.04L19.43 21.99L19.53 22.28L19.48 22.32L19.22 22.23L19.16 22.08L19.00 22.10L19.05 22.30L18.97 22.40L18.83 22.18L18.76 22.18L18.70 22.32L18.54 22.22L18.44 22.25L18.32 22.04L18.39 21.99L18.38 21.84L18.28 21.85L18.22 21.68L18.09 21.72L18.24 21.65L18.20 21.60L17.95 21.58L17.71 21.33L17.31 21.57L17.09 21.53L16.97 21.42L16.81 21.52L16.58 21.34L16.44 21.37L16.40 21.26L15.77 21.28L15.73 21.13L15.53 21.18L15.18 20.90L15.10 20.93L14.93 20.86L14.87 20.93L14.66 20.92L14.26 20.74L13.93 20.45L13.88 20.20L13.63 19.95L13.78 19.83L13.82 19.68L13.76 19.37L13.70 19.34L13.82 19.19L13.75 19.08L13.58 19.10L13.59 18.90L13.48 18.78L13.54 18.72L13.51 18.64L13.73 18.52L13.68 18.46L13.76 18.15L13.56 18.14L13.44 17.98L13.69 17.91Z","610000":"M30.62 19.40L30.50 19.31L30.50 19.12L30.81 18.37L30.67 17.84L30.72 17.42L30.63 17.32L30.62 16.98L30.87 16.71L30.84 16.56L30.91 16.55L30.96 16.44L30.91 16.23L30.74 16.04L30.73 15.81L31.05 15.48L31.11 15.03L31.24 14.94L31.33 14.70L31.18 14.60L31.24 14.41L31.02 14.51L30.88 14.73L30.74 14.62L30.62 14.69L30.43 14.55L30.49 14.72L30.28 14.79L30.23 14.73L30.24 14.89L30.11 14.94L30.00 15.15L29.77 15.30L29.79 15.37L29.53 15.57L29.44 15.79L29.55 15.98L29.44 16.08L29.32 15.95L29.31 16.32L28.78 16.38L28.69 16.35L28.66 16.21L28.41 16.11L28.36 16.22L28.26 16.23L28.11 16.39L28.15 16.41L28.06 16.66L28.13 16.83L28.07 16.90L28.11 17.09L28.59 17.25L28.72 17.41L28.80 17.44L28.85 17.37L29.05 17.58L29.09 17.53L29.20 17.62L29.23 17.98L29.08 18.13L29.17 18.67L28.63 18.75L28.46 18.69L28.39 18.76L28.56 19.00L28.31 19.03L28.28 19.09L28.09 19.07L28.06 19.12L27.77 18.91L27.48 18.92L27.43 19.02L27.50 19.23L27.29 19.42L27.62 19.63L27.57 19.76L27.46 19.71L27.51 19.85L27.37 20.09L27.51 20.42L27.47 20.49L27.40 20.39L27.19 20.45L27.01 20.39L26.95 20.44L26.89 20.62L26.79 20.62L26.87 20.74L27.00 20.80L26.96 21.01L26.74 21.12L26.62 21.09L26.67 21.28L27.07 21.14L27.13 21.28L27.38 21.38L27.63 21.26L27.91 21.29L27.92 21.46L28.07 21.60L28.21 21.47L28.23 21.58L28.41 21.60L28.65 21.85L28.87 21.73L29.06 21.73L29.56 22.07L29.72 22.20L29.72 22.28L29.97 22.27L30.00 21.89L29.90 21.70L30.01 21.40L30.32 21.45L30.48 21.37L30.39 21.17L30.14 21.12L30.14 20.93L29.85 20.85L29.91 20.76L30.00 20.72L30.59 20.84L30.75 20.74L30.88 20.90L31.15 20.67L31.13 20.42L30.79 20.11L30.85 20.06L30.79 19.98L30.83 19.84L30.67 19.76L30.72 19.66L30.62 19.40Z","620000":"M27.45 18.26L27.39 18.31L27.44 18.64L27.33 18.76L27.17 18.56L27.12 18.64L27.09 18.54L26.95 18.59L27.07 18.50L26.95 18.45L26.91 18.51L26.78 18.30L26.83 18.28L26.61 18.27L26.52 18.21L26.49 17.97L26.63 17.85L26.51 17.50L26.42 17.45L26.38 17.30L26.49 17.20L26.36 17.11L26.35 17.01L26.18 16.96L26.03 16.75L25.92 16.80L25.95 16.59L25.54 16.59L25.13 16.22L24.91 16.14L24.88 15.91L25.01 15.84L24.92 15.60L25.28 15.36L25.55 15.01L25.43 14.70L25.47 14.58L25.27 14.54L24.86 14.67L24.58 14.90L24.13 14.74L23.68 14.89L23.62 14.91L23.82 15.11L23.57 15.34L23.43 15.34L23.21 15.22L23.10 15.06L23.12 14.98L22.91 15.05L22.80 14.97L22.81 14.59L22.53 14.60L22.53 14.52L22.38 14.49L22.32 14.31L21.97 14.14L21.66 14.11L21.99 13.99L22.26 13.72L22.31 13.28L22.21 13.12L21.85 13.07L21.76 13.15L21.44 13.14L21.38 13.32L21.29 13.22L21.13 13.29L21.14 13.39L21.03 13.23L20.95 13.25L20.99 13.32L20.76 13.43L20.75 13.08L20.46 12.90L20.18 12.56L20.35 12.34L19.80 11.20L19.16 11.27L18.93 11.40L18.82 11.56L18.99 11.78L18.90 11.85L18.95 11.98L18.89 12.06L18.49 12.20L18.27 12.43L18.13 12.23L17.91 12.33L17.82 12.46L17.64 12.49L17.21 12.89L17.05 13.12L17.01 13.34L16.32 13.43L16.09 14.49L15.84 14.76L15.86 14.94L16.48 14.82L16.53 15.08L16.98 15.08L17.11 15.13L17.00 15.19L17.11 15.28L17.51 15.24L17.66 15.65L18.00 15.57L18.39 15.71L18.60 15.60L18.89 15.83L19.06 15.85L19.15 15.72L19.39 15.77L19.39 15.52L19.48 15.50L19.49 15.39L19.71 15.41L19.61 15.09L19.63 14.80L19.94 14.83L20.55 15.21L20.68 15.12L20.71 14.97L20.96 15.07L21.15 14.91L21.39 15.05L21.35 15.10L21.84 15.55L22.22 15.77L22.27 15.78L22.25 15.67L22.12 15.53L22.17 15.48L22.47 15.72L22.87 15.82L22.85 15.99L23.10 16.15L23.23 16.21L23.31 16.13L23.43 16.17L23.60 16.35L23.75 16.28L23.84 16.52L24.28 16.90L24.16 16.92L24.12 17.03L24.35 17.23L24.25 17.29L24.38 17.43L24.45 17.67L24.63 17.78L24.48 17.92L24.55 17.96L24.53 18.17L24.40 18.14L24.32 18.23L24.42 18.44L24.36 18.51L24.17 18.41L24.12 18.56L24.00 18.58L23.99 18.70L24.09 18.82L23.83 19.01L23.81 19.11L23.69 19.13L23.70 19.41L23.88 19.49L23.97 19.64L23.81 19.71L23.72 19.89L23.63 19.85L23.52 19.92L23.38 19.79L22.90 19.62L22.79 19.68L22.74 19.82L22.93 20.11L23.06 20.16L23.07 20.34L23.41 20.33L23.45 20.50L23.66 20.42L23.71 20.56L23.57 20.73L23.65 20.90L23.70 20.81L23.83 20.80L23.85 20.71L23.92 20.78L23.97 20.59L24.13 20.55L24.15 20.46L24.04 20.39L24.04 20.27L23.87 20.03L24.08 20.03L24.11 19.91L24.29 19.92L24.25 19.85L24.50 19.69L24.72 19.92L24.67 19.97L24.71 20.19L24.86 20.26L25.00 20.19L25.00 20.32L25.43 20.31L25.54 20.40L25.57 20.60L25.74 20.67L25.64 20.70L25.67 20.96L25.74 20.99L25.63 21.06L25.63 21.16L25.92 21.34L26.30 21.41L26.58 21.27L26.55 21.08L26.70 21.12L26.92 21.06L27.00 20.80L26.87 20.74L26.79 20.62L26.89 20.62L26.95 20.44L27.01 20.39L27.19 20.45L27.40 20.39L27.47 20.49L27.51 20.42L27.37 20.09L27.51 19.85L27.46 19.71L27.57 19.76L27.62 19.63L27.29 19.42L27.50 19.23L27.43 19.02L27.48 18.92L27.77 18.91L28.06 19.12L28.54 19.02L28.39 18.76L28.46 18.69L28.63 18.75L29.15 18.71L29.18 18.46L29.11 18.39L29.08 18.13L29.23 17.98L29.20 17.62L29.09 17.53L29.05 17.58L28.85 17.37L28.80 17.44L28.72 17.41L28.59 17.25L28.11 17.09L28.07 16.90L28.00 16.86L27.54 16.86L27.56 17.04L27.47 17.02L27.56 17.28L27.45 17.28L27.34 17.45L27.46 17.53L27.45 17.73L27.71 17.77L27.82 17.91L27.80 18.07L27.73 18.11L27.77 18.24L27.65 18.31L27.45 18.26Z","630000":"M24.44 17.63L24.38 17.43L24.25 17.29L24.35 17.23L24.12 17.03L24.16 16.92L24.28 16.90L24.25 16.83L23.84 16.52L23.75 16.28L23.60 16.35L23.43 16.17L23.31 16.13L23.23 16.21L23.10 16.15L22.85 15.99L22.87 15.82L22.47 15.72L22.17 15.48L22.12 15.53L22.25 15.67L22.27 15.78L22.22 15.77L21.84 15.55L21.35 15.10L21.39 15.05L21.15 14.91L20.96 15.07L20.71 14.97L20.68 15.12L20.55 15.21L19.94 14.83L19.63 14.80L19.61 15.09L19.71 15.41L19.49 15.39L19.48 15.50L19.39 15.52L19.39 15.77L19.15 15.72L19.06 15.85L18.89 15.83L18.60 15.60L18.39 15.71L18.00 15.57L17.66 15.65L17.51 15.24L17.11 15.28L17.00 15.19L17.11 15.13L16.98 15.08L16.53 15.08L16.48 14.82L16.01 14.89L15.88 15.00L14.99 15.25L14.47 15.33L14.28 15.51L14.02 15.52L14.04 15.66L14.16 15.76L14.36 15.68L14.35 16.27L14.80 16.52L14.99 16.99L14.89 16.97L14.53 17.17L14.53 17.41L14.77 17.47L14.81 17.91L14.73 17.89L14.62 17.98L14.47 17.87L14.12 17.84L13.93 17.72L13.88 17.93L13.45 17.96L13.46 18.08L13.76 18.15L13.68 18.46L13.73 18.52L13.51 18.64L13.54 18.72L13.48 18.78L13.59 18.90L13.58 19.10L13.75 19.08L13.82 19.19L13.70 19.34L13.76 19.37L13.82 19.68L13.78 19.83L13.63 19.95L13.88 20.20L13.85 20.26L13.91 20.27L14.01 20.54L14.50 20.86L15.18 20.90L15.53 21.18L15.73 21.13L15.77 21.28L16.40 21.26L16.44 21.37L16.58 21.34L16.81 21.52L16.97 21.42L17.09 21.53L17.31 21.57L17.71 21.33L17.95 21.58L18.20 21.60L18.24 21.65L18.09 21.72L18.22 21.68L18.28 21.85L18.38 21.84L18.39 21.99L18.32 22.04L18.44 22.25L18.54 22.22L18.70 22.32L18.76 22.18L18.83 22.18L19.01 22.40L19.00 22.10L19.05 22.07L19.16 22.08L19.31 22.29L19.48 22.32L19.53 22.28L19.43 21.99L19.55 22.04L19.67 21.93L19.91 21.92L19.91 21.71L20.01 21.68L19.93 21.46L20.03 21.41L20.26 21.47L20.01 21.30L19.94 21.10L20.09 21.01L20.06 20.83L20.28 20.59L20.11 20.53L20.09 20.42L20.00 20.39L19.96 20.16L20.18 20.08L20.20 19.87L20.32 19.79L20.81 19.91L20.81 20.13L21.02 20.35L21.10 20.72L21.18 20.85L21.46 20.96L21.52 21.12L21.61 21.10L21.89 21.27L22.02 20.95L22.22 21.16L22.19 21.33L22.29 21.39L22.33 21.26L22.44 21.24L22.43 21.30L22.46 21.27L22.65 21.47L22.68 21.32L22.88 21.40L23.07 21.34L23.13 21.17L23.04 21.09L23.09 20.96L23.04 20.78L23.18 20.74L23.25 20.85L23.34 20.77L23.46 20.90L23.54 20.72L23.48 20.62L23.57 20.47L23.45 20.50L23.41 20.33L23.35 20.30L23.07 20.34L23.06 20.16L22.93 20.11L22.74 19.82L22.79 19.68L22.90 19.62L23.09 19.66L23.54 19.92L23.63 19.85L23.72 19.89L23.81 19.71L23.97 19.64L23.88 19.49L23.70 19.41L23.69 19.13L23.81 19.11L23.83 19.01L24.09 18.82L23.99 18.70L24.00 18.58L24.12 18.56L24.17 18.41L24.36 18.51L24.42 18.44L24.32 18.23L24.40 18.14L24.53 18.17L24.55 17.96L24.48 17.92L24.63 17.78L24.44 17.63Z","640000":"M28.07 16.90L28.13 16.86L28.06 16.66L28.15 16.41L28.11 16.39L28.39 16.16L28.19 16.05L28.21 16.00L28.01 15.85L27.80 15.87L27.43 15.68L27.56 15.53L27.61 15.28L27.81 15.06L27.82 14.95L27.74 14.89L27.65 14.62L27.53 14.62L27.45 14.73L27.26 14.74L27.27 14.85L27.15 14.85L27.01 15.09L26.91 15.36L26.92 15.70L26.84 15.88L26.90 16.00L26.84 16.20L26.72 16.22L26.70 16.30L26.47 16.30L26.24 16.42L25.75 16.48L25.63 16.57L25.95 16.59L25.92 16.80L26.03 16.75L26.18 16.96L26.35 17.01L26.36 17.11L26.49 17.20L26.38 17.30L26.42 17.45L26.51 17.50L26.63 17.85L26.49 17.97L26.52 18.21L26.61 18.27L26.83 18.28L26.78 18.30L26.91 18.51L26.95 18.45L27.10 18.49L27.12 18.64L27.17 18.56L27.23 18.59L27.33 18.76L27.44 18.64L27.39 18.31L27.54 18.26L27.65 18.31L27.79 18.19L27.73 18.11L27.80 18.07L27.79 17.86L27.59 17.73L27.45 17.73L27.46 17.53L27.33 17.42L27.40 17.44L27.45 17.28L27.56 17.28L27.47 17.02L27.56 17.04L27.53 16.87L28.07 16.90Z","650000":"M19.16 11.27L19.14 11.10L18.74 10.72L18.45 9.99L18.29 9.97L18.36 9.70L18.02 9.75L17.79 9.66L17.50 9.48L17.38 9.33L16.80 9.03L16.29 8.95L15.76 8.98L15.61 8.91L15.20 8.92L14.85 8.78L14.65 8.81L14.48 8.42L14.51 8.27L14.77 7.98L14.66 7.69L14.81 7.44L14.76 7.42L14.79 7.28L14.66 7.04L14.55 7.01L14.39 6.79L14.24 6.36L14.04 6.28L13.98 6.12L13.73 6.16L13.57 5.96L13.17 6.01L13.06 5.88L12.81 5.82L12.72 5.60L12.27 5.42L12.36 5.28L12.08 5.12L12.21 5.02L12.14 4.83L11.89 4.85L11.83 4.92L11.56 4.84L11.38 4.87L11.25 5.01L11.32 5.15L11.29 5.27L11.12 5.46L10.83 5.57L10.48 5.58L10.31 5.81L10.27 5.95L10.40 6.71L10.28 6.94L10.06 6.93L9.79 7.14L9.62 6.99L8.96 7.03L8.49 6.82L8.21 6.78L7.75 8.02L7.65 8.06L7.59 8.38L7.60 8.46L7.82 8.57L7.83 8.80L7.31 8.77L7.20 8.62L6.47 8.87L5.83 8.95L5.64 9.09L5.73 9.21L5.87 9.16L6.06 9.37L6.06 9.87L6.35 10.51L6.30 10.67L6.37 10.69L6.39 10.82L6.04 10.97L6.23 11.11L5.95 11.17L5.87 11.37L5.95 11.50L5.90 11.57L5.97 11.74L5.87 11.80L5.85 11.97L5.67 11.96L5.55 12.11L5.18 12.19L4.63 12.53L4.23 12.62L4.20 12.77L3.96 12.85L3.92 12.98L3.42 12.99L3.28 12.93L3.18 12.97L3.08 13.05L2.90 13.54L2.73 13.66L2.69 13.56L2.45 13.62L2.39 13.71L2.22 13.72L2.24 13.53L2.13 13.34L1.84 13.55L1.51 13.48L1.47 13.56L1.56 13.66L1.39 13.65L1.11 13.91L0.84 13.91L0.69 14.17L0.78 14.40L0.71 14.52L0.50 14.53L0.41 14.62L0.61 14.97L0.69 14.99L0.68 15.08L0.61 15.07L0.57 15.14L0.65 15.39L0.83 15.48L0.94 15.32L1.16 15.35L1.53 15.52L1.48 15.83L1.64 16.23L1.55 16.33L1.59 16.44L1.74 16.54L1.75 16.64L1.57 16.77L1.42 16.72L1.24 16.76L1.23 16.93L1.51 16.94L1.55 17.06L1.66 16.98L1.98 17.05L2.01 17.28L2.16 17.23L2.35 17.33L2.51 17.77L2.42 17.93L2.54 17.98L2.59 18.18L2.76 18.18L2.91 18.08L2.94 18.23L3.09 18.35L3.44 18.48L3.84 18.55L3.95 18.48L4.03 18.53L4.21 18.51L4.11 18.63L4.11 18.77L4.29 19.12L4.27 19.28L4.45 19.46L4.68 19.48L4.83 19.65L4.95 19.67L4.92 19.60L5.05 19.56L5.57 19.52L5.76 18.97L6.03 18.79L5.95 18.70L6.09 18.55L6.52 18.69L6.63 18.59L6.73 18.68L6.85 18.65L6.97 18.76L7.12 18.76L7.40 18.68L7.40 18.55L7.64 18.44L7.65 18.35L7.76 18.28L7.97 18.36L8.16 18.33L8.19 18.52L8.30 18.60L8.70 18.66L9.02 18.58L9.14 18.64L9.38 18.53L9.38 18.45L9.87 18.25L10.05 18.21L10.33 18.35L10.40 18.25L10.69 18.16L10.80 17.87L11.26 17.71L11.59 17.70L11.77 17.58L11.94 17.66L12.67 17.52L12.92 17.71L13.05 17.64L13.73 17.93L13.88 17.93L13.96 17.72L14.12 17.84L14.47 17.87L14.62 17.98L14.85 17.88L14.77 17.47L14.53 17.41L14.53 17.17L14.89 16.97L14.99 16.99L14.97 16.84L14.80 16.52L14.35 16.27L14.36 15.68L14.16 15.76L14.04 15.66L14.02 15.52L14.28 15.51L14.47 15.33L14.99 15.25L15.90 14.99L15.84 14.76L16.09 14.49L16.32 13.43L17.01 13.34L17.05 13.12L17.21 12.89L17.64 12.49L17.82 12.46L17.91 12.33L18.13 12.23L18.27 12.43L18.49 12.20L18.89 12.06L18.95 11.98L18.90 11.85L18.99 11.78L18.82 11.56L18.93 11.40L19.16 11.27Z","710000":"M38.86 31.56L39.03 31.76L39.08 32.07L39.20 32.12L39.30 31.47L39.67 30.86L39.85 29.90L40.04 29.47L40.01 29.16L40.15 29.00L40.07 28.86L39.93 28.84L39.80 28.69L39.34 28.96L38.58 30.30L38.52 30.93L38.61 31.00L38.72 31.44L38.86 31.56Z","810000":"M33.61 31.50L33.52 31.58L33.61 31.65L33.50 31.69L33.46 31.81L33.58 31.79L33.64 31.67L33.80 31.80L33.82 31.61L33.88 31.66L33.92 31.57L33.85 31.52L33.77 31.57L33.86 31.50L33.80 31.45L33.61 31.50Z","JD":"M37.42 42.81L37.30 43.10L37.67 42.00L37.42 42.81ZM32.20 50.47L31.77 50.60L32.37 50.42L32.65 50.25L32.20 50.47ZM28.88 47.91L28.92 47.99L28.86 46.91L28.88 47.91ZM30.41 42.63L30.36 42.76L30.52 42.40L30.57 41.75L30.54 42.21L30.41 42.63ZM30.17 38.77L30.19 38.85L30.05 38.32L29.73 37.79L30.04 38.33L30.17 38.77Z"};
+  var CN_META={"110000":["北京市",35.57,13.81],"120000":["天津市",36.33,14.71],"130000":["河北省",34.0,15.95],"140000":["山西省",32.2,16.38],"150000":["内蒙古自治区",33.65,9.67],"210000":["辽宁省",40.63,12.7],"220000":["吉林省",43.56,10.3],"230000":["黑龙江省",44.8,5.96],"310000":["上海市",39.68,22.93],"320000":["江苏省",38.08,21.02],"330000":["浙江省",38.59,24.82],"340000":["安徽省",36.23,22.15],"350000":["福建省",36.87,27.93],"360000":["江西省",35.0,26.36],"370000":["山东省",37.02,17.62],"410000":["河南省",33.27,20.1],"420000":["湖北省",32.17,23.01],"430000":["湖南省",31.71,26.37],"440000":["广东省",33.12,30.67],"450000":["广西壮族自治区",29.32,30.17],"460000":["海南省",30.11,34.81],"500000":["重庆市",28.58,23.93],"510000":["四川省",24.32,23.33],"520000":["贵州省",27.75,27.17],"530000":["云南省",23.33,28.99],"540000":["西藏自治区",12.61,22.44],"610000":["陕西省",29.4,18.74],"620000":["甘肃省",25.25,17.94],"630000":["青海省",18.88,18.27],"640000":["宁夏回族自治区",27.17,16.71],"650000":["新疆维吾尔自治区",10.07,12.63],"710000":["台湾省",39.3,30.25],"810000":["香港特别行政区",33.7,31.62]};
+  /* ===== 数据资产地理分布：真实中国地图 ===== */
+  var map=document.getElementById('mapWrap');
+  var REGIONS={hd:['310000','320000','330000','340000','350000','360000','370000','710000'],hb:['110000','120000','130000','140000','150000'],hn:['440000','450000','460000','810000','820000'],xb:['500000','510000','520000','530000','540000','610000','620000','630000','640000','650000'],qt:['410000','420000','430000','210000','220000','230000']};
+  var RC={hd:'华东',hb:'华北',hn:'华南',xb:'西部',qt:'其他'};
+  var rmap={};Object.keys(REGIONS).forEach(function(r){REGIONS[r].forEach(function(a){rmap[a]=r;});});
+  var HUBS={110000:'北京',310000:'上海',440000:'广州',510000:'成都',610000:'西安',650000:'乌鲁木齐',420000:'武汉',230000:'哈尔滨'};
+  var defs='',uses='',dots='',labels='';
+  Object.keys(CN_PATHS).forEach(function(k){
+    defs+='<path id="cp'+k+'" d="'+CN_PATHS[k]+'"/>';
+  });
+  Object.keys(CN_PATHS).forEach(function(k){
+    if(k==='JD')return;
+    var r=rmap[k]||'qt';
+    uses+='<use href="#cp'+k+'" class="pr '+r+'"><title>'+(CN_META[k]?CN_META[k][0]+' · '+RC[r]:'')+'</title></use>';
+  });
+  Object.keys(CN_META).forEach(function(k){
+    if(k==='JD')return;
+    var m=CN_META[k],r=rmap[k]||'qt';
+    dots+='<g><title>'+m[0]+' · '+RC[r]+'</title>';
+    if(HUBS[k]){dots+='<circle cx="'+m[1]+'" cy="'+m[2]+'" r="1.1" class="hubring"/><circle cx="'+m[1]+'" cy="'+m[2]+'" r="0.85" class="dot '+r+'" style="filter:drop-shadow(0 0 3px currentColor)"/>';}
+    dots+='<circle cx="'+m[1]+'" cy="'+m[2]+'" r="0.95" class="halo '+r+'"/><circle cx="'+m[1]+'" cy="'+m[2]+'" r="0.5" class="dot '+r+'"/></g>';
+    if(HUBS[k])labels+='<text x="'+m[1]+'" y="'+(m[2]-2)+'" class="lb" style="font-weight:700;fill:#CFEFF6">'+HUBS[k]+'</text>';
+  });
+  var HUBORDER=['110000','310000','440000','510000','610000','420000','230000','110000'];
+  var conns='';
+  for(var hi=0;hi<HUBORDER.length-1;hi++){
+    var ca=CN_META[HUBORDER[hi]],cb=CN_META[HUBORDER[hi+1]];
+    conns+='<path class="conn" d="M'+ca[1]+' '+ca[2]+' L'+cb[1]+' '+cb[2]+'"/>';
+  }
+  var usesS='';
+  Object.keys(CN_PATHS).forEach(function(k){
+    if(k==='JD')return;
+    usesS+='<use href="#cp'+k+'" class="pr s '+ (rmap[k]||'qt') +'"/>';
+  });
+var inset='<rect x="41.2" y="27.2" width="9.5" height="9.4" rx="0.5" class="ins-bg"/>'
+  +'<svg x="41.7" y="27.6" width="8.5" height="8.4" viewBox="0 0 51.2 51.5" preserveAspectRatio="xMidYMid meet">'+usesS+'<use href="#cpJD" class="jd s"/></svg>'
+  +'<text x="45.95" y="37.9" class="ins-t">南海诸岛</text>';
+  map.innerHTML='<svg viewBox="0 0 51.2 38.5" preserveAspectRatio="xMidYMid meet"><defs>'+defs+'</defs>'+uses+'<use href="#cpJD" class="jd"/>'+conns+dots+labels+inset+'</svg><div class="scan"></div>';
+
+  /* ===== 通用柱状生成（效率/趋势） ===== */
+  function buildBars(el,data,opt){
+    data.forEach(function(v){
+      var g=document.createElement('div');g.className='g';
+      opt.series.forEach(function(s){
+        var b=document.createElement('div');b.className='b '+s.cls;
+        b.style.height=Math.max(4,(v[s.k]/opt.max*100))+'%';
+        g.appendChild(b);
+      });
+      el.appendChild(g);
+    });
+  }
+  /* 面积图（带渐变填充 + 发光描边 + 网格 + 入场绘制） */
+  function buildArea(el,data,opt){
+    el.innerHTML='';
+    var W=100,H=100,n=data.length,max=opt.max;
+    function P(k){return data.map(function(v,i){return [(i/(n-1))*W, H-(Math.max(0,v[k])/max*H)];});}
+    function line(P){return 'M'+P.map(function(p){return p[0].toFixed(2)+','+p[1].toFixed(2);}).join(' L');}
+    function area(P){return 'M0,'+H+' L'+P.map(function(p){return p[0].toFixed(2)+','+p[1].toFixed(2);}).join(' L')+' L'+W+','+H+' Z';}
+    var defs='',body='';
+    [20,40,60,80].forEach(function(g){body+='<line class="grid-line" x1="0" y1="'+g+'" x2="'+W+'" y2="'+g+'"/>';});
+    opt.series.forEach(function(s){
+      var p=P(s.k),cid='ag_'+el.id+'_'+s.k;
+      defs+='<linearGradient id="'+cid+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+s.color+'" stop-opacity="0.5"/><stop offset="1" stop-color="'+s.color+'" stop-opacity="0"/></linearGradient>';
+      body+='<path class="ar" d="'+area(p)+'" fill="url(#'+cid+')"/>';
+      body+='<path class="ln" d="'+line(p)+'" stroke="'+s.color+'" style="color:'+s.color+'"/>';
+    });
+    body+='<line class="now" x1="'+W+'" y1="0" x2="'+W+'" y2="'+H+'"/>';
+    el.innerHTML='<svg class="area-chart'+(opt.draw?' draw':'')+'" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><defs>'+defs+'</defs>'+body+'</svg>';
+  }
+  // 效率：采集量 vs 处理量
+  var eff=[];for(var i=0;i<14;i++){eff.push({a:50+Math.round(40*Math.sin(i/2)+20*Math.random()),b:45+Math.round(35*Math.sin(i/2+0.5)+18*Math.random())});}
+  buildArea(document.getElementById('effBars'),eff,{max:120,draw:true,series:[{k:'a',color:'#22D3EE'},{k:'b',color:'#F59E0B'}]});
+
+  // 趋势：成功 vs 失败
+  var trend=[];for(var j=0;j<14;j++){trend.push({a:80+Math.round(30*Math.sin(j/2)+15*Math.random()),b:3+Math.round(8*Math.random())});}
+  buildArea(document.getElementById('trendBars'),trend,{max:120,draw:true,series:[{k:'a',color:'#22D3EE'},{k:'b',color:'#F59E0B'}]});
+
+  /* ===== 吞吐 10 柱 ===== */
+  var thru=document.getElementById('thruBars');
+  var tv=[9,11,8,12,10,13,11,12,9,12];
+  tv.forEach(function(v){var c=document.createElement('div');c.className='col';c.innerHTML='<div class="bk" style="height:'+(v/14*100)+'%"></div><div class="xl">'+v+'</div>';thru.appendChild(c);});
+
+  /* ===== 96 格热力图（12×8） ===== */
+  var heat=document.getElementById('heat');
+  var seed=[0.9,0.85,0.7,0.95,0.6,0.88,0.92,0.55,0.78,0.83,0.66,0.97,
+            0.8,0.72,0.94,0.5,0.86,0.91,0.63,0.77,0.99,0.68,0.84,0.7,
+            0.93,0.58,0.88,0.81,0.95,0.47,0.76,0.9,0.62,0.85,0.73,0.98,
+            0.87,0.79,0.65,0.92,0.54,0.83,0.96,0.7,0.89,0.6,0.94,0.75,
+            0.91,0.82,0.97,0.68,0.86,0.59,0.93,0.71,0.55,0.88,0.84,0.76,
+            0.78,0.9,0.62,0.85,0.94,0.73,0.81,0.66,0.92,0.57,0.87,0.95,
+            0.96,0.69,0.83,0.74,0.9,0.61,0.86,0.98,0.72,0.91,0.58,0.85,
+            0.84,0.93,0.67,0.79,0.88,0.95,0.64,0.82,0.7,0.97,0.59,0.9];
+  seed.forEach(function(v){
+    var c=document.createElement('div');c.className='c';
+    var col = v>0.85 ? '#10B981' : (v>0.65 ? '#F59E0B' : '#F43F5E');
+    c.style.background=col;c.title=(v*100).toFixed(0)+'%';
+    heat.appendChild(c);
+  });
+
+  /* ===== 数据源（演示 / 真实 API 双模式） ===== */
+  function pad2(n){return n<10?'0'+n:''+n;}
+  function renderThru(arr){
+    var thru=document.getElementById('thruBars');thru.innerHTML='';
+    arr.slice(-10).forEach(function(v){
+      var c=document.createElement('div');c.className='col';
+      var h=Math.max(5,Math.min(16,v))/18*100;
+      c.innerHTML='<div class="bk" style="height:'+h+'%"></div><div class="xl">'+Math.round(v)+'</div>';
+      thru.appendChild(c);
+    });
+  }
+  function renderTrend(arr){
+    var t=document.getElementById('trendBars');t.innerHTML='';
+    buildArea(t,arr,{max:120,series:[{k:'a',color:'#22D3EE'},{k:'b',color:'#F59E0B'}]});
+  }
+  function renderHeat(arr){
+    var heat=document.getElementById('heat');heat.innerHTML='';
+    arr.forEach(function(v){
+      var c=document.createElement('div');c.className='c';
+      var col=v>0.85?'#10B981':(v>0.65?'#F59E0B':'#F43F5E');
+      c.style.background=col;c.title=(v*100).toFixed(0)+'%';
+      heat.appendChild(c);
+    });
+  }
+  var DS={
+    mode:'demo', url:'', ws:null, pollTimer:null, connected:false, statusEl:null,
+    setStatus:function(s,cls){ if(DS.statusEl){DS.statusEl.textContent=s;DS.statusEl.className='ds-status '+(cls||'demo');} },
+    connect:function(){
+      DS.disconnect();
+      if(DS.mode==='demo'){ DS.connected=false; DS.setStatus('演示数据','demo'); return; }
+      if(!DS.url){ DS.setStatus('请先填写地址','err'); return; }
+      if(DS.url.indexOf('ws')===0){
+        try{
+          DS.ws=new WebSocket(DS.url);
+          DS.ws.onopen=function(){DS.connected=true;DS.setStatus('已连接 (WebSocket)','ok');};
+          DS.ws.onmessage=function(e){ DS.handle(e.data); };
+          DS.ws.onclose=function(){DS.connected=false;DS.setStatus('连接已断开','err');};
+          DS.ws.onerror=function(){DS.connected=false;DS.setStatus('连接失败','err');};
+          DS.setStatus('正在连接…','demo');
+        }catch(err){ DS.setStatus('地址无效','err'); }
+      } else {
+        DS.connected=true; DS.setStatus('轮询中 (REST)','ok');
+        DS.pollTimer=setInterval(function(){
+          fetch(DS.url,{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){DS.applySnapshot(d);}).catch(function(){DS.setStatus('请求失败','err');});
+        },3000);
+      }
+    },
+    disconnect:function(){
+      if(DS.ws){try{DS.ws.close();}catch(e){} DS.ws=null;}
+      if(DS.pollTimer){clearInterval(DS.pollTimer);DS.pollTimer=null;}
+      DS.connected=false;
+    },
+    handle:function(raw){
+      var d; try{d=JSON.parse(raw);}catch(e){ return; }
+      if(d && d.type==='event'){ DS.pushEvent(d); } else { DS.applySnapshot(d); }
+    },
+    applySnapshot:function(d){
+      if(!d) return;
+      if(typeof d.health==='number') document.getElementById('rtHealth').textContent=d.health.toFixed(1);
+      if(typeof d.quality==='number') document.getElementById('rtQuality').textContent=d.quality.toFixed(1);
+      if(typeof d.thru==='number') document.getElementById('rtThru').textContent=d.thru.toFixed(1);
+      if(typeof d.latency==='number') document.getElementById('rtLatency').textContent=Math.round(d.latency);
+      if(typeof d.anomaly==='number') document.getElementById('rtAnomaly').textContent=d.anomaly.toFixed(2);
+      if(Array.isArray(d.thruBars)) renderThru(d.thruBars);
+      if(Array.isArray(d.trendBars)) renderTrend(d.trendBars);
+      if(Array.isArray(d.heat)) renderHeat(d.heat);
+      /* —— 电芯级数据 —— */
+      if(typeof d.soc==='number'){cellT.soc=d.soc;var e1=document.getElementById('cSOC');if(e1)e1.textContent=d.soc.toFixed(1);renderSoc(d.soc);}
+      if(typeof d.soh==='number'){cellT.soh=d.soh;var e2=document.getElementById('cSOH');if(e2)e2.textContent=d.soh.toFixed(1);}
+      if(typeof d.cellTempMax==='number'){cellT.temp=d.cellTempMax;var e3=document.getElementById('cTemp');if(e3)e3.textContent=d.cellTempMax.toFixed(1);}
+      if(typeof d.packVoltage==='number'){var e4=document.getElementById('cVolt');if(e4)e4.textContent=d.packVoltage.toFixed(1);}
+      if(typeof d.packCurrent==='number'){var e5=document.getElementById('cCur');if(e5)e5.textContent=d.packCurrent.toFixed(1);}
+      if(typeof d.insulation==='number'){var e6=document.getElementById('cInsul');if(e6)e6.textContent=d.insulation.toFixed(1);}
+      if(Array.isArray(d.cellVoltages)&&d.cellVoltages.length===CELL_N){
+        for(var ci=0;ci<CELL_N;ci++){cellState[ci]=d.cellVoltages[ci];}
+        renderCells();
+      }
+      if(Array.isArray(d.cellTemps)&&d.cellTemps.length===96){renderCellHeat(d.cellTemps);}
+      if(Array.isArray(d.cellTrend)){buildArea(document.getElementById('cellTrend'),d.cellTrend,{max:3.60,series:[{k:'a',color:'#22D3EE'},{k:'b',color:'#F43F5E'},{k:'c',color:'#10B981'}]});}
+      if(Array.isArray(d.cellCur)){buildArea(document.getElementById('cellCur'),d.cellCur,{max:140,series:[{k:'a',color:'#22D3EE'}]});}
+    },
+    pushEvent:function(d){
+      var ev=document.getElementById('rtEvents');
+      var lvl=d.level==='crit'?'严重':d.level==='warn'?'预警':'正常';
+      var cls=d.level==='crit'?'crit':d.level==='warn'?'warn':'ok';
+      var ts=d.time||(function(){var x=new Date();return pad2(x.getHours())+':'+pad2(x.getMinutes())+':'+pad2(x.getSeconds());})();
+      var row=document.createElement('div');row.className='row';
+      row.innerHTML='<span class="chip '+cls+'"><span class="d"></span>'+lvl+'</span><span class="tt">'+(d.text||'')+'</span><span class="r num">'+ts+'</span>';
+      ev.insertBefore(row,ev.firstChild);
+      while(ev.children.length>7) ev.removeChild(ev.lastChild);
+    }
+  };
+
+  /* ===== 顶栏实时时钟 ===== */
+  function pad(n){return n<10?'0'+n:''+n;}
+  function tick(){
+    var d=new Date();
+    document.getElementById('clock').textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  }
+  tick(); setInterval(tick,1000);
+
+  /* ===== 实时监控：动态数据（仅在实时监控页激活时运行） ===== */
+  var rt={health:94.2,quality:98.6,thru:12.4,latency:86,anomaly:0.12};
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function updateRealtime(){
+    if(!document.getElementById('page-realtime').classList.contains('active')) return;
+    if(DS.mode!=='demo') return;
+    rt.health=clamp(rt.health+(Math.random()-0.5)*0.3,90,98);
+    rt.quality=clamp(rt.quality+(Math.random()-0.5)*0.2,95,99.9);
+    rt.thru=clamp(rt.thru+(Math.random()-0.5)*1.4,8,18);
+    rt.latency=clamp(rt.latency+(Math.random()-0.5)*12,40,160);
+    rt.anomaly=clamp(rt.anomaly+(Math.random()-0.5)*0.04,0,0.5);
+    document.getElementById('rtHealth').textContent=rt.health.toFixed(1);
+    document.getElementById('rtQuality').textContent=rt.quality.toFixed(1);
+    document.getElementById('rtThru').textContent=rt.thru.toFixed(1);
+    document.getElementById('rtLatency').textContent=Math.round(rt.latency);
+    document.getElementById('rtAnomaly').textContent=rt.anomaly.toFixed(2);
+
+    // 吞吐柱：左移并补最新一根
+    var thru=document.getElementById('thruBars');
+    if(thru.children.length>10) thru.removeChild(thru.firstChild);
+    var v=clamp(rt.thru+(Math.random()-0.5)*3,5,16);
+    var c=document.createElement('div');c.className='col';
+    c.innerHTML='<div class="bk" style="height:'+(v/18*100)+'%"></div><div class="xl">'+Math.round(v)+'</div>';
+    thru.appendChild(c);
+
+    // 趋势柱：整体重绘（成功/失败）
+    var trend=document.getElementById('trendBars');trend.innerHTML='';
+    var td=[];for(var j=0;j<14;j++){td.push({a:80+Math.round(30*Math.sin(j/2)+15*Math.random()),b:3+Math.round(8*Math.random())});}
+    buildArea(trend,td,{max:120,series:[{k:'a',color:'#22D3EE'},{k:'b',color:'#F59E0B'}]});
+
+    // 事件流：前置最新一条，最多保留 7 行
+    var ev=document.getElementById('rtEvents');
+    var pool=[
+      ['warn','DS-0823 订单域 空值率波动'],
+      ['ok','API-1190 用户域 校验通过'],
+      ['crit','DS-2210 库存域 任务抖动'],
+      ['ok','ETL-0455 财务域 落库完成'],
+      ['warn','TBL-3391 物流域 时延升高'],
+      ['ok','RPT-7782 报表域 生成成功'],
+      ['warn','DS-5501 营销域 重复采集']
+    ];
+    var pick=pool[Math.floor(Math.random()*pool.length)];
+    var d=new Date();var ts=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+    var lvl=pick[0]==='crit'?'严重':pick[0]==='warn'?'预警':'正常';
+    var row=document.createElement('div');row.className='row';
+    row.innerHTML='<span class="chip '+pick[0]+'"><span class="d"></span>'+lvl+'</span><span class="tt">'+pick[1]+'</span><span class="r num">'+ts+'</span>';
+    ev.insertBefore(row,ev.firstChild);
+    while(ev.children.length>7) ev.removeChild(ev.lastChild);
+  }
+  setInterval(updateRealtime,3000);
+
+  /* ===== 实时快照按钮：可见反馈 ===== */
+  var snap=document.getElementById('btnSnap');
+  if(snap){snap.addEventListener('click',function(){
+    var o=snap.textContent;snap.textContent='已快照 ✓';
+    setTimeout(function(){snap.textContent=o;},1500);
+    updateRealtime();
+  });}
+
+  /* ===== 电芯监控：96 串矩阵 + 实时刷新 ===== */
+  var CELL_N=96, CELL_VMIN=3.50, CELL_VMAX=3.60;
+  var cellState=(function(){
+    var a=[];for(var i=0;i<CELL_N;i++){a.push(3.585+(Math.random()-0.5)*0.016);}
+    // 预置两个"弱电芯"（第 63 / 88 串），比均值低约 45-57mV，
+    // 使压差稳定落在预警区间（60~80mV），与告警流口径一致
+    a[62]=3.535; a[87]=3.528;
+    return a;
+  })();
+  var WEAK_IDX=[62,87];
+
+  function voltColor(v){
+    // 低压红 → 橙 → 绿 → 青 高压
+    var t=(v-CELL_VMIN)/(CELL_VMAX-CELL_VMIN); t=Math.max(0,Math.min(1,t));
+    var stops=[[0,[244,63,94]],[0.35,[245,158,11]],[0.62,[16,185,129]],[1,[34,211,238]]];
+    for(var i=0;i<stops.length-1;i++){
+      var a=stops[i],b=stops[i+1];
+      if(t>=a[0]&&t<=b[0]){
+        var k=(t-a[0])/(b[0]-a[0]);
+        var c=[0,1,2].map(function(j){return Math.round(a[1][j]+(b[1][j]-a[1][j])*k);});
+        return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
+      }
+    }
+    return '#10B981';
+  }
+
+  function renderCells(){
+    var g=document.getElementById('cellGrid');if(!g) return;
+    if(!g.children.length){
+      var html='';
+      for(var i=0;i<CELL_N;i++){
+        var n=i+1;
+        html+='<div class="cell" id="cell-'+i+'" title="第 '+n+' 串"></div>';
+      }
+      g.innerHTML=html;
+    }
+    var sum=0,mx=-9,mn=9;
+    for(var i=0;i<CELL_N;i++){
+      var v=cellState[i],el=g.children[i];
+      el.style.background=voltColor(v);
+      var weak=WEAK_IDX.indexOf(i)>=0;
+      el.className='cell'+(weak?' weak':'');
+      el.title='第 '+(i+1)+' 串 · '+v.toFixed(3)+' V'+(weak?' · 电压偏低':'');
+      sum+=v; if(v>mx)mx=v; if(v<mn)mn=v;
+    }
+    var avg=sum/CELL_N, spread=Math.round((mx-mn)*1000);
+    var e;
+    if(e=document.getElementById('cAvg'))e.textContent=avg.toFixed(3);
+    if(e=document.getElementById('cMax'))e.textContent=mx.toFixed(3);
+    if(e=document.getElementById('cMin'))e.textContent=mn.toFixed(3);
+    if(e=document.getElementById('cSpread'))e.textContent=spread;
+    if(e=document.getElementById('cDelta'))e.textContent=spread;
+    if(e=document.getElementById('cellMatrixSub'))
+      e.textContent='96 串 · 采样 1Hz · '+CELL_N+' 单体 · 压差 '+spread+'mV';
+    renderSnap();
+  }
+
+  /* 电芯快照条：电压 / 温度极值 + 差值
+     阈值：压差 预警≥60mV / 严重≥80mV；温差 预警≥8℃ / 严重≥15℃ */
+  var cellTempState=null;
+  function lvlOf(v,warn,crit){
+    return v>=crit?['严重','crit']:(v>=warn?['预警','warn']:['正常','ok']);
+  }
+  function renderSnap(){
+    var e;
+    var vmax=-9,vmin=9,imax=0,imin=0;
+    for(var i=0;i<CELL_N;i++){
+      var v=cellState[i];
+      if(v>vmax){vmax=v;imax=i;}
+      if(v<vmin){vmin=v;imin=i;}
+    }
+    var vd=Math.round((vmax-vmin)*1000);
+    if(e=document.getElementById('snapVMax'))e.textContent=vmax.toFixed(3);
+    if(e=document.getElementById('snapVMin'))e.textContent=vmin.toFixed(3);
+    if(e=document.getElementById('snapVDelta'))e.textContent=vd;
+    if(e=document.getElementById('snapVMaxIdx'))e.textContent='第 '+(imax+1)+' 串';
+    if(e=document.getElementById('snapVMinIdx'))e.textContent='第 '+(imin+1)+' 串';
+    if(e=document.getElementById('snapVDeltaTag')){
+      var lv=lvlOf(vd,60,80); e.textContent=lv[0]; e.className='a num '+lv[1];
+    }
+
+    if(!cellTempState||!cellTempState.length) return;
+    var tmax=-99,tmin=999,timax=0,timin=0;
+    for(var k=0;k<cellTempState.length;k++){
+      var t=cellTempState[k];
+      if(t>tmax){tmax=t;timax=k;}
+      if(t<tmin){tmin=t;timin=k;}
+    }
+    var td=tmax-tmin;
+    if(e=document.getElementById('snapTMax'))e.textContent=tmax.toFixed(1);
+    if(e=document.getElementById('snapTMin'))e.textContent=tmin.toFixed(1);
+    if(e=document.getElementById('snapTDelta'))e.textContent=td.toFixed(1);
+    if(e=document.getElementById('snapTMaxIdx'))e.textContent='探针 '+String(timax+1).padStart(2,'0');
+    if(e=document.getElementById('snapTMinIdx'))e.textContent='探针 '+String(timin+1).padStart(2,'0');
+    if(e=document.getElementById('snapTDeltaTag')){
+      var lt=lvlOf(td,8,15); e.textContent=lt[0]; e.className='a num '+lt[1];
+    }
+    /* 与「最高单体温度」KPI 保持一致（同源，避免两处数字打架） */
+    cellT.temp=tmax;
+    if(e=document.getElementById('cTemp'))e.textContent=tmax.toFixed(1);
+    if(e=document.getElementById('cTempProbe'))e.textContent=String(timax+1).padStart(2,'0');
+  }
+
+  /* 8 模组 × 12 探针温度热力
+     注意：温度跨度须与实际工况相符——正常放电时电芯间温差一般 <5℃，
+     否则快照条的"温差"会常年显示"严重"，误导判断。 */
+  var cellHeatSeed=(function(){
+    var a=[];for(var i=0;i<96;i++){a.push(33.2+Math.random()*1.4);}
+    a[46]=37.4; a[47]=38.6; // 最高温探针（48 号），位于模组中段
+    return a;
+  })();
+  function tempColor(t){
+    if(t>50) return '#F43F5E';
+    if(t>40) return '#F59E0B';
+    // 正常区间内做轻微色阶（越暖越亮），避免整片死绿
+    var k=Math.max(0,Math.min(1,(t-28)/12));
+    var a=[11,143,107], b=[16,185,129];
+    return 'rgb('+a.map(function(v,i){return Math.round(v+(b[i]-v)*k);}).join(',')+')';
+  }
+  function renderCellHeat(arr){
+    var heat=document.getElementById('cellHeat');if(!heat) return;
+    cellTempState=arr;   // 供电芯快照条计算温度极值 / 温差
+    heat.innerHTML='';
+    arr.forEach(function(v,i){
+      var c=document.createElement('div');c.className='c';
+      c.style.background=tempColor(v);
+      c.title='探针 '+String(i+1).padStart(2,'0')+' · '+v.toFixed(1)+'℃';
+      heat.appendChild(c);
+    });
+    renderSnap();
+  }
+
+  /* SOC 电量条 */
+  function renderSoc(soc){
+    var bar=document.getElementById('socBar');if(!bar) return;
+    var segs=10,on=Math.round(soc/100*segs);
+    var h='';for(var i=0;i<segs;i++){h+='<i class="'+(i<on?'':'off')+'"></i>';}
+    bar.innerHTML=h;
+  }
+
+  var cellT={soc:78.4,soh:96.2,temp:34.6,volt:312.6,cur:-84.2,insul:6.8};
+  function clampc(v,a,b){return Math.max(a,Math.min(b,v));}
+  function updateCell(){
+    var page=document.getElementById('page-cell');
+    if(!page||!page.classList.contains('active')) return;
+
+    if(DS.mode==='demo'){
+      // 普通电芯围绕均值微幅游走；弱电芯缓慢恶化后回落
+      for(var i=0;i<CELL_N;i++){
+        var drift=(Math.random()-0.5)*0.004;
+        if(WEAK_IDX.indexOf(i)>=0){
+          cellState[i]=clampc(cellState[i]+drift*2.0,3.520,3.548);
+        }else{
+          cellState[i]=clampc(cellState[i]+drift,3.570,3.600);
+        }
+      }
+      cellT.soc=clampc(cellT.soc+(Math.random()-0.5)*0.12,5,100);
+      cellT.soh=clampc(cellT.soh+(Math.random()-0.5)*0.05,92,99.5);
+      /* 温度由探针数组推导（见 renderSnap），此处不再独立漂移，避免两处数字不一致 */
+      cellT.volt=clampc(cellT.volt+(Math.random()-0.5)*0.6,295,340);
+      cellT.cur=clampc(cellT.cur+(Math.random()-0.5)*6,-160,60);
+      cellT.insul=clampc(cellT.insul+(Math.random()-0.5)*0.15,3,12);
+
+      var e;
+      if(e=document.getElementById('cSOC'))e.textContent=cellT.soc.toFixed(1);
+      if(e=document.getElementById('cSOH'))e.textContent=cellT.soh.toFixed(1);
+      if(e=document.getElementById('cVolt'))e.textContent=cellT.volt.toFixed(1);
+      if(e=document.getElementById('cCur'))e.textContent=cellT.cur.toFixed(1);
+      if(e=document.getElementById('cInsul'))e.textContent=cellT.insul.toFixed(1);
+      renderSoc(cellT.soc);
+      renderCells();
+
+      // 温度探针缓变
+      for(var k=0;k<96;k++){
+        var base=(k===46)?37.4:(k===47)?38.6:32.3;
+        cellHeatSeed[k]=clampc(cellHeatSeed[k]+(Math.random()-0.5)*0.5,base-2.2,base+2.2);
+      }
+      renderCellHeat(cellHeatSeed);
+
+      // 电流趋势重绘
+      var cv=[];for(var m=0;m<14;m++){cv.push({a:80+Math.round(40*Math.sin(m/2)+18*Math.random())});}
+      buildArea(document.getElementById('cellCur'),cv,{max:140,series:[{k:'a',color:'#22D3EE'}]});
+
+      // 告警流
+      var pool=[
+        ['warn','第 63 串 单体电压偏低 '+cellState[62].toFixed(3)+'V'],
+        ['warn','第 88 串 电压持续走低 '+cellState[87].toFixed(3)+'V'],
+        ['ok','模组 #3 温度均衡完成 31.2℃'],
+        ['warn','压差 '+Math.round((Math.max.apply(null,cellState)-Math.min.apply(null,cellState))*1000)+'mV 超出预警线'],
+        ['ok','BMS 绝缘自检通过 '+cellT.insul.toFixed(1)+'MΩ'],
+        ['info','OBD 网关心跳正常 · 延迟 '+(78+Math.round(Math.random()*20))+'ms'],
+        ['ok','均衡策略已下发 · 目标 3.585V']
+      ];
+      var pick=pool[Math.floor(Math.random()*pool.length)];
+      var d=new Date(),ts=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+      var lvl=pick[0]==='crit'?'严重':pick[0]==='warn'?'预警':pick[0]==='info'?'信息':'正常';
+      var ev=document.getElementById('cellEvents');
+      var row=document.createElement('div');row.className='row';
+      row.innerHTML='<span class="chip '+pick[0]+'"><span class="d"></span>'+lvl+'</span><span class="tt">'+pick[1]+'</span><span class="r num">'+ts+'</span>';
+      ev.insertBefore(row,ev.firstChild);
+      while(ev.children.length>7) ev.removeChild(ev.lastChild);
+    }
+  }
+
+  /* 单体电压趋势（最高/最低/均值） */
+  (function initCellTrend(){
+    var el=document.getElementById('cellTrend');if(!el) return;
+    var data=[];
+    for(var i=0;i<14;i++){
+      data.push({a:+(3.592+Math.random()*0.006).toFixed(3),b:+(3.530+Math.random()*0.008).toFixed(3),c:+(3.580+Math.random()*0.004).toFixed(3)});
+    }
+    buildArea(el,data,{max:3.60,draw:true,series:[{k:'a',color:'#22D3EE'},{k:'b',color:'#F43F5E'},{k:'c',color:'#10B981'}]});
+  })();
+
+  renderSoc(cellT.soc);
+  renderCells();
+  renderCellHeat(cellHeatSeed);
+  (function initCellCur(){
+    var cv=[];for(var m=0;m<14;m++){cv.push({a:80+Math.round(40*Math.sin(m/2)+18*Math.random())});}
+    buildArea(document.getElementById('cellCur'),cv,{max:140,series:[{k:'a',color:'#22D3EE'}]});
+  })();
+  setInterval(updateCell,2000);
+
+  var cellSnap=document.getElementById('btnCellSnap');
+  if(cellSnap){cellSnap.addEventListener('click',function(){
+    var o=cellSnap.textContent;cellSnap.textContent='已快照 ✓';
+    setTimeout(function(){cellSnap.textContent=o;},1500);
+    updateCell();
+  });}
+
+  /* ===== 数据源配置面板交互 ===== */
+  DS.statusEl=document.getElementById('dsStatus');
+  DS.setStatus('演示数据','demo');
+  var dsFab=document.getElementById('dsFab');
+  var dsPanel=document.getElementById('dsPanel');
+  dsFab.addEventListener('click',function(){dsPanel.hidden=!dsPanel.hidden;});
+  document.getElementById('dsClose').addEventListener('click',function(){dsPanel.hidden=true;});
+  var dsTabs=document.querySelectorAll('.ds-tab');
+  dsTabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      dsTabs.forEach(function(x){x.classList.remove('active');});
+      t.classList.add('active');
+      var mode=t.getAttribute('data-mode');
+      DS.mode=mode;
+      document.getElementById('dsDemoNote').hidden=(mode!=='demo');
+      document.getElementById('dsApiBox').hidden=(mode!=='api');
+      if(mode==='demo'){ DS.disconnect(); DS.setStatus('演示数据','demo'); }
+    });
+  });
+  document.getElementById('dsConnect').addEventListener('click',function(){
+    DS.url=document.getElementById('dsUrl').value.trim();
+    DS.connect();
+  });
+  document.getElementById('dsDisconnect').addEventListener('click',function(){
+    DS.disconnect(); DS.setStatus('已断开','demo');
+  });
+</script>
+
+<script>
+/* ===== 数据资产管理（首页展示页）脚本 ===== */
+/* ================= 趋势图 ================= */
+(function(){
+  var svg = document.getElementById('trendChart');
+  var W = 1000, H = 222; // viewBox units, scaled by CSS
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+
+  var assets = [180, 240, 300, 380, 470, 560, 650, 760, 870, 980, 1120, 1286];
+  var calls  = [90, 140, 210, 280, 360, 430, 520, 610, 700, 790, 900, 1000];
+  var maxV = 1300;
+
+  var padT = 8, padB = 8;
+  var plotH = H - padT - padB;
+  function X(i){ return (i/(assets.length-1)) * W; }
+  function Y(v){ return padT + plotH - (v/maxV) * plotH; }
+
+  function line(pts){
+    return pts.map(function(p,i){ return (i?'L':'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+  }
+  function smooth(pts){
+    // Catmull-Rom -> Bezier for a soft tech curve
+    var d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+    for (var i=0;i<pts.length-1;i++){
+      var p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
+      var c1x = p1[0] + (p2[0]-p0[0])/6, c1y = p1[1] + (p2[1]-p0[1])/6;
+      var c2x = p2[0] - (p3[0]-p1[0])/6, c2y = p2[1] - (p3[1]-p1[1])/6;
+      d += ' C' + c1x.toFixed(1) + ' ' + c1y.toFixed(1) + ',' + c2x.toFixed(1) + ' ' + c2y.toFixed(1) + ',' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1);
+    }
+    return d;
+  }
+
+  var aPts = assets.map(function(v,i){ return [X(i), Y(v)]; });
+  var cPts = calls.map(function(v,i){ return [X(i), Y(v)]; });
+
+  var defs = ''
+    + '<defs>'
+    + '<linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">'
+    +   '<stop offset="0%" stop-color="#22D3EE" stop-opacity=".32"/>'
+    +   '<stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>'
+    + '</linearGradient>'
+    + '<linearGradient id="gC" x1="0" y1="0" x2="0" y2="1">'
+    +   '<stop offset="0%" stop-color="#9381FF" stop-opacity=".22"/>'
+    +   '<stop offset="100%" stop-color="#9381FF" stop-opacity="0"/>'
+    + '</linearGradient>'
+    + '</defs>';
+
+  // grid lines
+  var grid = '';
+  for (var g=0; g<=4; g++){
+    var gy = padT + (plotH/4)*g;
+    grid += '<line x1="0" y1="'+gy.toFixed(1)+'" x2="'+W+'" y2="'+gy.toFixed(1)+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>';
+  }
+
+  var aLine = smooth(aPts);
+  var cLine = smooth(cPts);
+  var aArea = aLine + ' L' + W + ' ' + H + ' L0 ' + H + ' Z';
+  var cArea = cLine + ' L' + W + ' ' + H + ' L0 ' + H + ' Z';
+
+  var dots = aPts.map(function(p,i){
+    if (i !== aPts.length-1) return '';
+    return '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="4.5" fill="#22D3EE"/>'
+         + '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="9" fill="none" stroke="#22D3EE" stroke-opacity=".35" stroke-width="1.5"/>';
+  }).join('');
+
+  svg.innerHTML = defs + grid
+    + '<path d="'+cArea+'" fill="url(#gC)"/>'
+    + '<path d="'+aArea+'" fill="url(#gA)"/>'
+    + '<path d="'+cLine+'" fill="none" stroke="#9381FF" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 4" opacity=".85"/>'
+    + '<path d="'+aLine+'" fill="none" stroke="#22D3EE" stroke-width="2.4" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(34,211,238,.45))"/>'
+    + dots;
+})();
+
+/* ================= 资产构成 ================= */
+(function(){
+  var data = [
+    {n:'电池状态数据', v:412, c:'#22D3EE'},
+    {n:'服务工单数据', v:326, c:'#9381FF'},
+    {n:'客户与车辆', v:248, c:'#10B981'},
+    {n:'充电与能耗', v:186, c:'#F59E0B'},
+    {n:'诊断与告警', v:114, c:'#F43F5E'}
+  ];
+  var total = data.reduce(function(s,d){return s+d.v;},0);
+
+  // Donut
+  var svg = document.getElementById('donutSvg');
+  var cx=66, cy=66, r=52, sw=14, circ = 2*Math.PI*r;
+  var off = 0, segs = '';
+  data.forEach(function(d){
+    var frac = d.v/total;
+    var len = frac*circ;
+    segs += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+d.c+'" stroke-width="'+sw+'"'
+          + ' stroke-dasharray="'+len.toFixed(2)+' '+(circ-len).toFixed(2)+'"'
+          + ' stroke-dashoffset="'+(-off).toFixed(2)+'" stroke-linecap="butt" transform="rotate(-90 '+cx+' '+cy+')"/>';
+    off += len;
+  });
+  svg.innerHTML = '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="'+sw+'"/>' + segs;
+
+  // Legend (top 3)
+  var lg = document.getElementById('compLegend');
+  lg.innerHTML = data.slice(0,3).map(function(d){
+    var pct = (d.v/total*100).toFixed(1);
+    return '<div class="lg" style="justify-content:space-between">'
+      + '<span style="display:flex;align-items:center;gap:8px"><i style="background:'+d.c+'"></i>'+d.n+'</span>'
+      + '<b class="mono" style="color:var(--text)">'+pct+'%</b></div>';
+  }).join('');
+
+  // Bars
+  var bars = document.getElementById('compBars');
+  var maxV = data[0].v;
+  bars.innerHTML = data.map(function(d){
+    var w = (d.v/maxV*100).toFixed(1);
+    return '<div class="comp-row">'
+      + '<div class="c-top">'
+      +   '<div class="c-name"><i style="background:'+d.c+'"></i>'+d.n+'</div>'
+      +   '<div class="c-val mono">'+d.v+'<small>张</small></div>'
+      + '</div>'
+      + '<div class="bar"><i style="width:'+w+'%;background:linear-gradient(90deg,'+d.c+'cc,'+d.c+')"></i></div>'
+      + '</div>';
+  }).join('');
+})();
+
+/* ================= 数据源接入 ================= */
+(function(){
+  var srcs = [
+    {ic:'BMS', bg:'rgba(34,211,238,.10)', fg:'#22D3EE', n:'BMS 电池管理系统', m:['实时流', '延迟 1.2s', '4.2 亿条/日'], st:'实时同步', stc:'sync'},
+    {ic:'OBD', bg:'rgba(147,129,255,.12)', fg:'#9381FF', n:'OBD 车载诊断接口', m:['批量', '每 5 分钟', '1,860 万条/日'], st:'实时同步', stc:'sync'},
+    {ic:'CRM', bg:'rgba(16,185,129,.12)', fg:'#10B981', n:'CRM 客户服务系统', m:['增量', '每 15 分钟', '32 万条/日'], st:'正常', stc:'ok'},
+    {ic:'ERP', bg:'rgba(245,158,11,.12)', fg:'#F59E0B', n:'ERP 供应链系统', m:['全量', '每日 02:00', '58 万条/日'], st:'延迟告警', stc:'warn'},
+    {ic:'CDB', bg:'rgba(244,63,94,.12)', fg:'#F43F5E', n:'充电桩运营平台', m:['实时流', '连接中断', '—'], st:'同步失败', stc:'err'}
+  ];
+  var map = {ok:'正常', sync:'实时同步', warn:'延迟告警', err:'同步失败'};
+  document.getElementById('srcList').innerHTML = srcs.map(function(s){
+    return '<div class="src">'
+      + '<div class="ico" style="background:'+s.bg+';color:'+s.fg+';border:1px solid '+s.fg+'33">'+s.ic+'</div>'
+      + '<div class="info">'
+      +   '<div class="n">'+s.n+' <span class="pill '+s.stc+'">'+s.st+'</span></div>'
+      +   '<div class="m">'+s.m.map(function(x){return '<em>'+x+'</em>';}).join('')+'</div>'
+      + '</div>'
+      + '<span class="chev">'
+      +   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>'
+      + '</span>'
+      + '</div>';
+  }).join('');
+})();
+
+/* ================= 资产目录 ================= */
+(function(){
+  var rows = [
+    {n:'电池状态时序表', sub:'bms_cell_telemetry', dom:'电池状态数据', dom_c:'#22D3EE', size:'2.4 TB', q:99, freq:'实时', calls:'18.2万'},
+    {n:'车辆基础档案', sub:'veh_master_profile', dom:'客户与车辆', dom_c:'#10B981', size:'186 GB', q:98, freq:'每日', calls:'9.4万'},
+    {n:'服务工单明细', sub:'svc_order_detail', dom:'服务工单数据', dom_c:'#9381FF', size:'742 GB', q:97, freq:'每 15 分钟', calls:'12.8万'},
+    {n:'充电会话记录', sub:'charge_session_log', dom:'充电与能耗', dom_c:'#F59E0B', size:'1.1 TB', q:94, freq:'实时', calls:'7.6万'},
+    {n:'电池健康度评估', sub:'batt_soh_assess', dom:'诊断与告警', dom_c:'#F43F5E', size:'96 GB', q:92, freq:'每小时', calls:'5.1万'},
+    {n:'故障告警事件流', sub:'fault_alert_stream', dom:'诊断与告警', dom_c:'#F43F5E', size:'328 GB', q:96, freq:'实时', calls:'6.9万'}
+  ];
+  function qColor(q){ return q>=98 ? '#10B981' : q>=95 ? '#22D3EE' : q>=93 ? '#F59E0B' : '#F43F5E'; }
+  document.getElementById('assetRows').innerHTML = rows.map(function(r){
+    return '<tr>'
+      + '<td class="name">'+r.n+'<span class="sub">'+r.sub+'</span></td>'
+      + '<td><span style="display:inline-flex;align-items:center;gap:7px"><i style="width:7px;height:7px;border-radius:2px;background:'+r.dom_c+';display:inline-block"></i>'+r.dom+'</span></td>'
+      + '<td class="mono">'+r.size+'</td>'
+      + '<td><div class="q-bar"><div class="q"><i style="width:'+r.q+'%;background:'+qColor(r.q)+'"></i></div>'
+      +   '<span style="color:'+qColor(r.q)+'">'+r.q+'</span></div></td>'
+      + '<td>'+r.freq+'</td>'
+      + '<td class="mono" style="color:var(--text)">'+r.calls+'</td>'
+      + '</tr>';
+  }).join('');
+})();
+</script>
+</body>
+</html>
