@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<!-- v3 · 2026-08-02 · UI 完全独立于地图 SDK;即使地图加载失败,左侧复选框/搜索/列表/折叠面板都可用 -->
-<title>宁德时代 · 宁家服务 国内服务网络布局</title>
+<!-- v4 · 2026-08-27 · 北京区域授权商分布图：数据来自宁德时代官网「服务店查询」(catl.com/service)，UI 独立于地图 SDK;即使地图加载失败,左侧复选框/搜索/列表/折叠面板都可用 -->
+<title>宁德时代 · 北京区域授权商分布图</title>
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; background: #0f1620; color: #e6edf3; }
@@ -54,9 +54,7 @@
   .layer-row input { width: 16px; height: 16px; accent-color: #5aa9ff; cursor: pointer; }
   .swatch { width: 14px; height: 14px; border-radius: 4px; flex: 0 0 auto; }
   .sw-r { background: #ff6b5e; }
-  .sw-b { background: #ffb648; }
   .sw-a { background: #4cc38a; }
-  .sw-g { background: #7d8a99; }
   .layer-row .meta { display: flex; flex-direction: column; }
   .layer-row .meta .t { font-size: 13px; font-weight: 600; }
   .layer-row .meta .s { font-size: 10.5px; color: #8b98a8; }
@@ -145,33 +143,22 @@
   .dlist::-webkit-scrollbar-thumb, .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 4px; }
 </style>
 
-<!--
-  ============================================================
-  【部署必做】本页使用腾讯地图（合规要求）。上线前请把下方 <script> 里
-  key= 后面的「占位符」替换成你自己在腾讯位置服务申请的 Key：
-    1) 打开 https://lbs.qq.com → 控制台 → 应用管理 → 创建应用 → 添加 Key
-       （勾选 JavaScriptAPI，域名白名单填 herman-yan.github.io）
-    2) 复制申请到的 Key
-    3) 将下方 key=XXXX 整段替换为你的真实 Key，保存刷新即可显示底图
-  替换前地图瓦片不会显示，但网点数据列表仍可查看。本文件不内置任何可用密钥。
-  ============================================================
--->
-<!-- 官方 CDN 加载 SDK（key 占位符需替换为你自己的腾讯地图 Key） -->
+<!-- 底图：腾讯地图（合规要求）。key 为站长本人在腾讯位置服务申请、绑定 herman-yan.github.io 域名白名单的 Key。 -->
 <script src="https://map.qq.com/api/gljs?v=1.exp&key=34BBZ-MPLCQ-ULD5X-25P57-TZGKJ-Q4BBL"></script>
 </head>
 <body>
   <div id="map"></div>
 
   <div class="topbar">
-    <h1>宁德时代 · 宁家服务 国内服务网络布局
-      <small>直营体验中心（含星级） · 直营规划/建设中 · 授权服务站 — 数据截至 2026-07 公开资料整理</small>
+    <h1>宁德时代 · 北京区域授权商分布图
+      <small>宁家服务北京直营体验中心（亦庄 · 华北旗舰） + 官网在册授权服务店 — 数据来源：宁德时代官网「服务店查询」 2026-08-27</small>
     </h1>
     <div class="kpis">
-      <div class="kpi r"><div class="num">7</div><div class="lbl">直营·已运营(城)</div></div>
-      <div class="kpi b"><div class="num">14</div><div class="lbl">直营·建设中(城)</div></div>
-      <div class="kpi a"><div class="num">806</div><div class="lbl">服务站(家)</div></div>
-      <div class="kpi a"><div class="num">25省80城</div><div class="lbl">授权覆盖</div></div>
-      <div class="kpi c"><div class="num">67</div><div class="lbl">备件仓(座)</div></div>
+      <div class="kpi r"><div class="num">1</div><div class="lbl">直营旗舰(亦庄)</div></div>
+      <div class="kpi a"><div class="num">5</div><div class="lbl">授权服务店(家)</div></div>
+      <div class="kpi b"><div class="num">4</div><div class="lbl">覆盖区县(个)</div></div>
+      <div class="kpi c"><div class="num">1</div><div class="lbl">回收网点(处)</div></div>
+      <div class="kpi a"><div class="num">806</div><div class="lbl">全国服务站(家)</div></div>
     </div>
   </div>
 
@@ -181,25 +168,13 @@
     <label class="layer-row">
       <input type="checkbox" id="cb-direct_open" data-cat="direct_open" checked />
       <span class="swatch sw-r"></span>
-      <span class="meta"><span class="t">直营体验中心 · 已运营</span><span class="s">7 城 · 门店级坐标</span></span>
-    </label>
-
-    <label class="layer-row">
-      <input type="checkbox" id="cb-direct_build" data-cat="direct_build" checked />
-      <span class="swatch sw-b"></span>
-      <span class="meta"><span class="t">直营 · 规划/建设中</span><span class="s">14 城 · 招募/在建</span></span>
+      <span class="meta"><span class="t">直营体验中心 · 华北旗舰</span><span class="s">亦庄 · 兼回收网点</span></span>
     </label>
 
     <label class="layer-row">
       <input type="checkbox" id="cb-auth" data-cat="auth" checked />
       <span class="swatch sw-a"></span>
-      <span class="meta"><span class="t">授权服务站 · 已核实</span><span class="s">真实门店 · 含电话地址</span></span>
-    </label>
-
-    <label class="layer-row">
-      <input type="checkbox" id="cb-auth_est" data-cat="auth_est" checked />
-      <span class="swatch sw-g"></span>
-      <span class="meta"><span class="t">授权服务站 · 示意</span><span class="s">代表城市 · 覆盖 25 省 80 城</span></span>
+      <span class="meta"><span class="t">授权服务店 · 官网在列</span><span class="s">石景山 / 大兴×2 / 顺义 / 丰台</span></span>
     </label>
 
     <div class="note-toggle">
@@ -208,11 +183,11 @@
       </button>
       <div id="noteBody" class="note-body" hidden>
         <ul>
-          <li><b>直营·已运营（7 城，门店级真实坐标）</b>：宁德、北京、上海、南京、武汉、重庆、合肥。其中宁德/北京/上海/南京为五星标准；武汉/重庆/合肥为既有直营店或新开业，官方未单独公布星级。坐标取自腾讯地图门店 POI。</li>
-          <li><b>直营·建设中（14 城）</b>：深圳、成都、杭州、苏州、西安、长沙、天津、郑州、东莞、无锡、宁波、青岛、长春（2026-01 时代车城已开），及<b>广州</b>（2026-02-25 白云区项目开工，分期建设中）。</li>
-          <li><b>授权服务站·已核实</b>：福州、东营、长沙、宁波、郑州、武汉等地已查到真实门店（含地址/电话/营业时间），为公开可查的真实落点。</li>
-          <li><b>授权服务站·示意</b>：宁德时代公开仅披露"国内 806 家服务站、112 家核心授权商、覆盖 25 省 80 城"（截至 2025-08），但 80 城名单未公开。灰色"示"点为<b>代表城市示意</b>，非穷举。</li>
-          <li>店铺统一按 0–5 星评级。海外（曼谷首店、荷兰/沙特/印尼规划）未纳入本"国内"视图。底图使用腾讯地图，需自备 Key（替换文件顶部占位符，详见文件顶部说明）。</li>
+          <li><b>数据来源</b>：宁德时代官网「服务 → 服务店查询」（catl.com/service），查询日期 2026-08-27，北京市在册网点共 6 家（1 直营旗舰 + 5 授权服务店）。电话与营业时间均取自官网接口返回值。</li>
+          <li><b>宁家（北京）汽车服务有限公司</b>：大兴区荣华街道科创二街6号（亦庄），2025-08-08 开业，是宁德时代在华北地区授权的首家动力电池售后旗舰店、宁家服务北京直营体验中心，约 10000㎡（维修中心 2700㎡ + 返修中心 8300㎡）；同时为官网在列的<b>回收服务网点（集中贮存型）</b>。注：官网接口对该点返回的坐标异常，此处按实际地址定位。</li>
+          <li><b>授权服务店</b>：第三方服务商经官方审核授权，悬挂 CATL 宁家服务授权标识，提供电池检测、故障诊断、以修代换（模组/电芯局部更换）、原厂配件维修；维修记录官方可追溯，不影响原车质保。</li>
+          <li><b>全国网络</b>：宁家服务已构建国内 806 家服务站 + 海外 340 家服务站，备件供应辐射 6 大洲 77 个国家和地区；核心授权服务商 112 家，覆盖 25 省 80 城。</li>
+          <li><b>查询渠道</b>：官方客服热线 400-918-0889；微信小程序「宁家服务」可查就近授权店。底图使用腾讯地图。北京以外网点可切换回全国版视图查看。</li>
         </ul>
       </div>
     </div>
@@ -220,86 +195,41 @@
 
   <div class="detail">
     <div class="dh">
-      <span class="title">网点明细</span>
+      <span class="title">授权商明细</span>
       <span class="cnt" id="detailCount"></span>
     </div>
-    <input id="search" type="text" placeholder="搜索城市 / 地址关键词…" />
+    <input id="search" type="text" placeholder="搜索门店 / 区县 / 地址关键词…" />
     <div class="dlist" id="dlist"></div>
   </div>
 
   <div class="legend">
-    <div class="row"><span class="dot" style="background:#ff6b5e"></span> 直营已运营（★=五星）</div>
-    <div class="row"><span class="dot" style="background:#ffb648"></span> 直营规划/建设中</div>
-    <div class="row"><span class="dot" style="background:#4cc38a"></span> 授权已核实</div>
-    <div class="row"><span class="dot" style="background:#7d8a99"></span> 授权示意</div>
+    <div class="row"><span class="dot" style="background:#ff6b5e"></span> 直营体验中心（兼授权旗舰店）</div>
+    <div class="row"><span class="dot" style="background:#4cc38a"></span> 授权服务店（官网在列）</div>
+    <div class="row"><span class="dot" style="background:#5aa9ff"></span> 回收网点（与直营同址）</div>
   </div>
 
   <div class="fallback" id="fallback">
     <div>
       <h2>地图底图未能加载</h2>
-      <p>本页使用腾讯地图（合规要求）。请打开 <code>network-map.html</code> 顶部，将 <code>key=</code> 后的占位符替换为你自己在腾讯位置服务（lbs.qq.com）申请的 Key，保存后刷新即可显示底图。未替换前仅显示网点数据列表，无地图瓦片。</p>
+      <p>本页使用腾讯地图（合规要求）。底图加载失败时，左侧图层与右侧授权商明细列表仍可正常查看。</p>
       <p class="count-pill" id="fbcount"></p>
     </div>
   </div>
 
 <script>
 /* ===================== 数据 ===================== */
-// cat: direct_open=直营已运营, direct_build=直营规划/建设中, auth=授权已核实, auth_est=授权示意
-// real: 是否门店级真实 POI（含地址/电话）；est: 坐标是否按地址估算
+// cat: direct_open=直营体验中心(华北旗舰), auth=官网在列授权服务店
+// real: 是否官网在册（地址/电话均来自 catl.com 官网接口）
 const STORES = [
-  // —— 直营体验中心 · 已运营（7 城，门店级真实坐标）——
-  { city:"宁德", lat:26.714284, lng:119.565181, cat:"direct_open", star:5, open:"2024-09 开业", addr:"福建省宁德市蕉城区漳湾镇创业路", phone:"", hours:"08:30-11:30, 13:30-17:30", rating:"4.2", real:true, est:false, note:"全国首家五星直营体验中心，约 3700㎡，规模最大、功能最全" },
-  { city:"北京", lat:39.816433, lng:116.533221, cat:"direct_open", star:5, open:"2025-08-08 开业", addr:"北京市大兴区荣华街道科创二街6号", phone:"", hours:"08:30-18:00", rating:"4.4", real:true, est:false, note:"华北旗舰直营体验中心（五星标准）" },
-  { city:"上海", lat:31.110616, lng:121.428398, cat:"direct_open", star:5, open:"2025-08-10 开业", addr:"上海市闵行区梅陇镇兴梅路398号6幢", phone:"", hours:"", rating:"3.7", real:true, est:false, note:"上海旗舰直营体验中心（五星标准），品牌一周年开业" },
-  { city:"南京", lat:32.107000, lng:118.878000, cat:"direct_open", star:5, open:"2025-01-09 开业", addr:"南京市栖霞区智谷大道93号 南京飞腾汽车产业园", phone:"", hours:"", rating:"", real:true, est:true, note:"华东首家直营体验中心，全国面积最大（近 6000㎡）" },
-  { city:"武汉", lat:30.474626, lng:114.170667, cat:"direct_open", star:null, open:"已运营", addr:"湖北省武汉市蔡甸区沌口街道车城大道129号", phone:"17702781474", hours:"08:30-17:30", rating:"4.0", real:true, est:false, note:"武汉直营体验中心（星级待官方公布）" },
-  { city:"重庆", lat:29.659844, lng:106.623395, cat:"direct_open", star:null, open:"2026-05-20 开业", addr:"重庆市两江新区回兴街道金锦支路22号B区B1栋B1-1", phone:"", hours:"", rating:"", real:true, est:false, note:"西南区域标杆旗舰直营站" },
-  { city:"合肥", lat:31.892237, lng:117.433075, cat:"direct_open", star:null, open:"已运营", addr:"安徽省合肥市肥东县包公大道与镇西路交口", phone:"15256517638", hours:"08:30-17:30", rating:"4.4", real:true, est:false, note:"合肥直营体验中心（星级待官方公布）" },
+  // —— 直营体验中心 · 华北旗舰（兼官网在列授权旗舰店与回收网点）——
+  { city:"亦庄 · 宁家（北京）", district:"大兴区", lat:39.816433, lng:116.533221, cat:"direct_open", star:5, open:"2025-08-08 开业", addr:"北京市大兴区荣华街道科创二街6号（亦庄经济技术开发区）", phone:"17759351815", hours:"08:30-18:00", rating:"", real:true, est:false, note:"宁德时代在华北授权的首家动力电池售后旗舰店 · 北京直营体验中心，约10000㎡；同时为官网在列回收服务网点（集中贮存型，回收专线 18526799333）" },
 
-  // —— 直营 · 规划/建设中（13 招募城 + 长春 + 广州，共 14 城）——
-  { city:"深圳", lat:22.543000, lng:114.058000, cat:"direct_build", star:null, open:"规划/建设中", addr:"深圳（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
-  { city:"成都", lat:30.572000, lng:104.067000, cat:"direct_build", star:null, open:"规划/建设中", addr:"成都（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
-  { city:"杭州", lat:30.274000, lng:120.155000, cat:"direct_build", star:null, open:"规划/建设中", addr:"杭州（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
-  { city:"苏州", lat:31.299000, lng:120.585000, cat:"direct_build", star:null, open:"规划/建设中", addr:"苏州（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
-  { city:"西安", lat:34.341000, lng:108.940000, cat:"direct_build", star:null, open:"规划/建设中", addr:"西安（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
-  { city:"长沙", lat:28.228000, lng:112.938000, cat:"direct_build", star:null, open:"规划/建设中", addr:"长沙（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
-  { city:"天津", lat:39.084000, lng:117.201000, cat:"direct_build", star:null, open:"规划/建设中", addr:"天津（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
-  { city:"郑州", lat:34.747000, lng:113.625000, cat:"direct_build", star:null, open:"规划/建设中", addr:"郑州（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
-  { city:"东莞", lat:23.021000, lng:113.752000, cat:"direct_build", star:null, open:"规划/建设中", addr:"东莞（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
-  { city:"无锡", lat:31.491000, lng:120.312000, cat:"direct_build", star:null, open:"规划/建设中", addr:"无锡（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
-  { city:"宁波", lat:29.868000, lng:121.544000, cat:"direct_build", star:null, open:"规划/建设中", addr:"宁波（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市" },
-  { city:"青岛", lat:36.067000, lng:120.383000, cat:"direct_build", star:null, open:"规划/建设中", addr:"青岛（直营体验中心招募城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"直营体验中心招募城市（2025 直营布局）" },
-  { city:"长春", lat:43.817000, lng:125.323000, cat:"direct_build", star:null, open:"2026-01-20 开业", addr:"吉林长春·时代车城", phone:"", hours:"", rating:"", real:false, est:false, note:"吉林直营布局，随时代车城新能源体验中心开业" },
-  { city:"广州", lat:23.160000, lng:113.230000, cat:"direct_build", star:null, open:"2026-02-25 开工（建设中）", addr:"广州市白云区松洲街增槎路1113号 广州日报印务中心", phone:"", hours:"", rating:"", real:true, est:true, note:"华南唯一直营项目，分期建设，总投资约 1 亿元" },
-
-  // —— 授权服务站 · 已核实（真实门店，含地址/电话）——
-  { city:"福州·仓山", lat:26.010251, lng:119.340890, cat:"auth", star:null, open:"运营中", addr:"福州市仓山区叶厦路15-3号", phone:"", hours:"08:30-17:30", rating:"4.1", real:true, est:false, note:"宁德时代宁家服务（福州仓山）授权服务中心" },
-  { city:"东营·润琳", lat:37.411807, lng:118.485865, cat:"auth", star:null, open:"运营中", addr:"东营市东营区胜园街道西四路934号5幢宁家服务站", phone:"18554736444", hours:"08:00-11:30, 13:00-18:00", rating:"4.1", real:true, est:false, note:"宁德时代宁家服务（东营润琳）授权服务中心" },
-  { city:"长沙·聚奥麓谷", lat:28.218000, lng:112.928000, cat:"auth", star:null, open:"运营中", addr:"长沙市岳麓区麓开路中梁云麓传奇北侧约170米", phone:"18773223841", hours:"", rating:"", real:true, est:true, note:"宁德时代授权服务中心（长沙聚奥麓谷店）" },
-  { city:"宁波", lat:29.858000, lng:121.562000, cat:"auth", star:null, open:"运营中", addr:"宁波市海曙区机场路藕池村小区西侧约170米", phone:"18762977932", hours:"", rating:"", real:true, est:true, note:"宁德时代授权服务中心（宁波）" },
-  { city:"郑州·中原", lat:34.742000, lng:113.608000, cat:"auth", star:null, open:"运营中", addr:"郑州市中原区珠江路2号", phone:"18903832199", hours:"", rating:"", real:true, est:true, note:"CATL 宁德时代郑州服务站" },
-  { city:"郑州·管城旗舰", lat:34.710000, lng:113.670000, cat:"auth", star:null, open:"运营中", addr:"郑州市管城回族区中心广场南路1511号", phone:"", hours:"", rating:"", real:true, est:true, note:"CATL 宁德时代（郑州售后旗舰站）" },
-  { city:"武汉·武昌", lat:30.518082, lng:114.290480, cat:"auth", star:null, open:"运营中", addr:"武汉市武昌区白沙洲街武金堤41号", phone:"", hours:"08:30-18:00", rating:"4.4", real:true, est:false, note:"湖北宇能通 CATL 宁德时代宁家服务授权服务中心" },
-  { city:"武汉·江汉", lat:30.626493, lng:114.252607, cat:"auth", star:null, open:"运营中", addr:"武汉市江汉区汉兴街常青三路65号", phone:"", hours:"", rating:"", real:true, est:false, note:"宁家服务-CATL 宁德时代后市场服务商" },
-
-  // —— 授权服务站 · 示意（代表城市，非穷举；实际覆盖 25 省 80 城）——
-  { city:"石家庄", lat:38.042000, lng:114.514000, cat:"auth_est", star:null, open:"代表城市", addr:"石家庄（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"太原", lat:37.870000, lng:112.548000, cat:"auth_est", star:null, open:"代表城市", addr:"太原（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"呼和浩特", lat:40.842000, lng:111.749000, cat:"auth_est", star:null, open:"代表城市", addr:"呼和浩特（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"沈阳", lat:41.805000, lng:123.431000, cat:"auth_est", star:null, open:"代表城市", addr:"沈阳（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"大连", lat:38.914000, lng:121.614000, cat:"auth_est", star:null, open:"代表城市", addr:"大连（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"哈尔滨", lat:45.803000, lng:126.535000, cat:"auth_est", star:null, open:"代表城市", addr:"哈尔滨（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"济南", lat:36.651000, lng:117.120000, cat:"auth_est", star:null, open:"代表城市", addr:"济南（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"南昌", lat:28.682000, lng:115.857000, cat:"auth_est", star:null, open:"代表城市", addr:"南昌（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"南宁", lat:22.817000, lng:108.366000, cat:"auth_est", star:null, open:"代表城市", addr:"南宁（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"海口", lat:20.044000, lng:110.199000, cat:"auth_est", star:null, open:"代表城市", addr:"海口（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"贵阳", lat:26.647000, lng:106.630000, cat:"auth_est", star:null, open:"代表城市", addr:"贵阳（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"昆明", lat:25.038000, lng:102.718000, cat:"auth_est", star:null, open:"代表城市", addr:"昆明（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"兰州", lat:36.061000, lng:103.835000, cat:"auth_est", star:null, open:"代表城市", addr:"兰州（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"西宁", lat:36.617000, lng:101.778000, cat:"auth_est", star:null, open:"代表城市", addr:"西宁（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"银川", lat:38.487000, lng:106.230000, cat:"auth_est", star:null, open:"代表城市", addr:"银川（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"乌鲁木齐", lat:43.825000, lng:87.616000, cat:"auth_est", star:null, open:"代表城市", addr:"乌鲁木齐（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" },
-  { city:"拉萨", lat:29.652000, lng:91.172000, cat:"auth_est", star:null, open:"代表城市", addr:"拉萨（示意·代表城市）", phone:"", hours:"", rating:"", real:false, est:false, note:"授权服务站代表城市（示意）" }
+  // —— 授权服务店 · 官网在列（catl.com 服务店查询，2026-08-27）——
+  { city:"石景山 · 科佳信", district:"石景山区", lat:39.985621, lng:116.157775, cat:"auth", star:null, open:"运营中", addr:"北京市石景山区潭峪路佟家坟1号院", phone:"18600565599", hours:"09:00-19:00", rating:"", real:true, est:false, note:"北京科佳信汽车服务有限公司 · 官网在册授权服务店" },
+  { city:"大兴黄村 · 京诚跃", district:"大兴区", lat:39.723477, lng:116.417143, cat:"auth", star:null, open:"运营中", addr:"北京市大兴区黄村镇海鑫北路9号", phone:"010-89240811", hours:"09:00-18:00", rating:"", real:true, est:false, note:"北京京诚跃汽车销售服务有限公司 · 官网在册授权服务店" },
+  { city:"顺义李桥 · 易得翼", district:"顺义区", lat:40.053547, lng:116.754303, cat:"auth", star:null, open:"运营中", addr:"北京市顺义区李桥镇官庄村村委会前街21号", phone:"010-67687386", hours:"09:00-18:00", rating:"", real:true, est:false, note:"北京易得翼汽车技术服务有限公司 · 官网在册授权服务店" },
+  { city:"大兴红门 · 兴业众悦", district:"大兴区", lat:39.765242, lng:116.408881, cat:"auth", star:null, open:"运营中", addr:"北京市大兴区红门镇八村三余路2号院", phone:"010-69291047", hours:"09:00-18:00", rating:"", real:true, est:false, note:"北京兴业众悦汽车服务有限公司 · 官网在册授权服务店" },
+  { city:"丰台 · 聚友新能源", district:"丰台区", lat:39.888988, lng:116.286110, cat:"auth", star:null, open:"运营中", addr:"北京市丰台区靛厂路214号", phone:"18601933327", hours:"09:00-19:00", rating:"", real:true, est:false, note:"北京聚友新能源科技有限公司 · 官网在册授权服务店" }
 ];
 
 /* ===================== UI 交互（立即执行，不依赖地图 SDK） =====================
@@ -307,12 +237,10 @@ const STORES = [
    即使腾讯地图 SDK 加载慢或失败，左侧面板依旧完整可用。 */
 
 const dlist = document.getElementById('dlist');
-const layerCats = ['direct_open','direct_build','auth','auth_est'];
+const layerCats = ['direct_open','auth'];
 const groupMeta = {
-  direct_open: { title:'直营体验中心 · 已运营', color:'#ff6b5e' },
-  direct_build:{ title:'直营 · 规划/建设中', color:'#ffb648' },
-  auth:        { title:'授权服务站 · 已核实', color:'#4cc38a' },
-  auth_est:    { title:'授权服务站 · 示意', color:'#7d8a99' }
+  direct_open: { title:'直营体验中心 · 华北旗舰', color:'#ff6b5e' },
+  auth:        { title:'授权服务店 · 官网在列', color:'#4cc38a' }
 };
 
 // 地图相关对象（地图加载后才存在）
@@ -320,17 +248,15 @@ let map = null, infoWindow = null;
 const layers = {};
 
 function badgeFor(s) {
-  if (s.cat === 'direct_open') return s.star >= 5 ? { t:'5★', c:'#ff6b5e' } : { t:'直营', c:'#ff6b5e' };
-  if (s.cat === 'direct_build') return { t:'建', c:'#ffb648' };
-  if (s.cat === 'auth') return { t:'授', c:'#4cc38a' };
-  return { t:'示', c:'#7d8a99' };
+  if (s.cat === 'direct_open') return s.star >= 5 ? { t:'旗舰', c:'#ff6b5e' } : { t:'直营', c:'#ff6b5e' };
+  return { t:'授', c:'#4cc38a' };
 }
 function rowHTML(s, i) {
   const b = badgeFor(s);
-  const sub = s.est ? '估算' : (s.real ? '已核实' : '');
+  const sub = s.real ? '官网在列' : '';
   const meta = [];
+  if (s.district) meta.push("<span><b>区县</b> " + s.district + "</span>");
   if (s.open) meta.push("<span><b>状态</b> " + s.open + "</span>");
-  if (s.rating) meta.push("<span><b>评分</b> " + s.rating + "</span>");
   if (s.phone) meta.push("<span><b>电话</b> " + s.phone + "</span>");
   return "<div class='drow' data-idx='" + i + "' data-cat='" + s.cat + "'>" +
     "<div class='dhead'><span class='dbadge' style='background:" + b.c + "'>" + b.t + "</span>" +
@@ -352,14 +278,14 @@ function buildList() {
     items.forEach(o => { html += rowHTML(o.s, o.i); });
   });
   dlist.innerHTML = html;
-  document.getElementById('detailCount').textContent = '共 ' + total + ' 个网点';
+  document.getElementById('detailCount').textContent = '共 ' + total + ' 家';
   dlist.querySelectorAll('.drow').forEach(row => {
     row.addEventListener('click', () => focusStore(parseInt(row.dataset.idx, 10), false));
   });
 }
 buildList();
 
-// 搜索过滤（按城市/地址关键词）
+// 搜索过滤（按门店/区县/地址关键词）
 document.getElementById('search').addEventListener('input', (e) => {
   const q = e.target.value.trim().toLowerCase();
   dlist.querySelectorAll('.drow').forEach(row => {
@@ -414,7 +340,7 @@ function focusStore(i, fromMap) {
   if (map) {
     const pos = new TMap.LatLng(s.lat, s.lng);
     try { map.panTo(pos); } catch(err) { map.setCenter(pos); }
-    map.setZoom(13);
+    map.setZoom(14);
     infoWindow.setPosition(pos);
     infoWindow.setContent(infoHTML(s));
     infoWindow.open();
@@ -438,20 +364,19 @@ function focusStore(i, fromMap) {
 
 // 弹窗内容（模块级，列表/地图点击均调用）
 function infoHTML(s) {
-  const catName = s.cat === 'direct_open' ? '直营体验中心·已运营'
-                : s.cat === 'direct_build' ? '直营·规划/建设中'
-                : (s.cat === 'auth' ? '授权服务站·已核实' : '授权服务站·示意');
-  const catColor = s.cat === 'direct_open' ? '#ff6b5e' : s.cat === 'direct_build' ? '#ffb648' : (s.cat === 'auth' ? '#4cc38a' : '#7d8a99');
+  const catName = s.cat === 'direct_open' ? '直营体验中心 · 华北旗舰' : '授权服务店 · 官网在列';
+  const catColor = s.cat === 'direct_open' ? '#ff6b5e' : '#4cc38a';
   const stars = (s.star >= 1) ? "<div class='stars'>" + '★'.repeat(s.star) + " （" + s.star + "星）</div>" : "";
   const phone = s.phone ? "<div class='kv'><b>电话：</b>" + s.phone + "</div>" : "";
   const hours = s.hours ? "<div class='kv'><b>营业：</b>" + s.hours + "</div>" : "";
   const rating = s.rating ? "<div class='kv'><b>评分：</b>" + s.rating + "</div>" : "";
-  const estTag = s.est ? " <span style='color:#c0743a'>（坐标按地址估算）</span>" : "";
+  const district = s.district ? "<div class='kv'><b>区县：</b>" + s.district + "</div>" : "";
   return "<div class='info'>" +
     "<div class='city'>" + s.city + "</div>" +
     "<span class='badge' style='background:" + catColor + "'>" + catName + "</span><br/>" +
     stars +
-    "<div class='kv'><b>状态：</b>" + s.open + estTag + "</div>" +
+    "<div class='kv'><b>状态：</b>" + s.open + "</div>" +
+    district +
     "<div class='kv'><b>地址：</b>" + s.addr + "</div>" +
     phone + hours + rating +
     "<div class='note'>" + s.note + "</div>" +
@@ -464,15 +389,13 @@ function initMap() {
     const fb = document.getElementById('fallback');
     fb.style.display = 'flex';
     document.getElementById('fbcount').textContent =
-      '已嵌入数据：' + STORES.length + ' 个网点（直营已运营 ' +
-      STORES.filter(s=>s.cat==='direct_open').length + ' / 建设中 ' +
-      STORES.filter(s=>s.cat==='direct_build').length + ' / 授权已核实 ' +
-      STORES.filter(s=>s.cat==='auth').length + ' / 授权示意 ' +
-      STORES.filter(s=>s.cat==='auth_est').length + '）';
+      '已嵌入数据：北京 ' + STORES.length + ' 家网点（直营旗舰 ' +
+      STORES.filter(s=>s.cat==='direct_open').length + ' / 授权服务店 ' +
+      STORES.filter(s=>s.cat==='auth').length + '）';
     return;
   }
 
-  map = new TMap.Map('map', { zoom: 5, center: new TMap.LatLng(33.0, 113.0) });
+  map = new TMap.Map('map', { zoom: 10, center: new TMap.LatLng(39.885, 116.45) });
   infoWindow = new TMap.InfoWindow({ map: map, position: map.getCenter(), content: '' });
 
   function pin(color, label) {
@@ -485,11 +408,8 @@ function initMap() {
   }
 
   const styleDefs = {
-    direct5: { color:'#ff6b5e', label:'5★' },
-    direct:  { color:'#ff6b5e', label:'直营' },
-    build:   { color:'#ffb648', label:'建' },
-    auth:    { color:'#4cc38a', label:'授' },
-    authEst: { color:'#7d8a99', label:'示' }
+    direct5: { color:'#ff6b5e', label:'旗舰' },
+    auth:    { color:'#4cc38a', label:'授' }
   };
   const styles = {};
   for (const k in styleDefs) {
@@ -501,13 +421,11 @@ function initMap() {
   }
 
   function styleFor(s) {
-    if (s.cat === 'direct_open') return s.star >= 5 ? 'direct5' : 'direct';
-    if (s.cat === 'direct_build') return 'build';
-    if (s.cat === 'auth') return 'auth';
-    return 'authEst';
+    if (s.cat === 'direct_open') return 'direct5';
+    return 'auth';
   }
 
-  // 按分类建立图层（4 类）
+  // 按分类建立图层（2 类）
   const idxById = {};
   layerCats.forEach(cat => {
     const geoms = STORES.map((s, i) => ({ s, i })).filter(o => o.s.cat === cat).map(o => {
