@@ -35,11 +35,14 @@ function mkEl(id) {
 var els = {};
 ['view', 'uploadBar', 'modalOverlay', 'modalContent', 'excelInput', 'identityBar', 'navImport', 'navConfig'].forEach(function (id) { els[id] = mkEl(id); });
 
+var bodyEl = mkEl('body');
 var doc = {
   getElementById: function (id) { return els[id] || (els[id] = mkEl(id)); },
   querySelectorAll: function () { return []; },
   createElement: function () { return mkEl('x'); },
   head: { appendChild: function () {} },
+  body: bodyEl,
+  documentElement: mkEl('html'),
   addEventListener: function () {}
 };
 
@@ -70,12 +73,14 @@ sandbox.self = sandbox;
 // 页面用 window.xxx 暴露交互函数；测试里让 window 即沙箱全局，便于直接调用
 sandbox.window = sandbox;
 
-// 载入被测依赖：report-core + guardrails
+// 载入被测依赖：report-core + guardrails + identity-panel
 var ctx = vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync(path.join(__dirname, 'report-core.js'), 'utf8'), ctx, { filename: 'report-core.js' });
 vm.runInContext(fs.readFileSync(path.join(__dirname, 'aftersales-guardrails.js'), 'utf8'), ctx, { filename: 'aftersales-guardrails.js' });
+vm.runInContext(fs.readFileSync(path.join(__dirname, 'identity-panel.js'), 'utf8'), ctx, { filename: 'identity-panel.js' });
 ok(typeof ctx.RPT === 'object', 'report-core 注入成功');
 ok(typeof ctx.AFG === 'object', 'guardrails 注入成功');
+ok(typeof ctx.IDP === 'object', 'identity-panel 注入成功');
 
 // SheetJS 桩：只实现导出/导入所需
 var lastWb = null;
@@ -286,11 +291,22 @@ ok(probe.classifyRow({ '签约客户名称': 'A公司', '报价单总金额': '1
 ok(probe.classifyRow({ '未知列': 'x' }, null, ['未知列'], defs.wnDefs, defs.nwDefs) === null, '无法判定返回 null');
 
 sec('岗位权限门控');
-// 默认管理员可进入，且身份栏渲染
+// 默认管理员可进入，身份栏渲染为折叠态（一行：姓名 · 岗位 + 切换）
 ok(els.identityBar.innerHTML.indexOf('管理员') >= 0, '身份栏显示当前岗位');
-ok(els.identityBar.innerHTML.indexOf('id_role') >= 0, '身份栏含岗位下拉');
-ok(els.identityBar.innerHTML.indexOf('不是安全边界') >= 0, '身份栏含口径说明');
+ok(els.identityBar.innerHTML.indexOf('idp-bar') >= 0, '身份栏为折叠态面板');
+ok(els.identityBar.innerHTML.indexOf('切换') >= 0, '身份栏含「切换」入口');
+ok(els.identityBar.innerHTML.indexOf('idp-switch') >= 0, '切换入口样式就位');
 ok(els.view.innerHTML.indexOf('无权查看') < 0, '管理员可进入报表中心');
+
+// 弹窗：点开后应含姓名 chips + 岗位卡片 + 口径说明
+vm.runInContext('window.IDP.open()', ctx);
+var modal = vm.runInContext('window.IDP.el().innerHTML', ctx);
+ok(modal.indexOf('idp-chip') >= 0, '弹窗含姓名 chips');
+ok(modal.indexOf('idp-rolecard') >= 0, '弹窗含岗位卡片');
+ok(modal.indexOf('不是安全边界') >= 0, '弹窗含口径说明');
+ok(modal.indexOf('idpSearch') >= 0, '弹窗含姓名搜索框');
+ok(modal.indexOf('IDP.pickRole') >= 0, '岗位卡片可点击切换');
+vm.runInContext('window.IDP.close()', ctx);
 
 // 技师：无权进入
 vm.runInContext('window.afSwitchIdentity("张三","TECHNICIAN")', ctx);

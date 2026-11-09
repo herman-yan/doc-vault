@@ -66,9 +66,53 @@
     return list;
   }
 
+  // 姓名归一：台账里姓名可能含全角空格（如「刘　珍」）、半角空格或不可见字符，
+  // 内置名单则是「刘珍」。若不归一，「刘珍」视角会匹配不到任何工单。
+  function normName(v) {
+    if (v === null || v === undefined) return '';
+    return String(v)
+      .replace(/[\s\u3000\u00a0\u200b-\u200d\ufeff]+/g, '') // 空格/全角空格/不换行空格/零宽字符
+      .replace(/[()（）·・.．、,，]/g, '')                    // 括号与分隔符
+      .trim();
+  }
+
   function samePerson(a, b) {
-    if (!a || !b) return false;
-    return String(a).trim() === String(b).trim();
+    var x = normName(a), y = normName(b);
+    if (!x || !y) return false;
+    return x === y;
+  }
+
+  // 从台账里汇总出现过的责任人姓名（工程师 + 报单员 + 责任外服），
+  // 用于身份切换下拉：台账里出现过的人名一定能被选中。
+  // 过滤掉「无」「/」「-」等占位值与非姓名数值，以及被误填进姓名字段的状态词。
+  var NAME_PLACEHOLDER = /^(无|没有|未知|待定|待分配|待派工|未署名|未指派|未分配|暂无|空|其他|其它|全部|合计|小计|总计|none|null|n\/a|na|-{1,}|\/{1,})$/i;
+  var NAME_NOT_PERSON = /^(终止|中止|结束|已完成|未完成|进行中|维修中|处理中|已取消|已作废|已关闭|关闭工单|已结算|已结清|已竣工|待复检|待终检|离职|在职|停用|启用|正常|异常|是|否|有|没有)$/;
+  function isRealName(v) {
+    var n = normName(v);
+    if (!n) return false;
+    if (NAME_PLACEHOLDER.test(n)) return false;
+    if (NAME_NOT_PERSON.test(n)) return false;
+    if (/^\d+(\.\d+)?$/.test(n)) return false; // 纯数字（误填的金额/编号）
+    if (n.length > 12) return false;            // 超长多半不是人名
+    return true;
+  }
+  function collectNames(groups) {
+    var seen = {}, out = [];
+    (groups || []).forEach(function (list) {
+      (list || []).forEach(function (o) {
+        if (!o || typeof o !== 'object') return;
+        ['engineer', 'repairEngineer', 'reporter', 'externalService',
+         '责任工程师', '维修工程师', '报单员', '责任外服'].forEach(function (k) {
+          var v = o[k];
+          if (!isRealName(v)) return;
+          var n = normName(v);
+          if (seen[n]) return;
+          seen[n] = true;
+          out.push(String(v).replace(/[\s\u3000\u00a0]+/g, '')); // 输出统一为无空格形式
+        });
+      });
+    });
+    return out.sort(function (a, b) { return a.localeCompare(b, 'zh-Hans-CN'); });
   }
 
   // ===== 2. 结构化质检清单（11 项，全true、不重复、不含未知码）=====
@@ -371,6 +415,44 @@
 
   // ===== 6. 未保存草稿守卫 / 岗位身份 =====
   var IDENTITY_KEY = 'af_identity';
+  var NAMEBOOK_KEY = 'af_namebook';
+
+  // 名单手册：台账自动提取 + 手动补充 - 手动隐藏
+  function getNameBook(storage) {
+    try {
+      var raw = (storage || root.localStorage).getItem(NAMEBOOK_KEY);
+      var b = raw ? JSON.parse(raw) : null;
+      return {
+        extra: (b && Array.isArray(b.extra)) ? b.extra : [],
+        hidden: (b && Array.isArray(b.hidden)) ? b.hidden : []
+      };
+    } catch (e) { return { extra: [], hidden: [] }; }
+  }
+  function setNameBook(book, storage) {
+    var b = {
+      extra: ((book && book.extra) || []).filter(isRealName),
+      hidden: ((book && book.hidden) || []).map(normName).filter(Boolean)
+    };
+    try { (storage || root.localStorage).setItem(NAMEBOOK_KEY, JSON.stringify(b)); } catch (e) {}
+    return b;
+  }
+  // 最终名单 = 台账提取 ∪ 手动补充 − 手动隐藏
+  function nameRoster(groups, storage) {
+    var book = getNameBook(storage);
+    var seen = {}, out = [];
+    function push(v) {
+      if (!isRealName(v)) return;
+      var n = normName(v);
+      if (!n || seen[n]) return;
+      if (book.hidden.indexOf(n) >= 0) return;
+      seen[n] = true;
+      out.push(String(v).replace(/[\s\u3000\u00a0]+/g, ''));
+    }
+    collectNames(groups).forEach(push);
+    book.extra.forEach(push);
+    return out.sort(function (a, b) { return a.localeCompare(b, 'zh-Hans-CN'); });
+  }
+
   function getIdentity(storage) {
     try {
       var raw = (storage || root.localStorage).getItem(IDENTITY_KEY);
@@ -399,7 +481,10 @@
     isKnownStatus: isKnownStatus,
     appendAudit: appendAudit, newRequestId: newRequestId, assertDistinctActor: assertDistinctActor,
     nwMatchKey: nwMatchKey, wnMatchKey: wnMatchKey, mergeImport: mergeImport,
-    getIdentity: getIdentity, setIdentity: setIdentity, flowOf: flowOf
+    getIdentity: getIdentity, setIdentity: setIdentity, flowOf: flowOf,
+    normName: normName, samePerson: samePerson, isRealName: isRealName,
+    collectNames: collectNames, getNameBook: getNameBook, setNameBook: setNameBook,
+    nameRoster: nameRoster
   };
 
   root.AFG = AFG;

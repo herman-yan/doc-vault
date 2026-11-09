@@ -91,12 +91,11 @@ tbody tr { cursor: pointer; }
 .status-驳回待重检 { background: #fee2e2; color: #991b1b; }
 .status-报价确认 { background: #e0f2fe; color: #075985; }
 
-/* 岗位身份条 */
-.identity-bar { padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--card); }
-.identity-bar .id-name { font-weight: 600; font-size: 13px; }
-.identity-bar .id-role { font-size: 12px; color: var(--text-secondary); }
-.identity-bar select { width: 100%; margin-top: 6px; font-size: 12px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
-.identity-note { margin-top: 6px; font-size: 11px; line-height: 1.5; color: var(--text-secondary); background: #f8fafc; border-left: 3px solid #cbd5e1; padding: 6px 8px; border-radius: 4px; }
+/* 岗位身份条（折叠态样式由 assets/identity-panel.js 注入，此处仅保留兜底） */
+.identity-bar { padding: 10px 12px; border-bottom: 1px solid #334155; background: #172033; }
+.identity-bar .id-name { font-weight: 600; font-size: 13px; color: #e2e8f0; }
+.identity-bar .id-role { font-size: 12px; color: #94a3b8; }
+.identity-note { margin-top: 6px; font-size: 11px; line-height: 1.5; color: #64748b; background: rgba(255,255,255,.04); border-left: 3px solid #475569; padding: 6px 8px; border-radius: 4px; }
 .scope-hint { margin: 0 0 14px; font-size: 12px; color: #92400e; background: #fef3c7; border: 1px solid #fde68a; padding: 8px 12px; border-radius: 8px; }
 
 /* 结构化质检 */
@@ -277,6 +276,7 @@ tbody tr { cursor: pointer; }
 </div>
 
 <script src="../assets/aftersales-guardrails.js"></script>
+<script src="../assets/identity-panel.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script>
 // ===== DATA STORE =====
@@ -320,20 +320,26 @@ function afEsc(v) {
   return String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// 岗位身份面板（assets/identity-panel.js）：侧栏折叠为一行，点开弹窗切换。
+// 姓名名单 = 台账自动提取 ∪ 手动补充 − 手动隐藏（见 AFG.nameRoster）。
+function afNameRoster() {
+  try {
+    return AFG.nameRoster([APP.warrantyOrders, APP.nonWarrantyOrders, APP.engineers.map(n => ({ engineer: n })), APP.reporters.map(n => ({ reporter: n }))]);
+  } catch (e) { return (APP.engineers || []).slice(); }
+}
+
 function renderIdentityBar() {
-  const bar = document.getElementById('identityBar');
-  if (!bar) return;
-  const names = Array.from(new Set((APP.engineers || []).concat(APP.reporters || []).concat(ME.name ? [ME.name] : [])));
-  bar.innerHTML = `
-    <div class="id-name">${afEsc(ME.name)}</div>
-    <div class="id-role">${afEsc(AFG.roleLabel(ME.role))}${AFG.isReadonly(ME.role) ? ' · 只读' : ''}</div>
-    <select id="id_name" onchange="afSwitchIdentity(this.value, document.getElementById('id_role').value)" aria-label="选择本人">
-      ${names.map(n => `<option value="${afEsc(n)}" ${n === ME.name ? 'selected' : ''}>${afEsc(n)}</option>`).join('')}
-    </select>
-    <select id="id_role" onchange="afSwitchIdentity(document.getElementById('id_name').value, this.value)" aria-label="选择岗位">
-      ${Object.keys(AFG.ROLES).map(r => `<option value="${r}" ${r === ME.role ? 'selected' : ''}>${afEsc(AFG.ROLES[r].label)}</option>`).join('')}
-    </select>
-    <div class="identity-note">本机岗位识别，用于视图分区与操作留痕，<b>不是安全边界</b>；正式权限需由统一后端校验。</div>`;
+  if (typeof IDP === 'undefined') return;
+  IDP.init({
+    pageName: '工单系统',
+    getNames: afNameRoster,
+    canEnter: function () { return true; }, // 工单页各岗位均可进入，仅视图分区不同
+    onChange: function (name, role) {
+      ME = { name: name, role: role };
+      afApplyNavPermission();
+      renderPage();
+    }
+  });
 }
 
 function afSwitchIdentity(name, role) {

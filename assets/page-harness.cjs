@@ -1,5 +1,5 @@
 /*
- * 页面级测试夹具：把 doc-vault 单文件页面的内联脚本放进 vm 沙箱 + 伪 DOM 里真实运行。
+ * 页面级测试夹具：把 ningservice-management-system 单文件页面的内联脚本放进 vm 沙箱 + 伪 DOM 里真实运行。
  * 页面脚本顶层的 let/const 属于「词法全局」，取不到对象属性，因此在同一上下文里再跑一段
  * 取值脚本，把句柄交回测试。护栏模块也在同一上下文加载，和浏览器里「同页共享 localStorage」
  * 保持一致。
@@ -70,6 +70,10 @@ function loadPage(htmlRel, opt) {
   sandbox.self = sandbox;
   const ctx = vm.createContext(sandbox);
   if (!opt.noGuard) vm.runInContext(fs.readFileSync(path.join(__dirname, 'aftersales-guardrails.js'), 'utf8'), ctx, { filename: 'aftersales-guardrails.js' });
+  // 身份面板与浏览器一致地随页加载（页面脚本依赖 window.IDP）
+  if (!opt.noGuard && fs.existsSync(path.join(__dirname, 'identity-panel.js'))) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, 'identity-panel.js'), 'utf8'), ctx, { filename: 'identity-panel.js' });
+  }
   let runError = null;
   try {
     vm.runInContext(code, ctx, { filename: htmlRel });

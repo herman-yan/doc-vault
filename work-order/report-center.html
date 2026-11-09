@@ -18,10 +18,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); background: #1e293b; color: #fff; z-index: 100; display: flex; flex-direction: column; }
 .sidebar-brand { padding: 20px 16px; font-size: 16px; font-weight: 700; border-bottom: 1px solid #334155; }
 .sidebar-brand small { display: block; font-size: 11px; font-weight: 400; color: #94a3b8; margin-top: 4px; }
-.identity-bar { padding: 10px 16px; border-bottom: 1px solid #334155; background: #172033; }
+.identity-bar { padding: 10px 12px; border-bottom: 1px solid #334155; background: #172033; }
 .identity-bar .id-name { font-weight: 600; font-size: 13px; color: #e2e8f0; }
 .identity-bar .id-role { font-size: 12px; color: #94a3b8; }
-.identity-bar select { width: 100%; margin-top: 6px; font-size: 12px; padding: 5px 6px; border: 1px solid #334155; border-radius: 6px; background: #0f172a; color: #e2e8f0; }
 .identity-bar .identity-note { font-size: 10px; color: #64748b; margin-top: 6px; line-height: 1.5; }
 .identity-bar .identity-note b { color: #94a3b8; }
 .deny { max-width: 560px; margin: 80px auto; text-align: center; }
@@ -169,6 +168,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 <script src="../assets/report-core.js"></script>
 <script src="../assets/aftersales-guardrails.js"></script>
+<script src="../assets/identity-panel.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script>
 /* ===== 报表中心 =====
@@ -869,32 +869,33 @@ document.getElementById('modalOverlay').addEventListener('click', function (e) {
 
 // ===== 初始化 =====
 function boot() {
+  RAW = loadRaw();          // 先取台账，身份栏的姓名名单依赖它
   renderIdentityBar();
   if (!canEnterReport(ME.role)) { renderDenied(); return; }
-  RAW = loadRaw();
   recompute();
   render();
   if (!RECORDS.length) setBar('ℹ️ 报表中心与工单系统共用台账。当前无数据，可导入 Excel 或点下方按钮从站点拉取默认台账。', 'info');
 }
 // ===== 岗位身份栏与访问门控 =====
+// 姓名名单 = 台账自动提取 ∪ 手动补充 − 手动隐藏（见 AFG.nameRoster）。
+// 修复：原先读 APP.engineers，但报表页并无 APP，导致下拉里永远只有当前一人。
+function rptNameRoster() {
+  try {
+    return AFG.nameRoster([RAW.wn, RAW.nw]);
+  } catch (e) { return ME.name ? [ME.name] : []; }
+}
 function renderIdentityBar() {
-  var bar = document.getElementById('identityBar');
-  if (!bar) return;
-  if (typeof AFG === 'undefined') { bar.innerHTML = ''; return; }
-  var names = [];
-  if (typeof APP !== 'undefined' && APP.engineers && APP.engineers.length) names = APP.engineers.slice();
-  else names = [ME.name || '未署名'];
-  if (names.indexOf(ME.name) < 0 && ME.name) names.unshift(ME.name);
-  bar.innerHTML =
-    '<div class="id-name">' + esc(ME.name || '未署名') + '</div>' +
-    '<div class="id-role">' + esc(roleLabel(ME.role)) + (isReadonlyRole(ME.role) ? ' · 只读' : '') + '</div>' +
-    '<select id="id_name" onchange="afSwitchIdentity(this.value,document.getElementById(\'id_role\').value)" aria-label="选择本人">' +
-    names.map(function (n) { return '<option value="' + esc(n) + '"' + (n === ME.name ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') +
-    '</select>' +
-    '<select id="id_role" onchange="afSwitchIdentity(document.getElementById(\'id_name\').value,this.value)" aria-label="选择岗位">' +
-    Object.keys(AFG.ROLES).map(function (r) { return '<option value="' + r + '"' + (r === ME.role ? ' selected' : '') + '>' + esc(AFG.ROLES[r].label) + '</option>'; }).join('') +
-    '</select>' +
-    '<div class="identity-note">本机岗位识别，用于视图分区与操作留痕，<b>不是安全边界</b>；正式权限需由统一后端校验。</div>';
+  if (typeof IDP === 'undefined') return;
+  IDP.init({
+    pageName: '报表中心',
+    getNames: rptNameRoster,
+    canEnter: canEnterReport,
+    onChange: function (name, role) {
+      ME = { name: name, role: role };
+      if (!canEnterReport(ME.role)) { renderDenied(); return; }
+      boot();
+    }
+  });
 }
 function afSwitchIdentity(name, role) {
   if (typeof AFG === 'undefined') return;

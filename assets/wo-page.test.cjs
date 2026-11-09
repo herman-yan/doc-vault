@@ -40,12 +40,27 @@ const find = (T, kind, id) => (kind === 'WN' ? T.APP.warrantyOrders : T.APP.nonW
   ok('缺少护栏时页面脚本确实中断', !!dead.runError);
   ok('页面明示已停止写入', (dead.get('mainContent').innerHTML || '').indexOf('停止写入') >= 0);
 
-  const { els, store, T, get } = loadPage('work-order/index.html', Object.assign({ storage: seed }, HANDLES));
+  const { els, store, T, get, sandbox } = loadPage('work-order/index.html', Object.assign({ storage: seed }, HANDLES));
   ok('页面脚本在伪 DOM 中完整跑通', !T.APP ? false : true, T.APP ? '' : 'APP 未初始化');
 
   group('1. 岗位身份与分区');
   ok('身份从本机存储恢复', T.ME.name === '王鹏' && T.ME.role === 'DISPATCHER');
   ok('侧栏身份条已渲染', els.get('identityBar').innerHTML.indexOf('王鹏') >= 0);
+  ok('身份条为折叠态面板（非原生下拉）', els.get('identityBar').innerHTML.indexOf('idp-bar') >= 0 && els.get('identityBar').innerHTML.indexOf('<select') < 0);
+  ok('折叠态含「切换」入口', els.get('identityBar').innerHTML.indexOf('idp-switch') >= 0);
+  // 弹窗：岗位卡片带职责说明，姓名来自台账提取
+  const IDP = sandbox.IDP;
+  ok('身份面板已注入', typeof IDP === 'object' && !!IDP);
+  if (IDP) {
+    IDP.open();
+    const m = IDP.el().innerHTML;
+    ok('弹窗含姓名 chips', m.indexOf('idp-chip') >= 0);
+    ok('弹窗含岗位卡片', m.indexOf('idp-rolecard') >= 0);
+    ok('弹窗岗位卡片含职责说明', m.indexOf('负责建单、报单与结算信息录入') >= 0);
+    const roster = IDP.names();
+    ok('姓名名单来自台账自动提取', roster.indexOf('罗永豪') >= 0 && roster.indexOf('马迪') >= 0);
+    IDP.close();
+  }
   T.currentPage = 'warranty'; T.renderPage();
   ok('保内列表带岗位范围提示', els.get('mainContent').innerHTML.indexOf('跨保内、保外与待判定工单') >= 0);
   ok('列表副标题公示流转模板版本', els.get('mainContent').innerHTML.indexOf(A.WN_FLOW.version) >= 0);
