@@ -199,6 +199,18 @@ tbody tr:hover{background:var(--panel2)}
 .tl .it.term::before{background:var(--err)}
 .tl .t1{color:var(--fg2);font-size:12.5px}
 .tl .t2{color:var(--fg3);font-size:11.5px;margin-top:2px}
+.tl .t3{color:var(--fg2);font-size:12px;margin-top:5px;padding:6px 9px;background:var(--panel);border-radius:6px;line-height:1.6}
+/* 时间线内联附件：审批人在该节点补充的材料，直接挂在节点下，点文件名即下载 */
+.tl .tlatt{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tl .tlfile{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:4px 9px;border-radius:6px;background:var(--panel);border:1px solid var(--line);color:var(--fg2);text-decoration:none;cursor:pointer;max-width:100%;font-family:inherit}
+.tl .tlfile:hover{border-color:var(--accent);color:var(--fg1)}
+.tl .tlfile .fsz{color:var(--fg3);font-size:10.5px}
+.tl .tlfile.dead{color:var(--fg3);cursor:default;border-style:dashed}
+.tl .tlfile.dead em{font-style:normal;font-size:10.5px;color:var(--warn);margin-left:3px}
+.tl .tlfile.dead:hover{border-color:var(--line);color:var(--fg3)}
+/* 台账「相对方」列：名称可能较长，允许换行，避免撑破表格 */
+td.party{max-width:210px;line-height:1.9}
+td.party .tag{margin:0 3px 3px 0;display:inline-block}
 .note{background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--warn);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--fg2);line-height:1.75}
 .risk{display:flex;gap:13px;align-items:flex-start;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px}
 .risk .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;margin-top:6px}
@@ -429,6 +441,7 @@ body.locked .wrap{display:none}
         </span>
         <select class="sel" id="fOrg"><option value="">全部组织</option></select>
         <select class="sel" id="fFlow"><option value="">全部流程</option></select>
+        <select class="sel" id="fParty"><option value="">全部相对方</option></select>
         <select class="sel" id="fStatus"><option value="">全部状态</option><option value="COMPLETED">已通过</option><option value="RUNNING">审批中</option><option value="TERMINATED">已终止</option></select>
         <select class="sel" id="fSeal"><option value="">全部印章</option></select>
         <select class="sel" id="fType"><option value="">全部合同类型</option></select>
@@ -441,7 +454,7 @@ body.locked .wrap{display:none}
       <div class="tblwrap">
         <table>
           <thead><tr>
-            <th>组织</th><th>用印文件名称</th><th>印章</th><th>合同类型</th><th>申请人</th>
+            <th>组织</th><th>用印文件名称</th><th>相对方</th><th>印章</th><th>合同类型</th><th>申请人</th>
             <th>用印日期</th><th>份数</th><th>附件</th><th>状态</th>
           </tr></thead>
           <tbody id="tbody"></tbody>
@@ -686,8 +699,21 @@ function staticSearch(q) {
   const applicant = q.get('applicant') || '';
   const org = q.get('org') || '';
   const flow = q.get('flow') || '';
+  const party = q.get('party') || '';
   const from = q.get('from') || '';
   const to = q.get('to') || '';
+  // 相对方别名解析：档案把简称并入全称，按全称筛选时也要命中以简称记录的单据。
+  // 口径与后端 partyVariants 保持一致（前缀包含即视为同一主体）。
+  const partyHit = (keys) => {
+    if (!party) return true;
+    const alt = party.replace(/\(/g, '（').replace(/\)/g, '）');
+    return keys.some((k) => {
+      if (k === party || k === alt) return true;
+      if (k.length >= 2 && party.length > k.length && party.startsWith(k)) return true;
+      if (party.length >= 2 && k.length > party.length && k.startsWith(party)) return true;
+      return false;
+    });
+  };
   const rows = D.records.filter((r) => {
     if (kw) {
       // 多词空格分隔 → AND 语义；匹配范围含「用印主体」（劳动合同类单据标题只有人名，公司名只在用印主体里）
@@ -702,6 +728,7 @@ function staticSearch(q) {
     if (applicant && r.applicant !== applicant) return false;
     if (org && r.org_key !== org) return false;
     if (flow && r.flow_key !== flow) return false;
+    if (!partyHit(r.party_keys || [])) return false;
     if (!inRange(r.seal_date, from, to)) return false;
     return true;
   }).sort((a, b) => String(b.seal_date).localeCompare(String(a.seal_date)));
@@ -710,7 +737,8 @@ function staticSearch(q) {
   const total = rows.length;
   const pages = Math.max(1, Math.ceil(total / size));
   const start = (page - 1) * size;
-  return { rows: rows.slice(start, start + size), total, page, pages, size };
+  const slice = rows.slice(start, start + size).map((r) => Object.assign({}, r, { parties: r.party_keys || [] }));
+  return { rows: slice, total, page, pages, size };
 }
 
 function staticParties(q) {
@@ -948,6 +976,8 @@ async function loadFacets() {
   fill($('#fDept'), f.depts || []);
   fill($('#fApplicant'), f.applicants || []);
   fill($('#pSeal'), f.sealTypes || []);   // 相对方页的印章筛选共用同一份口径
+  // 台账「相对方」筛选：候选来自 facets.parties（已按用印次数降序，与相对方档案口径一致）
+  if ($('#fParty')) fill($('#fParty'), (f.parties || []).map((p) => p.name));
   // 组织 / 流程筛选（多组织改造后新增）
   // 新组织简称自适应：facets 里带了 org_short，首见组织写进 ORG_SHORT，免改硬编码
   for (const o of f.orgs || []) if (o.org_key && !ORG_SHORT[o.org_key]) ORG_SHORT[o.org_key] = o.org_short || o.org_name;
@@ -971,6 +1001,7 @@ async function loadLedger() {
     applicant: $('#fApplicant').value,
     org: $('#fOrg').value,
     flow: $('#fFlow').value,
+    party: $('#fParty') ? $('#fParty').value : '',
     ...rangeParams(),                    // 与总览看板共用同一时间区间，避免两处口径不一致
     page: STATE.page, size: STATE.size,
   };
@@ -978,17 +1009,25 @@ async function loadLedger() {
   STATE.rows = d.rows;
   const tb = $('#tbody');
   if (!d.rows.length) {
-    tb.innerHTML = '<tr><td colspan="9"><div class="empty">没有符合条件的用印记录</div></td></tr>';
+    tb.innerHTML = '<tr><td colspan="10"><div class="empty">没有符合条件的用印记录</div></td></tr>';
   } else {
     tb.innerHTML = d.rows.map((r, i) => {
       const st = r.status === 'COMPLETED' ? 'ok' : r.status === 'RUNNING' ? 'run' : 'term';
       const att = r.attachment_count
         ? `<span class="tag seal">${r.attachment_count} 个</span>`
         : `<span class="tag no">无</span>`;
+      // 相对方：可能多个，全部列出（超出 2 个折叠显示），无识别结果时显示「—」
+      const pts = r.parties || [];
+      const partyCell = pts.length
+        ? (pts.length > 2
+            ? `<span class="tag" title="${esc(pts.join('、'))}">${esc(pts[0])} 等 ${pts.length} 家</span>`
+            : pts.map((n) => `<span class="tag">${esc(n)}</span>`).join(' '))
+        : '<span style="color:var(--fg3)">—</span>';
       return `<tr data-i="${i}">
         <td class="mono" title="${esc(r.org_name || '')}">${esc(ORG_SHORT[r.org_key] || r.org_name || '—')}</td>
         <td class="doc" title="${esc(r.doc_name)}">${esc(r.doc_name || '(未填写)')}
           ${r.is_eseal === '是' ? '<span class="tag" style="margin-left:6px">电子章</span>' : ''}</td>
+        <td class="party">${partyCell}</td>
         <td><span class="tag">${esc(r.seal_type || '—')}</span></td>
         <td>${esc(r.contract_type || '—')}</td>
         <td>${esc(r.applicant || '—')}</td>
@@ -1391,6 +1430,11 @@ async function openDetail(id) {
         ${STATIC ? (a.url ? `<a class="btn" href="${esc(a.url)}" download="${esc(a.fileName || ('file.' + (a.fileType || 'bin')))}">下载</a>` : `<button class="btn" disabled title="该文件在钉钉侧已不可下载（审批附件会随钉盘清理而失效），本地未留存副本">已失效</button>`) : `<button class="btn" data-flowatt="${i}">下载</button>`}
       </div>`).join('');
 
+    // fileId → 下载地址（静态模式取快照里的 url；后端模式返回空，走接口现取）
+    const flowUrlById = {};
+    for (const a of (d.flowAttachments || [])) if (a.fileId) flowUrlById[String(a.fileId)] = a.url || '';
+    const urlOf = (fid) => flowUrlById[String(fid)] || '';
+
     // 相对方（多个则全部列出，标注来源）
     const partyBits = (d.parties || []).map((p) =>
       `<span class="tag" title="来源：${esc(p.src || '')}">${esc(p.name)}</span>`).join(' ');
@@ -1401,9 +1445,21 @@ async function openDetail(id) {
     const tl = (d.timeline || []).map((o) => {
       const [cls, cn] = OP_CN[o.type] || ['', o.type];
       const res = RESULT_CN[o.result] || '';
+      // 该审批节点上传的附件（审批人在评论/审批动作里补充的材料）——直接在时间线内列出并可下载
+      const files = o.files || [];
+      const fl = files.length ? `<div class="tlatt">${files.map((f) => {
+        const m = urlOf(f.fileId);
+        const label = esc(f.fileName || '附件');
+        const meta = f.fileSize ? `<span class="fsz">${fmtSize(f.fileSize)}</span>` : '';
+        return STATIC
+          ? (m ? `<a class="tlfile" href="${esc(m)}" download="${esc(f.fileName || 'file')}" title="下载 ${label}">📎 ${label}${meta}</a>`
+               : `<span class="tlfile dead" title="该文件在钉钉侧已不可下载（审批附件会随钉盘清理而失效）">📎 ${label}${meta}<em>已失效</em></span>`)
+          : `<button class="tlfile" data-flowatt-id="${esc(f.fileId)}" title="下载 ${label}">📎 ${label}${meta}</button>`;
+      }).join('')}</div>` : '';
+      const rm = o.remark ? `<div class="t3">${esc(o.remark)}</div>` : '';
       return `<div class="it ${cls}">
         <div class="t1">${esc(cn)}${res ? ' · ' + esc(res) : ''}</div>
-        <div class="t2">${esc(o.user || '')} ${o.at ? '· ' + fmtDate(o.at) : ''}</div></div>`;
+        <div class="t2">${esc(o.user || '')} ${o.at ? '· ' + fmtDate(o.at) : ''}</div>${rm}${fl}</div>`;
     }).join('') || '<div class="t2">无操作记录</div>';
 
     $('#dBody').innerHTML = `
@@ -1460,6 +1516,20 @@ async function openDetail(id) {
           setTimeout(() => { b.disabled = false; b.textContent = '下载'; }, 2200);
         } catch (e) {
           toast('下载失败：' + e.message); b.disabled = false; b.textContent = '重试';
+        }
+      };
+    });
+    // 时间线内的附件按钮（后端模式）：按 fileId 现取下载地址
+    $('#dBody').querySelectorAll('[data-flowatt-id]').forEach((b) => {
+      b.onclick = async () => {
+        const fid = b.dataset.flowattId;
+        b.disabled = true;
+        try {
+          const r = await api('/api/attachment-url?instanceId=' + encodeURIComponent(d.id) + '&fileId=' + encodeURIComponent(fid) + '&flow=1');
+          window.open(r.url, '_blank');
+          setTimeout(() => { b.disabled = false; }, 1800);
+        } catch (e) {
+          toast('下载失败：' + e.message); b.disabled = false;
         }
       };
     });
@@ -1563,10 +1633,12 @@ async function exportCsv() {
     } while (page <= pages);
 
     if (!all.length) { toast('当前筛选条件下无数据可导出'); return; }
-    const head = ['用印文件名称', '印章', '合同类型', '申请人', '经手人', '部门', '用印日期', '份数', '电子章', '骑缝章', '签章顺序', '状态', '附件数'];
+    const head = ['用印文件名称', '相对方', '印章', '合同类型', '申请人', '经手人', '部门', '用印日期', '份数', '电子章', '骑缝章', '签章顺序', '状态', '附件数'];
     const lines = [head.join(',')];
     for (const r of all) {
-      lines.push([r.doc_name, r.seal_type, r.contract_type, r.applicant, r.handler,
+      // 相对方可能多个，用「、」连接（与页面展示一致）
+      const parties = (r.parties && r.parties.length) ? r.parties.join('、') : '';
+      lines.push([r.doc_name, parties, r.seal_type, r.contract_type, r.applicant, r.handler,
         r.originator_dept_name, r.seal_date, r.copies, r.is_eseal, r.is_ridge, r.sign_order,
         r.status_cn, r.attachment_count]
         .map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
@@ -1659,6 +1731,7 @@ $('#btnReset').onclick = () => {
   $('#kw').value = ''; $('#fStatus').value = ''; $('#fSeal').value = '';
   $('#fType').value = ''; $('#fDept').value = ''; $('#fApplicant').value = '';
   $('#fOrg').value = ''; $('#fFlow').value = '';
+  if ($('#fParty')) $('#fParty').value = '';
   STATE.page = 1; loadLedger();
 };
 $('#btnExport').onclick = exportCsv;
@@ -1677,8 +1750,9 @@ $('#kw').oninput = () => { clearTimeout(deb); deb = setTimeout(() => { STATE.pag
     if (e.key === 'Enter' || e.keyCode === 13) { clearTimeout(deb); STATE.page = 1; loadLedger(); }
   });
 })();
-['#fStatus', '#fSeal', '#fType', '#fDept', '#fApplicant', '#fOrg', '#fFlow'].forEach((s) => {
-  $(s).onchange = () => { STATE.page = 1; loadLedger(); };
+['#fStatus', '#fSeal', '#fType', '#fDept', '#fApplicant', '#fOrg', '#fFlow', '#fParty'].forEach((s) => {
+  const el = $(s);
+  if (el) el.onchange = () => { STATE.page = 1; loadLedger(); };
 });
 
 /* 相对方筛选 */
