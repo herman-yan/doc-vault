@@ -22,17 +22,20 @@
     ADMIN: { label: '管理员', scopeHint: '本站全部工单与配置。' }
   };
 
-  // role -> 可进入的页面（work-order 页 pageId / warehouse 页 tabId）
+  // role -> 可进入的页面（work-order 页 pageId / warehouse 页 tabId / report 报表中心）
+  // 'report' 为报表中心（日报/周报/月报）。运营核心数据涉及全站产值与人效，仅对
+  // 需要「看全局」的岗位开放：调度、财务、监管、质检、管理员。技师/报单员/库房
+  // 各自只看单点数据，不进入报表中心。
   var ROLE_PAGES = {
     REPORTER: ['dashboard', 'warranty', 'nonwarranty', 'warehouse', 'export'],
-    DISPATCHER: ['dashboard', 'warranty', 'nonwarranty', 'warehouse', 'engineers', 'export', 'orders', 'txns'],
+    DISPATCHER: ['dashboard', 'report', 'warranty', 'nonwarranty', 'warehouse', 'engineers', 'export', 'orders', 'txns'],
     TECHNICIAN: ['dashboard', 'warranty', 'nonwarranty', 'orders'],
     WAREHOUSE: ['dashboard', 'warehouse', 'orders', 'txns', 'oldparts', 'inventory'],
     PURCHASER: ['dashboard', 'warehouse', 'orders', 'txns', 'inventory'],
-    FINANCE: ['dashboard', 'nonwarranty', 'export'],
-    AUDITOR: ['dashboard', 'warranty', 'nonwarranty', 'warehouse', 'engineers', 'export', 'orders', 'txns', 'inventory', 'oldparts'],
-    QUALITY_INSPECTOR: ['dashboard', 'warranty', 'nonwarranty'],
-    ADMIN: ['dashboard', 'warranty', 'nonwarranty', 'warehouse', 'engineers', 'export', 'orders', 'txns', 'inventory', 'oldparts']
+    FINANCE: ['dashboard', 'report', 'nonwarranty', 'export'],
+    AUDITOR: ['dashboard', 'report', 'warranty', 'nonwarranty', 'warehouse', 'engineers', 'export', 'orders', 'txns', 'inventory', 'oldparts'],
+    QUALITY_INSPECTOR: ['dashboard', 'report', 'warranty', 'nonwarranty'],
+    ADMIN: ['dashboard', 'report', 'warranty', 'nonwarranty', 'warehouse', 'engineers', 'export', 'orders', 'txns', 'inventory', 'oldparts']
   };
 
   // 只读岗位：能看不能推动流转

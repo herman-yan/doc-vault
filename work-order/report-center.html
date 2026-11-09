@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服务站报表中心</title>
+<style>
+:root {
+  --primary: #2563eb; --primary-light: #3b82f6;
+  --success: #16a34a; --warning: #d97706; --danger: #dc2626;
+  --bg: #f1f5f9; --card: #ffffff; --border: #e2e8f0;
+  --text: #1e293b; --text-secondary: #64748b;
+  --sidebar-w: 220px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w); background: #1e293b; color: #fff; z-index: 100; display: flex; flex-direction: column; }
+.sidebar-brand { padding: 20px 16px; font-size: 16px; font-weight: 700; border-bottom: 1px solid #334155; }
+.sidebar-brand small { display: block; font-size: 11px; font-weight: 400; color: #94a3b8; margin-top: 4px; }
+.identity-bar { padding: 10px 16px; border-bottom: 1px solid #334155; background: #172033; }
+.identity-bar .id-name { font-weight: 600; font-size: 13px; color: #e2e8f0; }
+.identity-bar .id-role { font-size: 12px; color: #94a3b8; }
+.identity-bar select { width: 100%; margin-top: 6px; font-size: 12px; padding: 5px 6px; border: 1px solid #334155; border-radius: 6px; background: #0f172a; color: #e2e8f0; }
+.identity-bar .identity-note { font-size: 10px; color: #64748b; margin-top: 6px; line-height: 1.5; }
+.identity-bar .identity-note b { color: #94a3b8; }
+.deny { max-width: 560px; margin: 80px auto; text-align: center; }
+.deny h3 { font-size: 17px; margin-bottom: 10px; }
+.deny p { color: var(--text-secondary); font-size: 13px; line-height: 1.9; }
+.sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+.nav-section { padding: 8px 16px 4px; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+.nav-item { display: flex; align-items: center; padding: 10px 16px; cursor: pointer; color: #cbd5e1; font-size: 14px; transition: all .15s; border-left: 3px solid transparent; text-decoration: none; }
+.nav-item:hover { background: #334155; color: #fff; }
+.nav-item.active { background: #334155; color: #60a5fa; border-left-color: var(--primary); }
+.nav-item .icon { width: 20px; margin-right: 10px; text-align: center; font-size: 15px; }
+
+.main { margin-left: var(--sidebar-w); padding: 24px; min-height: 100vh; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+.page-title { font-size: 22px; font-weight: 700; }
+.page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+.card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
+.card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card-title .hint { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+
+.tabs { display: flex; gap: 0; margin-bottom: 20px; background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; width: fit-content; }
+.tab { padding: 10px 28px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; border: none; background: transparent; color: var(--text); border-right: 1px solid var(--border); }
+.tab:last-child { border-right: none; }
+.tab:hover { background: #f8fafc; }
+.tab.active { color: var(--primary); background: #eff6ff; font-weight: 600; }
+
+.period-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.period-bar .nav-btn { padding: 7px 14px; border: 1px solid var(--border); background: #fff; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text); }
+.period-bar .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+.period-label { font-size: 15px; font-weight: 600; padding: 0 6px; min-width: 190px; text-align: center; }
+.period-meta { font-size: 12px; color: var(--text-secondary); margin-left: auto; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.stat-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 16px; }
+.stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.stat-value { font-size: 24px; font-weight: 700; line-height: 1.2; }
+.stat-foot { font-size: 11px; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+.up { color: var(--danger); }
+.down { color: var(--success); }
+.flat { color: var(--text-secondary); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f8fafc; font-weight: 600; font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+tbody tr:hover { background: #f8fafc; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; }
+
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+.badge-blue { background: #dbeafe; color: var(--primary); }
+.badge-green { background: #dcfce7; color: var(--success); }
+.badge-yellow { background: #fef3c7; color: var(--warning); }
+.badge-red { background: #fee2e2; color: var(--danger); }
+.badge-gray { background: #f1f5f9; color: var(--text-secondary); }
+
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bar-name { width: 130px; font-size: 12px; color: var(--text-secondary); text-align: right; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { flex: 1; height: 20px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width .3s; }
+.bar-val { width: 76px; font-size: 12px; font-weight: 600; text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-light); }
+.btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+
+.empty { padding: 48px 20px; text-align: center; color: var(--text-secondary); font-size: 14px; line-height: 1.9; }
+.empty b { color: var(--text); }
+.upload-bar { padding: 12px 20px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+.upload-bar.show { display: block; }
+.upload-bar.info { background: #eff6ff; color: var(--primary); border: 1px solid #bfdbfe; }
+.upload-bar.success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+.upload-bar.error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+.upload-bar.warn { background: #fffbeb; color: var(--warning); border: 1px solid #fde68a; }
+
+.note { font-size: 12px; color: var(--text-secondary); line-height: 1.8; background: #f8fafc; border-left: 3px solid var(--border); padding: 10px 14px; border-radius: 0 6px 6px 0; }
+.warn-note { background: #fffbeb; border-left-color: #f59e0b; color: #92400e; }
+
+.spark { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
+.spark-col { flex: 1; background: #bfdbfe; border-radius: 2px 2px 0 0; min-height: 2px; transition: height .3s; }
+.spark-col.cur { background: var(--primary); }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 12px; width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 1; }
+.modal-title { font-size: 16px; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-secondary); }
+.modal-body { padding: 22px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.form-group { display: flex; flex-direction: column; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+.form-input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; }
+.form-input:focus { outline: none; border-color: var(--primary); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 900px) {
+  .sidebar { width: 180px; }
+  .main { margin-left: 180px; padding: 14px; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .period-label { min-width: 0; font-size: 13px; }
+  .stat-value { font-size: 19px; }
+}
+@media print {
+  .sidebar, .btn, .period-bar, .tabs, .upload-bar { display: none !important; }
+  .main { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">📈 服务站管理<small>报表中心</small></div>
+  <div class="identity-bar" id="identityBar"></div>
+  <div class="sidebar-nav">
+    <div class="nav-section">报表</div>
+    <a class="nav-item active" href="#daily" onclick="switchTab('daily');return false" data-tab="daily"><span class="icon">📅</span><span>日报</span></a>
+    <a class="nav-item" href="#weekly" onclick="switchTab('weekly');return false" data-tab="weekly"><span class="icon">📆</span><span>周报</span></a>
+    <a class="nav-item" href="#monthly" onclick="switchTab('monthly');return false" data-tab="monthly"><span class="icon">🗓️</span><span>月报</span></a>
+    <div class="nav-section">分析</div>
+    <a class="nav-item" href="#nodes" onclick="switchTab('nodes');return false" data-tab="nodes"><span class="icon">⏱️</span><span>流程时效</span></a>
+    <a class="nav-item" href="#people" onclick="switchTab('people');return false" data-tab="people"><span class="icon">👷</span><span>人效排名</span></a>
+    <div class="nav-section">操作</div>
+    <div class="nav-item" id="navImport" onclick="guardWrite(function(){document.getElementById('excelInput').click();})"><span class="icon">📥</span><span>导入工单</span></div>
+    <div class="nav-item" onclick="exportWeekly()"><span class="icon">📄</span><span>导出周报</span></div>
+    <div class="nav-item" id="navConfig" onclick="guardWrite(openConfig)"><span class="icon">⚙️</span><span>口径设置</span></div>
+    <div class="nav-section">返回</div>
+    <a class="nav-item" href="./index.html"><span class="icon">↩️</span><span>工单系统</span></a>
+    <a class="nav-item" href="../index.html"><span class="icon">🏠</span><span>返回首页</span></a>
+  </div>
+</div>
+
+<div class="main">
+  <input type="file" id="excelInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImport(this)">
+  <div class="upload-bar" id="uploadBar"></div>
+  <div id="view"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script src="../assets/report-core.js"></script>
+<script src="../assets/aftersales-guardrails.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script>
+/* ===== 报表中心 =====
+ * 依赖：../assets/report-core.js（纯计算引擎，含单测）、../assets/aftersales-guardrails.js（字段映射与状态口径）
+ * 数据：与 work-order 共用 localStorage 'station_mgmt_data'；无数据时可导入 Excel 或从站点拉取默认台账
+ */
+(function () {
+'use strict';
+
+if (typeof RPT === 'undefined') {
+  document.getElementById('view').innerHTML = '<div class="empty">报表引擎 <code>../assets/report-core.js</code> 未加载，页面已停止。<br>请刷新或确认该文件随站点一同发布。</div>';
+  return;
+}
+
+var STORAGE_KEY = 'station_mgmt_data';
+var CFG_KEY = 'station_report_config';
+var WEEK_START_DOW = 0; // 周日至周六，对齐 0706 周报样本
+
+// ===== 岗位识别（与工单系统共用 af_identity，非安全边界，仅视图分区与留痕）=====
+var ME = { name: '', role: 'ADMIN' };
+if (typeof AFG !== 'undefined') {
+  ME = AFG.getIdentity() || { name: '', role: 'ADMIN' };
+  if (!ME.name) ME = AFG.setIdentity('未署名', ME.role);
+}
+function roleLabel(r) { return (typeof AFG !== 'undefined') ? AFG.roleLabel(r) : r; }
+function canEnterReport(role) {
+  return (typeof AFG === 'undefined') ? true : AFG.canPage(role, 'report');
+}
+function isReadonlyRole(role) {
+  return (typeof AFG === 'undefined') ? false : AFG.isReadonly(role);
+}
+// 只读岗位（监管员）：可看可导出，不可导入 / 改口径
+function guardWrite(fn) {
+  if (isReadonlyRole(ME.role)) {
+    setBar('🔒 当前岗位（' + esc(roleLabel(ME.role)) + '）为只读，不能导入台账或修改口径；如需操作请切换岗位。', 'error');
+    return;
+  }
+  fn();
+}
+window.guardWrite = guardWrite;
+
+// ===== 配置（人力 / 投诉 / 增值产值 / GSS 评分）=====
+function defaultConfig() {
+  return {
+    siteName: '北京直营站',
+    star: '三星',
+    reporter: '',
+    headcount: 36,
+    engineers: 24,
+    complaints: {},
+    valueAdded: {},
+    gssScore: null,
+    overdueDays: 7
+  };
+}
+function loadConfig() {
+  try {
+    var c = JSON.parse(localStorage.getItem(CFG_KEY));
+    if (c) return Object.assign(defaultConfig(), c);
+  } catch (e) {}
+  return defaultConfig();
+}
+function saveConfig(c) { try { localStorage.setItem(CFG_KEY, JSON.stringify(c)); } catch (e) {} }
+var CFG = loadConfig();
+
+// ===== 数据 =====
+var RECORDS = [];
+var RAW = { wn: [], nw: [] };
+
+function loadRaw() {
+  try {
+    var d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (d) return { wn: d.warrantyOrders || [], nw: d.nonWarrantyOrders || [] };
+  } catch (e) {}
+  return { wn: [], nw: [] };
+}
+
+function recompute() {
+  RECORDS = RPT.normalizeAll(RAW.wn, RAW.nw);
+}
+
+// ===== 视图状态 =====
+var state = {
+  tab: 'weekly',
+  anchor: new Date(),
+  nodeScopeAll: false
+};
+
+// ===== 工具 =====
+function esc(v) {
+  return String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function money(n) {
+  var v = RPT.num(n);
+  return '¥' + v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function moneyShort(n) {
+  var v = RPT.num(n);
+  if (Math.abs(v) >= 10000) return '¥' + (v / 10000).toFixed(2) + ' 万';
+  return '¥' + v.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+}
+function int(n) { return RPT.num(n).toLocaleString('zh-CN'); }
+function ratio(n) { return (RPT.num(n) * 100).toFixed(1) + '%'; }
+function delta(n) {
+  if (n === null || n === undefined) return '<span class="flat">—</span>';
+  var v = n * 100;
+  var cls = v > 0.05 ? 'up' : (v < -0.05 ? 'down' : 'flat');
+  var sign = v > 0 ? '+' : '';
+  var arrow = v > 0.05 ? '▲' : (v < -0.05 ? '▼' : '—');
+  return '<span class="' + cls + '">' + arrow + ' ' + sign + v.toFixed(1) + '%</span>';
+}
+
+function periodOfState() { return RPT.periodOf(state.anchor, state.tab === 'daily' ? 'day' : (state.tab === 'monthly' ? 'month' : 'week')); }
+
+function configFor() {
+  return {
+    headcount: CFG.headcount,
+    engineers: CFG.engineers,
+    complaints: CFG.complaints || {},
+    valueAdded: CFG.valueAdded || {},
+    gssScore: CFG.gssScore
+  };
+}
+
+function setBar(msg, type) {
+  var el = document.getElementById('uploadBar');
+  el.className = 'upload-bar show ' + (type || 'info');
+  el.innerHTML = msg;
+  if (type === 'success') setTimeout(function () { el.className = 'upload-bar'; }, 9000);
+}
+
+// ===== 渲染入口 =====
+function render() {
+  document.querySelectorAll('.nav-item[data-tab]').forEach(function (el) {
+    el.classList.toggle('active', el.dataset.tab === state.tab);
+  });
+  // 只读岗位隐藏写入口（导入 / 口径设置），保留查看与导出
+  var ro = isReadonlyRole(ME.role);
+  var ni = document.getElementById('navImport'), nc = document.getElementById('navConfig');
+  if (ni) ni.style.display = ro ? 'none' : '';
+  if (nc) nc.style.display = ro ? 'none' : '';
+  var v = document.getElementById('view');
+  if (!RECORDS.length) { v.innerHTML = renderEmpty(); return; }
+  if (state.tab === 'nodes') { v.innerHTML = renderNodes(); return; }
+  if (state.tab === 'people') { v.innerHTML = renderPeople(); return; }
+  v.innerHTML = renderReport();
+}
+
+function renderEmpty() {
+  return '<div class="page-header"><div><div class="page-title">服务站报表中心</div>' +
+    '<div class="page-subtitle">日报 / 周报 / 月报 · 15 项核心运营指标</div></div>' +
+    '<div style="display:flex;gap:8px"><button class="btn btn-outline" onclick="guardWrite(openConfig)">⚙️ 口径设置</button>' +
+    '<button class="btn btn-primary" onclick="guardWrite(function(){document.getElementById(\'excelInput\').click();})">📥 导入工单台账</button></div></div>' +
+    '<div class="card"><div class="empty">' +
+    '<b>尚无工单数据</b><br>报表中心与「服务站工单管理系统」共用同一份台账。<br>' +
+    '可点击 <b>导入工单台账</b> 上传保内/保外 Excel，或在工单系统里录入后回到本页。<br><br>' +
+    '<button class="btn btn-primary" onclick="guardWrite(loadRemote)">📡 从站点拉取默认台账</button>' +
+    '<button class="btn btn-outline" onclick="guardWrite(function(){document.getElementById(\'excelInput\').click();})" style="margin-left:8px">📥 导入 Excel</button>' +
+    '</div></div>';
+}
+
+// ===== 主报表（日/周/月）=====
+function renderReport() {
+  var p = periodOfState();
+  var prev = RPT.prevPeriod(p, 1);
+  var cfg = configFor();
+  var cur = RPT.aggregate(RECORDS, p, cfg);
+  var pre = RPT.aggregate(RECORDS, prev, cfg);
+  var rows = RPT.kpiTable(cur, pre);
+  var kindName = { day: '日报', week: '周报', month: '月报' }[p.kind];
+  var stepName = { day: '日', week: '周', month: '月' }[p.kind];
+
+  var html = '<div class="page-header">' +
+    '<div><div class="page-title">' + kindName + '</div>' +
+    '<div class="page-subtitle">' + esc(CFG.siteName) + ' · ' + esc(CFG.star) + ' · 口径：' +
+    (p.kind === 'week' ? '周日至周六' : (p.kind === 'month' ? '自然月' : '自然日')) + '</div></div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+    '<button class="btn btn-outline" onclick="guardWrite(openConfig)">⚙️ 口径设置</button>' +
+    '<button class="btn btn-outline" onclick="exportWeekly()">📄 导出周报</button>' +
+    '<button class="btn btn-primary" onclick="window.print()">🖨️ 打印</button>' +
+    '</div></div>';
+
+  html += '<div class="tabs">' +
+    ['daily', 'weekly', 'monthly'].map(function (t) {
+      var n = { daily: '日报', weekly: '周报', monthly: '月报' }[t];
+      return '<button class="tab' + (state.tab === t ? ' active' : '') + '" onclick="switchTab(\'' + t + '\')">' + n + '</button>';
+    }).join('') + '</div>';
+
+  html += '<div class="period-bar">' +
+    '<button class="nav-btn" onclick="shiftPeriod(-1)">← 上' + stepName + '</button>' +
+    '<span class="period-label">' + esc(p.label) + '</span>' +
+    '<button class="nav-btn" onclick="shiftPeriod(1)">下' + stepName + ' →</button>' +
+    '<button class="nav-btn" onclick="shiftPeriod(0)">回到本' + stepName + '</button>' +
+    '<span class="period-meta">对比期：' + esc(prev.label) + ' · 台账 ' + int(RECORDS.length) + ' 单</span>' +
+    '</div>';
+
+  // 头部 KPI 卡
+  html += '<div class="stats-grid">' + [
+    { l: '总接单数', v: int(cur.orders), d: RPT.pct(cur.orders, pre.orders), f: '保内 ' + cur.ordersWn + ' · 保外 ' + cur.ordersNw },
+    { l: '完成工单数', v: int(cur.completed), d: RPT.pct(cur.completed, pre.completed), f: '保内 ' + cur.completedWn + ' · 保外 ' + cur.completedNw },
+    { l: '工单完成率', v: ratio(cur.completionRate), d: RPT.pct(cur.completionRate, pre.completionRate), f: '完成 ÷ 接单' },
+    { l: '竣工已结算产值', v: moneyShort(cur.revenue), d: RPT.pct(cur.revenue, pre.revenue), f: '保内 ' + moneyShort(cur.revenueWn) + ' · 保外 ' + moneyShort(cur.revenueNw) },
+    { l: '人均产值', v: moneyShort(cur.perCapitaOutput), d: RPT.pct(cur.perCapitaOutput, pre.perCapitaOutput), f: '按总人数 ' + CFG.headcount + ' 人' },
+    { l: '当前在修单', v: int(cur.activeNow), d: null, f: '台账当前态' }
+  ].map(function (c) {
+    return '<div class="stat-card"><div class="stat-label">' + c.l + '</div>' +
+      '<div class="stat-value">' + c.v + '</div>' +
+      '<div class="stat-foot">' + (c.d === null ? '<span class="flat">—</span>' : delta(c.d)) +
+      '<span style="color:var(--text-secondary)">' + c.f + '</span></div></div>';
+  }).join('') + '</div>';
+
+  // 15 项核心指标表
+  html += '<div class="card"><div class="card-title">📋 核心运营数据（15 项）' +
+    '<span class="hint">对齐《服务站运营周报》指标口径 · 环比对比 ' + esc(prev.label) + '</span></div>' +
+    '<div class="table-wrap"><table><thead><tr>' +
+    '<th style="width:44px">序号</th><th>指标名称</th><th style="width:64px">单位</th>' +
+    '<th class="num" style="width:120px">本期</th><th class="num" style="width:120px">上期</th>' +
+    '<th class="num" style="width:100px">环比</th><th>备注</th>' +
+    '</tr></thead><tbody>' +
+    rows.map(function (r, i) {
+      var cv = r.current === null ? '—' : (r.ratio ? ratio(r.current) : (r.unit.indexOf('元') >= 0 ? money(r.current) : int(r.current)));
+      var pv = r.previous === null ? '—' : (r.ratio ? ratio(r.previous) : (r.unit.indexOf('元') >= 0 ? money(r.previous) : int(r.previous)));
+      return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.label) + '</td><td>' + esc(r.unit) + '</td>' +
+        '<td class="num"><b>' + cv + '</b></td><td class="num">' + pv + '</td>' +
+        '<td class="num">' + delta(r.change) + '</td>' +
+        '<td style="color:var(--text-secondary);font-size:12px">' + esc(r.note) + '</td></tr>';
+    }).join('') +
+    '</tbody></table></div>' +
+    '<div class="note" style="margin-top:14px">口径说明：' +
+    '「竣工已结算产值」= 本期达成竣工状态工单的全口径收入（保内=工时+里程+外出作业补贴；保外=工时+配件）；' +
+    '「人均产值」=（竣工产值 + 增值产值）÷ 站内总人数；' +
+    '「当月累计回款」按周期结束日所属自然月累加，下月清零；' +
+    '「当前在修单」为台账快照，不随周期变化。</div>' +
+    '</div>';
+
+  // 趋势 + 结构
+  var trend = RPT.trend(RECORDS, p.kind, p.kind === 'day' ? 14 : (p.kind === 'week' ? 8 : 6), p.end, cfg);
+  html += '<div class="grid-2">';
+  html += '<div class="card"><div class="card-title">📈 工单量趋势' +
+    '<span class="hint">近 ' + trend.length + ' 个' + stepName + '</span></div>' +
+    '<div class="table-wrap"><table><thead><tr><th>周期</th><th class="num">接单</th><th class="num">完成</th><th class="num">完成率</th><th class="num">产值</th></tr></thead><tbody>' +
+    trend.map(function (t) {
+      var isCur = t.key === p.key;
+      return '<tr' + (isCur ? ' style="background:#eff6ff"' : '') + '><td>' + esc(t.label) + (isCur ? ' <span class="badge badge-blue">本期</span>' : '') + '</td>' +
+        '<td class="num">' + int(t.orders) + '</td><td class="num">' + int(t.completed) + '</td>' +
+        '<td class="num">' + ratio(t.completionRate) + '</td><td class="num">' + moneyShort(t.revenue) + '</td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+
+  html += '<div class="card"><div class="card-title">🔧 工单结构分布' +
+    '<span class="hint">按本期建单口径</span></div>' +
+    barBlock('工单状态', cur.byStatus, '#3b82f6', 8) +
+    '<div style="height:14px"></div>' +
+    barBlock('项目类型', cur.byProject, '#7c3aed', 6) +
+    '</div>';
+  html += '</div>';
+
+  // 数据完备度提示
+  var comp = RPT.completeness(RECORDS);
+  var weak = comp.filter(function (c) { return c.rate < 0.8; });
+  if (weak.length) {
+    html += '<div class="card"><div class="card-title">⚠️ 数据完备度提示' +
+      '<span class="hint">影响指标可算性，建议在台账中补齐</span></div>' +
+      '<div class="table-wrap"><table><thead><tr><th>字段</th><th class="num">已填</th><th class="num">总数</th><th class="num">完备率</th></tr></thead><tbody>' +
+      comp.map(function (c) {
+        var cls = c.rate >= 0.8 ? 'badge-green' : (c.rate >= 0.5 ? 'badge-yellow' : 'badge-red');
+        return '<tr><td>' + esc(c.label) + '</td><td class="num">' + c.filled + '</td><td class="num">' + c.total + '</td>' +
+          '<td class="num"><span class="badge ' + cls + '">' + ratio(c.rate) + '</span></td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+
+  return html;
+}
+
+function barBlock(title, list, color, limit) {
+  if (!list.length) return '<div class="note">暂无数据</div>';
+  var max = Math.max.apply(null, list.map(function (x) { return x.value; })) || 1;
+  var rows = list.slice(0, limit || 8);
+  return '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">' + esc(title) + '</div>' +
+    rows.map(function (x) {
+      return '<div class="bar-row"><span class="bar-name" title="' + esc(x.name) + '">' + esc(x.name) + '</span>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + (x.value / max * 100) + '%;background:' + color + '"></div></div>' +
+        '<span class="bar-val">' + x.value + '</span></div>';
+    }).join('');
+}
+
+// ===== 流程时效 =====
+function renderNodes() {
+  var p = periodOfState();
+  var nodes = RPT.nodeTimeliness(RECORDS, p, { all: state.nodeScopeAll, threshold: CFG.overdueDays });
+  var html = '<div class="page-header"><div><div class="page-title">流程节点时效</div>' +
+    '<div class="page-subtitle">节点链取自《接单派单流程》《保内/保外维修流程》 · 超期阈值 ' + CFG.overdueDays + ' 天</div></div>' +
+    '<button class="btn btn-outline" onclick="toggleNodeScope()">' +
+    (state.nodeScopeAll ? '🔎 仅看本期建单' : '🌐 查看全量台账') + '</button></div>';
+
+  html += '<div class="card"><div class="card-title">⏱️ 节点耗时' +
+    '<span class="hint">' + (state.nodeScopeAll ? '全量台账' : '本期（' + esc(p.label) + '）建单') + '</span></div>' +
+    '<div class="table-wrap"><table><thead><tr><th>节点</th><th class="num">样本</th><th class="num">平均</th>' +
+    '<th class="num">中位</th><th class="num">最长</th><th class="num">超期</th><th>来源</th></tr></thead><tbody>' +
+    nodes.map(function (n) {
+      var over = n.overdue > 0 ? '<span class="badge badge-red">' + n.overdue + '</span>' : '<span class="badge badge-green">0</span>';
+      return '<tr><td><b>' + esc(n.label) + '</b>' + (n.type !== 'both' ? ' <span class="badge badge-gray">' + esc(RPT.FIELDS[n.type].label) + '专属</span>' : '') + '</td>' +
+        '<td class="num">' + n.samples + '</td>' +
+        '<td class="num"><b>' + n.avg.toFixed(1) + ' 天</b></td>' +
+        '<td class="num">' + n.median.toFixed(1) + ' 天</td>' +
+        '<td class="num">' + n.max + ' 天</td>' +
+        '<td class="num">' + over + '</td>' +
+        '<td style="color:var(--text-secondary);font-size:12px">' + esc(n.hint) + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+
+  var miss = nodes.filter(function (n) { return n.missing > 0; });
+  if (miss.length) {
+    html += '<div class="note warn-note" style="margin-top:14px">样本缺失提示：' +
+      miss.map(function (n) { return esc(n.label) + ' 缺 ' + n.missing + ' 单'; }).join('；') +
+      '。缺失主因是台账未填「开工日期」或「完工/成交日期」，补齐后时效统计才完整。</div>';
+  }
+  html += '</div>';
+
+  // 节点条形对比
+  html += '<div class="card"><div class="card-title">📊 节点平均耗时对比</div>' +
+    nodes.map(function (n) {
+      var max = Math.max.apply(null, nodes.map(function (x) { return x.avg; })) || 1;
+      var color = n.avg > CFG.overdueDays ? '#dc2626' : '#16a34a';
+      return '<div class="bar-row"><span class="bar-name" title="' + esc(n.label) + '">' + esc(n.label.split('（')[0]) + '</span>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + (n.avg / max * 100) + '%;background:' + color + '"></div></div>' +
+        '<span class="bar-val">' + n.avg.toFixed(1) + ' 天</span></div>';
+    }).join('') + '</div>';
+
+  return html;
+}
+
+// ===== 人效排名 =====
+function renderPeople() {
+  var p = periodOfState();
+  var list = RPT.engineerRanking(RECORDS, p, configFor());
+  var html = '<div class="page-header"><div><div class="page-title">人效排名</div>' +
+    '<div class="page-subtitle">' + esc(p.label) + ' · 按产值排序 · 含完成率与平均维修时长</div></div></div>';
+
+  if (!list.length) return html + '<div class="card"><div class="empty">本期无工单</div></div>';
+
+  var totalRev = list.reduce(function (s, e) { return s + e.revenue; }, 0);
+  var totalDone = list.reduce(function (s, e) { return s + e.completed; }, 0);
+  html += '<div class="stats-grid">' +
+    '<div class="stat-card"><div class="stat-label">在册工程师</div><div class="stat-value">' + list.length + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">本期产值合计</div><div class="stat-value">' + moneyShort(totalRev) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">本期完成合计</div><div class="stat-value">' + int(totalDone) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">人均产值</div><div class="stat-value">' + moneyShort(list.length ? totalRev / list.length : 0) + '</div></div>' +
+    '</div>';
+
+  html += '<div class="card"><div class="card-title">🏆 工程师排行' +
+    '<span class="hint">产值 / 完成数 / 完成率 / 平均维修时长</span></div>' +
+    '<div class="table-wrap"><table><thead><tr><th style="width:56px">排名</th><th>工程师</th>' +
+    '<th class="num">接单</th><th class="num">完成</th><th class="num">完成率</th>' +
+    '<th class="num">产值</th><th class="num">平均维修</th></tr></thead><tbody>' +
+    list.map(function (e, i) {
+      var medal = i === 0 ? '<span class="badge badge-yellow">1</span>' :
+        i === 1 ? '<span class="badge badge-gray">2</span>' :
+        i === 2 ? '<span class="badge badge-yellow">3</span>' : (i + 1);
+      var rateCls = e.completionRate >= 0.8 ? 'badge-green' : (e.completionRate >= 0.5 ? 'badge-yellow' : 'badge-red');
+      return '<tr><td>' + medal + '</td><td><b>' + esc(e.name) + '</b></td>' +
+        '<td class="num">' + e.orders + '</td><td class="num">' + e.completed + '</td>' +
+        '<td class="num"><span class="badge ' + rateCls + '">' + ratio(e.completionRate) + '</span></td>' +
+        '<td class="num">' + money(e.revenue) + '</td>' +
+        '<td class="num">' + e.avgRepair.toFixed(1) + ' 天</td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+
+  return html;
+}
+
+// ===== 交互 =====
+function switchTab(t) { state.tab = t; render(); window.scrollTo(0, 0); }
+function shiftPeriod(n) {
+  var p = periodOfState();
+  state.anchor = n === 0 ? new Date() : (n > 0 ? RPT.nextPeriod(p, n) : RPT.prevPeriod(p, -n)).endDate;
+  render();
+}
+function toggleNodeScope() { state.nodeScopeAll = !state.nodeScopeAll; render(); }
+
+// ===== 导入 =====
+var WN_COLUMN_MAP = {
+  '编号': 'id', '登记日期': 'registerDate', '客户名称': 'customerName', '联系人': 'contact',
+  '车辆信息': 'vehicleInfo', '故障描述': 'faultDesc', '维修类型': 'repairType',
+  '工单类型': 'orderType', '完成状态': 'status', '责任工程师': 'engineer',
+  '责任外服': 'externalService', 'PM/PQM': 'pm', '中台备注': 'platformNote',
+  'GSS工单号': 'gssOrderNo', '开工时间': 'startDate', '是否申领物料': 'needMaterial',
+  '申领日期': 'materialApplyDate', '是否加急': 'urgent', '领用物料日期': 'materialReceiveDate',
+  '完工日期': 'completeDate', '工程师备注': 'engineerNote', '工程师产值': 'engineerOutput',
+  '工程师产值分解': 'engineerOutputDetail', '报单员': 'reporter', '报单绩效': 'reporterBonus',
+  '建单日期': 'submitDate', '工单提交时间': 'orderSubmitDate', 'GSS总费用': 'gssFee',
+  '保外成交金额': 'outWarrantyAmount', '总费用': 'totalFee', '订货日期': 'orderDate',
+  '订货成本': 'orderCost', '齐套日期': 'readyDate', '工程师领料时间': 'engineerPickDate',
+  '旧件接收日期': 'oldPartReceiveDate', '旧件返厂日期': 'oldPartReturnDate',
+  '旧件备注': 'oldPartNote', '库房备注': 'warehouseNote'
+};
+var NW_COLUMN_MAP = {
+  '序号': 'seq', '城市': 'city', '工单号': 'orderNo', '车牌号': 'plateNumber',
+  'Barcode号': 'barcode', '车架号': 'vin', '产品PN': 'productPN',
+  '签约客户名称': 'signedCustomer', '产品类型': 'productType', '项目类型': 'projectType',
+  '业务对接人': 'bizContact', '客户姓名': 'customerName', '客户电话': 'customerPhone',
+  '业务需求提出时间': 'requestDate', '维修状态': 'status', '业务需求描述': 'faultDesc',
+  '维修工程师': 'repairEngineer', '报价单总金额': 'quoteTotal', '报价单应回款': 'quoteReceivable',
+  '配件销售金额': 'partsSale', '工时费金额': 'laborFee', '配件进购价格': 'partsCost',
+  '物流往返费用': 'logisticsFee', '物流打款': 'logisticsPayment', '物流发票': 'logisticsInvoice',
+  '分润': 'profitShare', '维修成交时间': 'dealDate', '维修区域': 'repairArea',
+  '报价总额回款时间': 'paymentDate', '付款方式': 'paymentMethod', '付款状态': 'paymentStatus',
+  '已回款金额': 'receivedAmount', '未回款金额': 'unreceivedAmount', '开票金额': 'invoiceAmount',
+  '开票日期': 'invoiceDate', '实际业务毛利润': 'grossProfit', '实际业务毛利率': 'grossMargin',
+  '是否给宁德打款': 'payCatl', '宁德是否开具发票': 'catlInvoice', '业务复盘记录': 'reviewNote', '备注': 'remark'
+};
+
+function normHeader(h) { return String(h == null ? '' : h).trim().replace(/\s+/g, '').toLowerCase(); }
+var WN_SIG = ['编号', '登记日期', '维修类型', '完成状态', '责任工程师', 'gss工单号', '工程师产值', '中台备注', '旧件返厂', '申领物料', '工单提交时间', '建单日期', 'gss总费用', '派工'];
+var NW_SIG = ['签约客户名称', '报价单', '分润', '车牌号', '车架号', '维修状态', '业务对接人', '物流往返', '宁德', '实际业务毛利润', 'barcode号', '产品pn', '工单号', '序号', '城市'];
+var WN_STATUS = ['未派工', '未开工', '在修', '已竣工', '已结算', '已结清', '已终止'];
+var NW_STATUS = ['待客户确认', '维修完成', '关闭工单'];
+
+function detectSheetType(headers) {
+  var wn = 0, nw = 0;
+  headers.map(normHeader).forEach(function (h) {
+    if (WN_SIG.some(function (k) { return h.indexOf(normHeader(k)) >= 0; })) wn++;
+    if (NW_SIG.some(function (k) { return h.indexOf(normHeader(k)) >= 0; })) nw++;
+  });
+  if (wn >= 2 && wn >= nw) return 'warranty';
+  if (nw >= 2 && nw > wn) return 'nonwarranty';
+  if (wn > 0 && nw === 0) return 'warranty';
+  if (nw > 0 && wn === 0) return 'nonwarranty';
+  return null;
+}
+function findTypeCol(headers) {
+  for (var i = 0; i < headers.length; i++) {
+    var n = normHeader(headers[i]);
+    if (n.indexOf('类型') >= 0 || n.indexOf('保修') >= 0 || n.indexOf('保单') >= 0 || n === '内外' || n.indexOf('保内保外') >= 0) return headers[i];
+  }
+  return null;
+}
+function statusValue(row, headers) {
+  for (var i = 0; i < headers.length; i++) {
+    if (normHeader(headers[i]).indexOf('状态') >= 0) {
+      var v = String(row[headers[i]] == null ? '' : row[headers[i]]).trim();
+      if (v) return v;
+    }
+  }
+  return '';
+}
+function mapRow(row, cmap, defs) {
+  var obj = Object.assign({}, defs);
+  for (var h in cmap) {
+    if (row[h] === undefined || row[h] === null) continue;
+    var val = row[h];
+    if (val instanceof Date) {
+      val = val.getFullYear() + '-' + String(val.getMonth() + 1).padStart(2, '0') + '-' + String(val.getDate()).padStart(2, '0');
+    } else {
+      val = String(val).trim();
+      if (val === '') continue;
+    }
+    obj[cmap[h]] = val;
+  }
+  return obj;
+}
+function fillCount(mapped, defs) {
+  var c = 0;
+  for (var k in defs) if (mapped[k] !== undefined && mapped[k] !== '' && mapped[k] !== defs[k]) c++;
+  return c;
+}
+function classifyRow(row, typeCol, headers, wnDefs, nwDefs) {
+  if (typeCol) {
+    var v = String(row[typeCol] == null ? '' : row[typeCol]).replace(/\s+/g, '');
+    if (/保内/.test(v) && !/保外/.test(v)) return 'warranty';
+    if (/保外/.test(v) && !/保内/.test(v)) return 'nonwarranty';
+  }
+  var sv = statusValue(row, headers);
+  if (WN_STATUS.indexOf(sv) >= 0) return 'warranty';
+  if (NW_STATUS.indexOf(sv) >= 0) return 'nonwarranty';
+  var wn = fillCount(mapRow(row, WN_COLUMN_MAP, wnDefs), wnDefs);
+  var nw = fillCount(mapRow(row, NW_COLUMN_MAP, nwDefs), nwDefs);
+  if (wn === 0 && nw === 0) return null;
+  return wn >= nw ? 'warranty' : 'nonwarranty';
+}
+
+function handleImport(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (typeof XLSX === 'undefined') { setBar('❌ 解析组件（SheetJS）未加载，请检查网络后刷新重试。', 'error'); input.value = ''; return; }
+  setBar('⏳ 正在读取 <b>' + esc(file.name) + '</b> 并自动识别保内 / 保外 ...', 'info');
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      var wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+      var wnDefs = {}, nwDefs = {};
+      Object.keys(WN_COLUMN_MAP).forEach(function (k) { wnDefs[WN_COLUMN_MAP[k]] = ''; });
+      Object.keys(NW_COLUMN_MAP).forEach(function (k) { nwDefs[NW_COLUMN_MAP[k]] = ''; });
+      wnDefs.status = '未派工'; nwDefs.status = '待客户确认';
+
+      var newWn = [], newNw = [], skipped = 0;
+      wb.SheetNames.forEach(function (sn) {
+        var rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], { defval: '' });
+        if (!rows.length) return;
+        var headers = Object.keys(rows[0]);
+        var sheetType = detectSheetType(headers);
+        var typeCol = findTypeCol(headers);
+        rows.forEach(function (r) {
+          var t = typeCol ? classifyRow(r, typeCol, headers, wnDefs, nwDefs) : (sheetType || classifyRow(r, null, headers, wnDefs, nwDefs));
+          if (t === 'warranty') {
+            var m = mapRow(r, WN_COLUMN_MAP, wnDefs);
+            if (!m.id) m.id = 'WN-' + (newWn.length + 1);
+            newWn.push(m);
+          } else if (t === 'nonwarranty') {
+            var m2 = mapRow(r, NW_COLUMN_MAP, nwDefs);
+            if (!m2.seq) m2.seq = String(newNw.length + 1);
+            newNw.push(m2);
+          } else skipped++;
+        });
+      });
+
+      if (!newWn.length && !newNw.length) {
+        setBar('⚠️ 未能识别数据类型：请确保表内含保内/保外特征列（如 编号/责任工程师、签约客户/报价单），或用工单系统的「下载模板」对照列头。', 'error');
+        input.value = '';
+        return;
+      }
+
+      // 与工单系统一致：按匹配键去重合并，空值不覆盖
+      var AFGref = (typeof AFG !== 'undefined') ? AFG : null;
+      var wnRes = newWn.length ? (AFGref ? AFGref.mergeImport(RAW.wn, newWn, AFGref.wnMatchKey) : { merged: RAW.wn, added: newWn, updated: [], summary: '新增 ' + newWn.length + ' 条' }) : null;
+      if (wnRes) RAW.wn = wnRes.merged.concat(wnRes.added);
+      var nwRes = newNw.length ? (AFGref ? AFGref.mergeImport(RAW.nw, newNw, AFGref.nwMatchKey) : { merged: RAW.nw, added: newNw, updated: [], summary: '新增 ' + newNw.length + ' 条' }) : null;
+      if (nwRes) RAW.nw = nwRes.merged.concat(nwRes.added);
+
+      persist();
+      recompute();
+      render();
+      var parts = [];
+      if (wnRes) parts.push('保内 ' + wnRes.summary);
+      if (nwRes) parts.push('保外 ' + nwRes.summary);
+      setBar('✅ 导入完成：' + parts.join(' · ') + (skipped > 0 ? ' <span style="opacity:.8">（' + skipped + ' 行无法识别已跳过）</span>' : ''), 'success');
+    } catch (err) {
+      console.error(err);
+      setBar('❌ 解析失败：' + esc(err.message), 'error');
+    }
+  };
+  reader.onerror = function () { setBar('❌ 文件读取失败', 'error'); };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+function persist() {
+  var d = null;
+  try { d = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) {}
+  d = d || {};
+  d.warrantyOrders = RAW.wn;
+  d.nonWarrantyOrders = RAW.nw;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch (e) { console.warn(e); }
+}
+
+function loadRemote() {
+  setBar('📡 正在从站点拉取默认台账 ...', 'info');
+  var bases = [
+    'https://herman-yan.github.io/doc-vault/work-order/',
+    'https://herman-yan.github.io/ningservice-management-system/work-order/'
+  ];
+  var done = false;
+  function tryNext(i) {
+    if (i >= bases.length) {
+      if (!done) setBar('❌ 拉取失败：请检查网络，或直接导入 Excel。', 'error');
+      return;
+    }
+    Promise.all([
+      fetch(bases[i] + 'data_wn.json').then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); }),
+      fetch(bases[i] + 'data_nw.json').then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+    ]).then(function (res) {
+      done = true;
+      RAW.wn = res[0]; RAW.nw = res[1];
+      persist(); recompute(); render();
+      setBar('✅ 已拉取默认台账：保内 ' + res[0].length + ' 单、保外 ' + res[1].length + ' 单。', 'success');
+    }).catch(function () { tryNext(i + 1); });
+  }
+  tryNext(0);
+}
+
+// ===== 周报 Excel 导出（对齐 0706 新版 6 段式）=====
+function exportWeekly() {
+  if (typeof XLSX === 'undefined') { alert('导出组件未加载，请检查网络后重试。'); return; }
+  if (!RECORDS.length) { alert('暂无数据可导出。'); return; }
+
+  var p = RPT.periodOf(state.anchor, 'week');
+  var prev = RPT.prevPeriod(p, 1);
+  var cfg = configFor();
+  var cur = RPT.aggregate(RECORDS, p, cfg);
+  var pre = RPT.aggregate(RECORDS, prev, cfg);
+  var rows = RPT.kpiTable(cur, pre);
+  var nodes = RPT.nodeTimeliness(RECORDS, p, { threshold: CFG.overdueDays });
+
+  var aoa = [];
+  aoa.push(['服务站运营周报']);
+  aoa.push(['一、基础填报信息']);
+  aoa.push(['站点名称：', CFG.siteName, '', '填报周期：', p.label]);
+  aoa.push(['填报人：', CFG.reporter || '', '', '站点星级：', CFG.star]);
+  aoa.push(['二、本周核心运营数据']);
+  aoa.push(['序号', '指标名称', '单位', '本周数值', '上周数值', '环比变化', '备注']);
+  rows.forEach(function (r, i) {
+    var cv = r.current === null ? '' : (r.ratio ? Number((r.current * 100).toFixed(2)) / 100 : r.current);
+    var pv = r.previous === null ? '' : (r.ratio ? Number((r.previous * 100).toFixed(2)) / 100 : r.previous);
+    var ch = r.change === null ? '' : Number((r.change * 100).toFixed(2)) / 100;
+    aoa.push([i + 1, r.label, r.unit, cv, pv, ch, r.note]);
+  });
+  // 保内 / 保外营收拆行（对齐模板 R14/R15 层级）
+  aoa.push(['', '其中：保内营收', '元', cur.revenueWn, pre.revenueWn,
+    pre.revenueWn ? Number(((cur.revenueWn - pre.revenueWn) / pre.revenueWn * 100).toFixed(2)) / 100 : '', '营收=工时+里程+外出作业补贴']);
+  aoa.push(['', '其中：保外营收', '元', cur.revenueNw, pre.revenueNw,
+    pre.revenueNw ? Number(((cur.revenueNw - pre.revenueNw) / pre.revenueNw * 100).toFixed(2)) / 100 : '', '营收=工时+配件']);
+  aoa.push([]);
+  aoa.push(['三、本周工作遇到的问题及改进建议']);
+  aoa.push(['']);
+  aoa.push(['']);
+  aoa.push(['四、需要集团/总部支持的事项']);
+  aoa.push(['序号', '事项描述', '需求优先级', '期望解决时间', '对接人', '备注']);
+  aoa.push([1, '', '', '', '', '']);
+  aoa.push([2, '', '', '', '', '']);
+  aoa.push([3, '', '', '', '', '']);
+  aoa.push(['五、下周核心工作计划']);
+  aoa.push(['序号', '工作内容', '责任人', '计划完成时间', '完成标准', '备注']);
+  aoa.push([1, '', '', '', '', '']);
+  aoa.push([]);
+  aoa.push(['六、其他备注说明（安全/合规/运营特殊事项）']);
+  aoa.push(['']);
+  aoa.push(['—— 附：流程节点时效（' + p.label + '）——']);
+  aoa.push(['节点', '样本数', '平均(天)', '中位(天)', '最长(天)', '超期(>' + CFG.overdueDays + '天)']);
+  nodes.forEach(function (n) {
+    aoa.push([n.label, n.samples, Number(n.avg.toFixed(2)), Number(n.median.toFixed(2)), n.max, n.overdue]);
+  });
+
+  var ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{ wch: 6 }, { wch: 30 }, { wch: 8 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 40 }];
+  // 百分比列格式
+  ['F7:F' + (6 + rows.length)].forEach(function (ref) {
+    var rng = XLSX.utils.decode_range(ref.replace(/([A-Z]+)/, '$1'));
+    for (var R = rng.s.r; R <= rng.e.r; R++) {
+      var addr = XLSX.utils.encode_cell({ r: R, c: 5 });
+      if (ws[addr] && typeof ws[addr].v === 'number') ws[addr].z = '0.00%';
+    }
+  });
+  // 合并标题
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+    { s: { r: 4, c: 0 }, e: { r: 4, c: 6 } }
+  ];
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '服务站运营周报');
+  XLSX.writeFile(wb, '服务站运营周报_' + p.key + '.xlsx');
+  setBar('📄 周报已导出：<b>服务站运营周报_' + p.key + '.xlsx</b>（周期 ' + esc(p.label) + '）', 'success');
+}
+
+// ===== 口径设置 =====
+function openConfig() {
+  var html = '<div class="modal-header"><div class="modal-title">⚙️ 报表口径设置</div>' +
+    '<button class="modal-close" onclick="closeModal()">×</button></div>' +
+    '<div class="modal-body">' +
+    '<div class="note" style="margin-bottom:16px">人力与投诉等口径无法从工单台账推算，需人工维护；保存后立即生效于所有报表。</div>' +
+    '<div class="form-grid">' +
+    '<div class="form-group"><label class="form-label">站点名称</label><input class="form-input" id="cfg_site" value="' + esc(CFG.siteName) + '"></div>' +
+    '<div class="form-group"><label class="form-label">站点星级</label><input class="form-input" id="cfg_star" value="' + esc(CFG.star) + '"></div>' +
+    '<div class="form-group"><label class="form-label">填报人</label><input class="form-input" id="cfg_reporter" value="' + esc(CFG.reporter) + '"></div>' +
+    '<div class="form-group"><label class="form-label">站内总人数（人）</label><input class="form-input" type="number" id="cfg_head" value="' + CFG.headcount + '"></div>' +
+    '<div class="form-group"><label class="form-label">工程师人数（人）</label><input class="form-input" type="number" id="cfg_eng" value="' + CFG.engineers + '"></div>' +
+    '<div class="form-group"><label class="form-label">GSS 绩效评分（分）</label><input class="form-input" type="number" step="0.01" id="cfg_gss" value="' + (CFG.gssScore === null ? '' : CFG.gssScore) + '"></div>' +
+    '<div class="form-group"><label class="form-label">节点超期阈值（天）</label><input class="form-input" type="number" id="cfg_over" value="' + CFG.overdueDays + '"></div>' +
+    '<div class="form-group"><label class="form-label">本期投诉数量（起）</label><input class="form-input" type="number" id="cfg_complaint" value="' + (CFG.complaints[periodOfState().key] || 0) + '"></div>' +
+    '<div class="form-group"><label class="form-label">本期增值产值（元）</label><input class="form-input" type="number" step="0.01" id="cfg_va" value="' + (CFG.valueAdded[periodOfState().key] || 0) + '"></div>' +
+    '</div></div>' +
+    '<div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border)">' +
+    '<button class="btn btn-outline" onclick="closeModal()">取消</button>' +
+    '<button class="btn btn-primary" onclick="saveCfg()">保存</button></div>';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function saveCfg() {
+  var key = periodOfState().key;
+  CFG.siteName = document.getElementById('cfg_site').value.trim();
+  CFG.star = document.getElementById('cfg_star').value.trim();
+  CFG.reporter = document.getElementById('cfg_reporter').value.trim();
+  CFG.headcount = RPT.num(document.getElementById('cfg_head').value);
+  CFG.engineers = RPT.num(document.getElementById('cfg_eng').value);
+  var gss = document.getElementById('cfg_gss').value.trim();
+  CFG.gssScore = gss === '' ? null : RPT.num(gss);
+  CFG.overdueDays = RPT.num(document.getElementById('cfg_over').value) || 7;
+  CFG.complaints = CFG.complaints || {};
+  CFG.complaints[key] = RPT.num(document.getElementById('cfg_complaint').value);
+  CFG.valueAdded = CFG.valueAdded || {};
+  CFG.valueAdded[key] = RPT.num(document.getElementById('cfg_va').value);
+  saveConfig(CFG);
+  closeModal();
+  render();
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+document.getElementById('modalOverlay').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+
+// ===== 初始化 =====
+function boot() {
+  renderIdentityBar();
+  if (!canEnterReport(ME.role)) { renderDenied(); return; }
+  RAW = loadRaw();
+  recompute();
+  render();
+  if (!RECORDS.length) setBar('ℹ️ 报表中心与工单系统共用台账。当前无数据，可导入 Excel 或点下方按钮从站点拉取默认台账。', 'info');
+}
+// ===== 岗位身份栏与访问门控 =====
+function renderIdentityBar() {
+  var bar = document.getElementById('identityBar');
+  if (!bar) return;
+  if (typeof AFG === 'undefined') { bar.innerHTML = ''; return; }
+  var names = [];
+  if (typeof APP !== 'undefined' && APP.engineers && APP.engineers.length) names = APP.engineers.slice();
+  else names = [ME.name || '未署名'];
+  if (names.indexOf(ME.name) < 0 && ME.name) names.unshift(ME.name);
+  bar.innerHTML =
+    '<div class="id-name">' + esc(ME.name || '未署名') + '</div>' +
+    '<div class="id-role">' + esc(roleLabel(ME.role)) + (isReadonlyRole(ME.role) ? ' · 只读' : '') + '</div>' +
+    '<select id="id_name" onchange="afSwitchIdentity(this.value,document.getElementById(\'id_role\').value)" aria-label="选择本人">' +
+    names.map(function (n) { return '<option value="' + esc(n) + '"' + (n === ME.name ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') +
+    '</select>' +
+    '<select id="id_role" onchange="afSwitchIdentity(document.getElementById(\'id_name\').value,this.value)" aria-label="选择岗位">' +
+    Object.keys(AFG.ROLES).map(function (r) { return '<option value="' + r + '"' + (r === ME.role ? ' selected' : '') + '>' + esc(AFG.ROLES[r].label) + '</option>'; }).join('') +
+    '</select>' +
+    '<div class="identity-note">本机岗位识别，用于视图分区与操作留痕，<b>不是安全边界</b>；正式权限需由统一后端校验。</div>';
+}
+function afSwitchIdentity(name, role) {
+  if (typeof AFG === 'undefined') return;
+  ME = AFG.setIdentity(name, role);
+  renderIdentityBar();
+  if (!canEnterReport(ME.role)) { renderDenied(); return; }
+  boot();
+}
+function renderDenied() {
+  var v = document.getElementById('view');
+  v.innerHTML = '<div class="page-header"><div><div class="page-title">服务站报表中心</div>' +
+    '<div class="page-subtitle">日报 / 周报 / 月报 · 15 项核心运营指标</div></div></div>' +
+    '<div class="card"><div class="deny"><h3>当前岗位无权查看报表中心</h3>' +
+    '<p>报表中心包含全站产值、回款、人效排名等经营数据，按岗位分区管理。<br>' +
+    '当前岗位：<b>' + esc(roleLabel(ME.role)) + '</b>（' + esc(ME.role) + '）<br>' +
+    '可查看岗位：调度、财务、监管员、专职质检员、管理员。<br><br>' +
+    '如需查看，请在左侧切换岗位；权限口径由统一后端最终校验。</p>' +
+    '<a class="btn btn-outline" href="./index.html" style="text-decoration:none">↩️ 返回工单系统</a>' +
+    '</div></div>';
+}
+window.afSwitchIdentity = afSwitchIdentity;
+
+window.switchTab = switchTab;
+window.shiftPeriod = shiftPeriod;
+window.toggleNodeScope = toggleNodeScope;
+window.handleImport = handleImport;
+window.loadRemote = loadRemote;
+window.exportWeekly = exportWeekly;
+window.openConfig = openConfig;
+window.saveCfg = saveCfg;
+window.closeModal = closeModal;
+window.boot = boot;
+// 只读探针：供离线单测直接校验导入分类逻辑，不参与任何业务路径
+window.__rptProbe = {
+  normHeader: normHeader,
+  WN_SIG: WN_SIG,
+  NW_SIG: NW_SIG,
+  WN_STATUS: WN_STATUS,
+  NW_STATUS: NW_STATUS,
+  detectSheetType: detectSheetType,
+  findTypeCol: findTypeCol,
+  classifyRow: classifyRow,
+  makeDefs: function () {
+    var wnDefs = {}, nwDefs = {};
+    Object.keys(WN_COLUMN_MAP).forEach(function (k) { wnDefs[WN_COLUMN_MAP[k]] = ''; });
+    Object.keys(NW_COLUMN_MAP).forEach(function (k) { nwDefs[NW_COLUMN_MAP[k]] = ''; });
+    wnDefs.status = '未派工'; nwDefs.status = '待客户确认';
+    return { wnDefs: wnDefs, nwDefs: nwDefs };
+  }
+};
+boot();
+})();
+</script>
+</body>
+</html>
