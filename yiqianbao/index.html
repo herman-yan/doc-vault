@@ -1379,8 +1379,24 @@ async function openDetail(id) {
         <div class="ext">${esc((a.fileType || '?').slice(0, 4))}</div>
         <div class="info"><div class="fn" title="${esc(a.fileName)}">${esc(a.fileName)}</div>
           <div class="fs">${fmtSize(a.fileSize)}</div></div>
-        ${STATIC ? (a.url ? `<a class="btn" href="${esc(a.url)}" download="${esc(a.fileName || ('file.' + (a.fileType || 'bin')))}">下载</a>` : `<button class="btn" disabled title="该附件未收录进静态快照，请连接本机后端下载">需后端</button>`) : `<button class="btn" data-att="${i}">下载</button>`}
+        ${STATIC ? (a.url ? `<a class="btn" href="${esc(a.url)}" download="${esc(a.fileName || ('file.' + (a.fileType || 'bin')))}">下载</a>` : `<button class="btn" disabled title="该文件在钉钉侧已不可下载（审批附件会随钉盘清理而失效），本地未留存副本">已失效</button>`) : `<button class="btn" data-att="${i}">下载</button>`}
       </div>`).join('') || '<div class="empty" style="padding:22px">该单据未上传用印文件附件</div>';
+
+    // 审批流转中上传的附件（审批人通过审批动作/评论补充的材料）
+    const flowAtts = (d.flowAttachments || []).map((a, i) => `
+      <div class="att">
+        <div class="ext">${esc((a.fileType || '?').slice(0, 4))}</div>
+        <div class="info"><div class="fn" title="${esc(a.fileName)}">${esc(a.fileName)}</div>
+          <div class="fs">${fmtSize(a.fileSize)}${a.by ? ' · 由 ' + esc(a.by) + ' 上传' : ''}${a.at ? ' · ' + fmtDate(a.at) : ''}${a.opName ? ' · ' + esc(a.opName) : ''}</div></div>
+        ${STATIC ? (a.url ? `<a class="btn" href="${esc(a.url)}" download="${esc(a.fileName || ('file.' + (a.fileType || 'bin')))}">下载</a>` : `<button class="btn" disabled title="该文件在钉钉侧已不可下载（审批附件会随钉盘清理而失效），本地未留存副本">已失效</button>`) : `<button class="btn" data-flowatt="${i}">下载</button>`}
+      </div>`).join('');
+
+    // 相对方（多个则全部列出，标注来源）
+    const partyBits = (d.parties || []).map((p) =>
+      `<span class="tag" title="来源：${esc(p.src || '')}">${esc(p.name)}</span>`).join(' ');
+    const partyRow = partyBits
+      ? `<dt>相对方</dt><dd>${partyBits}${(d.parties || []).length > 1 ? `<span style="color:var(--fg3);font-size:11.5px;margin-left:6px">共 ${d.parties.length} 个</span>` : ''}</dd>`
+      : (d.party ? '' : '');
 
     const tl = (d.timeline || []).map((o) => {
       const [cls, cn] = OP_CN[o.type] || ['', o.type];
@@ -1397,6 +1413,7 @@ async function openDetail(id) {
         ${kv('提交时间', fmtDate(d.create_time))}
         ${kv('用印日期', d.seal_date)}
         ${kv('合同类型', d.contract_type)}
+        ${partyRow}
         ${kv('用途说明', d.usage)}
       </dl></div>
 
@@ -1412,6 +1429,7 @@ async function openDetail(id) {
       </dl></div>
 
       <div class="sec"><h4>用印文件附件（${(d.attachments || []).length}）</h4>${atts}</div>
+      ${(d.flowAttachments && d.flowAttachments.length) ? `<div class="sec"><h4>审批流转附件（${d.flowAttachments.length}）</h4><div class="note" style="margin:-2px 0 10px">审批人在审批过程中补充上传的材料，与用印文件分开列出。</div>${flowAtts}</div>` : ''}
       <div class="sec"><h4>审批流转（${(d.timeline || []).length}）</h4><div class="tl">${tl}</div></div>
       ${d.approvers && d.approvers.length ? `<div class="sec"><h4>当前处理人</h4><div>${d.approvers.map((a) => `<span class="tag run">${esc(a)}</span>`).join(' ')}</div></div>` : ''}
       ${!d.detail_fetched ? '<div class="note">该单据的详情尚未从钉钉补全，字段可能不完整。可在总览页点击「同步最新数据」补齐。</div>' : ''}
@@ -1423,6 +1441,20 @@ async function openDetail(id) {
         b.disabled = true; b.textContent = '获取中…';
         try {
           const r = await api('/api/attachment-url?instanceId=' + encodeURIComponent(d.id) + '&fileId=' + encodeURIComponent(a.fileId));
+          window.open(r.url, '_blank');
+          b.textContent = '已打开';
+          setTimeout(() => { b.disabled = false; b.textContent = '下载'; }, 2200);
+        } catch (e) {
+          toast('下载失败：' + e.message); b.disabled = false; b.textContent = '重试';
+        }
+      };
+    });
+    $('#dBody').querySelectorAll('[data-flowatt]').forEach((b) => {
+      b.onclick = async () => {
+        const a = d.flowAttachments[+b.dataset.flowatt];
+        b.disabled = true; b.textContent = '获取中…';
+        try {
+          const r = await api('/api/attachment-url?instanceId=' + encodeURIComponent(d.id) + '&fileId=' + encodeURIComponent(a.fileId) + '&flow=1');
           window.open(r.url, '_blank');
           b.textContent = '已打开';
           setTimeout(() => { b.disabled = false; b.textContent = '下载'; }, 2200);
