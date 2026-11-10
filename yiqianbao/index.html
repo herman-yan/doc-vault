@@ -158,6 +158,8 @@ tbody tr:hover{background:var(--panel2)}
 .tag.no{background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.3);color:#f0b74d}
 .tag.biz{background:rgba(155,120,255,.13);border-color:rgba(155,120,255,.3);color:#b7a3ff;white-space:nowrap}
 .mono{font-variant-numeric:tabular-nums;color:var(--fg2);white-space:nowrap}
+/* 审批编号：等宽小字，过长时省略号，鼠标悬停看全（类名避开 .no，那是「无」标签） */
+.docno{font-variant-numeric:tabular-nums;color:var(--fg3);font-size:12px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
 .pager{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;border-top:1px solid var(--line);font-size:12.5px;color:var(--fg3);flex-wrap:wrap;gap:10px}
 .pager .pgs{display:flex;gap:5px}
 .pager button{padding:5px 11px;border:1px solid var(--line2);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12.5px}
@@ -354,6 +356,8 @@ td.nowrap .mini+.mini{margin-left:5px}
   .tblwrap td.party{max-width:none}
   /* 状态紧随主标题（用户最关心的字段提前） */
   .tblwrap td.c-status{order:-1;padding-bottom:7px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+  /* 审批编号紧随状态（手机上便于核对单据），与状态同处标题下、不重复分隔线 */
+  .tblwrap td.docno{order:-1;padding:0 0 7px;margin-bottom:4px;max-width:none;overflow:visible;text-overflow:clip;white-space:normal;word-break:break-all}
   /* 操作按钮行：铺满、按钮加大到可点尺寸 */
   .tblwrap td.nowrap{flex-wrap:wrap;gap:8px;padding-top:9px;margin-top:5px;border-top:1px solid var(--line)}
   .tblwrap td.nowrap::before{display:none}
@@ -413,7 +417,7 @@ body.locked .wrap{display:none}
     <input id="gateInput" type="password" placeholder="访问密码" autocomplete="current-password" aria-label="访问密码" />
     <button id="gateBtn">进入</button>
     <div class="err" id="gateErr"></div>
-    <div class="foot">宁家(北京)汽车服务有限公司</div>
+    <div class="foot">中能时代集团</div>
   </div>
 </div>
 <div class="wrap">
@@ -528,7 +532,7 @@ body.locked .wrap{display:none}
         <table>
           <thead><tr>
             <th>组织</th><th>用印文件名称</th><th>相对方</th><th>印章</th><th>合同类型</th><th>申请人</th>
-            <th>用印日期</th><th>份数</th><th>附件</th><th>状态</th>
+            <th>用印日期</th><th>份数</th><th>附件</th><th>状态</th><th>审批编号</th>
           </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -790,7 +794,7 @@ function staticSearch(q) {
   const rows = D.records.filter((r) => {
     if (kw) {
       // 多词空格分隔 → AND 语义；匹配范围含「用印主体」（劳动合同类单据标题只有人名，公司名只在用印主体里）
-      const hay = `${r.doc_name || ''} ${r.title || ''} ${r.applicant || ''} ${r.handler || ''} ${r.payee || ''} ${r.payer || ''} ${r.usage || ''} ${r.seal_owner || ''} ${r.counterparty_signer || ''}`.toLowerCase();
+      const hay = `${r.doc_name || ''} ${r.title || ''} ${r.applicant || ''} ${r.handler || ''} ${r.payee || ''} ${r.payer || ''} ${r.usage || ''} ${r.seal_owner || ''} ${r.counterparty_signer || ''} ${r.business_id || ''}`.toLowerCase();
       const words = kw.split(/\s+/).filter(Boolean);
       if (words.some((w) => hay.indexOf(w) < 0)) return false;
     }
@@ -905,11 +909,11 @@ function staticParties(q) {
 
 /** 静态模式下，按相对方抽屉的 docs 生成材料清单 CSV（无需后端） */
 function exportPartyDocsCsv(docs, name) {
-  const head = ['单据', '用印日期', '状态', '印章', '申请人', '附件数', '附件明细'];
+  const head = ['审批编号', '单据', '用印日期', '状态', '印章', '申请人', '附件数', '附件明细'];
   const lines = [head.join(',')];
   for (const doc of docs) {
     const files = (doc.files || []).map((f) => f.fileName).join('; ');
-    lines.push([doc.doc, doc.date, doc.status_cn || doc.status, doc.seal || '', doc.applicant || '', (doc.files || []).length, files]
+    lines.push([doc.no, doc.doc, doc.date, doc.status_cn || doc.status, doc.seal || '', doc.applicant || '', (doc.files || []).length, files]
       .map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
   }
   const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
@@ -1082,7 +1086,7 @@ async function loadLedger() {
   STATE.rows = d.rows;
   const tb = $('#tbody');
   if (!d.rows.length) {
-    tb.innerHTML = '<tr><td colspan="10"><div class="empty">没有符合条件的用印记录</div></td></tr>';
+    tb.innerHTML = '<tr><td colspan="11"><div class="empty">没有符合条件的用印记录</div></td></tr>';
   } else {
     tb.innerHTML = d.rows.map((r, i) => {
       const st = r.status === 'COMPLETED' ? 'ok' : r.status === 'RUNNING' ? 'run' : 'term';
@@ -1108,6 +1112,7 @@ async function loadLedger() {
         <td class="mono" data-label="份数">${esc(r.copies || '—')}</td>
         <td data-label="附件">${att}</td>
         <td class="c-status" data-label="状态"><span class="tag ${st}">${esc(r.status_cn || r.status)}</span></td>
+        <td class="docno" data-label="审批编号" title="${esc(r.business_id || '')}">${esc(r.business_id || '—')}</td>
       </tr>`;
     }).join('');
   }
@@ -1132,7 +1137,7 @@ async function loadPending() {
   $('#pendTag').textContent = d.length + ' 份在途';
   const host = $('#pendList');
   if (!d.length) { host.innerHTML = '<div class="empty">当前没有在途的用印申请</div>'; return; }
-  host.innerHTML = '<div class="tblwrap"><table><thead><tr><th>用印文件名称</th><th>印章</th><th>申请人</th><th>部门</th><th>用印日期</th><th>当前处理人</th></tr></thead><tbody>'
+  host.innerHTML = '<div class="tblwrap"><table><thead><tr><th>用印文件名称</th><th>印章</th><th>申请人</th><th>部门</th><th>用印日期</th><th>当前处理人</th><th>审批编号</th></tr></thead><tbody>'
     + d.map((r, i) => `<tr data-pi="${i}">
         <td class="doc c-main" title="${esc(r.doc_name)}">${esc(r.doc_name || '(未填写)')}</td>
         <td data-label="印章"><span class="tag">${esc(r.seal_type || '—')}</span></td>
@@ -1140,6 +1145,7 @@ async function loadPending() {
         <td data-label="部门">${esc(r.originator_dept_name || '—')}</td>
         <td class="mono" data-label="用印日期">${esc(r.seal_date || '—')}</td>
         <td data-label="当前处理人">${r.approvers && r.approvers.length ? r.approvers.map((a) => `<span class="tag run">${esc(a)}</span>`).join(' ') : '<span class="tag term">未取到</span>'}</td>
+        <td class="docno" data-label="审批编号" title="${esc(r.business_id || '')}">${esc(r.business_id || '—')}</td>
       </tr>`).join('') + '</tbody></table></div>';
   host.querySelectorAll('tr[data-pi]').forEach((tr) => {
     tr.onclick = () => openDetail(d[+tr.dataset.pi].id);
@@ -1383,6 +1389,7 @@ async function openParty(i) {
             <span>${esc(doc.seal || '—')}</span><i>·</i>
             <span>${esc(doc.date || '—')}</span><i>·</i>
             <span>${esc(doc.applicant || '—')}</span>
+            ${doc.no ? `<i>·</i><span class="docno" title="${esc(doc.no)}">${esc(doc.no)}</span>` : ''}
           </div>
         </div>
         ${fl}
@@ -1478,6 +1485,7 @@ async function openDetail(id) {
     $('#dTitle').textContent = d.doc_name || '(未填写用印文件名称)';
     const metaBits = [
       `<span class="tag ${st}">${esc(d.status_cn || d.status)}</span>`,
+      d.business_id ? `审批编号 ${esc(d.business_id)}` : '',
       d.seal_type ? esc(d.seal_type) : '',
       d.seal_date ? esc(d.seal_date) : '',
       d.originator_dept_name ? esc(d.originator_dept_name) : '',
@@ -1537,6 +1545,7 @@ async function openDetail(id) {
 
     $('#dBody').innerHTML = `
       <div class="sec"><h4>申请信息</h4><dl class="kv">
+        ${kv('审批编号', d.business_id, true)}
         ${kv('申请人', d.applicant)}${kv('经手人', d.handler)}
         ${kv('申请部门', d.originator_dept_name)}
         ${kv('提交时间', fmtDate(d.create_time))}
@@ -1706,12 +1715,12 @@ async function exportCsv() {
     } while (page <= pages);
 
     if (!all.length) { toast('当前筛选条件下无数据可导出'); return; }
-    const head = ['用印文件名称', '相对方', '印章', '合同类型', '申请人', '经手人', '部门', '用印日期', '份数', '电子章', '骑缝章', '签章顺序', '状态', '附件数'];
+    const head = ['审批编号', '用印文件名称', '相对方', '印章', '合同类型', '申请人', '经手人', '部门', '用印日期', '份数', '电子章', '骑缝章', '签章顺序', '状态', '附件数'];
     const lines = [head.join(',')];
     for (const r of all) {
       // 相对方可能多个，用「、」连接（与页面展示一致）
       const parties = (r.parties && r.parties.length) ? r.parties.join('、') : '';
-      lines.push([r.doc_name, parties, r.seal_type, r.contract_type, r.applicant, r.handler,
+      lines.push([r.business_id, r.doc_name, parties, r.seal_type, r.contract_type, r.applicant, r.handler,
         r.originator_dept_name, r.seal_date, r.copies, r.is_eseal, r.is_ridge, r.sign_order,
         r.status_cn, r.attachment_count]
         .map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
