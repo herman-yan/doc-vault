@@ -160,6 +160,8 @@ tbody tr:hover{background:var(--panel2)}
 .mono{font-variant-numeric:tabular-nums;color:var(--fg2);white-space:nowrap}
 /* 审批编号：等宽小字，过长时省略号，鼠标悬停看全（类名避开 .no，那是「无」标签） */
 .docno{font-variant-numeric:tabular-nums;color:var(--fg3);font-size:12px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+/* 归属公司（我方签约主体）：法人全称可长达 20 字，桌面端截断显示、悬停看全称 */
+.owner-cell{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}
 .pager{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;border-top:1px solid var(--line);font-size:12.5px;color:var(--fg3);flex-wrap:wrap;gap:10px}
 .pager .pgs{display:flex;gap:5px}
 .pager button{padding:5px 11px;border:1px solid var(--line2);background:var(--panel);border-radius:6px;cursor:pointer;font-size:12.5px}
@@ -358,6 +360,9 @@ td.nowrap .mini+.mini{margin-left:5px}
   .tblwrap td.c-status{order:-1;padding-bottom:7px;margin-bottom:4px;border-bottom:1px solid var(--line)}
   /* 审批编号紧随状态（手机上便于核对单据），与状态同处标题下、不重复分隔线 */
   .tblwrap td.docno{order:-1;padding:0 0 7px;margin-bottom:4px;max-width:none;overflow:visible;text-overflow:clip;white-space:normal;word-break:break-all}
+  /* 归属公司：法人全称较长，手机上允许折行（如「陕西胥行时代新能源科技有限公司」） */
+  .tblwrap td.owner-cell{max-width:none;white-space:normal;overflow:visible;text-overflow:clip;word-break:break-all;flex-wrap:nowrap}
+  .tblwrap td.owner-cell::before{flex:0 0 62px}
   /* 操作按钮行：铺满、按钮加大到可点尺寸 */
   .tblwrap td.nowrap{flex-wrap:wrap;gap:8px;padding-top:9px;margin-top:5px;border-top:1px solid var(--line)}
   .tblwrap td.nowrap::before{display:none}
@@ -516,7 +521,7 @@ body.locked .wrap{display:none}
           <input class="inp" id="kw" type="search" enterkeyhint="search" placeholder="搜索文件名称 / 申请人 / 收付款方 / 用途…">
           <button class="btn sbtn" id="btnSearch" type="button">检索</button>
         </span>
-        <select class="sel" id="fOrg"><option value="">全部组织</option></select>
+        <select class="sel" id="fOrg" title="按实际合同归属公司筛选（我方签约主体）"><option value="">全部归属公司</option></select>
         <select class="sel" id="fFlow"><option value="">全部流程</option></select>
         <select class="sel" id="fParty"><option value="">全部相对方</option></select>
         <select class="sel" id="fStatus"><option value="">全部状态</option><option value="COMPLETED">已通过</option><option value="RUNNING">审批中</option><option value="TERMINATED">已终止</option></select>
@@ -531,7 +536,7 @@ body.locked .wrap{display:none}
       <div class="tblwrap">
         <table>
           <thead><tr>
-            <th>组织</th><th>用印文件名称</th><th>相对方</th><th>印章</th><th>合同类型</th><th>申请人</th>
+            <th>归属公司</th><th>用印文件名称</th><th>相对方</th><th>印章</th><th>合同类型</th><th>申请人</th>
             <th>用印日期</th><th>份数</th><th>附件</th><th>状态</th><th>审批编号</th>
           </tr></thead>
           <tbody id="tbody"></tbody>
@@ -557,7 +562,7 @@ body.locked .wrap{display:none}
           <button class="btn sbtn" id="pBtnSearch" type="button">检索</button>
         </span>
         <select class="sel" id="pBiz"><option value="">全部分类</option></select>
-        <select class="sel" id="pOrg"><option value="">全部组织</option></select>
+        <select class="sel" id="pOrg" title="按实际合同归属公司筛选（我方签约主体）"><option value="">全部归属公司</option></select>
         <select class="sel" id="pKind"><option value="">全部类型</option><option value="org">单位</option><option value="person">个人</option></select>
         <select class="sel" id="pSrc"><option value="">全部来源</option><option value="收款方">收款方</option><option value="付款方">付款方</option><option value="名称推断">名称推断</option><option value="简称推断">简称推断</option></select>
         <select class="sel" id="pSeal"><option value="">全部印章</option></select>
@@ -659,8 +664,29 @@ async function api(path, opt) {
    ============================================================ */
 const REC_BY_ID = (() => { const m = {}; if (D) for (const r of D.records) m[r.id] = r; return m; })();
 
-/* 组织短名（多组织改造后新增；台账「组织」列与筛选器共用） */
+/* 组织短名（多组织改造后新增；筛选器与旧逻辑兼容用） */
 const ORG_SHORT = { ningjia: '宁家北京', zhongneng: '中能集团' };
+
+/* ---------- 实际合同归属公司（我方签约主体） ----------
+ * 用户 2026-11-10 要求：「组织」换成实际合同的归属公司。
+ * 口径与后端 api.js 的 ownerOf() 完全一致：
+ *   ① 表单「我方签约主体公司」/「请选择印章的公司名称」→ seal_owner
+ *   ② 为空（宁家北京侧流程表单里根本没有该字段）→ 回退组织全称
+ * 因此宁家北京 558 条会统一显示「宁家（北京）汽车服务有限公司」，
+ * 中能集团 274 条显示其下 16 家真实签约法人（陕西胥行时代、北京隆归…）。
+ * 静态快照（data.js）里每条记录已带 owner 字段，此处兜底以便旧快照不炸。
+ */
+function ownerOfRec(r) {
+  if (!r) return '';
+  const o = r.owner;
+  if (o != null && String(o).trim() !== '') return String(o).trim();
+  return r.org_name || '';
+}
+/* 归属公司 → 该选项实际代表的组织 key 集合。
+ * 「宁家（北京）汽车服务有限公司」这类由组织回退而来的选项，在静态筛选时
+ * 需按 org_key 匹配（记录 owner 与 org_name 同值，两种写法都成立）；
+ * 真实签约主体（如「陕西胥行时代…」）则按 owner 值匹配。 */
+const OWNER_META = {};
 const PARTY_BY_KEY = (() => { const m = {}; if (D) for (const p of D.parties.list) { m[p.key] = p; if (p.name) m[p.name] = p; } return m; })();
 function curRange() { return (D && D.ranges[STATE.range]) ? STATE.range : 'all'; }
 function inRange(date, from, to) {
@@ -775,6 +801,7 @@ function staticSearch(q) {
   const dept = q.get('dept') || '';
   const applicant = q.get('applicant') || '';
   const org = q.get('org') || '';
+  const owner = q.get('owner') || '';
   const flow = q.get('flow') || '';
   const party = q.get('party') || '';
   const from = q.get('from') || '';
@@ -804,6 +831,9 @@ function staticSearch(q) {
     if (dept && r.originator_dept_name !== dept) return false;
     if (applicant && r.applicant !== applicant) return false;
     if (org && r.org_key !== org) return false;
+    // 归属公司筛选：owner 优先，与后端 pushOwnerFilter 口径一致；
+    // 旧快照无 owner 字段时用 ownerOfRec 现场推导（宁家侧回退到组织全称）。
+    if (owner && ownerOfRec(r) !== owner) return false;
     if (flow && r.flow_key !== flow) return false;
     if (!partyHit(r.party_keys || [])) return false;
     if (!inRange(r.seal_date, from, to)) return false;
@@ -822,6 +852,7 @@ function staticParties(q) {
   const from = q.get('from') || '';
   const to = q.get('to') || '';
   const org = q.get('org') || '';
+  const owner = q.get('owner') || '';
   const biz = q.get('biz') || '';
   const kind = q.get('kind') || '';
   const src = q.get('src') || '';
@@ -832,11 +863,19 @@ function staticParties(q) {
   const sort = q.get('sort') || 'count';
   const name = q.get('name') || '';
 
-  // 组织过滤：单据所属组织取自 records（docs 只带 id）
-  const docOrg = (d) => { const r = REC_BY_ID[d.id]; return r ? (r.org_key || '') : ''; };
+  // 归属公司过滤：单据的归属公司取自 records（docs 只带 id）。
+  // owner 优先（实际签约主体），与后端 pushOwnerFilter 口径一致；
+  // org 参数保留兼容旧链接。
+  const recOwner = (d) => { const r = REC_BY_ID[d.id]; return r ? ownerOfRec(r) : ''; };
+  const recOrg = (d) => { const r = REC_BY_ID[d.id]; return r ? (r.org_key || '') : ''; };
+  const hit = (d) => {
+    if (!owner && !org) return true;
+    if (owner) return recOwner(d) === owner;
+    return recOrg(d) === org;
+  };
   const agg = [];
   for (const p of D.parties.list) {
-    const docs = (p.docs || []).filter((d) => inRange(d.date, from, to) && (!org || docOrg(d) === org));
+    const docs = (p.docs || []).filter((d) => inRange(d.date, from, to) && hit(d));
     let count = 0, files = 0, size = 0, last = '';
     const sealSet = new Set(), appSet = new Set();
     for (const d of docs) {
@@ -854,7 +893,12 @@ function staticParties(q) {
   }
 
   const inRangeParties = agg.filter((a) => a.count > 0);
-  const recsInRange = D.records.filter((r) => inRange(r.seal_date, from, to) && (!org || r.org_key === org));
+  const recsInRange = D.records.filter((r) => {
+    if (!inRange(r.seal_date, from, to)) return false;
+    if (owner) return ownerOfRec(r) === owner;
+    if (org) return r.org_key === org;
+    return true;
+  });
   const total = recsInRange.length;
   const identified = recsInRange.filter((r) => (r.party_keys && r.party_keys.length)).length;
   const stats = {
@@ -909,11 +953,14 @@ function staticParties(q) {
 
 /** 静态模式下，按相对方抽屉的 docs 生成材料清单 CSV（无需后端） */
 function exportPartyDocsCsv(docs, name) {
-  const head = ['审批编号', '单据', '用印日期', '状态', '印章', '申请人', '附件数', '附件明细'];
+  const head = ['审批编号', '归属公司', '单据', '用印日期', '状态', '印章', '申请人', '附件数', '附件明细'];
   const lines = [head.join(',')];
   for (const doc of docs) {
     const files = (doc.files || []).map((f) => f.fileName).join('; ');
-    lines.push([doc.no, doc.doc, doc.date, doc.status_cn || doc.status, doc.seal || '', doc.applicant || '', (doc.files || []).length, files]
+    // 归属公司：doc.owner 由后端写入；旧快照无此字段时从 records 现场推导
+    const rec = REC_BY_ID[doc.id];
+    const owner = doc.owner || (rec ? ownerOfRec(rec) : '');
+    lines.push([doc.no, owner, doc.doc, doc.date, doc.status_cn || doc.status, doc.seal || '', doc.applicant || '', (doc.files || []).length, files]
       .map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
   }
   const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
@@ -1055,12 +1102,28 @@ async function loadFacets() {
   fill($('#pSeal'), f.sealTypes || []);   // 相对方页的印章筛选共用同一份口径
   // 台账「相对方」筛选：候选来自 facets.parties（已按用印次数降序，与相对方档案口径一致）
   if ($('#fParty')) fill($('#fParty'), (f.parties || []).map((p) => p.name));
-  // 组织 / 流程筛选（多组织改造后新增）
-  // 新组织简称自适应：facets 里带了 org_short，首见组织写进 ORG_SHORT，免改硬编码
+  // 归属公司 / 流程筛选
+  // 归属公司 = 实际签约主体（用户 2026-11-10 要求把「组织」换成它）。
+  // facets.owners 由后端按 seal_owner 优先、空则组织全称的口径聚合而来；
+  // 静态快照缺 owners 时，从 records 现场兜底聚合，保证页面不空。
   for (const o of f.orgs || []) if (o.org_key && !ORG_SHORT[o.org_key]) ORG_SHORT[o.org_key] = o.org_short || o.org_name;
-  fillPairs($('#fOrg'), (f.orgs || []).map((o) => [o.org_key, ORG_SHORT[o.org_key] || o.org_name]));
+  let owners = f.owners || [];
+  if (!owners.length && D && D.records) {
+    const m = new Map();
+    for (const r of D.records) {
+      const k = ownerOfRec(r);
+      if (!k) continue;
+      const e = m.get(k) || { owner: k, count: 0, org_keys: [], is_org_fallback: !!r.org_name && k === r.org_name };
+      e.count++;
+      if (r.org_key && e.org_keys.indexOf(r.org_key) < 0) e.org_keys.push(r.org_key);
+      m.set(k, e);
+    }
+    owners = Array.from(m.values()).sort((a, b) => b.count - a.count);
+  }
+  for (const o of owners) OWNER_META[o.owner] = o;
+  fill($('#fOrg'), owners.map((o) => o.owner));
   fillPairs($('#fFlow'), (f.flows || []).map((o) => [o.flow_key, o.flow_name]));
-  fillPairs($('#pOrg'), (f.orgs || []).map((o) => [o.org_key, ORG_SHORT[o.org_key] || o.org_name]));
+  fill($('#pOrg'), owners.map((o) => o.owner));
   // 从「申请人排行」点入时，选项填充完成后再落到该申请人
   if (STATE.pendingApplicant) {
     $('#fApplicant').value = STATE.pendingApplicant;
@@ -1076,7 +1139,7 @@ async function loadLedger() {
     contractType: $('#fType').value,
     dept: $('#fDept').value,
     applicant: $('#fApplicant').value,
-    org: $('#fOrg').value,
+    owner: $('#fOrg').value,
     flow: $('#fFlow').value,
     party: $('#fParty') ? $('#fParty').value : '',
     ...rangeParams(),                    // 与总览看板共用同一时间区间，避免两处口径不一致
@@ -1101,7 +1164,7 @@ async function loadLedger() {
             : pts.map((n) => `<span class="tag">${esc(n)}</span>`).join(' '))
         : '<span style="color:var(--fg3)">—</span>';
       return `<tr data-i="${i}">
-        <td class="mono" data-label="组织" title="${esc(r.org_name || '')}">${esc(ORG_SHORT[r.org_key] || r.org_name || '—')}</td>
+        <td class="mono owner-cell" data-label="归属公司" title="${esc(r.owner || r.org_name || '')}">${esc(r.owner || r.org_name || '—')}</td>
         <td class="doc c-main" title="${esc(r.doc_name)}">${esc(r.doc_name || '(未填写)')}
           ${r.is_eseal === '是' ? '<span class="tag" style="margin-left:6px">电子章</span>' : ''}</td>
         <td class="party" data-label="相对方">${partyCell}</td>
@@ -1120,7 +1183,7 @@ async function loadLedger() {
   const who = $('#fApplicant').value ? ` · 申请人：${esc($('#fApplicant').value)}` : '';
   const orgSel = $('#fOrg');
   const orgWho = orgSel && orgSel.value
-    ? ` · 组织：${esc(orgSel.options[orgSel.selectedIndex].text)}` : '';
+    ? ` · 归属公司：${esc(orgSel.value)}` : '';
   $('#pager').innerHTML = `
     <div>共 ${fmtN(d.total)} 条 · 第 ${d.page} / ${d.pages} 页 · ${rl}${orgWho}${who}</div>
     <div class="pgs">
@@ -1137,8 +1200,9 @@ async function loadPending() {
   $('#pendTag').textContent = d.length + ' 份在途';
   const host = $('#pendList');
   if (!d.length) { host.innerHTML = '<div class="empty">当前没有在途的用印申请</div>'; return; }
-  host.innerHTML = '<div class="tblwrap"><table><thead><tr><th>用印文件名称</th><th>印章</th><th>申请人</th><th>部门</th><th>用印日期</th><th>当前处理人</th><th>审批编号</th></tr></thead><tbody>'
+  host.innerHTML = '<div class="tblwrap"><table><thead><tr><th>归属公司</th><th>用印文件名称</th><th>印章</th><th>申请人</th><th>部门</th><th>用印日期</th><th>当前处理人</th><th>审批编号</th></tr></thead><tbody>'
     + d.map((r, i) => `<tr data-pi="${i}">
+        <td class="mono owner-cell" data-label="归属公司" title="${esc(r.owner || r.org_name || '')}">${esc(r.owner || r.org_name || '—')}</td>
         <td class="doc c-main" title="${esc(r.doc_name)}">${esc(r.doc_name || '(未填写)')}</td>
         <td data-label="印章"><span class="tag">${esc(r.seal_type || '—')}</span></td>
         <td data-label="申请人">${esc(r.applicant || '—')}</td>
@@ -1172,7 +1236,7 @@ function partyParams() {
   return Object.assign({}, partyRangeParams(), {
     keyword: $('#pKw').value.trim(),
     biz: $('#pBiz').value,
-    org: $('#pOrg').value,
+    owner: $('#pOrg').value,
     kind: $('#pKind').value,
     src: $('#pSrc').value,
     sealType: $('#pSeal').value,
@@ -1486,6 +1550,7 @@ async function openDetail(id) {
     const metaBits = [
       `<span class="tag ${st}">${esc(d.status_cn || d.status)}</span>`,
       d.business_id ? `审批编号 ${esc(d.business_id)}` : '',
+      (d.owner || d.org_name) ? esc(d.owner || d.org_name) : '',
       d.seal_type ? esc(d.seal_type) : '',
       d.seal_date ? esc(d.seal_date) : '',
       d.originator_dept_name ? esc(d.originator_dept_name) : '',
@@ -1546,6 +1611,7 @@ async function openDetail(id) {
     $('#dBody').innerHTML = `
       <div class="sec"><h4>申请信息</h4><dl class="kv">
         ${kv('审批编号', d.business_id, true)}
+        ${kv('归属公司', d.owner || d.org_name)}
         ${kv('申请人', d.applicant)}${kv('经手人', d.handler)}
         ${kv('申请部门', d.originator_dept_name)}
         ${kv('提交时间', fmtDate(d.create_time))}
@@ -1715,12 +1781,12 @@ async function exportCsv() {
     } while (page <= pages);
 
     if (!all.length) { toast('当前筛选条件下无数据可导出'); return; }
-    const head = ['审批编号', '用印文件名称', '相对方', '印章', '合同类型', '申请人', '经手人', '部门', '用印日期', '份数', '电子章', '骑缝章', '签章顺序', '状态', '附件数'];
+    const head = ['审批编号', '归属公司', '用印文件名称', '相对方', '印章', '合同类型', '申请人', '经手人', '部门', '用印日期', '份数', '电子章', '骑缝章', '签章顺序', '状态', '附件数'];
     const lines = [head.join(',')];
     for (const r of all) {
       // 相对方可能多个，用「、」连接（与页面展示一致）
       const parties = (r.parties && r.parties.length) ? r.parties.join('、') : '';
-      lines.push([r.business_id, r.doc_name, parties, r.seal_type, r.contract_type, r.applicant, r.handler,
+      lines.push([r.business_id, r.owner || r.org_name, r.doc_name, parties, r.seal_type, r.contract_type, r.applicant, r.handler,
         r.originator_dept_name, r.seal_date, r.copies, r.is_eseal, r.is_ridge, r.sign_order,
         r.status_cn, r.attachment_count]
         .map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
