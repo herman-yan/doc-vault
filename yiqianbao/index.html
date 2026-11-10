@@ -1818,7 +1818,7 @@ $('#pExport').onclick = async () => {
    页面默认隐藏（body.locked），输入正确密码后显示。密码校验在浏览器内完成，
    不联网、不发送明文。解锁状态记在 localStorage（sm.gate.ok），同一浏览器免重复输入。
    注意：这是「页面级」访问门，并非内容加密——底层 data.js / 附件仍是明文文件。 */
-const GATE_HASH = 'dd45894ef4b1637bb8384204aa9418b2e05e1536e01863e831fd567cfe6d2d2d'; // sha256('ningjia123')
+const GATE_HASH = '1736ef9af84fbc14158c764f718eeea6bf06170ff2eec6753cba3bcb978c6561'; // sha256('jm661882')
 function sha256(input) {
   function utf8Bytes(str) {
     if (typeof TextEncoder !== 'undefined') { const b = new TextEncoder().encode(str); let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return s; }
