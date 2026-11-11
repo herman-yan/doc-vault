@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>用印管理系统 · 宁家(北京)汽车服务有限公司</title>
+<title>用印管理系统 · 中能时代集团</title>
 <style>
 /* ==========================================================================
    设计令牌（Design Tokens）· 商务风（深蓝）
@@ -50,9 +50,13 @@
   --shadow-2:0 2px 8px rgba(28,37,48,.09);
   --shadow-3:0 8px 28px rgba(28,37,48,.16);
 
-  /* ---- 排版 ---- */
-  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-  --font-num:ui-monospace,"SF Mono","Cascadia Mono",Consolas,"Courier New",monospace;
+  /* ---- 排版 ----
+     中文优先取现代开源字体（装了就用），再回退到各平台原生界面字体：
+       Windows → Microsoft YaHei UI（界面优化版雅黑，比普通雅黑更紧致）
+       macOS   → PingFang SC（苹方）
+     全部为本地字体查找，无任何外部请求，离线可用、零加载延迟。 */
+  --font-sans:"HarmonyOS Sans SC","HarmonyOS Sans","MiSans","Noto Sans SC","Source Han Sans SC","PingFang SC","Microsoft YaHei UI","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-num:ui-monospace,"SF Mono","Cascadia Mono","JetBrains Mono","Roboto Mono",Consolas,"Courier New",monospace;
   --fs-xs:11.5px; --fs-sm:12.5px; --fs-base:13.5px; --fs-md:15px;
   --fs-lg:clamp(19px,1.4vw,22px); --fs-xl:clamp(23px,1.9vw,27px);
 
@@ -104,9 +108,16 @@ html,body{height:100%}
 body{
   background:var(--bg); color:var(--fg);
   font:var(--fs-base)/1.6 var(--font-sans);
+  /* 渲染细节：抗锯齿 + 字形微调 + 数字等宽，让密集表格更齐整耐读 */
   -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  font-kerning:normal;
+  font-variant-numeric:tabular-nums;
   transition:background-color var(--t-base) var(--ease-out),color var(--t-base) var(--ease-out);
 }
+/* 中文标题收紧字距、加重笔画，形成清晰的层级对比 */
+h1,h2,h3,.brand h1{font-kerning:normal;text-wrap:balance}
 a{color:var(--info);text-decoration:none}
 button,input,select{font:inherit;color:inherit;outline:none}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-sm)}
@@ -127,9 +138,21 @@ button,input,select{font:inherit;color:inherit;outline:none}
   padding:22px 0;position:sticky;top:0;height:100vh;overflow-y:auto;
 }
 .brand{padding:0 20px 20px;border-bottom:1px solid var(--line);margin-bottom:14px}
-.brand h1{font-size:var(--fs-md);font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
-.brand h1::before{content:'';width:3px;height:15px;border-radius:1px;background:var(--accent);flex:0 0 3px}
-.brand .sub{font-size:var(--fs-xs);color:var(--fg3);margin-top:6px;line-height:1.55}
+.brand h1{
+  font-size:var(--fs-md);font-weight:600;letter-spacing:.01em;line-height:1.3;
+  display:flex;align-items:center;gap:8px;
+}
+.brand h1::before{content:'';width:3px;height:16px;border-radius:1px;background:var(--accent);flex:0 0 3px}
+/* 副信息两行：组织名（重、深） + 数据源（轻、浅），形成清晰主次 */
+.brand .sub{display:flex;flex-direction:column;gap:4px;margin-top:9px;line-height:1.5}
+.brand .sub .org{
+  font-size:var(--fs-sm);font-weight:500;color:var(--fg2);
+  letter-spacing:.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.brand .sub .src{
+  font-size:var(--fs-xs);color:var(--fg3);letter-spacing:.005em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .nav{display:flex;flex-direction:column;gap:2px;padding:0 10px}
 .nav button{
   display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border:0;
@@ -143,7 +166,7 @@ button,input,select{font:inherit;color:inherit;outline:none}
 
 /* ---------- 头部 ---------- */
 .top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
-.top h2{font-size:var(--fs-lg);font-weight:600;letter-spacing:-.01em;line-height:1.35}
+.top h2{font-size:var(--fs-lg);font-weight:600;letter-spacing:0;line-height:1.35}
 .top .desc{color:var(--fg3);font-size:var(--fs-sm);margin-top:6px}
 .acts{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
 .btn{
@@ -199,7 +222,7 @@ button,input,select{font:inherit;color:inherit;outline:none}
 .grid{display:grid;gap:14px;margin-bottom:18px}
 .g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow-1)}
-.card h3{font-size:13.5px;font-weight:600;margin-bottom:3px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;letter-spacing:-.005em}
+.card h3{font-size:13.5px;font-weight:600;margin-bottom:3px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;letter-spacing:0}
 .card .hint{font-size:11.5px;color:var(--fg3);margin-bottom:15px}
 .card .hint.plain{margin-bottom:0}
 
@@ -287,7 +310,7 @@ tbody tr:hover{background:var(--hover)}
 }
 .drawer.on{transform:none}
 .dhead{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
-.dhead h3{font-size:var(--fs-md);font-weight:600;line-height:1.45;margin-bottom:8px;letter-spacing:-.01em}
+.dhead h3{font-size:var(--fs-md);font-weight:600;line-height:1.45;margin-bottom:8px;letter-spacing:0}
 .dhead .meta{font-size:var(--fs-sm);color:var(--fg3);display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .x{border:0;background:transparent;font-size:20px;color:var(--fg3);cursor:pointer;line-height:1;padding:2px 6px;border-radius:var(--r-sm);transition:background-color var(--t-fast) var(--ease-out)}
 .x:hover{background:var(--hover);color:var(--fg)}
@@ -514,7 +537,7 @@ body.locked .wrap{display:none}
 .gate .card{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px 26px;box-shadow:var(--shadow-3)}
 .gate .lg{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .gate .lg .mk{width:34px;height:34px;flex:0 0 auto;border-radius:var(--r-sm);background:var(--accent-strong);color:var(--accent-fg);display:flex;align-items:center;justify-content:center;font-size:17px}
-.gate h3{font-size:var(--fs-md);font-weight:600;letter-spacing:-.01em}
+.gate h3{font-size:var(--fs-md);font-weight:600;letter-spacing:0}
 .gate .hint{font-size:var(--fs-sm);color:var(--fg3);line-height:1.6;margin:6px 0 16px}
 .gate input{width:100%;padding:11px 13px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);font-size:14px;letter-spacing:1px;color:var(--fg)}
 .gate input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklch,var(--accent) 14%,transparent)}
@@ -540,7 +563,7 @@ body.locked .wrap{display:none}
   <aside class="side">
     <div class="brand">
       <h1>用印管理系统</h1>
-      <div class="sub">宁家(北京)汽车服务有限公司<br>数据源：钉钉「用印申请」审批</div>
+      <div class="sub"><span class="org">中能时代集团</span><span class="src">数据源：钉钉「用印申请」审批</span></div>
     </div>
     <nav class="nav" id="nav">
       <button data-v="dash" class="on"><span class="ico">◫</span>总览看板</button>
