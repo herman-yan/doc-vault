@@ -2240,10 +2240,17 @@ async function initBackend() {
     $('#btnSync').style.display = 'none';
     $('#syncBadge').style.display = 'none';
     const b = $('#staticBanner');
-    const gen = D.meta && D.meta.generatedAt
-      ? new Date(Date.parse(D.meta.generatedAt) + 8 * 3600000).toISOString().slice(0, 10)
-      : '';
-    b.textContent = '📄 静态快照' + (gen ? ' · 生成于 ' + gen : '') + ' · 数据由本机后端真实算法导出，无需登录即可查看';
+    // 北京时间格式化：+8h 后用 UTC 取值，避免受浏览器本地时区影响
+    const bj = (iso, withTime) => {
+      if (!iso) return '';
+      const t = Date.parse(iso);
+      if (!Number.isFinite(t)) return '';
+      const s = new Date(t + 8 * 3600000).toISOString();
+      return withTime ? s.slice(0, 10) + ' ' + s.slice(11, 16) : s.slice(0, 10);
+    };
+    const gen = bj(D.meta && D.meta.generatedAt, false);
+    const syn = bj(D.meta && D.meta.syncedAt, true);
+    b.textContent = '📄 静态快照' + (gen ? ' · 生成于 ' + gen : '') + (syn ? ' · 数据同步时间 ' + syn : '');
     b.classList.add('on');
     await switchView('dash');
     return;
