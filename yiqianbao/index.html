@@ -879,30 +879,189 @@ function clickBlob(blob, name) {
   a.href = u; a.download = name; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(u); a.remove(); }, 4000);
 }
-// items: [{name, url}] —— 抓取每个附件并打包成 ZIP 下载
-async function zipAndDownload(items, zipName) {
+
+/* ---------- 附件收集与外链判定（打包/清单共用，保证口径一致） ---------- */
+// 外链（GitHub Release）：响应不带 Access-Control-Allow-Origin，
+// 浏览器 fetch 必被 CORS 拦截 → 无法读字节进 ZIP；但 <a href download> 直链不受影响。
+function isExternalUrl(u) { return /^https?:/i.test(String(u || '')); }
+// 把一条记录的两类附件拉平成统一条目（表单附件 + 审批流转附件）
+// kind: 'form' | 'flow'；tag: 用于 ZIP 内文件重名去重的前缀标识
+function recZipItems(r) {
+  const out = [];
+  const push = (a, kind) => {
+    if (!a || !a.url) return;
+    out.push({
+      name: a.fileName || a.fileId, url: a.url, fileId: a.fileId,
+      fileSize: a.fileSize || 0, kind,
+      doc: r.doc_name || '', date: r.seal_date || '', seal: r.seal_type || '',
+      applicant: r.applicant || '', no: r.business_id || '', owner: ownerOfRec(r),
+      status: r.status, statusCn: r.status_cn || '',
+    });
+  };
+  for (const a of (r.attachments || [])) push(a, 'form');
+  for (const a of (r.flowAttachments || [])) push(a, 'flow');
+  return out;
+}
+// 按「日期_印章」分目录，与后端 ZIP 结构保持一致；同目录同名自动加序号
+function zipEntryName(it, seen) {
+  const m = String(it.name || '').match(/\.[^.]+$/); const ext = m ? m[0] : '';
+  const base = safeName(String(it.name || '').replace(/\.[^.]+$/, '')) || 'file';
+  const dir = safeName(`${it.date || '无日期'}_${it.seal || '未标印章'}`);
+  let nm = base + ext;
+  if (seen[nm]) { seen[nm]++; nm = base + '_' + seen[nm] + ext; } else seen[nm] = 1;
+  return dir + '/' + nm;
+}
+// 生成 CSV（带 BOM，Excel 直接识别 UTF-8）
+function csvBlob(rows) {
+  const q = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const text = rows.map((r) => r.map(q).join(',')).join('\r\n');
+  return new Blob(['\ufeff' + text], { type: 'text/csv;charset=utf-8' });
+}
+/* 附件可用性统计 + 失效原因说明：详情页、相对方抽屉共用，保证口径一致。
+   失效 = 钉钉钉盘已清理该审批的原始文件，取链接口返回 success=false，本地无副本，不可恢复。 */
+function attStat(arr) {
+  const list = arr || []; const total = list.length;
+  const ok = list.filter((a) => a && a.url).length;
+  return { total, ok, dead: total - ok };
+}
+function attSummary(arr) {
+  const st = attStat(arr);
+  if (!st.total) return '';
+  const base = `可下载 <b>${st.ok}</b> / 共 <b>${st.total}</b> 个`;
+  if (!st.dead) return `<div class="note" style="margin:-2px 0 10px">${base}。</div>`;
+  return `<div class="note" style="margin:-2px 0 10px">${base}；其中 <b>${st.dead}</b> 个已失效——` +
+    `钉钉钉盘已清理该审批的原始文件，取链接口返回失败且本地快照未留存副本，<b>无法下载、不可恢复</b>。</div>`;
+}
+
+/* 外链附件下载页：随 ZIP 一起交付。浏览器不允许网页读取跨域文件字节，
+   但 <a download> 导航下载不受此限，故提供可点击直链 + 依次下载全部。
+   自带样式与双主题，脱离站点也能独立打开；所有外部文本均做 HTML 转义。 */
+function externalLinksHtml(list, kindCn) {
+  const h = (v) => String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  const rows = list.map((e, i) => `<tr>
+    <td class="num">${i + 1}</td>
+    <td><div class="fn" title="${h(e.name)}">${h(e.name)}</div>
+        <div class="sub">${h(e.doc || '—')} · ${h(e.date || '—')} · ${h(kindCn(e))}</div></td>
+    <td class="sz">${((e.fileSize || 0) / 1048576).toFixed(2)} MB</td>
+    <td><a class="dl" href="${h(e.url)}" target="_blank" rel="noopener noreferrer" download="${h(e.name)}">下载</a></td>
+  </tr>`).join('');
+  // 注入到内嵌脚本的数据必须转义 '<'：源码里出现字面闭合标签会提前截断外层脚本。
+  const jsData = (v) => JSON.stringify(v).replace(/</g, '\\u003c');
+  const urls = jsData(list.map((e) => String(e.url || '')));
+  const names = jsData(list.map((e) => String(e.name || 'file')));
+  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>外链附件下载</title>
+<style>
+:root{color-scheme:light dark;--bg:#f5f7fa;--panel:#fff;--fg:#1f2733;--fg2:#5a6573;--line:#dde3ea;--accent:#1b4f8a;--accent-fg:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#121820;--panel:#19222d;--fg:#e7edf4;--fg2:#a8b4c2;--line:#2b3745;--accent:#3570b0;--accent-fg:#fff}}
+*{box-sizing:border-box}body{margin:0;padding:24px;background:var(--bg);color:var(--fg);
+font:14px/1.6 "Microsoft YaHei UI","Microsoft YaHei","PingFang SC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto}h1{font-size:19px;margin:0 0 6px;letter-spacing:0}
+.lede{color:var(--fg2);margin:0 0 16px;font-size:13px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);
+border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin-bottom:14px}
+button{background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;
+padding:8px 16px;font:inherit;font-weight:600;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.55;cursor:not-allowed}
+.hint{color:var(--fg2);font-size:12.5px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--fg2);font-weight:600;background:var(--panel)}
+tr:last-child td{border-bottom:0}.num{width:38px;color:var(--fg2);font-variant-numeric:tabular-nums}
+.sz{width:100px;white-space:nowrap;color:var(--fg2);font-variant-numeric:tabular-nums}
+.fn{word-break:break-all}.sub{font-size:12px;color:var(--fg2);margin-top:2px}
+a.dl{color:var(--accent);text-decoration:none;font-weight:600;white-space:nowrap}
+a.dl:hover{text-decoration:underline}
+.foot{margin-top:14px;font-size:12.5px;color:var(--fg2)}
+code{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:1px 5px}
+</style></head><body><div class="wrap">
+<h1>外链附件下载（${list.length} 个）</h1>
+<p class="lede">以下附件托管在 GitHub Release。受浏览器跨域策略限制，网页无法把它们读进 ZIP，
+因此单独列出直链——点击「下载」即可保存，不受影响。CSV 版清单见同目录的 <code>_外链附件清单.csv</code>。</p>
+<div class="bar"><button id="dlall" type="button">依次下载全部（${list.length}）</button>
+<span class="hint" id="tip">浏览器可能提示「允许多个文件下载」，请选择允许。</span></div>
+<table><thead><tr><th>#</th><th>附件 / 所属单据</th><th>大小</th><th>操作</th></tr></thead>
+<tbody>${rows}</tbody></table>
+<p class="foot">说明：这些文件本身可以正常下载，只是无法被网页批量打包。失效（钉钉侧已清理）的附件不在此列，见 <code>_下载失败清单.csv</code>。</p>
+</div><script>
+(function(){var urls=${urls},names=${names},i=0,b=document.getElementById('dlall'),t=document.getElementById('tip');
+b.addEventListener('click',function(){if(!urls.length)return;b.disabled=true;
+function step(){if(i>=urls.length){t.textContent='已触发全部 '+urls.length+' 个下载。';b.disabled=false;b.textContent='重新依次下载';i=0;return;}
+var a=document.createElement('a');a.href=urls[i];a.download=names[i]||'file';a.rel='noopener';
+document.body.appendChild(a);a.click();a.remove();i++;t.textContent='已触发 '+i+' / '+urls.length+' …';setTimeout(step,900);}
+step();});})();
+<\/script></body></html>`;
+}
+
+/**
+ * items: [{name, url, ...meta}] —— 抓取每个附件并打包成 ZIP 下载。
+ * 三类结果分别处理，绝不静默丢弃：
+ *   ① 同源附件 → 抓字节进 ZIP
+ *   ② 外链附件 → 跨域不可 fetch，写入「外链清单.csv」（含可点击直链，逐个下载）
+ *   ③ 抓取失败 → 写入「下载失败清单.csv」
+ * opts.manifest: 附加的自定义清单行（二维数组），会作为「_材料清单.csv」写入。
+ */
+async function zipAndDownload(items, zipName, opts) {
+  opts = opts || {};
   toast('正在打包 ' + items.length + ' 个文件…');
   try {
-    const seen = {}; const withBytes = []; const failed = [];
+    const seen = {}; const withBytes = []; const failed = []; const external = [];
+    let packed = 0;   // 真正打进 ZIP 的附件数（不含各类清单文件）
+    const kindCn = (it) => (it.kind === 'flow' ? '审批流转附件' : '用印文件附件');
+    // 材料清单表头（含每一行附件的最终打包结果，便于归档核对）
+    const manifestRows = [['审批编号', '归属公司', '单据', '用印日期', '印章', '申请人', '状态',
+      '附件类型', '附件文件名', '大小(KB)', '打包结果']];
+    const mrow = (it, result) => [it.no, it.owner, it.doc, it.date, it.seal, it.applicant,
+      it.statusCn || it.status, kindCn(it), it.name, (it.fileSize / 1024).toFixed(0), result];
+
     for (const it of items) {
-      const m = String(it.name || '').match(/\.[^.]+$/); const ext = m ? m[0] : '';
-      const base = safeName(String(it.name || '').replace(/\.[^.]+$/, '')) || 'file';
-      let nm = base + ext;
-      if (seen[base]) { seen[base]++; nm = base + '_' + seen[base] + ext; } else seen[base] = 1;
-      try { withBytes.push({ name: nm, bytes: await fetchBytes(it.url) }); }
-      catch (e) { console.warn('skip', nm, e.message); failed.push({ name: it.name || nm, url: it.url, msg: e.message }); }
+      if (isExternalUrl(it.url)) {
+        external.push(it); manifestRows.push(mrow(it, '外链未打包（见 _外链附件清单.csv）')); continue;
+      }
+      try {
+        withBytes.push({ name: zipEntryName(it, seen), bytes: await fetchBytes(it.url) });
+        packed++; manifestRows.push(mrow(it, '已打包'));
+      } catch (e) {
+        console.warn('skip', it.name, e.message);
+        failed.push({ it, msg: e.message }); manifestRows.push(mrow(it, '抓取失败：' + e.message));
+      }
     }
-    if (!withBytes.length) {
-      if (failed.length) {
-        const hasExt = failed.some(f => /^https?:/i.test(String(f.url || '')));
-        toast('附件无法打包（' + failed.length + ' 个失败' + (hasExt ? '，含外链大文件受跨域限制' : '') + '），请在详情页逐个下载');
-      } else { toast('没有可下载的附件'); }
-      return;
+
+    if (!withBytes.length && !external.length && !failed.length) { toast('没有可下载的附件'); return; }
+
+    // 外链清单：跨域限制如实列出，并给出可点击直链（点开即下载，不经 ZIP）
+    if (external.length) {
+      const rows = [['说明', '以下附件托管在 GitHub Release，跨域策略不允许网页直接读取字节，故未打进 ZIP；请点击「下载直链」逐个下载。'], [],
+        ['审批编号', '归属公司', '单据', '用印日期', '印章', '附件类型', '附件文件名', '大小(KB)', '下载直链']];
+      for (const e of external) rows.push([e.no, e.owner, e.doc, e.date, e.seal, kindCn(e), e.name, (e.fileSize / 1024).toFixed(0), e.url]);
+      withBytes.push({ name: '_外链附件清单.csv', bytes: new Uint8Array(await csvBlob(rows).arrayBuffer()) });
+      withBytes.push({ name: '_外链附件下载.html', bytes: new TextEncoder().encode(externalLinksHtml(external, kindCn)) });
     }
+    // 失败清单
+    if (failed.length) {
+      const rows = [['说明', '以下附件在抓取时失败（多为钉钉侧文件已清理），未打进 ZIP。'], [],
+        ['审批编号', '归属公司', '单据', '用印日期', '附件文件名', '失败原因']];
+      for (const f of failed) rows.push([f.it.no, f.it.owner, f.it.doc, f.it.date, f.it.name, f.msg]);
+      withBytes.push({ name: '_下载失败清单.csv', bytes: new Uint8Array(await csvBlob(rows).arrayBuffer()) });
+    }
+    // 材料清单（含调用方自定义的头部说明行）
+    const allRows = (opts.manifestHead && opts.manifestHead.length)
+      ? opts.manifestHead.concat([''], manifestRows) : manifestRows;
+    withBytes.push({ name: '_材料清单.csv', bytes: new Uint8Array(await csvBlob(allRows).arrayBuffer()) });
+
     const blob = await buildZip(withBytes);
     clickBlob(blob, zipName);
-    toast('已生成 ZIP（' + withBytes.length + ' 个文件' + (failed.length ? '，' + failed.length + ' 个跳过' : '') + '）');
-    if (failed.length) console.warn('以下附件未打包（可在详情页单独下载）：', failed);
+
+    const parts = [];
+    parts.push(packed + ' 个附件');
+    if (external.length) parts.push(external.length + ' 个外链（见下载页）');
+    if (failed.length) parts.push(failed.length + ' 个失败（见清单）');
+    toast('已生成 ZIP（' + parts.join('，') + '）');
+    if (external.length) console.warn('以下附件为跨域外链，已写入「_外链附件清单.csv」：', external);
+    if (failed.length) console.warn('以下附件抓取失败，已写入「_下载失败清单.csv」：', failed);
   } catch (e) { toast('打包失败：' + e.message); }
 }
 
@@ -1086,19 +1245,22 @@ function staticParties(q) {
   return { list: out, stats, facets };
 }
 
-/** 静态模式下，按相对方抽屉的 docs 生成材料清单 CSV（无需后端） */
+/** 静态模式下，按相对方抽屉的 docs 生成材料清单 CSV（无需后端）。
+ *  同时列出用印文件附件与审批流转附件，并如实标注每个附件是否可下载。 */
 function exportPartyDocsCsv(docs, name) {
-  const head = ['审批编号', '归属公司', '单据', '用印日期', '状态', '印章', '申请人', '附件数', '附件明细'];
-  const lines = [head.join(',')];
+  const rows = [['审批编号', '归属公司', '单据', '用印日期', '状态', '印章', '申请人',
+    '附件总数', '可下载数', '已失效数', '附件明细（类型/状态/文件名）']];
   for (const doc of docs) {
-    const files = (doc.files || []).map((f) => f.fileName).join('; ');
+    const fs = doc.files || [];
+    const st = attStat(fs);
+    const files = fs.map((f) => `[${f.kind === 'flow' ? '流转' : '用印文件'}|${f.url ? '可下载' : '已失效'}] ${f.fileName || f.fileId || ''}`).join('; ');
     // 归属公司：doc.owner 由后端写入；旧快照无此字段时从 records 现场推导
     const rec = REC_BY_ID[doc.id];
     const owner = doc.owner || (rec ? ownerOfRec(rec) : '');
-    lines.push([doc.no, owner, doc.doc, doc.date, doc.status_cn || doc.status, doc.seal || '', doc.applicant || '', (doc.files || []).length, files]
-      .map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
+    rows.push([doc.no, owner, doc.doc, doc.date, doc.status_cn || doc.status, doc.seal || '', doc.applicant || '',
+      st.total, st.ok, st.dead, files]);
   }
-  const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const blob = csvBlob(rows);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `${name}_用印材料清单.csv`;
@@ -1541,8 +1703,16 @@ async function openParty(i) {
     if (STATIC) {
       const docs = (p.docs || []).filter((x) => inRange(x.date, rp.from, rp.to)).map((x) => {
         const r = REC_BY_ID[x.id];
+        // 同时带出表单附件与审批流转附件（此前只带表单附件，导致流转材料在抽屉里完全看不到）
+        const files = r ? (r.attachments || []).map((a) => ({ fileType: a.fileType, fileName: a.fileName, fileSize: a.fileSize, fileId: a.fileId, url: a.url, kind: 'form' }))
+          .concat((r.flowAttachments || []).map((a) => ({ fileType: a.fileType, fileName: a.fileName, fileSize: a.fileSize, fileId: a.fileId, url: a.url, kind: 'flow' }))) : [];
+        // 元数据从 REC_BY_ID 补齐（parties.list 的 docs 只存 id/no/doc/date/status/owner），
+        // 让抽屉与导出的材料清单能显示印章、申请人、状态中文，而不再一律显示「—」。
         return { id: x.id, doc: x.doc, date: x.date, status: x.status,
-          files: r ? (r.attachments || []).map((a) => ({ fileType: a.fileType, fileName: a.fileName, fileSize: a.fileSize, fileId: a.fileId, url: a.url })) : [] };
+          status_cn: r ? (r.status_cn || '') : '', seal: r ? (r.seal_type || '') : '',
+          applicant: r ? (r.applicant || '') : '',
+          no: x.no || (r ? r.business_id : '') || '',
+          owner: x.owner || (r ? ownerOfRec(r) : ''), files };
       });
       const s0 = { docs: docs.length, withFiles: docs.filter((x) => x.files.length).length,
         files: docs.reduce((t, x) => t + x.files.length, 0),
@@ -1553,11 +1723,15 @@ async function openParty(i) {
     }
     const s = d.stats || {};
     const canZip = s.files > 0;
+    const allFiles = (d.docs || []).reduce((arr, doc) => arr.concat(doc.files || []), []);
+    const st = attStat(allFiles);
+    const statLine = STATIC
+      ? `，其中 <b>可下载 ${st.ok}</b> 个${st.dead ? `、<b>${st.dead}</b> 个已失效` : ''}` : '';
 
     const head = `<div class="pact">
       <div class="pact-info">
         共 <b>${s.docs}</b> 份用印单据，其中 <b>${s.withFiles}</b> 份含附件，
-        合计 <b>${s.files}</b> 个文件（${fmtSize(s.size)}）。
+        合计 <b>${s.files}</b> 个文件（${fmtSize(s.size)}）${statLine}。
       </div>
       <div class="pact-btns">
         ${STATIC ? `<button class="btn" id="pZip" ${(d.docs || []).some((doc) => (doc.files || []).some((f) => f.url)) ? '' : 'disabled'}>打包下载全部材料</button>` : `<button class="btn" id="pZip" ${canZip ? '' : 'disabled'}>打包下载全部材料 (ZIP)</button>`}
@@ -1565,8 +1739,10 @@ async function openParty(i) {
       </div>
     </div>
     <div class="note" style="margin-bottom:14px">
-      ZIP 内含按「日期_印章」分目录的原始附件，并附「材料清单.csv」。
-      若个别附件因钉钉侧限制无法下载，会单独生成「下载失败清单.csv」如实列出，不做静默跳过。
+      ZIP 内含按「日期_印章」分目录的原始附件（用印文件 + 审批流转附件），并附「_材料清单.csv」。
+      跨域外链附件写入「_外链附件清单.csv」与「_外链附件下载.html」（含可点击直链，可依次下载），
+      抓取失败的写入「_下载失败清单.csv」，均如实列出，不做静默跳过。
+      ${STATIC && st.dead ? `<br>已失效的 ${st.dead} 个附件：钉钉钉盘已清理原始文件，取链接口返回失败且本地快照未留存副本，<b>无法下载、不可恢复</b>。` : ''}
     </div>`;
 
     const body = d.docs.map((doc) => {
@@ -1576,8 +1752,9 @@ async function openParty(i) {
             <div class="pfl">
               <span class="fext">${esc((f.fileType || 'file').toUpperCase().slice(0, 4))}</span>
               <span class="fname" title="${esc(f.fileName)}">${esc(f.fileName)}</span>
+              ${f.kind === 'flow' ? '<span class="tag run" title="审批人在审批过程中补充上传的材料">流转</span>' : ''}
               <span class="fsz">${fmtSize(f.fileSize)}</span>
-              ${STATIC ? (f.url ? `<a class="mini" href="${esc(f.url)}" download="${esc(f.fileName || 'file')}">下载</a>` : `<button class="mini" disabled title="未收录进静态快照">需后端</button>`) : `<button class="mini" data-att="${esc(f.fileId)}" data-inst="${esc(doc.id)}">下载</button>`}
+              ${STATIC ? (f.url ? `<a class="mini" href="${esc(f.url)}" download="${esc(f.fileName || 'file')}">下载</a>` : `<button class="mini" disabled title="该文件在钉钉侧已不可下载（审批附件会随钉盘清理而失效），本地未留存副本">已失效</button>`) : `<button class="mini" data-att="${esc(f.fileId)}" data-inst="${esc(doc.id)}">下载</button>`}
             </div>`).join('') + '</div>'
         : '<div class="pfile"><div class="pfl none">该单据未上传附件</div></div>';
       return `<div class="pdoc">
@@ -1600,8 +1777,13 @@ async function openParty(i) {
     const zb = $('#pZip');
     if (zb) zb.onclick = () => {
       if (STATIC) {
+        // 收集该相对方全部材料：用印文件附件 + 审批流转附件（此前只收表单附件）
         const items = [];
-        (d.docs || []).forEach((doc) => (doc.files || []).forEach((f) => { if (f.url) items.push({ name: f.fileName || f.fileId, url: f.url }); }));
+        (d.docs || []).forEach((doc) => (doc.files || []).forEach((f) => {
+          if (f.url) items.push({ name: f.fileName || f.fileId, url: f.url, fileSize: f.fileSize || 0,
+            kind: f.kind || 'form', doc: doc.doc, date: doc.date, seal: doc.seal,
+            applicant: doc.applicant, no: doc.no, owner: p.name, statusCn: doc.status_cn || doc.status });
+        }));
         if (!items.length) return toast('静态快照中无可下载附件');
         zipAndDownload(items, p.name + '_用印材料.zip');
       } else {
@@ -1767,8 +1949,8 @@ async function openDetail(id) {
         ${kv('对方签章人', d.counterparty_contact)}
       </dl></div>
 
-      <div class="sec"><h4>用印文件附件（${(d.attachments || []).length}）</h4>${atts}</div>
-      ${(d.flowAttachments && d.flowAttachments.length) ? `<div class="sec"><h4>审批流转附件（${d.flowAttachments.length}）</h4><div class="note" style="margin:-2px 0 10px">审批人在审批过程中补充上传的材料，与用印文件分开列出。</div>${flowAtts}</div>` : ''}
+      <div class="sec"><h4>用印文件附件（${(d.attachments || []).length}）</h4>${attSummary(d.attachments)}${atts}</div>
+      ${(d.flowAttachments && d.flowAttachments.length) ? `<div class="sec"><h4>审批流转附件（${d.flowAttachments.length}）</h4><div class="note" style="margin:-2px 0 10px">审批人在审批过程中补充上传的材料，与用印文件分开列出。</div>${attSummary(d.flowAttachments)}${flowAtts}</div>` : ''}
       <div class="sec"><h4>审批流转（${(d.timeline || []).length}）</h4><div class="tl">${tl}</div></div>
       ${d.approvers && d.approvers.length ? `<div class="sec"><h4>当前处理人</h4><div>${d.approvers.map((a) => `<span class="tag run">${esc(a)}</span>`).join(' ')}</div></div>` : ''}
       ${!d.detail_fetched ? '<div class="note">该单据的详情尚未从钉钉补全，字段可能不完整。可在总览页点击「同步最新数据」补齐。</div>' : ''}
@@ -1961,10 +2143,19 @@ async function exportLedgerZip() {
       if (dept && r.originator_dept_name !== dept) continue;
       if (applicant && r.applicant !== applicant) continue;
       if (!inRange(r.seal_date, from, to)) continue;
-      for (const a of (r.attachments || [])) if (a.url) items.push({ name: a.fileName || a.fileId, url: a.url });
+      // 表单附件 + 审批流转附件（此前只收表单附件）
+      for (const it of recZipItems(r)) items.push(it);
     }
     if (!items.length) return toast('当前筛选条件下没有可下载的附件');
-    zipAndDownload(items, '台账材料_' + new Date().toISOString().slice(0, 10) + '.zip');
+    // 材料清单头部：如实记录本次导出依据，便于归档追溯（与后端 ZIP 一致）
+    const manifestHead = [
+      ['导出时间', new Date().toLocaleString('zh-CN')],
+      ['命中附件数', items.length],
+      ['关键词', q.keyword || ''], ['状态', status], ['印章', sealType],
+      ['合同类型', contractType], ['部门', dept], ['申请人', applicant],
+      ['归属公司', q.owner || ''], ['起始日期', from], ['截止日期', to],
+    ];
+    zipAndDownload(items, '台账材料_' + new Date().toISOString().slice(0, 10) + '.zip', { manifestHead });
     return;
   }
   const btn = $('#btnExportZip');
