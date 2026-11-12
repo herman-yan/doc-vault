@@ -894,7 +894,7 @@ function clickBlob(blob, name) {
 // 浏览器 fetch 必被 CORS 拦截 → 无法读字节进 ZIP；但 <a href download> 直链不受影响。
 function isExternalUrl(u) { return /^https?:/i.test(String(u || '')); }
 // 把一条记录的两类附件拉平成统一条目（表单附件 + 审批流转附件）
-// kind: 'form' | 'flow'；dead: 钉钉侧已失效（无 url）——仍要进清单，否则事后无从知晓少了什么
+// kind: 'form' | 'flow'；dead: 暂时无法取到（无 url）——仍要进清单，否则事后无从知晓少了什么
 function recZipItems(r) {
   const out = [];
   const push = (a, kind) => {
@@ -928,13 +928,15 @@ function csvBlob(rows) {
   const text = rows.map((r) => r.map(q).join(',')).join('\r\n');
   return new Blob(['\ufeff' + text], { type: 'text/csv;charset=utf-8' });
 }
-/* 附件可用性统计 + 失效原因说明：详情页、相对方抽屉、各级清单共用，保证口径一致。
-   失效 = 钉钉钉盘已清理该审批的原始文件，取链接口返回 success=false，本地无副本，不可恢复。
-   ⚠️ 钉钉返回 success=false 时不区分「原始文件被删除」还是「下载链接被撤销」，
-   故两种表述并列，不臆断具体是哪一种。 */
-const DEAD_NOTE = '原始文件已删除 / 钉钉已撤销链接';
-const DEAD_TIP = '钉钉钉盘已清理该审批的原始文件（原始文件已删除或下载链接已撤销，审批附件会随钉盘清理而失效），取链接口返回失败，本地快照未留存副本，无法下载、不可恢复';
-const DEAD_CELL = '已失效：' + DEAD_NOTE + '（钉钉钉盘已清理，本地无副本，不可恢复）';
+/* 附件可用性统计 + 「暂时无法取到」排查提醒：详情页、相对方抽屉、各级清单共用，保证口径一致。
+   ⚠️ 钉钉取链接口只返回 success=false，不区分「原始文件被删除 / 下载链接被撤销 / 取链通道异常」，
+   因此不臆断具体原因、也不下永久失效的确定性结论，统一提示按原链接与通道两条线索排查。
+   本地快照未留存副本，故当前确实下载不了；「已失效」仅是状态标签，不是原因断言。
+   DEAD_NOTE（可见短备注）/ DEAD_TIP（悬停与说明）/ DEAD_CELL（清单单元格）
+   与 export_static_data.js 的 UNAVAILABLE_REASON 逐字一致，由专项测试跨层断言守护。 */
+const DEAD_NOTE = '暂时无法取到，请检查钉钉原链接是否删除或者通道有问题';
+const DEAD_TIP = '该附件暂时无法取到：钉钉取链接口未返回可用下载地址，请检查钉钉原链接是否删除或者通道有问题；本地快照未留存副本，暂无法下载。若原链接仍然有效，可待取链通道恢复后重新同步取回。';
+const DEAD_CELL = '暂时无法取到，请检查钉钉原链接是否删除或者通道有问题（本地快照未留存副本，暂无法下载）';
 function attStat(arr) {
   const list = arr || []; const total = list.length;
   const ok = list.filter((a) => a && a.url).length;
@@ -945,14 +947,14 @@ function attSummary(arr) {
   if (!st.total) return '';
   const base = `可下载 <b>${st.ok}</b> / 共 <b>${st.total}</b> 个`;
   if (!st.dead) return `<div class="note" style="margin:-2px 0 10px">${base}。</div>`;
-  return `<div class="note" style="margin:-2px 0 10px">${base}；其中 <b>${st.dead}</b> 个已失效——` +
-    `钉钉钉盘已清理该审批的原始文件（<b>${DEAD_NOTE}</b>），取链接口返回失败且本地快照未留存副本，` +
-    `<b>无法下载、不可恢复</b>。每个失效附件下方均已单独标注原因。</div>`;
+  return `<div class="note" style="margin:-2px 0 10px">${base}；其中 <b>${st.dead}</b> 个暂时无法取到——` +
+    `<b>${DEAD_NOTE}</b>；本地快照未留存副本，暂无法下载。` +
+    `每个取不到的附件下方均已单独标注该提醒。</div>`;
 }
-/* 单个失效附件的可见备注（不依赖鼠标悬停）；详情页、抽屉、时间线共用 */
+/* 单个取不到附件的可见备注（不依赖鼠标悬停）；详情页、抽屉、时间线共用 */
 function deadNoteHtml(cls) {
   return `<div class="${cls}"><span class="warnico" aria-hidden="true">⚠</span>` +
-    `<b>已失效：${DEAD_NOTE}</b> · 钉钉钉盘已清理，本地无副本，不可恢复</div>`;
+    `<b>${DEAD_NOTE}</b> · 本地快照未留存副本，暂无法下载</div>`;
 }
 
 /* 外链附件下载页：随 ZIP 一起交付。浏览器不允许网页读取跨域文件字节，
@@ -1007,7 +1009,7 @@ code{background:var(--panel);border:1px solid var(--line);border-radius:3px;padd
 <span class="hint" id="tip">浏览器可能提示「允许多个文件下载」，请选择允许。</span></div>
 <table><thead><tr><th>#</th><th>附件 / 所属单据</th><th>大小</th><th>操作</th></tr></thead>
 <tbody>${rows}</tbody></table>
-<p class="foot">说明：这些文件本身可以正常下载，只是无法被网页批量打包。失效（钉钉侧已清理）的附件不在此列，见 <code>_下载失败清单.csv</code>。</p>
+<p class="foot">说明：这些文件本身可以正常下载，只是无法被网页批量打包。暂时无法取到的附件不在此列，见 <code>_已失效附件清单.csv</code>。</p>
 </div><script>
 (function(){var urls=${urls},names=${names},i=0,b=document.getElementById('dlall'),t=document.getElementById('tip');
 b.addEventListener('click',function(){if(!urls.length)return;b.disabled=true;
@@ -1023,7 +1025,7 @@ step();});})();
  * 四类结果分别处理，绝不静默丢弃：
  *   ① 同源附件 → 抓字节进 ZIP
  *   ② 外链附件 → 跨域不可 fetch，写入「外链清单.csv」（含可点击直链，逐个下载）
- *   ③ 钉钉侧已失效 → 不 fetch，写入「_已失效附件清单.csv」，材料清单逐条标注原因
+ *   ③ 暂时无法取到 → 不 fetch，写入「_已失效附件清单.csv」，材料清单逐条标注排查提醒
  *   ④ 抓取失败 → 写入「下载失败清单.csv」
  * opts.manifestHead: 附加的自定义清单行（二维数组），置于「_材料清单.csv」开头。
  */
@@ -1058,11 +1060,11 @@ async function zipAndDownload(items, zipName, opts) {
 
     if (!withBytes.length && !external.length && !failed.length && !dead.length) { toast('没有可下载的附件'); return; }
 
-    // 已失效清单：钉钉侧原始文件已删除/下载链接已撤销，本地无副本，不可恢复。
+    // 取不到的附件清单：不臆断原因，给出排查方向，并说明本地无副本。
     // 这些附件过去被直接跳过，事后看清单不知道少了什么；现在必须逐条如实列出。
     if (dead.length) {
-      const rows = [['说明', '以下附件在钉钉侧已失效（' + DEAD_NOTE + '），钉钉钉盘已清理，本地快照未留存副本，无法下载、不可恢复；已如实列出，不做静默跳过。'], [],
-        ['审批编号', '归属公司', '单据', '用印日期', '印章', '附件类型', '附件文件名', '失效原因']];
+      const rows = [['说明', '以下附件暂时无法取到：' + DEAD_NOTE + '；钉钉取链接口未返回可用下载地址，本地快照未留存副本，暂无法下载。已如实列出，不做静默跳过，请按单据到钉钉核对原链接与取链通道。'], [],
+        ['审批编号', '归属公司', '单据', '用印日期', '印章', '附件类型', '附件文件名', '原因与排查提醒']];
       for (const d of dead) rows.push([d.no, d.owner, d.doc, d.date, d.seal, kindCn(d), d.name, d.reason || DEAD_CELL]);
       withBytes.push({ name: '_已失效附件清单.csv', bytes: new Uint8Array(await csvBlob(rows).arrayBuffer()) });
     }
@@ -1077,7 +1079,7 @@ async function zipAndDownload(items, zipName, opts) {
     }
     // 失败清单
     if (failed.length) {
-      const rows = [['说明', '以下附件在抓取时失败（多为钉钉侧文件已清理），未打进 ZIP。'], [],
+      const rows = [['说明', '以下附件在抓取时失败（可能是钉钉原链接失效或取链通道异常），未打进 ZIP；请检查钉钉原链接是否删除或者通道有问题。'], [],
         ['审批编号', '归属公司', '单据', '用印日期', '附件文件名', '失败原因']];
       for (const f of failed) rows.push([f.it.no, f.it.owner, f.it.doc, f.it.date, f.it.name, f.msg]);
       withBytes.push({ name: '_下载失败清单.csv', bytes: new Uint8Array(await csvBlob(rows).arrayBuffer()) });
@@ -1097,7 +1099,7 @@ async function zipAndDownload(items, zipName, opts) {
     if (failed.length) parts.push(failed.length + ' 个失败（见清单）');
     toast('已生成 ZIP（' + parts.join('，') + '）');
     if (external.length) console.warn('以下附件为跨域外链，已写入「_外链附件清单.csv」：', external);
-    if (dead.length) console.warn('以下附件在钉钉侧已失效，已写入「_已失效附件清单.csv」：', dead);
+    if (dead.length) console.warn('以下附件暂时无法取到（请检查钉钉原链接是否删除或者通道有问题），已写入「_已失效附件清单.csv」：', dead);
     if (failed.length) console.warn('以下附件抓取失败，已写入「_下载失败清单.csv」：', failed);
   } catch (e) { toast('打包失败：' + e.message); }
 }
@@ -1291,7 +1293,7 @@ function exportPartyDocsCsv(docs, name) {
     const fs = doc.files || [];
     const st = attStat(fs);
     // 逐个附件标注状态；失效项直接写明原因，避免事后看清单不知道少了什么
-    const files = fs.map((f) => `[${f.kind === 'flow' ? '流转' : '用印文件'}|${f.url ? '可下载' : '已失效：' + DEAD_NOTE}] ${f.fileName || f.fileId || ''}`).join('; ');
+    const files = fs.map((f) => `[${f.kind === 'flow' ? '流转' : '用印文件'}|${f.url ? '可下载' : DEAD_NOTE}] ${f.fileName || f.fileId || ''}`).join('; ');
     // 归属公司：doc.owner 由后端写入；旧快照无此字段时从 records 现场推导
     const rec = REC_BY_ID[doc.id];
     const owner = doc.owner || (rec ? ownerOfRec(rec) : '');
@@ -1780,7 +1782,7 @@ async function openParty(i) {
       ZIP 内含按「日期_印章」分目录的原始附件（用印文件 + 审批流转附件），并附「_材料清单.csv」。
       跨域外链附件写入「_外链附件清单.csv」与「_外链附件下载.html」（含可点击直链，可依次下载），
       抓取失败的写入「_下载失败清单.csv」，均如实列出，不做静默跳过。
-      ${STATIC && st.dead ? `<br>已失效的 ${st.dead} 个附件：钉钉钉盘已清理原始文件（<b>${DEAD_NOTE}</b>），取链接口返回失败且本地快照未留存副本，<b>无法下载、不可恢复</b>；每个失效附件下方均已单独标注原因，并写入 ZIP 内的「_已失效附件清单.csv」。` : ''}
+      ${STATIC && st.dead ? `<br>其中 ${st.dead} 个附件暂时无法取到：<b>${DEAD_NOTE}</b>；本地快照未留存副本，暂无法下载。每个取不到的附件下方均已单独标注该提醒，并写入 ZIP 内的「_已失效附件清单.csv」。` : ''}
     </div>`;
 
     const body = d.docs.map((doc) => {
@@ -1960,7 +1962,7 @@ async function openDetail(id) {
         const meta = f.fileSize ? `<span class="fsz">${fmtSize(f.fileSize)}</span>` : '';
         return STATIC
           ? (m ? `<a class="tlfile" href="${esc(m)}" download="${esc(f.fileName || 'file')}" title="下载 ${label}">📎 ${label}${meta}</a>`
-               : `<span class="tlfile dead" title="${esc(DEAD_TIP)}">📎 ${label}${meta}<em>已失效 · ${DEAD_NOTE}</em></span>`)
+               : `<span class="tlfile dead" title="${esc(DEAD_TIP)}">📎 ${label}${meta}<em>⚠ ${DEAD_NOTE}</em></span>`)
           : `<button class="tlfile" data-flowatt-id="${esc(f.fileId)}" title="下载 ${label}">📎 ${label}${meta}</button>`;
       }).join('')}</div>` : '';
       const rm = o.remark ? `<div class="t3">${esc(o.remark)}</div>` : '';
