@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教培业务 · 共享文件夹库</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg-primary:#1a1a2e; --bg-secondary:#16213e;
+  --glass-bg:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.10);
+  --glass-shadow:0 8px 32px 0 rgba(0,0,0,0.37);
+  --gradient-primary:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
+  --gradient-secondary:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  --gradient-success:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%);
+  --text-primary:#ffffff; --text-secondary:rgba(255,255,255,0.72);
+  --text-muted:rgba(255,255,255,0.5); --text-light:rgba(255,255,255,0.4);
+  --border-color:rgba(255,255,255,0.12);
+  --primary-blue:#4facfe; --success:#43e97b; --warning:#f59e0b; --danger:#ff6a88;
+  --accent:#a78bfa;
+  --radius-lg:14px; --radius-xl:20px;
+  --sidebar-w:290px;
+}
+body {
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg-primary); color:var(--text-primary); min-height:100vh; overflow:hidden;
+}
+.bg-orb { position:fixed; border-radius:50%; filter:blur(80px); opacity:.28; pointer-events:none; z-index:0; }
+.bg-orb-1 { width:520px; height:520px; background:#4facfe; top:-180px; left:-120px; }
+.bg-orb-2 { width:460px; height:460px; background:#a78bfa; bottom:-200px; right:-100px; }
+.bg-orb-3 { width:380px; height:380px; background:#43e97b; top:38%; left:52%; opacity:.14; }
+
+.app { position:relative; z-index:1; display:flex; flex-direction:column; height:100vh; }
+
+/* ===== 头部 ===== */
+.header {
+  height:68px; flex-shrink:0; display:flex; align-items:center; gap:16px; padding:0 24px;
+  background:var(--glass-bg); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--glass-border);
+}
+.logo { display:flex; align-items:center; gap:12px; min-width:0; }
+.logo-ico {
+  width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:20px; background:rgba(167,139,250,.16); flex-shrink:0;
+}
+.logo-txt h1 { font-size:16px; font-weight:600; white-space:nowrap; }
+.logo-txt p { font-size:11px; color:var(--text-muted); white-space:nowrap; }
+.header-actions { margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.btn {
+  padding:8px 16px; background:var(--glass-bg); border:1px solid var(--glass-border);
+  border-radius:20px; color:var(--text-primary); font-size:13px; cursor:pointer;
+  transition:all .25s; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  font-family:inherit;
+}
+.btn:hover { background:rgba(255,255,255,0.09); border-color:rgba(79,172,254,.35); }
+.btn-primary { background:var(--gradient-secondary); border-color:transparent; }
+.btn-primary:hover { filter:brightness(1.12); }
+.btn-accent { background:rgba(167,139,250,.16); border-color:rgba(167,139,250,.4); }
+.btn-accent:hover { background:rgba(167,139,250,.26); }
+.btn-ghost-danger { color:#e57373; border-color:rgba(229,115,115,.32); }
+.btn-ghost-danger:hover { background:rgba(229,115,115,.12); border-color:rgba(229,115,115,.6); }
+.btn:disabled { opacity:.45; cursor:not-allowed; }
+
+/* ===== 主体布局 ===== */
+.body-wrap { flex:1; display:flex; min-height:0; }
+
+/* 左侧：文件夹分布区 */
+.tree-panel {
+  width:var(--sidebar-w); flex-shrink:0; display:flex; flex-direction:column;
+  background:rgba(255,255,255,0.03); border-right:1px solid var(--glass-border); min-height:0;
+}
+.tree-head {
+  padding:14px 16px; border-bottom:1px solid var(--glass-border); flex-shrink:0;
+}
+.tree-head-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.tree-title { font-size:13px; font-weight:600; color:var(--text-secondary); letter-spacing:.4px; }
+.tree-sub { font-size:11px; color:var(--text-light); margin-top:5px; line-height:1.5; }
+.tree-add {
+  padding:5px 11px; font-size:12px; border-radius:14px; cursor:pointer; font-family:inherit;
+  background:rgba(67,233,123,.14); border:1px solid rgba(67,233,123,.38); color:#9be8b5;
+  transition:all .22s; white-space:nowrap;
+}
+.tree-add:hover { background:rgba(67,233,123,.24); }
+.tree-search { margin-top:10px; position:relative; }
+.tree-search input {
+  width:100%; padding:7px 12px 7px 30px; background:var(--glass-bg);
+  border:1px solid var(--glass-border); border-radius:16px; color:var(--text-primary);
+  font-size:12.5px; outline:none; transition:border-color .2s; font-family:inherit;
+}
+.tree-search input:focus { border-color:rgba(79,172,254,.5); }
+.tree-search .si { position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:12px; opacity:.55; }
+.tree-scroll { flex:1; overflow-y:auto; padding:10px 8px 20px; }
+.tree-scroll::-webkit-scrollbar { width:8px; }
+.tree-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,.13); border-radius:4px; }
+.tree-scroll::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.22); }
+
+/* 树节点 */
+.node { user-select:none; }
+.node-row {
+  display:flex; align-items:center; gap:6px; padding:6px 8px; border-radius:9px;
+  cursor:pointer; transition:background .18s; position:relative; font-size:13px;
+}
+.node-row:hover { background:rgba(255,255,255,.07); }
+.node-row.active { background:rgba(79,172,254,.16); box-shadow:inset 0 0 0 1px rgba(79,172,254,.3); }
+.node-row.drop-target { background:rgba(67,233,123,.16); box-shadow:inset 0 0 0 1px rgba(67,233,123,.5); }
+.caret {
+  width:16px; flex-shrink:0; text-align:center; font-size:9px; color:var(--text-light);
+  transition:transform .18s; display:inline-block;
+}
+.caret.open { transform:rotate(90deg); }
+.caret.leaf { visibility:hidden; }
+.node-ico { flex-shrink:0; font-size:13px; }
+.node-name {
+  flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  outline:none; border-radius:5px; padding:1px 3px;
+}
+.node-name[contenteditable="true"] {
+  background:rgba(0,0,0,.35); box-shadow:inset 0 0 0 1px var(--primary-blue);
+  cursor:text; text-overflow:clip;
+}
+.node-cnt { font-size:10.5px; color:var(--text-light); flex-shrink:0; padding-right:2px; }
+.node-ops { display:none; gap:2px; flex-shrink:0; }
+.node-row:hover .node-ops { display:flex; }
+.node-op {
+  width:20px; height:20px; border-radius:5px; border:none; cursor:pointer;
+  background:rgba(255,255,255,.09); color:var(--text-secondary); font-size:11px;
+  display:flex; align-items:center; justify-content:center; transition:all .18s; font-family:inherit;
+  padding:0;
+}
+.node-op:hover { background:rgba(255,255,255,.2); color:#fff; }
+.node-op.danger:hover { background:rgba(229,115,115,.3); color:#ffb4b4; }
+.node-children { margin-left:13px; border-left:1px dashed rgba(255,255,255,.11); padding-left:3px; }
+.tree-empty { padding:22px 14px; text-align:center; font-size:12.5px; color:var(--text-light); line-height:1.7; }
+
+/* 右侧：文件区 */
+.main { flex:1; display:flex; flex-direction:column; min-width:0; min-height:0; }
+.crumb-bar {
+  padding:12px 22px; border-bottom:1px solid var(--glass-border); flex-shrink:0;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+.crumb { display:flex; align-items:center; gap:6px; font-size:13px; flex-wrap:wrap; min-width:0; user-select:none; }
+.crumb-item { color:var(--primary-blue); cursor:pointer; }
+.crumb-item:hover { text-decoration:underline; }
+.crumb-sep { color:var(--text-light); font-size:11px; }
+.crumb-cur { color:var(--text-primary); font-weight:500; }
+.crumb-bar .spacer { flex:1; }
+.main-scroll { flex:1; overflow-y:auto; padding:18px 22px 40px; position:relative; }
+.main-scroll::-webkit-scrollbar { width:9px; }
+.main-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,.13); border-radius:4px; }
+.main-scroll::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.22); }
+
+/* 拖拽遮罩 */
+.drop-veil {
+  position:absolute; inset:12px; border:2px dashed rgba(79,172,254,.65); border-radius:var(--radius-lg);
+  background:rgba(79,172,254,.09); display:none; align-items:center; justify-content:center;
+  flex-direction:column; gap:10px; z-index:50; pointer-events:none; text-align:center; padding:20px;
+}
+.drop-veil.show { display:flex; }
+.drop-veil-ico { font-size:42px; }
+.drop-veil-txt { font-size:15px; font-weight:600; }
+.drop-veil-sub { font-size:12.5px; color:var(--text-secondary); line-height:1.6; max-width:520px; }
+
+/* 网格 */
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(178px,1fr)); gap:13px; }
+.card {
+  background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--radius-lg);
+  padding:15px 14px; cursor:pointer; transition:all .22s; position:relative; overflow:hidden;
+  display:flex; flex-direction:column; gap:9px; min-height:118px;
+}
+.card:hover { transform:translateY(-3px); background:rgba(255,255,255,.09); border-color:rgba(79,172,254,.35); }
+.card-folder:hover { border-color:rgba(167,139,250,.5); }
+.card-top { display:flex; align-items:flex-start; gap:9px; }
+.badge {
+  width:38px; height:38px; border-radius:10px; flex-shrink:0; display:flex;
+  align-items:center; justify-content:center; font-size:10.5px; font-weight:700; color:#fff;
+  letter-spacing:.3px;
+}
+.card-name {
+  font-size:13px; font-weight:500; line-height:1.42; word-break:break-word;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.card-meta { font-size:11px; color:var(--text-light); margin-top:auto; }
+.card-ops {
+  position:absolute; top:8px; right:8px; display:none; gap:4px;
+}
+.card:hover .card-ops { display:flex; }
+.card-tagline { font-size:11px; color:var(--text-muted); }
+
+.sec-label {
+  font-size:11.5px; font-weight:600; color:var(--text-light); letter-spacing:.6px;
+  text-transform:uppercase; margin:0 0 11px;
+}
+.sec-label.mt { margin-top:26px; }
+
+.empty { text-align:center; padding:56px 20px; color:var(--text-light); }
+.empty-ico { font-size:46px; margin-bottom:14px; opacity:.55; }
+.empty-t { font-size:15px; color:var(--text-secondary); margin-bottom:7px; }
+.empty-s { font-size:12.5px; line-height:1.75; max-width:430px; margin:0 auto; }
+
+/* 统计条 */
+.stats { display:flex; gap:10px; flex-wrap:wrap; }
+.stat {
+  background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:11px;
+  padding:9px 15px; font-size:12px; color:var(--text-secondary);
+}
+.stat b { color:var(--text-primary); font-size:14px; font-weight:600; margin-right:4px; }
+
+/* Toast */
+#toast {
+  position:fixed; left:50%; bottom:34px; transform:translateX(-50%); z-index:9999;
+  padding:12px 20px; border-radius:11px; font-size:13.5px; color:#fff;
+  box-shadow:0 10px 30px rgba(0,0,0,.4); opacity:0; transition:opacity .26s;
+  pointer-events:none; max-width:82%; line-height:1.5;
+}
+
+/* Modal */
+.veil {
+  position:fixed; inset:0; background:rgba(0,0,0,.68); backdrop-filter:blur(5px);
+  z-index:9000; display:none; align-items:center; justify-content:center; padding:20px;
+}
+.veil.show { display:flex; }
+.modal {
+  background:var(--bg-secondary); border:1px solid var(--glass-border); border-radius:var(--radius-xl);
+  max-width:660px; width:100%; max-height:86vh; display:flex; flex-direction:column;
+  box-shadow:0 24px 70px rgba(0,0,0,.55); animation:mIn .28s ease;
+}
+@keyframes mIn { from{opacity:0;transform:scale(.965) translateY(16px);} to{opacity:1;transform:none;} }
+.modal-head {
+  padding:17px 22px; border-bottom:1px solid var(--glass-border);
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-shrink:0;
+}
+.modal-head h3 { font-size:15px; font-weight:600; }
+.modal-x {
+  background:none; border:none; color:var(--text-muted); font-size:21px; cursor:pointer;
+  line-height:1; padding:0 4px; font-family:inherit;
+}
+.modal-x:hover { color:#fff; }
+.modal-body { padding:20px 22px; overflow-y:auto; font-size:13.5px; line-height:1.7; color:var(--text-secondary); }
+.modal-body h4 { font-size:13px; color:var(--text-primary); margin:0 0 9px; font-weight:600; }
+.modal-body h4.mt { margin-top:20px; }
+.modal-body p { margin:0 0 11px; }
+.modal-body ol, .modal-body ul { margin:0 0 13px; padding-left:21px; }
+.modal-body li { margin-bottom:6px; }
+.modal-body code {
+  background:rgba(255,255,255,.09); padding:2px 7px; border-radius:5px;
+  font-family:ui-monospace,Consolas,monospace; font-size:12.5px; color:#9be8b5;
+}
+.modal-foot {
+  padding:15px 22px; border-top:1px solid var(--glass-border);
+  display:flex; gap:10px; justify-content:flex-end; flex-shrink:0; flex-wrap:wrap;
+}
+.hint-box {
+  background:rgba(79,172,254,.09); border:1px solid rgba(79,172,254,.3);
+  border-radius:10px; padding:12px 15px; font-size:12.5px; line-height:1.65; margin-bottom:16px;
+}
+.hint-box.warn { background:rgba(245,158,11,.1); border-color:rgba(245,158,11,.34); }
+.hint-box.ok { background:rgba(67,233,123,.1); border-color:rgba(67,233,123,.32); }
+.preset-chips { display:flex; flex-wrap:wrap; gap:7px; margin:11px 0 4px; }
+.preset-chip {
+  padding:6px 13px; background:var(--glass-bg); border:1px solid var(--glass-border);
+  border-radius:16px; font-size:12.5px; cursor:pointer; transition:all .2s; color:var(--text-primary);
+  font-family:inherit;
+}
+.preset-chip:hover { background:rgba(167,139,250,.2); border-color:rgba(167,139,250,.5); }
+.inp {
+  width:100%; padding:10px 14px; background:rgba(0,0,0,.28); border:1px solid var(--glass-border);
+  border-radius:9px; color:var(--text-primary); font-size:13.5px; outline:none;
+  transition:border-color .2s; font-family:inherit;
+}
+.inp:focus { border-color:var(--primary-blue); }
+.tree-view {
+  background:rgba(0,0,0,.3); border:1px solid var(--glass-border); border-radius:9px;
+  padding:13px 15px; font-family:ui-monospace,Consolas,monospace; font-size:12px;
+  line-height:1.85; max-height:270px; overflow:auto; white-space:pre; color:#9be8b5;
+}
+
+@media (max-width:900px) {
+  .tree-panel { position:absolute; z-index:60; height:100%; box-shadow:0 0 40px rgba(0,0,0,.6); }
+  .tree-panel.hide { display:none; }
+  .header { height:auto; padding:12px 16px; flex-wrap:wrap; }
+  .logo-txt p { display:none; }
+  .grid { grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); }
+  .crumb-bar, .main-scroll { padding-left:14px; padding-right:14px; }
+}
+</style>
+</head>
+<body>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
+
+<div class="app">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-ico">🎓</div>
+      <div class="logo-txt">
+        <h1>教培业务 · 共享文件夹库</h1>
+        <p>按学校分类 · 项目子文件夹 · 拖拽整文件夹入库</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btnToggleTree" title="收起/展开左侧文件夹区" style="display:none">☰</button>
+      <button class="btn btn-primary" id="btnNewSchool">＋ 新建学校</button>
+      <button class="btn btn-accent" id="btnUpload">📤 上传文件</button>
+      <button class="btn" id="btnExport">📦 导出</button>
+      <button class="btn" id="btnImport">📥 导入</button>
+      <button class="btn" id="btnHelp">❓ 使用说明</button>
+      <a class="btn" href="../">← 返回知识库</a>
+    </div>
+  </header>
+
+  <div class="body-wrap">
+    <aside class="tree-panel" id="treePanel">
+      <div class="tree-head">
+        <div class="tree-head-row">
+          <div class="tree-title">文件夹分布</div>
+          <button class="tree-add" id="btnNewSchool2">＋ 新建学校</button>
+        </div>
+        <div class="tree-sub">双击名称可改名 · 悬停出现 ＋ 建子文件夹</div>
+        <div class="tree-search">
+          <span class="si">🔍</span>
+          <input type="text" id="treeSearch" placeholder="搜索学校 / 项目 / 文件…" autocomplete="off">
+        </div>
+      </div>
+      <div class="tree-scroll" id="treeScroll"></div>
+    </aside>
+
+    <main class="main">
+      <div class="crumb-bar">
+        <div class="crumb" id="crumb"></div>
+        <div class="spacer"></div>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="main-scroll" id="mainScroll">
+        <div class="drop-veil" id="dropVeil">
+          <div class="drop-veil-ico">📂</div>
+          <div class="drop-veil-txt">松开即导入</div>
+          <div class="drop-veil-sub">拖入整个文件夹会自动按「学校 / 项目 / …」层级还原；拖入零散文件则放进当前所在文件夹。</div>
+        </div>
+        <div id="mainBody"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<input type="file" id="fileInput" multiple style="display:none"
+  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.json,.csv,.jpg,.jpeg,.png,.gif,.bmp,.webp,.zip,.rar,.7z,.mp4,.mov,.mp3">
+<input type="file" id="dirInput" webkitdirectory directory multiple style="display:none">
+<input type="file" id="importInput" accept=".json" style="display:none">
+
+<div class="veil" id="veil" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">标题</h3>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<script src="jp-tree.js"></script>
+<script src="jp-store.js"></script>
+<script>
+(function () {
+'use strict';
+var T = window.JPTree, S = window.JPStore;
+
+var PRESET_SCHOOLS = ['芳草地小学', '朝阳实验小学', '日坛中学'];
+var LS_EXPANDED = 'jiaopei_expanded';
+
+var state = {
+  root: T.createRoot(),
+  currentId: 'root',
+  expanded: {},
+  query: '',
+  busy: false
+};
+
+/* ================= 工具 ================= */
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function toast(msg, type) {
+  var el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    document.body.appendChild(el);
+  }
+  var colors = { ok: '#23c45e', warn: '#f0a020', error: '#e54848', info: '#4facfe' };
+  el.style.background = colors[type || 'ok'];
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(function () { el.style.opacity = '0'; }, 2800);
+}
+function findNode(id) {
+  var hit = T.find(state.root, id);
+  return hit ? hit.node : null;
+}
+function pathOf(id) {
+  var hit = T.find(state.root, id);
+  if (!hit) return [];
+  var chain = hit.path.concat([hit.node]);
+  return chain.filter(function (n) { return n.id !== 'root'; });
+}
+function loadExpanded() {
+  try {
+    var raw = localStorage.getItem(LS_EXPANDED);
+    if (raw) state.expanded = JSON.parse(raw) || {};
+  } catch (e) { state.expanded = {}; }
+}
+function saveExpanded() {
+  try { localStorage.setItem(LS_EXPANDED, JSON.stringify(state.expanded)); } catch (e) {}
+}
+
+/* ================= 树渲染 ================= */
+function matches(node, q) {
+  if (!q) return true;
+  if (String(node.name).toLowerCase().indexOf(q) >= 0) return true;
+  return (node.children || []).some(function (c) { return matches(c, q); });
+}
+
+function renderTree() {
+  var box = document.getElementById('treeScroll');
+  var q = state.query;
+  var html = '';
+
+  if (!state.root.children.length) {
+    box.innerHTML = '<div class="tree-empty">还没有学校<br>点上方「＋ 新建学校」开始<br>或直接把文件夹拖进来</div>';
+    return;
+  }
+
+  function nodeHtml(node, depth) {
+    if (!matches(node, q)) return '';
+    var kids = node.children || [];
+    var folders = kids.filter(function (c) { return c.type === 'folder'; });
+    var files = kids.filter(function (c) { return c.type === 'file'; });
+    var open = !!state.expanded[node.id] || (!!q && folders.length > 0);
+    var active = state.currentId === node.id ? ' active' : '';
+    var ico = depth === 0 ? '🏫' : '📁';
+    var cnt = kids.length ? '<span class="node-cnt">' + kids.length + '</span>' : '';
+
+    var h = '<div class="node" data-id="' + node.id + '">'
+      + '<div class="node-row' + active + '" data-id="' + node.id + '">'
+      + '<span class="caret' + (folders.length ? (open ? ' open' : '') : ' leaf') + '">▶</span>'
+      + '<span class="node-ico">' + ico + '</span>'
+      + '<span class="node-name" data-id="' + node.id + '" title="' + esc(node.name) + '">' + esc(node.name) + '</span>'
+      + cnt
+      + '<span class="node-ops">'
+      + '<button class="node-op" data-act="add" data-id="' + node.id + '" title="新建子文件夹">＋</button>'
+      + '<button class="node-op" data-act="ren" data-id="' + node.id + '" title="重命名">✎</button>'
+      + '<button class="node-op danger" data-act="del" data-id="' + node.id + '" title="删除">✕</button>'
+      + '</span></div>';
+
+    if (folders.length) {
+      var inner = '';
+      folders.forEach(function (f) { inner += nodeHtml(f, depth + 1); });
+      // 文件不在树里铺开（右侧展示），只提示数量
+      h += '<div class="node-children" style="display:' + (open ? 'block' : 'none') + '">' + inner + '</div>';
+    }
+    return h + '</div>';
+  }
+
+  state.root.children.forEach(function (s) { html += nodeHtml(s, 0); });
+
+  if (!html) {
+    box.innerHTML = '<div class="tree-empty">没有匹配「' + esc(q) + '」的学校或项目</div>';
+    return;
+  }
+  box.innerHTML = html;
+}
+
+/* ================= 主区渲染 ================= */
+function renderMain() {
+  var node = findNode(state.currentId) || state.root;
+  var q = state.query;
+  var body = document.getElementById('mainBody');
+  var kids = node.children || [];
+  var folders = kids.filter(function (c) { return c.type === 'folder'; });
+  var files = kids.filter(function (c) { return c.type === 'file'; });
+
+  // 搜索态：全局列出命中项
+  if (q) {
+    var hits = [];
+    T.walk(state.root, function (n) {
+      if (n.id === 'root') return;
+      if (String(n.name).toLowerCase().indexOf(q) >= 0) hits.push(n);
+    });
+    body.innerHTML = '<div class="sec-label">搜索「' + esc(q) + '」· ' + hits.length + ' 项</div>'
+      + (hits.length
+        ? '<div class="grid">' + hits.map(function (n) {
+            return n.type === 'folder' ? folderCard(n) : fileCard(n);
+          }).join('') + '</div>'
+        : '<div class="empty"><div class="empty-ico">🔍</div><div class="empty-t">没有找到匹配项</div>'
+          + '<div class="empty-s">试试更短的关键词，或清空搜索框回到当前文件夹。</div></div>');
+    renderStats();
+    renderCrumb();
+    return;
+  }
+
+  if (!folders.length && !files.length) {
+    var isRoot = node.id === 'root';
+    body.innerHTML = '<div class="empty">'
+      + '<div class="empty-ico">' + (isRoot ? '🏫' : '📁') + '</div>'
+      + '<div class="empty-t">' + (isRoot ? '还没有学校分类' : '这个文件夹还是空的') + '</div>'
+      + '<div class="empty-s">'
+      + (isRoot
+        ? '点右上角「＋ 新建学校」建立分类，或直接把整个学校文件夹拖到此处——会自动按层级还原。'
+        : '把文件或整个子文件夹拖到这里；也可以用左侧节点上的「＋」新建子文件夹。')
+      + '</div></div>';
+    renderStats();
+    renderCrumb();
+    return;
+  }
+
+  var h = '';
+  if (folders.length) {
+    h += '<div class="sec-label">文件夹 · ' + folders.length + '</div>'
+      + '<div class="grid">' + folders.map(folderCard).join('') + '</div>';
+  }
+  if (files.length) {
+    h += '<div class="sec-label' + (folders.length ? ' mt' : '') + '">文件 · ' + files.length + '</div>'
+      + '<div class="grid">' + files.map(fileCard).join('') + '</div>';
+  }
+  body.innerHTML = h;
+  renderStats();
+  renderCrumb();
+}
+
+function folderCard(n) {
+  var c = T.count(n);
+  var sub = c.folders + ' 子文件夹 · ' + c.files + ' 文件';
+  return '<div class="card card-folder" data-open="' + n.id + '">'
+    + '<div class="card-ops">'
+    + '<button class="node-op" data-act="add" data-id="' + n.id + '" title="新建子文件夹">＋</button>'
+    + '<button class="node-op" data-act="ren" data-id="' + n.id + '" title="重命名">✎</button>'
+    + '<button class="node-op danger" data-act="del" data-id="' + n.id + '" title="删除">✕</button>'
+    + '</div>'
+    + '<div class="card-top"><div class="badge" style="background:linear-gradient(135deg,#667eea,#764ba2)">DIR</div>'
+    + '<div class="card-name">' + esc(n.name) + '</div></div>'
+    + '<div class="card-tagline">' + (n.source === 'dropped' ? '拖拽导入' : n.source === 'imported' ? '导入' : '自建') + '</div>'
+    + '<div class="card-meta">' + sub + '</div></div>';
+}
+
+function fileCard(n) {
+  var b = T.fileBadge(n.name);
+  return '<div class="card" data-file="' + n.id + '">'
+    + '<div class="card-ops">'
+    + '<button class="node-op" data-act="dl" data-id="' + n.id + '" title="下载">⤓</button>'
+    + '<button class="node-op danger" data-act="del" data-id="' + n.id + '" title="删除">✕</button>'
+    + '</div>'
+    + '<div class="card-top"><div class="badge" style="background:' + b.color + '">' + esc(b.label) + '</div>'
+    + '<div class="card-name" title="' + esc(n.name) + '">' + esc(n.name) + '</div></div>'
+    + '<div class="card-meta">' + T.formatSize(n.size) + '</div></div>';
+}
+
+function renderCrumb() {
+  var chain = pathOf(state.currentId);
+  var h = '<span class="crumb-item" data-goto="root">🏫 全部学校</span>';
+  chain.forEach(function (n) {
+    h += '<span class="crumb-sep">›</span>'
+      + '<span class="' + (n.id === state.currentId ? 'crumb-cur' : 'crumb-item')
+      + '" data-goto="' + n.id + '">' + esc(n.name) + '</span>';
+  });
+  document.getElementById('crumb').innerHTML = h;
+}
+
+function renderStats() {
+  var node = findNode(state.currentId) || state.root;
+  var all = T.count(state.root);
+  var cur = T.count(node);
+  var parts = [];
+  if (node.id !== 'root') {
+    parts.push('<span class="stat"><b>' + cur.folders + '</b>子文件夹</span>');
+    parts.push('<span class="stat"><b>' + cur.files + '</b>文件</span>');
+  }
+  parts.push('<span class="stat"><b>' + T.listSchools(state.root).length + '</b>学校</span>');
+  parts.push('<span class="stat"><b>' + all.files + '</b>总文件</span>');
+  parts.push('<span class="stat"><b>' + T.formatSize(all.bytes) + '</b>占用</span>');
+  document.getElementById('stats').innerHTML = parts.join('');
+}
+
+function renderAll() { renderTree(); renderMain(); }
+
+/* 仅更新选中态，不重建 DOM —— 否则会打断双击改名 */
+function setActiveInTree(id) {
+  var rows = document.querySelectorAll('#treeScroll .node-row');
+  for (var i = 0; i < rows.length; i++) {
+    var rid = rows[i].getAttribute('data-id');
+    if (rid === id) rows[i].classList.add('active');
+    else rows[i].classList.remove('active');
+  }
+}
+
+/* ================= 持久化 ================= */
+function persist() {
+  return S.saveTree(T.serialize(state.root)).catch(function (e) {
+    toast('保存失败：' + (e && e.message ? e.message : e), 'error');
+  });
+}
+function hydrate() {
+  return S.loadTree().then(function (pkg) {
+    if (!pkg) {
+      // 首次：写入预设学校
+      PRESET_SCHOOLS.forEach(function (n) { T.addFolder(state.root, n, { dup: 'merge', source: 'preset' }); });
+      state.root.children.forEach(function (c) { state.expanded[c.id] = true; });
+      return persist();
+    }
+    var loaded;
+    try { loaded = T.deserialize(pkg); }
+    catch (e) { toast('本地数据结构异常，已重建空库', 'warn'); return; }
+    state.root = loaded;
+    // 展开第一层
+    state.root.children.forEach(function (c) { if (state.expanded[c.id] === undefined) state.expanded[c.id] = true; });
+  }).catch(function (e) {
+    toast('读取本地数据失败：' + (e && e.message ? e.message : e), 'error');
+  });
+}
+
+/* ================= 操作 ================= */
+function newSchool() {
+  openModal('新建学校分类', ''
+    + '<h4>学校名称</h4>'
+    + '<input class="inp" id="mSchoolName" placeholder="例如：芳草地小学" autocomplete="off">'
+    + '<div class="preset-chips" id="mPresets">'
+    + PRESET_SCHOOLS.map(function (n) { return '<button class="preset-chip" data-p="' + esc(n) + '">' + esc(n) + '</button>'; }).join('')
+    + '</div>'
+    + '<div class="hint-box" style="margin-top:16px;margin-bottom:0">建好后双击名称即可改名；也可以直接把整个学校文件夹拖进页面，自动生成。</div>',
+    [{ label: '取消', cls: 'btn', act: closeModal },
+     { label: '创建', cls: 'btn btn-primary', act: doNewSchool }]);
+  setTimeout(function () { var i = document.getElementById('mSchoolName'); if (i) i.focus(); }, 60);
+  document.getElementById('mSchoolName').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doNewSchool();
+  });
+  var pw = document.getElementById('mPresets');
+  if (pw) pw.addEventListener('click', function (e) {
+    var b = e.target.closest('.preset-chip');
+    if (b) document.getElementById('mSchoolName').value = b.getAttribute('data-p');
+  });
+}
+
+function doNewSchool() {
+  var inp = document.getElementById('mSchoolName');
+  var name = (inp.value || '').trim();
+  if (!name) { toast('请输入学校名称', 'warn'); inp.focus(); return; }
+  try {
+    var f = T.addFolder(state.root, name, { dup: 'auto', source: 'user' });
+    state.expanded[f.id] = true;
+    state.currentId = f.id;
+    saveExpanded();
+    closeModal();
+    renderAll();
+    persist();
+    toast('已创建：' + f.name);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function newSubFolder(parentId) {
+  var parent = findNode(parentId);
+  if (!parent) return;
+  openModal('新建子文件夹', ''
+    + '<div class="hint-box">父文件夹：<b>' + esc(parent.name) + '</b></div>'
+    + '<h4>文件夹名称</h4>'
+    + '<input class="inp" id="mSubName" placeholder="例如：2026春 课后服务" autocomplete="off">'
+    + '<div class="preset-chips" id="mSubPresets">'
+    + ['2026春 课后服务', '2026秋 项目', '合同文件', '教学资料', '证照资质'].map(function (n) {
+        return '<button class="preset-chip" data-p="' + esc(n) + '">' + esc(n) + '</button>';
+      }).join('')
+    + '</div>',
+    [{ label: '取消', cls: 'btn', act: closeModal },
+     { label: '创建', cls: 'btn btn-primary', act: function () { doNewSub(parentId); } }]);
+  setTimeout(function () { var i = document.getElementById('mSubName'); if (i) i.focus(); }, 60);
+  document.getElementById('mSubName').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doNewSub(parentId);
+  });
+  var pw = document.getElementById('mSubPresets');
+  if (pw) pw.addEventListener('click', function (e) {
+    var b = e.target.closest('.preset-chip');
+    if (b) document.getElementById('mSubName').value = b.getAttribute('data-p');
+  });
+}
+
+function doNewSub(parentId) {
+  var inp = document.getElementById('mSubName');
+  var name = (inp.value || '').trim();
+  if (!name) { toast('请输入文件夹名称', 'warn'); inp.focus(); return; }
+  var parent = findNode(parentId);
+  try {
+    var f = T.addFolder(parent, name, { dup: 'auto', source: 'user' });
+    state.expanded[parentId] = true;
+    saveExpanded();
+    closeModal();
+    renderAll();
+    persist();
+    toast('已创建：' + f.name);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+/* 内联重命名：双击名称 → contenteditable */
+function beginRename(id) {
+  var el = document.querySelector('.node-name[data-id="' + id + '"]');
+  if (!el) return;
+  var node = findNode(id);
+  if (!node) return;
+  el.setAttribute('contenteditable', 'true');
+  el.focus();
+  var r = document.createRange();
+  r.selectNodeContents(el);
+  var sel = window.getSelection();
+  sel.removeAllRanges(); sel.addRange(r);
+
+  var done = false;
+  function finish(commit) {
+    if (done) return;
+    done = true;
+    el.removeAttribute('contenteditable');
+    var val = (el.textContent || '').trim();
+    if (!commit || !val || val === node.name) { renderAll(); return; }
+    try {
+      var finalName = T.rename(state.root, id, val);
+      renderAll();
+      persist();
+      toast('已重命名为：' + finalName);
+    } catch (e) { renderAll(); toast(e.message, 'error'); }
+  }
+  el.addEventListener('blur', function () { finish(true); });
+  el.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  });
+}
+
+function delNode(id) {
+  var node = findNode(id);
+  if (!node) return;
+  var c = T.count(node);
+  var keys = T.collectBlobKeys(node);
+  var msg = node.type === 'folder'
+    ? '确定删除文件夹「' + node.name + '」？<br>其中含 <b>' + c.folders + '</b> 个子文件夹、<b>' + c.files + '</b> 个文件，将一并删除。'
+    : '确定删除文件「' + node.name + '」？';
+  openModal('删除确认', '<div class="hint-box warn">' + msg + '<br>此操作不可撤销。</div>',
+    [{ label: '取消', cls: 'btn', act: closeModal },
+     { label: '删除', cls: 'btn btn-ghost-danger', act: function () {
+        var removed = T.remove(state.root, id);
+        if (state.currentId === id || (removed && T.find(removed, state.currentId))) {
+          state.currentId = 'root';
+        }
+        closeModal();
+        renderAll();
+        S.delBlobs(keys).then(persist).catch(persist);
+        toast('已删除');
+     } }]);
+}
+
+function downloadFile(id) {
+  var node = findNode(id);
+  if (!node || node.type !== 'file') return;
+  if (!node.blobKey) { toast('该文件没有本地副本（可能是导入的目录条目）', 'warn'); return; }
+  S.getBlob(node.blobKey).then(function (blob) {
+    if (!blob) { toast('文件内容已丢失，请重新拖入', 'error'); return; }
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = node.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  });
+}
+
+/* ================= 拖拽入库（含整文件夹递归） ================= */
+function readAllEntries(reader) {
+  // Chrome 的 readEntries 单次最多返回 100 条，需循环读到空
+  return new Promise(function (res, rej) {
+    var all = [];
+    (function step() {
+      reader.readEntries(function (batch) {
+        if (!batch.length) { res(all); return; }
+        all = all.concat(Array.prototype.slice.call(batch));
+        step();
+      }, rej);
+    })();
+  });
+}
+
+function walkEntry(entry, base, out) {
+  return new Promise(function (resolve) {
+    if (!entry) { resolve(); return; }
+    if (entry.isFile) {
+      entry.file(function (file) {
+        out.push({ file: file, relPath: (base ? base + '/' : '') + entry.name });
+        resolve();
+      }, function () { resolve(); });
+    } else if (entry.isDirectory) {
+      var dir = (base ? base + '/' : '') + entry.name;
+      readAllEntries(entry.createReader()).then(function (kids) {
+        var chain = Promise.resolve();
+        kids.forEach(function (k) {
+          chain = chain.then(function () { return walkEntry(k, dir, out); });
+        });
+        return chain;
+      }).then(resolve, resolve);
+    } else { resolve(); }
+  });
+}
+
+function collectDropped(dt) {
+  // 优先用 items + webkitGetAsEntry（能拿到目录树）
+  var items = dt.items;
+  if (items && items.length) {
+    var entries = [];
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      if (it.kind !== 'file') continue;
+      var e = it.webkitGetAsEntry ? it.webkitGetAsEntry() : null;
+      if (e) entries.push(e);
+    }
+    if (entries.length) {
+      return entries.reduce(function (chain, e) {
+        return chain.then(function (acc) {
+          return walkEntry(e, '', acc).then(function () { return acc; });
+        });
+      }, Promise.resolve([]));
+    }
+  }
+  // 回退：普通文件列表（含 input webkitdirectory 的 webkitRelativePath）
+  var files = Array.prototype.slice.call(dt.files || []);
+  return Promise.resolve(files.map(function (f) {
+    return { file: f, relPath: f.webkitRelativePath || f.name };
+  }));
+}
+
+function ingestDropped(picked) {
+  if (!picked.length) { toast('没有识别到文件', 'warn'); return Promise.resolve(); }
+  var cur = findNode(state.currentId) || state.root;
+  // 判定：路径里带目录 → 还原层级挂到根；纯文件 → 放进当前文件夹
+  var hasDir = picked.some(function (p) { return p.relPath.indexOf('/') >= 0; });
+
+  var i = 0, added = 0;
+  var chain = Promise.resolve();
+
+  picked.forEach(function (p) {
+    chain = chain.then(function () {
+      var blobKey = T.uid('blob');
+      return S.putBlob(blobKey, p.file).then(function () {
+        var node;
+        if (hasDir) {
+          node = T.insertByRelPath(state.root, p.relPath, {
+            size: p.file.size, mime: p.file.type || '', blobKey: blobKey
+          });
+          // 展开顶层学校，便于看到结果
+          var top = p.relPath.split('/')[0];
+          state.root.children.forEach(function (c) {
+            if (c.name === top) state.expanded[c.id] = true;
+          });
+        } else {
+          var meta = T.makeFile(p.file.name, {
+            size: p.file.size, mime: p.file.type || '', blobKey: blobKey, source: 'dropped'
+          });
+          var dup = (cur.children || []).filter(function (c) {
+            return c.type === 'file' && c.name.toLowerCase() === meta.name.toLowerCase();
+          })[0];
+          if (dup) { dup.blobKey = blobKey; dup.size = meta.size; node = dup; }
+          else { cur.children.push(meta); node = meta; }
+        }
+        if (node) added++;
+      });
+    });
+  });
+
+  return chain.then(function () {
+    saveExpanded();
+    renderAll();
+    return persist();
+  }).then(function () {
+    toast('已导入 ' + added + ' 个文件' + (hasDir ? '，并按文件夹层级自动归类' : ''));
+  }).catch(function (e) {
+    toast('导入失败：' + (e && e.message ? e.message : e), 'error');
+  });
+}
+
+/* ================= 导出 / 导入 ================= */
+function openExport() {
+  var all = T.count(state.root);
+  var schools = T.listSchools(state.root);
+  var lines = [];
+  function treeLines(n, d) {
+    (n.children || []).forEach(function (c) {
+      lines.push('  '.repeat(d) + (c.type === 'folder' ? '📁 ' : '📄 ') + c.name);
+      if (c.type === 'folder') treeLines(c, d + 1);
+    });
+  }
+  treeLines(state.root, 0);
+
+  openModal('导出教培业务库', ''
+    + '<div class="hint-box ok">共 <b>' + schools.length + '</b> 所学校 · <b>' + all.folders + '</b> 个子文件夹 · <b>' + all.files + '</b> 个文件 · <b>' + T.formatSize(all.bytes) + '</b></div>'
+    + '<h4>结构预览</h4>'
+    + '<div class="tree-view">' + (esc(lines.join('\n')) || '（空）') + '</div>'
+    + '<h4 class="mt">导出什么</h4>'
+    + '<ul>'
+    + '<li><b>结构 JSON</b>：只含文件夹层级与文件名，体积极小。适合发给管理员用于推送到企业微信微盘。</li>'
+    + '<li><b>完整备份 ZIP</b>：结构 + 全部文件内容，用于换电脑迁移或整体交付。</li>'
+    + '</ul>',
+    [{ label: '关闭', cls: 'btn', act: closeModal },
+     { label: '导出结构 JSON', cls: 'btn btn-primary', act: exportJson },
+     { label: '导出完整 ZIP', cls: 'btn btn-accent', act: exportZip }]);
+}
+
+function stamp() {
+  var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
+  return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes());
+}
+function saveBlobAs(blob, filename) {
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+}
+
+function exportJson() {
+  var pkg = T.serialize(state.root);
+  var blob = new Blob([JSON.stringify(pkg, null, 2)], { type: 'application/json' });
+  saveBlobAs(blob, 'jiaopei-vault-' + stamp() + '.json');
+  closeModal();
+  toast('结构 JSON 已导出');
+}
+
+function ensureJSZip(cb) {
+  if (window.JSZip) { cb(true); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+  s.onload = function () { cb(!!window.JSZip); };
+  s.onerror = function () { cb(false); };
+  document.head.appendChild(s);
+}
+
+function exportZip() {
+  toast('正在打包…', 'info');
+  ensureJSZip(function (ok) {
+    if (!ok) { toast('打包组件加载失败（需联网），可改用「导出结构 JSON」', 'error'); return; }
+    var zip = new window.JSZip();
+    var jobs = [];
+    var nameMap = {};   // 去重：同名文件加序号
+
+    function safePath(seg) { return String(seg).replace(/[\\/:*?"<>|]/g, ' ').trim() || '未命名'; }
+
+    T.walk(state.root, function (n, depth) {
+      if (n.type !== 'file' || !n.blobKey) return;
+      var chain = T.find(state.root, n.id);
+      var segs = (chain ? chain.path : []).filter(function (x) { return x.id !== 'root'; })
+        .map(function (x) { return safePath(x.name); });
+      segs.push(safePath(n.name));
+      var p = segs.join('/');
+      if (nameMap[p]) { nameMap[p]++; p = p.replace(/(\.[^.]*)?$/, '_' + nameMap[p] + '$1'); }
+      else nameMap[p] = 1;
+      jobs.push(S.getBlob(n.blobKey).then(function (b) { if (b) zip.file(p, b); }));
+    });
+
+    Promise.all(jobs).then(function () {
+      // 附带结构清单，便于对照
+      zip.file('_结构清单.json', JSON.stringify(T.serialize(state.root), null, 2));
+      return zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+    }).then(function (blob) {
+      saveBlobAs(blob, 'jiaopei-vault-' + stamp() + '.zip');
+      closeModal();
+      toast('完整备份已导出（' + T.formatSize(blob.size) + '）');
+    }).catch(function (e) {
+      toast('打包失败：' + (e && e.message ? e.message : e), 'error');
+    });
+  });
+}
+
+function openImport() {
+  openModal('导入教培业务库', ''
+    + '<div class="hint-box">选择之前导出的 <code>jiaopei-vault-*.json</code>。'
+    + '导入采用<b>合并</b>策略：同名学校/文件夹会自动并入，同名文件保留本地已有的一份。</div>'
+    + '<h4>合并规则</h4>'
+    + '<ul>'
+    + '<li>同名<b>文件夹</b> → 递归合并，不重复创建</li>'
+    + '<li>同名<b>文件</b> → 跳过导入的那份，保留本地</li>'
+    + '<li>新学校 / 新项目 → 直接追加</li>'
+    + '</ul>'
+    + '<div class="hint-box warn" style="margin-bottom:0">注意：JSON 只含结构，不含文件内容。'
+    + '若导入的是他人生成的结构包，文件条目需要另行拖入原文件补齐。</div>',
+    [{ label: '取消', cls: 'btn', act: closeModal },
+     { label: '选择文件', cls: 'btn btn-primary', act: function () {
+        closeModal();
+        document.getElementById('importInput').click();
+     } }]);
+}
+
+function doImport(file) {
+  var fr = new FileReader();
+  fr.onload = function () {
+    var pkg;
+    try { pkg = JSON.parse(fr.result); }
+    catch (e) { toast('JSON 解析失败，文件可能已损坏', 'error'); return; }
+    var incoming;
+    try { incoming = T.deserialize(pkg); }
+    catch (e) { toast(e.message, 'error'); return; }
+    var stat = T.mergeInto(state.root, incoming);
+    state.root.children.forEach(function (c) { state.expanded[c.id] = true; });
+    saveExpanded();
+    renderAll();
+    persist().then(function () {
+      toast('导入完成：新增 ' + stat.foldersAdded + ' 个文件夹、' + stat.filesAdded + ' 个文件'
+        + (stat.filesSkipped ? '，跳过 ' + stat.filesSkipped + ' 个同名文件' : ''));
+    });
+  };
+  fr.onerror = function () { toast('读取文件失败', 'error'); };
+  fr.readAsText(file);
+}
+
+/* ================= 说明 ================= */
+function openHelp() {
+  openModal('使用说明', ''
+    + '<h4>这个库是做什么的</h4>'
+    + '<p>按<b>学校名称</b>分类的共享文件夹库。每所学校下面可以建任意多个<b>项目子文件夹</b>，'
+    + '项目里还能继续嵌套子文件夹，层级不限。</p>'
+    + '<h4 class="mt">四种录入方式</h4>'
+    + '<ol>'
+    + '<li><b>拖整个文件夹进来</b>：会自动读取「学校 / 项目 / 子目录」的完整层级，一次还原好，不用手工建。</li>'
+    + '<li><b>拖零散文件进来</b>：放进你当前打开的文件夹里。</li>'
+    + '<li><b>点「＋ 新建学校」</b>：手动建立学校分类。</li>'
+    + '<li><b>悬停节点点「＋」</b>：在当前文件夹下建子文件夹。</li>'
+    + '</ol>'
+    + '<h4 class="mt">改名与删除</h4>'
+    + '<ul>'
+    + '<li><b>双击</b>左侧任意文件夹名称即可直接改名，回车确认、Esc 取消。</li>'
+    + '<li>悬停节点或卡片，点「✎」改名、「✕」删除。</li>'
+    + '</ul>'
+    + '<h4 class="mt">数据存在哪里</h4>'
+    + '<p>存在<b>本机浏览器</b>（IndexedDB，容量通常数百 MB）。换电脑、换浏览器、清缓存都会看不到，'
+    + '所以重要内容请定期用「📦 导出」备份。</p>'
+    + '<h4 class="mt">怎么和同事共享</h4>'
+    + '<p>浏览器不能直接连企业微信微盘，所以共享走这条路：</p>'
+    + '<ol>'
+    + '<li>你点「📦 导出 → 导出结构 JSON」；</li>'
+    + '<li>把 JSON 和原始文件夹一起发我，我通过企业微信微盘推送到共享空间；</li>'
+    + '<li>同事在微盘里就能看到同一套目录结构。</li>'
+    + '</ol>'
+    + '<div class="hint-box warn" style="margin-bottom:0">如果需要「多人各自在自己电脑上改、自动同步同一份」，'
+    + '那必须上后端服务。当前版本按本地优先设计，存储层已预留接口，后续可平滑升级。</div>',
+    [{ label: '知道了', cls: 'btn btn-primary', act: closeModal }]);
+}
+
+/* ================= Modal 通用 ================= */
+function openModal(title, bodyHtml, buttons) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  var foot = document.getElementById('modalFoot');
+  foot.innerHTML = '';
+  (buttons || []).forEach(function (b) {
+    var el = document.createElement('button');
+    el.className = b.cls || 'btn';
+    el.textContent = b.label;
+    el.addEventListener('click', b.act);
+    foot.appendChild(el);
+  });
+  document.getElementById('veil').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('veil').classList.remove('show');
+  document.body.style.overflow = '';
+}
+window.closeModal = closeModal;
+
+/* ================= 事件绑定 ================= */
+document.getElementById('btnNewSchool').addEventListener('click', newSchool);
+document.getElementById('btnNewSchool2').addEventListener('click', newSchool);
+document.getElementById('btnHelp').addEventListener('click', openHelp);
+document.getElementById('btnExport').addEventListener('click', openExport);
+document.getElementById('btnImport').addEventListener('click', openImport);
+
+document.getElementById('btnUpload').addEventListener('click', function () {
+  openModal('上传文件', ''
+    + '<div class="hint-box">当前目标文件夹：<b>' + esc((findNode(state.currentId) || state.root).name) + '</b></div>'
+    + '<h4>选择方式</h4>'
+    + '<ul>'
+    + '<li><b>选择文件</b>：多选文件，全部放进当前文件夹。</li>'
+    + '<li><b>选择文件夹</b>：选一整个目录，自动还原「学校 / 项目」层级（推荐）。</li>'
+    + '</ul>'
+    + '<div class="hint-box ok" style="margin-bottom:0">其实最快的方式是<b>直接把文件夹拖到页面上</b>，效果和「选择文件夹」一样。</div>',
+    [{ label: '取消', cls: 'btn', act: closeModal },
+     { label: '选择文件', cls: 'btn', act: function () {
+        closeModal(); document.getElementById('fileInput').click();
+     } },
+     { label: '选择文件夹', cls: 'btn btn-primary', act: function () {
+        closeModal(); document.getElementById('dirInput').click();
+     } }]);
+});
+
+document.getElementById('fileInput').addEventListener('change', function (e) {
+  var files = Array.prototype.slice.call(e.target.files || []);
+  if (!files.length) return;
+  ingestDropped(files.map(function (f) { return { file: f, relPath: f.name }; }));
+  e.target.value = '';
+});
+
+document.getElementById('dirInput').addEventListener('change', function (e) {
+  var files = Array.prototype.slice.call(e.target.files || []);
+  if (!files.length) return;
+  ingestDropped(files.map(function (f) { return { file: f, relPath: f.webkitRelativePath || f.name }; }));
+  e.target.value = '';
+});
+
+document.getElementById('importInput').addEventListener('change', function (e) {
+  var f = e.target.files && e.target.files[0];
+  if (f) doImport(f);
+  e.target.value = '';
+});
+
+/* 树区点击（事件委托） */
+document.getElementById('treeScroll').addEventListener('click', function (e) {
+  var op = e.target.closest('.node-op');
+  if (op) {
+    e.stopPropagation();
+    var id = op.getAttribute('data-id');
+    var act = op.getAttribute('data-act');
+    if (act === 'add') newSubFolder(id);
+    else if (act === 'ren') beginRename(id);
+    else if (act === 'del') delNode(id);
+    return;
+  }
+  var row = e.target.closest('.node-row');
+  if (!row) return;
+  var rid = row.getAttribute('data-id');
+  var node = findNode(rid);
+  if (!node) return;
+  // 点 caret 只切换展开
+  if (e.target.closest('.caret') && (node.children || []).some(function (c) { return c.type === 'folder'; })) {
+    state.expanded[rid] = !state.expanded[rid];
+    saveExpanded(); renderTree();
+    return;
+  }
+  state.currentId = rid;
+  saveExpanded();
+  // 单击：只刷新选中态与右侧内容，绝不重建树 —— 否则会打断双击改名。
+  // 展开/收起统一由左侧 caret 控制。
+  setActiveInTree(rid);
+  renderMain();
+});
+document.getElementById('treeScroll').addEventListener('dblclick', function (e) {
+  var nm = e.target.closest('.node-name');
+  if (nm) { e.preventDefault(); beginRename(nm.getAttribute('data-id')); }
+});
+
+/* 主区点击 */
+document.getElementById('mainBody').addEventListener('click', function (e) {
+  var op = e.target.closest('.node-op');
+  if (op) {
+    e.stopPropagation();
+    var id = op.getAttribute('data-id');
+    var act = op.getAttribute('data-act');
+    if (act === 'add') newSubFolder(id);
+    else if (act === 'ren') { state.currentId = id; renderAll(); beginRename(id); }
+    else if (act === 'del') delNode(id);
+    else if (act === 'dl') downloadFile(id);
+    return;
+  }
+  var fo = e.target.closest('[data-open]');
+  if (fo) {
+    var oid = fo.getAttribute('data-open');
+    state.currentId = oid;
+    state.expanded[oid] = true;
+    saveExpanded(); renderAll();
+    document.getElementById('mainScroll').scrollTop = 0;
+    return;
+  }
+  var fi = e.target.closest('[data-file]');
+  if (fi) downloadFile(fi.getAttribute('data-file'));
+});
+document.getElementById('mainBody').addEventListener('dblclick', function (e) {
+  var fo = e.target.closest('[data-open]');
+  if (fo) {
+    var oid = fo.getAttribute('data-open');
+    state.currentId = oid;
+    state.expanded[oid] = true;
+    saveExpanded(); renderAll();
+    document.getElementById('mainScroll').scrollTop = 0;
+  }
+});
+
+/* 面包屑 */
+document.getElementById('crumb').addEventListener('click', function (e) {
+  var it = e.target.closest('[data-goto]');
+  if (!it) return;
+  state.currentId = it.getAttribute('data-goto');
+  renderAll();
+});
+
+/* 搜索 */
+var searchTimer = null;
+document.getElementById('treeSearch').addEventListener('input', function (e) {
+  clearTimeout(searchTimer);
+  var v = e.target.value.trim().toLowerCase();
+  searchTimer = setTimeout(function () {
+    state.query = v;
+    renderTree(); renderMain();
+  }, 140);
+});
+
+/* 全局拖拽 */
+var veil = document.getElementById('dropVeil');
+var dragDepth = 0;
+function hasFiles(dt) {
+  if (!dt) return false;
+  if (dt.types) {
+    for (var i = 0; i < dt.types.length; i++) if (dt.types[i] === 'Files') return true;
+  }
+  return false;
+}
+window.addEventListener('dragenter', function (e) {
+  if (!hasFiles(e.dataTransfer)) return;
+  e.preventDefault();
+  dragDepth++;
+  veil.classList.add('show');
+});
+window.addEventListener('dragover', function (e) {
+  if (!hasFiles(e.dataTransfer)) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+});
+window.addEventListener('dragleave', function (e) {
+  if (!hasFiles(e.dataTransfer)) return;
+  dragDepth--;
+  if (dragDepth <= 0) { dragDepth = 0; veil.classList.remove('show'); }
+});
+window.addEventListener('drop', function (e) {
+  e.preventDefault();
+  dragDepth = 0;
+  veil.classList.remove('show');
+  if (!hasFiles(e.dataTransfer)) return;
+  if (state.busy) { toast('正在导入，请稍候…', 'warn'); return; }
+  state.busy = true;
+  collectDropped(e.dataTransfer).then(function (picked) {
+    return ingestDropped(picked);
+  }).then(function () { state.busy = false; },
+          function () { state.busy = false; });
+});
+
+/* 树节点上的拖放（把文件拖到某个学校/项目上） */
+document.getElementById('treeScroll').addEventListener('dragover', function (e) {
+  var row = e.target.closest('.node-row');
+  if (!row) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  document.querySelectorAll('.node-row.drop-target').forEach(function (r) { r.classList.remove('drop-target'); });
+  row.classList.add('drop-target');
+});
+document.getElementById('treeScroll').addEventListener('dragleave', function (e) {
+  var row = e.target.closest('.node-row');
+  if (row) row.classList.remove('drop-target');
+});
+document.getElementById('treeScroll').addEventListener('drop', function (e) {
+  var row = e.target.closest('.node-row');
+  if (!row) return;
+  e.preventDefault();
+  e.stopPropagation();
+  row.classList.remove('drop-target');
+  veil.classList.remove('show');
+  dragDepth = 0;
+  var targetId = row.getAttribute('data-id');
+  var target = findNode(targetId);
+  if (!target) return;
+  if (state.busy) { toast('正在导入，请稍候…', 'warn'); return; }
+  state.busy = true;
+  // 拖到具体节点上 → 不再按路径还原，直接平铺进该节点
+  collectDropped(e.dataTransfer).then(function (picked) {
+    var chain = Promise.resolve();
+    var n = 0;
+    picked.forEach(function (p) {
+      chain = chain.then(function () {
+        var key = T.uid('blob');
+        return S.putBlob(key, p.file).then(function () {
+          var meta = T.makeFile(p.file.name, {
+            size: p.file.size, mime: p.file.type || '', blobKey: key, source: 'dropped'
+          });
+          var dup = (target.children || []).filter(function (c) {
+            return c.type === 'file' && c.name.toLowerCase() === meta.name.toLowerCase();
+          })[0];
+          if (dup) { dup.blobKey = key; dup.size = meta.size; } else target.children.push(meta);
+          n++;
+        });
+      });
+    });
+    return chain.then(function () {
+      state.expanded[targetId] = true;
+      saveExpanded(); renderAll(); persist();
+      toast('已向「' + target.name + '」导入 ' + n + ' 个文件');
+    });
+  }).then(function () { state.busy = false; }, function () { state.busy = false; });
+});
+
+/* 键盘 */
+window.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+/* 移动端树面板开关 */
+function checkMobile() {
+  var btn = document.getElementById('btnToggleTree');
+  var panel = document.getElementById('treePanel');
+  if (window.innerWidth <= 900) {
+    btn.style.display = 'inline-flex';
+    panel.classList.add('hide');
+  } else {
+    btn.style.display = 'none';
+    panel.classList.remove('hide');
+  }
+}
+document.getElementById('btnToggleTree').addEventListener('click', function () {
+  document.getElementById('treePanel').classList.toggle('hide');
+});
+window.addEventListener('resize', checkMobile);
+
+/* ================= 启动 ================= */
+var toastEl = document.createElement('div');
+toastEl.id = 'toast';
+document.body.appendChild(toastEl);
+
+loadExpanded();
+checkMobile();
+hydrate().then(function () {
+  renderAll();
+  if (!S.hasIDB()) {
+    toast('当前浏览器不支持 IndexedDB，数据仅临时保存在内存', 'warn');
+  }
+});
+})();
+</script>
+</body>
+</html>

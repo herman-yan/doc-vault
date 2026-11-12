@@ -62,7 +62,7 @@
         .header-btn.ghost { color:#e57373; border-color:rgba(229,115,115,.35); }
         .header-btn.ghost:hover { background:rgba(229,115,115,.12); border-color:rgba(229,115,115,.6); }
 
-        /* ========== 中央资料库独立入口 ========== */
+        /* ========== 证照管理库独立入口 ========== */
         .vault-entry { display:flex;align-items:center;gap:16px;margin-top:24px;padding:18px 22px;background:var(--glass-bg);backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:var(--radius-lg);box-shadow:var(--glass-shadow);text-decoration:none;color:var(--text-primary);transition:all .3s;position:relative;overflow:hidden; }
         .vault-entry::before { content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gradient-success); }
         .vault-entry:hover { transform:translateY(-2px);background:var(--bg-card-hover);border-color:rgba(79,172,254,.35); }
@@ -71,6 +71,11 @@
         .vault-entry-title { font-size:15px;font-weight:600;margin-bottom:3px; }
         .vault-entry-desc { font-size:12px;color:var(--text-secondary);line-height:1.5; }
         .vault-entry-go { font-size:13px;font-weight:600;color:#4facfe;white-space:nowrap;flex-shrink:0; }
+
+        /* ========== 教培业务入口（配色变体） ========== */
+        .vault-entry.jiaopei::before { background:var(--gradient-secondary); }
+        .vault-entry.jiaopei .vault-entry-ico { background:rgba(167,139,250,.14); }
+        .vault-entry.jiaopei .vault-entry-go { color:#a78bfa; }
 
         /* ========== 统计卡片区 ========== */
         .stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:28px; }
@@ -309,7 +314,7 @@
     }
     </style>
 <style>
-/* ===== 中央资料库（docs-vault）接入样式 ===== */
+/* ===== 证照管理库（docs-vault）接入样式 ===== */
 .lib-status{ font-size:12px; color:var(--text-muted); padding:4px 10px; border-radius:20px; background:var(--glass-bg); border:1px solid var(--glass-border); white-space:nowrap; }
 .lib-status.lib-ok{ color:#43e97b; border-color:rgba(67,233,123,.35); }
 .lib-status.lib-fail{ color:#ffa502; border-color:rgba(255,165,2,.35); }
@@ -338,7 +343,8 @@
         <div class="header-right">
             <button class="header-btn" onclick="openSettings()">⚙ 设置</button>
             <button class="header-btn" onclick="openUpload()">📥 上传文件</button>
-            <a href="../docs-vault/" target="_blank" rel="noopener" class="header-btn">🗂️ 中央资料库</a>
+            <a href="../docs-vault/" target="_blank" rel="noopener" class="header-btn">🗂️ 证照管理库</a>
+            <a href="./jiaopei/" target="_blank" rel="noopener" class="header-btn">🎓 教培业务</a>
             <button class="header-btn" onclick="expandAll()">📂 展开全部</button>
             <a href="../" class="header-btn">← 返回主站</a>
         </div>
@@ -352,12 +358,22 @@
         <div class="stat-card"><div class="stat-num" id="updateTime">今日</div><div class="stat-label">最近更新</div></div>
     </div>
 
-    <!-- 中央资料管理库独立入口 -->
+    <!-- 证照管理库独立入口 -->
     <a class="vault-entry" href="../docs-vault/" target="_blank" rel="noopener">
         <div class="vault-entry-ico">🗂️</div>
         <div class="vault-entry-main">
-            <div class="vault-entry-title">中央资料管理库</div>
-            <div class="vault-entry-desc">团队共享文档中心：分类上传、权限管控、云端协作检索。与知识库互补，集中管理需共享的正式资料。</div>
+            <div class="vault-entry-title">证照管理库</div>
+            <div class="vault-entry-desc">证照与合同文档中心：分类上传、权限管控、云端协作检索。与知识库互补，集中管理需共享的正式资料。</div>
+        </div>
+        <div class="vault-entry-go">进入 →</div>
+    </a>
+
+    <!-- 教培业务独立入口 -->
+    <a class="vault-entry jiaopei" href="./jiaopei/" target="_blank" rel="noopener">
+        <div class="vault-entry-ico">🎓</div>
+        <div class="vault-entry-main">
+            <div class="vault-entry-title">教培业务</div>
+            <div class="vault-entry-desc">按学校名称分类的共享文件夹：学校下可建多个项目子文件夹，支持整体文件夹拖拽入库、自建文件夹与重命名。</div>
         </div>
         <div class="vault-entry-go">进入 →</div>
     </a>
@@ -387,7 +403,7 @@
     <div class="toolbar">
         <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" value="" placeholder="搜索知识库 / 中央资料库（标题、正文、标签、公司、证照…）..." autocomplete="off" oninput="onSearch()" onfocus="if(this.value)this.value=''">
+            <input type="text" id="searchInput" value="" placeholder="搜索知识库 / 证照管理库（标题、正文、标签、公司、证照…）..." autocomplete="off" oninput="onSearch()" onfocus="if(this.value)this.value=''">
         </div>
         <div class="filter-chips">
             <span class="chip chip-all active" onclick="setFilter('all',this)">全部</span>
@@ -403,7 +419,7 @@
         <div class="section-header">
             <h2 class="section-title">知识库内容</h2>
             <div class="kb-section-actions">
-                <span class="lib-status" id="libStatus">📚 正在连接中央资料库…</span>
+                <span class="lib-status" id="libStatus">📚 正在连接证照管理库…</span>
                 <span class="result-count" id="resultCount">共 4 条结果</span>
                 <button class="header-btn ghost" onclick="clearAllUser()">🗑️ 清空我的上传</button>
                 <button class="header-btn" onclick="openUpload()">📥 上传内部文件</button>
@@ -578,7 +594,7 @@ function getAllEntries(){
     } catch(e) { return KB_DATA.slice(); }
 }
 
-// ========== 中央资料库（docs-vault）目录接入 ==========
+// ========== 证照管理库（docs-vault）目录接入 ==========
 // 同源（herman-yan.github.io/doc-vault/）拉取资料库元数据目录，
 // 仅作「搜索 + 下载」用途：不解析文件内容、不改写资料库。
 let LIB_CACHE = [];
@@ -685,7 +701,7 @@ async function loadLibraryCatalog(retryLeft){
         LIB_CACHE = docs.map(normalizeLibDoc);
         LIB_STATUS = 'ok';
     } catch(err){
-        console.warn('中央资料库目录加载失败：', err);
+        console.warn("证照管理库目录加载失败：", err);
         if(retryLeft > 0){
             await new Promise(r => setTimeout(r, 1500));
             return loadLibraryCatalog(retryLeft - 1);
@@ -693,14 +709,14 @@ async function loadLibraryCatalog(retryLeft){
         LIB_STATUS = 'fail';
     }
     updateLibStatus();
-    renderCards();   // 目录到手即刷新列表（即使搜索框为空也展示「中央资料库」分组）
+    renderCards();   // 目录到手即刷新列表（即使搜索框为空也展示「证照管理库」分组）
 }
 function updateLibStatus(){
     const el = document.getElementById('libStatus');
     if(!el) return;
-    if(LIB_STATUS==='ok') el.innerHTML = '📚 中央资料库已连接（'+LIB_CACHE.length+' 个文件）';
-    else if(LIB_STATUS==='fail') el.innerHTML = '⚠️ 中央资料库未连接（搜索仅限本地上传）';
-    else el.innerHTML = '📚 正在连接中央资料库…';
+    if(LIB_STATUS==='ok') el.innerHTML = '📚 证照管理库已连接（'+LIB_CACHE.length+' 个文件）';
+    else if(LIB_STATUS==='fail') el.innerHTML = '⚠️ 证照管理库未连接（搜索仅限本地上传）';
+    else el.innerHTML = '📚 正在连接证照管理库…';
     el.className = 'lib-status lib-' + LIB_STATUS;
 }
 function downloadLib(id){
@@ -1249,7 +1265,7 @@ const CAT_META = [
   {key:'meeting', label:'会议纪要', icon:'📋'},
   {key:'guide',   label:'使用指南', icon:'📖'},
   {key:'pdf',     label:'文档资料', icon:'📄'},
-  {key:'lib',     label:'中央资料库', icon:'📚'},
+  {key:'lib',     label:'证照管理库', icon:'📚'},
 ];
 const collapsedGroups = new Set();
 
@@ -1331,7 +1347,7 @@ function cardHtml(item, q) {
     </div>`;
 }
 
-// 中央资料库条目卡片：展示公司/类型，点击即下载原件
+// 证照管理库条目卡片：展示公司/类型，点击即下载原件
 function libCardHtml(item, q) {
     const snippet = q ? highlightText(item.title||'', searchQuery.trim()) : escapeHtml(item.title||'');
     const ext = (item.srcExt||'').toUpperCase() || '文件';
@@ -1343,7 +1359,7 @@ function libCardHtml(item, q) {
         </div>
         <div class="kb-title">${snippet}</div>
         <div class="kb-lib-company">🏢 ${escapeHtml(item.companyName||item.company||'')}</div>
-        <div class="kb-lib-meta">📚 中央资料库原件 · 点击卡片下载</div>
+        <div class="kb-lib-meta">📚 证照管理库原件 · 点击卡片下载</div>
         <div class="kb-tags">
             <span class="kb-tag lib-src">资料库</span>
             <span class="kb-tag">${escapeHtml(item.size||'')}</span>
@@ -1516,7 +1532,7 @@ function mdToHtml(md) {
 // ========== 初始化 ==========
 // 先从 IndexedDB 载入已上传内容（并自动迁移旧版 localStorage 数据），再渲染
 loadUserEntries().then(()=>{ refreshAll(); updateModeHint(); });
-loadLibraryCatalog();   // 并行拉取中央资料库目录（搜索 + 下载）
+loadLibraryCatalog();   // 并行拉取证照管理库目录（搜索 + 下载）
 // 确保搜索框为空（防止浏览器自动填充残留值）
 const si = document.getElementById('searchInput'); if(si) si.value = '';
 // 支持拖拽上传
