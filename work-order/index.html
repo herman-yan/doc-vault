@@ -216,6 +216,26 @@ tbody tr { cursor: pointer; }
 .upload-status-bar.info { color:var(--primary); background:#eff6ff; border-color:#bfdbfe; }
 .upload-badge { background:#dbeafe; color:var(--primary); padding:2px 10px; border-radius:10px; font-size:11px; font-weight:600; }
 
+/* Import panel (dashboard) */
+.import-card { border:1px solid #bfdbfe; background:linear-gradient(180deg,#f8fbff,#fff); }
+.import-body { display:flex; flex-direction:column; gap:14px; }
+.import-desc { font-size:13px; color:var(--text-secondary); line-height:1.75; }
+.import-desc b { color:#1e293b; }
+.import-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.btn-upload.ghost { background:#fff; color:#2563eb; border:1px solid #bfdbfe; }
+.btn-upload.ghost:hover { background:#eff6ff; }
+.import-hint { font-size:12px; color:#94a3b8; line-height:1.7; }
+.import-result { padding:14px 16px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; }
+.ir-title { font-size:13px; color:#166534; margin-bottom:10px; }
+.ir-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.ir-item { background:#fff; border-radius:8px; padding:10px 12px; text-align:center; border:1px solid #e2e8f0; }
+.ir-item.wn { border-color:#bfdbfe; } .ir-item.wn .ir-num { color:#2563eb; }
+.ir-item.nw { border-color:#fed7aa; } .ir-item.nw .ir-num { color:#d97706; }
+.ir-item.skip .ir-num { color:#94a3b8; }
+.ir-num { font-size:22px; font-weight:700; color:#1e293b; }
+.ir-label { font-size:11px; color:#64748b; margin-top:4px; }
+@media (max-width:768px){ .ir-grid { grid-template-columns:1fr; } }
+
 /* Print */
 @media print {
   .sidebar, .btn, .filter-bar, .pipeline { display: none !important; }
@@ -293,10 +313,28 @@ function getDefaultData() {
   };
 }
 
+// 保外单据历史数据来自表格导入，只有「序号(seq)」而无内部 id；
+// 而列表/详情/编辑/导出均按 id 定位。此处做一次幂等补全，
+// 生成稳定的 NW-xxxxxx 编号，避免列表显示 undefined、点开无详情。
+function afEnsureNwIds(data) {
+  const list = (data && data.nonWarrantyOrders) || [];
+  let maxN = Number((data && data.idCounters && data.idCounters.nw) || 0);
+  const used = new Set();
+  list.forEach(o => { if (o && o.id) used.add(String(o.id)); });
+  list.forEach(o => {
+    if (!o || o.id) return;
+    let n;
+    do { maxN++; n = 'NW-' + String(maxN).padStart(6, '0'); } while (used.has(n));
+    o.id = n; used.add(n);
+  });
+  if (data && data.idCounters) data.idCounters.nw = Math.max(maxN, list.length);
+  return data;
+}
+
 function loadData() {
   try {
     const d = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (d) return { ...getDefaultData(), ...d };
+    if (d) return afEnsureNwIds({ ...getDefaultData(), ...d });
   } catch(e) {}
   return getDefaultData();
 }
@@ -369,6 +407,20 @@ function afNonWarranty() {
 
 function afFindOrder(kind, id) {
   return (kind === 'WN' ? APP.warrantyOrders : APP.nonWarrantyOrders).find(x => x.id === id);
+}
+
+// 保外定位：优先按 id，回退按序号（seq），兼容未补全 id 的历史数据
+function afFindNw(id) {
+  if (!id) return null;
+  return APP.nonWarrantyOrders.find(x => x.id === id)
+      || APP.nonWarrantyOrders.find(x => String(x.seq) === String(id))
+      || null;
+}
+function afIndexOfNw(id) {
+  if (!id) return -1;
+  let i = APP.nonWarrantyOrders.findIndex(x => x.id === id);
+  if (i < 0) i = APP.nonWarrantyOrders.findIndex(x => String(x.seq) === String(id));
+  return i;
 }
 function afTransitionOf(kind, status, action) {
   return AFG.allowedTransitions(kind, status).find(t => t.action === action);
@@ -633,6 +685,7 @@ function renderDashboard() {
     <div class="page-header">
       <div><div class="page-title">数据看板</div><div class="page-subtitle">${todayStr()} 实时概览</div></div>
     </div>
+    ${renderImportPanel()}
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-number">${wnActive.length + nwActive.length}</div><div class="stat-label">进行中工单</div></div>
       <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${wnUnassigned}</div><div class="stat-label">保内待派工</div></div>
@@ -689,7 +742,7 @@ function renderDashboard() {
             .slice(0,8)
             .map(o => `<tr onclick="switchPage('${o._type==='保内'?'warranty':'nonwarranty'}')">
               <td><span class="badge ${o._type==='保内'?'badge-blue':'badge-yellow'}">${o._type}</span></td>
-              <td>${o.id}</td><td>${o.customerName||o.signedCustomer||'-'}</td>
+              <td>${o.id||o.seq||'-'}</td><td>${o.customerName||o.signedCustomer||'-'}</td>
               <td>${o.vehicleInfo||o.plateNumber||'-'}</td>
               <td>${afStatusPill(o._type === '保内' ? 'WN' : 'NW', o)}</td>
               <td>${o.engineer||o.repairEngineer||'-'}</td>
@@ -699,6 +752,50 @@ function renderDashboard() {
       </table></div>
     </div>
   `;
+}
+
+function renderImportPanel() {
+  const readonly = AFG.isReadonly(ME.role);
+  const canImport = !readonly;
+  const r = afLastImport;
+
+  let resultHtml = '';
+  if (r) {
+    const wn = r.res.wn, nw = r.res.nw;
+    resultHtml = `
+      <div class="import-result">
+        <div class="ir-title">📌 最近一次导入：<b>${afEsc(r.file)}</b> · ${afEsc(r.time)}</div>
+        <div class="ir-grid">
+          <div class="ir-item wn"><div class="ir-num">${wn ? (wn.added + wn.updated) : 0}</div><div class="ir-label">保内入库（新增${wn ? wn.added : 0}/更新${wn ? wn.updated : 0}）</div></div>
+          <div class="ir-item nw"><div class="ir-num">${nw ? (nw.added + nw.updated) : 0}</div><div class="ir-label">保外入库（新增${nw ? nw.added : 0}/更新${nw ? nw.updated : 0}）</div></div>
+          <div class="ir-item skip"><div class="ir-num">${r.res.skipped}</div><div class="ir-label">无法识别已跳过</div></div>
+        </div>
+      </div>`;
+  }
+
+  return `
+    <div class="card import-card">
+      <div class="card-title">📥 工单数据导入（自动分配保内 / 保外）</div>
+      <div class="card-body import-body">
+        <div class="import-desc">
+          上传一份 Excel，系统会<b>按列头特征逐行自动判定</b>，分别归入保内或保外台账，无需人工分表。
+          支持三种情形：整张表为保内、整张表为保外，或<b>同一张表内保内保外混排</b>（含「类型 / 保修 / 保内保外」列时按该列逐行判定）；多工作表（Sheet）会一并处理。
+        </div>
+        ${canImport ? `
+        <div class="import-actions">
+          <button class="btn-upload" onclick="document.getElementById('dashboardExcelInput').click()">📥 选择 Excel 导入</button>
+          <button class="btn-upload ghost" onclick="downloadTemplate()">📄 下载导入模板</button>
+          <input type="file" id="dashboardExcelInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="importFromDashboard(this)">
+        </div>
+        <div class="import-hint">
+          保内特征列：编号 / 责任工程师 / GSS工单号 / 完成状态 等 ·
+          保外特征列：签约客户名称 / 报价单 / 车牌号 / 维修状态 等 ·
+          已存在的单据按匹配键去重合并，空值不覆盖，流程状态以本机台账为准。
+        </div>` : `
+        <div class="import-hint">🔒 当前岗位（${afEsc(AFG.roleLabel(ME.role))}）为只读，不能导入台账；如需操作请切换岗位。</div>`}
+        ${resultHtml}
+      </div>
+    </div>`;
 }
 
 function renderStatusChart(orders, statuses) {
@@ -860,7 +957,7 @@ function renderNonWarrantyRows(orders) {
   if(!orders.length) return '<tr><td colspan="12" style="text-align:center;color:var(--text-secondary);padding:40px">暂无保外工单</td></tr>';
   return orders.map(o => `
     <tr onclick="viewNonWarranty('${o.id}')">
-      <td style="font-weight:600">${o.id}</td>
+      <td style="font-weight:600">${o.id||o.seq||o.orderNo||'-'}</td>
       <td>${o.requestDate||'-'}</td>
       <td>${o.signedCustomer||'-'}</td>
       <td>${o.plateNumber||'-'}</td>
@@ -1121,7 +1218,7 @@ function saveWarranty(editId) {
 
 // ===== NON-WARRANTY FORM =====
 function openNonWarrantyForm(id) {
-  const o = id ? APP.nonWarrantyOrders.find(x => x.id === id) : null;
+  const o = id ? afFindNw(id) : null;
   const isNew = !o;
   const html = `
     <div class="modal-header">
@@ -1390,7 +1487,7 @@ function saveNonWarranty(editId) {
   data.grossMargin = ra > 0 ? (data.grossProfit / ra * 100).toFixed(2) + '%' : '';
 
   if(editId) {
-    const idx = APP.nonWarrantyOrders.findIndex(o => o.id === editId);
+    const idx = afIndexOfNw(editId);
     if(idx >= 0) Object.assign(APP.nonWarrantyOrders[idx], data);
   } else {
     data.id = genId('nw');
@@ -1493,7 +1590,7 @@ function viewWarranty(id) {
 }
 
 function viewNonWarranty(id) {
-  const o = APP.nonWarrantyOrders.find(x => x.id === id);
+  const o = afFindNw(id);
   if(!o) return;
   const html = `
     <div class="modal-header">
@@ -1684,7 +1781,7 @@ function renderWarehouse() {
 }
 
 function openWarehouseForm() {
-  const allOrders = [...APP.warrantyOrders.map(o=>o.id), ...APP.nonWarrantyOrders.map(o=>o.id)];
+  const allOrders = [...APP.warrantyOrders.map(o=>o.id), ...APP.nonWarrantyOrders.map(o=>o.id||o.seq||o.orderNo)];
   const html = `
     <div class="modal-header"><div class="modal-title">新增仓库登记</div><button class="modal-close" onclick="closeModal()">&times;</button></div>
     <div class="modal-body">
@@ -1881,7 +1978,7 @@ function exportCSV(type) {
     rows = APP.warrantyOrders.map(o => [o.id,o.registerDate,o.customerName,o.contact,o.vehicleInfo,o.faultDesc,o.repairType,o.orderType,o.status,o.engineer,o.startDate,o.completeDate,o.gssOrderNo,o.needMaterial==='1'?'是':'否',o.reporter,o.gssFee,o.totalFee,o.platformNote]);
   } else if(type === 'nonwarranty') {
     headers = ['编号','城市','车牌号','签约客户','产品类型','项目类型','维修状态','维修工程师','报价总金额','已回款','未回款','毛利润','毛利率','付款状态','备注'];
-    rows = APP.nonWarrantyOrders.map(o => [o.id,o.city,o.plateNumber,o.signedCustomer,o.productType,o.projectType,o.status,o.repairEngineer,o.quoteTotal,o.receivedAmount,o.unreceivedAmount,o.grossProfit,o.grossMargin,o.paymentStatus,o.remark]);
+    rows = APP.nonWarrantyOrders.map(o => [o.id||o.seq||o.orderNo,o.city,o.plateNumber,o.signedCustomer,o.productType,o.projectType,o.status,o.repairEngineer,o.quoteTotal,o.receivedAmount,o.unreceivedAmount,o.grossProfit,o.grossMargin,o.paymentStatus,o.remark]);
   } else {
     headers = ['登记编号','关联工单','类型','物料','数量','申领日期','领用日期','旧件接收','旧件返厂','备注'];
     rows = APP.warehouseLogs.map(l => [l.id,l.relatedOrder,l.type,l.material,l.quantity,l.applyDate,l.receiveDate,l.oldPartReceive,l.oldPartReturn,l.note]);
@@ -2144,6 +2241,66 @@ function mapRow(rawRow, columnMap, defaults) {
   return obj;
 }
 
+// ===== 导入核心（单一事实源）=====
+// 解析一份 Excel，按行自动判定保内/保外并合并进台账。
+// 返回结构化结果，供工单页与数据看板复用同一套口径，避免两处逻辑漂移。
+function afIngestWorkbook(arrayBuffer) {
+  const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type:'array', cellDates:true});
+
+  let totalWn = 0, totalNw = 0, skipped = 0;
+  const newWnData = [], newNwData = [];
+  const sheetStats = [];
+  // 批量编号：一次递增计数器，避免逐行写盘（大表导入更快）
+  const nextId = (prefix) => {
+    APP.idCounters[prefix]++;
+    return (prefix === 'wn' ? 'WN-' : 'NW-') + String(APP.idCounters[prefix]).padStart(6, '0');
+  };
+
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(sheet, {defval:''});
+    if (!jsonData.length) continue;
+
+    // 逐行分类（兼容整表保内/保外、单表混合、列头变体）
+    const { wn, nw } = classifySheetRows(jsonData);
+
+    wn.forEach(row => {
+      const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
+      if (!mapped.id) mapped.id = nextId('wn');
+      afAssignIncomingStatus('WN', mapped, mapped.status);
+      newWnData.push(mapped);
+      totalWn++;
+    });
+    nw.forEach(row => {
+      const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
+      if (!mapped.seq) mapped.seq = String(newNwData.length + 1);
+      if (!mapped.id) mapped.id = nextId('nw');   // 与保内对齐：保外同样需要内部编号
+      afAssignIncomingStatus('NW', mapped, mapped.status);
+      newNwData.push(mapped);
+      totalNw++;
+    });
+    skipped += (jsonData.length - wn.length - nw.length);
+    sheetStats.push({ sheet: sheetName, wn: wn.length, nw: nw.length, total: jsonData.length });
+  }
+
+  return { totalWn, totalNw, skipped, newWnData, newNwData, sheetStats };
+}
+
+// 合并入台账 + 生成结果对象（不触碰界面）
+function afCommitImport(ing) {
+  const wnRes = ing.totalWn > 0 ? afMergeInto(APP.warrantyOrders, ing.newWnData, AFG.wnMatchKey) : null;
+  if (wnRes) APP.warrantyOrders = wnRes.merged.concat(wnRes.added);
+  const nwRes = ing.totalNw > 0 ? afMergeInto(APP.nonWarrantyOrders, ing.newNwData, AFG.nwMatchKey) : null;
+  if (nwRes) APP.nonWarrantyOrders = nwRes.merged.concat(nwRes.added);
+  saveData(APP);   // 编号计数器与台账一次写入
+  return {
+    wn: wnRes ? { added: wnRes.added.length, updated: wnRes.updated.length, unchanged: wnRes.unchanged.length, summary: wnRes.summary } : null,
+    nw: nwRes ? { added: nwRes.added.length, updated: nwRes.updated.length, unchanged: nwRes.unchanged.length, summary: nwRes.summary } : null,
+    skipped: ing.skipped
+  };
+}
+
+// 工单页的导入入口（保内/保外列表页的按钮仍走这里）
 function handleExcelUpload(input) {
   const file = input.files[0];
   if (!file) return;
@@ -2153,57 +2310,67 @@ function handleExcelUpload(input) {
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type:'array', cellDates:true});
+      const ing = afIngestWorkbook(e.target.result);
 
-      let totalWn = 0, totalNw = 0, skipped = 0;
-      const newWnData = [], newNwData = [];
-
-      for (const sheetName of workbook.SheetNames) {
-        const sheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(sheet, {defval:''});
-        if (!jsonData.length) continue;
-
-        // 逐行分类（兼容整表保内/保外、单表混合、列头变体）
-        const { wn, nw } = classifySheetRows(jsonData);
-
-        wn.forEach(row => {
-          const mapped = mapRow(row, WN_COLUMN_MAP, WN_DEFAULTS);
-          if (!mapped.id) mapped.id = genId('wn');
-          afAssignIncomingStatus('WN', mapped, mapped.status);
-          newWnData.push(mapped);
-          totalWn++;
-        });
-        nw.forEach(row => {
-          const mapped = mapRow(row, NW_COLUMN_MAP, NW_DEFAULTS);
-          if (!mapped.seq) mapped.seq = String(newNwData.length + 1);
-          afAssignIncomingStatus('NW', mapped, mapped.status);
-          newNwData.push(mapped);
-          totalNw++;
-        });
-        skipped += (jsonData.length - wn.length - nw.length);
-      }
-
-      if (totalWn === 0 && totalNw === 0) {
+      if (ing.totalWn === 0 && ing.totalNw === 0) {
         showUploadStatus('⚠️ 未能识别数据类型：请先点「📄 下载模板」对照列头，或确保包含保内/保外特征列（如 编号/责任工程师、签约客户/报价单）。', 'error');
         input.value = '';
         return;
       }
 
-      // 合并到现有台账：按匹配键去重，空值不覆盖；已存在单据的状态以本机流转为准，不被表里的旧状态冲掉
-      const wnRes = totalWn > 0 ? afMergeInto(APP.warrantyOrders, newWnData, AFG.wnMatchKey) : null;
-      if (wnRes) APP.warrantyOrders = wnRes.merged.concat(wnRes.added);
-      const nwMerge = totalNw > 0 ? afMergeInto(APP.nonWarrantyOrders, newNwData, AFG.nwMatchKey) : null;
-      if (nwMerge) APP.nonWarrantyOrders = nwMerge.merged.concat(nwMerge.added);
-      saveData(APP);
+      const r = afCommitImport(ing);
       renderPage();
 
       let msg = '✅ 导入完成（已按匹配键去重合并）：';
       const parts = [];
-      if (wnRes) parts.push('保内 ' + wnRes.summary);
-      if (nwMerge) parts.push('保外 ' + nwMerge.summary);
-      msg += parts.join(' · ') + ' — 来自 <b>' + file.name + '</b>';
-      if (skipped > 0) msg += ' <span style="opacity:.8">（' + skipped + ' 行无法识别已跳过）</span>';
+      if (r.wn) parts.push('保内 ' + r.wn.summary);
+      if (r.nw) parts.push('保外 ' + r.nw.summary);
+      msg += parts.join(' · ') + ' — 来自 <b>' + afEsc(file.name) + '</b>';
+      if (r.skipped > 0) msg += ' <span style="opacity:.8">（' + r.skipped + ' 行无法识别已跳过）</span>';
+      showUploadStatus(msg, 'success');
+
+    } catch(err) {
+      console.error(err);
+      showUploadStatus('❌ 解析失败：' + err.message, 'error');
+    }
+  };
+  reader.onerror = function() {
+    showUploadStatus('❌ 文件读取失败', 'error');
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+// ===== 数据看板：统一导入入口 =====
+// 最近一次导入结果，渲染看板时展示（切页后仍可回看，刷新即清）
+let afLastImport = null;
+
+function importFromDashboard(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  showUploadStatus('⏳ 正在读取 <b>' + afEsc(file.name) + '</b> 并自动分配保内/保外 ...', 'info');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const ing = afIngestWorkbook(e.target.result);
+
+      if (ing.totalWn === 0 && ing.totalNw === 0) {
+        showUploadStatus('⚠️ 未能识别数据类型：请确认表格含保内特征列（编号/责任工程师/GSS工单号）或保外特征列（签约客户/报价单/车牌号），或含「类型」列标注保内/保外。', 'error');
+        input.value = '';
+        return;
+      }
+
+      const r = afCommitImport(ing);
+      afLastImport = { file: file.name, time: todayStr(), res: r, sheets: ing.sheetStats };
+      renderPage();
+
+      const parts = [];
+      if (r.wn) parts.push('保内 ' + r.wn.summary);
+      if (r.nw) parts.push('保外 ' + r.nw.summary);
+      let msg = '✅ 已自动分配并入库：' + parts.join(' · ');
+      if (r.skipped > 0) msg += ' <span style="opacity:.8">（' + r.skipped + ' 行无法识别已跳过）</span>';
       showUploadStatus(msg, 'success');
 
     } catch(err) {
@@ -2270,6 +2437,9 @@ async function initApp() {
         // Set idCounters based on loaded data
         APP.idCounters.wn = wnData.length;
         APP.idCounters.nw = nwData.length;
+
+        // 保外历史数据只有序号、无内部 id，统一补全（幂等）
+        afEnsureNwIds(APP);
         
         saveData(APP);
         console.log(`Loaded ${wnData.length} warranty + ${nwData.length} non-warranty orders`);
