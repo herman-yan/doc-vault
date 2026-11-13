@@ -467,9 +467,51 @@
             .page-aside { text-align: left; }
             .page-head { align-items: flex-start; }
         }
+            /* ============================================================
+           访问口令门（现场测试用）
+           解锁前主内容一律不可见（body.locked 为 fail-closed 默认态）
+           ============================================================ */
+        body.locked > *:not(.gate) { display: none !important; }
+        .gate { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center;
+                padding: 24px;
+                background: radial-gradient(1100px 560px at 50% -8%, #1B3E63 0%, #0E2A47 46%, #091B2E 100%); }
+        body.locked .gate { display: flex; }
+        .gate-card { width: 100%; max-width: 384px; background: #fff; border-radius: 18px; padding: 34px 30px 26px;
+                     box-shadow: 0 26px 64px rgba(0,0,0,.46); text-align: center; }
+        .gate-mark { width: 52px; height: 52px; margin: 0 auto 16px; border-radius: 15px; display: flex;
+                     align-items: center; justify-content: center; font-size: 24px;
+                     background: linear-gradient(135deg, #1E4A7A, #0E2A47); }
+        .gate-title { font-size: 17px; font-weight: 700; color: #1F2A3A; letter-spacing: .2px; }
+        .gate-hint { font-size: 13px; color: #6B7A90; margin: 8px 0 20px; line-height: 1.6; }
+        .gate-input { width: 100%; padding: 12px 14px; font-size: 15px; color: #1F2A3A; background: #F4F6FB;
+                      border: 1px solid #DCE2EC; border-radius: 11px; letter-spacing: 2px; outline: none;
+                      transition: border-color .15s, box-shadow .15s; }
+        .gate-input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.15); background: #fff; }
+        .gate-btn { width: 100%; margin-top: 12px; padding: 12px; border: 0; border-radius: 11px; cursor: pointer;
+                    background: linear-gradient(135deg, #1E4A7A, #0E2A47); color: #fff; font-size: 15px; font-weight: 600;
+                    letter-spacing: 2px; transition: filter .15s, transform .1s; }
+        .gate-btn:hover { filter: brightness(1.12); }
+        .gate-btn:active { transform: translateY(1px); }
+        .gate-err { min-height: 18px; margin-top: 10px; font-size: 13px; color: #DC2626; }
+        .gate-foot { margin-top: 14px; font-size: 12px; color: #93A1B5; }
+    
     </style>
 </head>
-<body>
+<body class="locked">
+    <!-- ===================== 访问口令门（解锁前主内容不可见） ===================== -->
+    <div class="gate" id="accessGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+        <div class="gate-card">
+            <div class="gate-mark">🔒</div>
+            <h2 class="gate-title" id="gateTitle">宁家服务数字化运营系统</h2>
+            <p class="gate-hint">请输入访问口令后进入</p>
+            <input id="gateInput" class="gate-input" type="password" placeholder="访问口令"
+                   autocomplete="current-password" aria-label="访问口令">
+            <button id="gateBtn" class="gate-btn" type="button">进 入</button>
+            <div class="gate-err" id="gateErr"></div>
+            <div class="gate-foot">仅限授权人员使用</div>
+        </div>
+    </div>
+
 
     <!-- ===================== 顶部品牌栏 ===================== -->
     <header class="topbar">
@@ -864,6 +906,44 @@
     </div>
 
     <script>
+        /* ============================================================
+           访问口令门：解锁前 body 保持 .locked（主内容由 CSS 隐藏）
+           校验在浏览器内完成，不联网；解锁状态记入 sessionStorage，
+           关闭标签页即失效，避免现场共用设备长期免密。
+           ============================================================ */
+        (function(){
+            var PASS = 'ningjia1';
+            var KEY  = 'nj.gate.ok';
+            var gate = document.getElementById('accessGate');
+            var inp  = document.getElementById('gateInput');
+            var btn  = document.getElementById('gateBtn');
+            var err  = document.getElementById('gateErr');
+
+            function unlock(silent){
+                document.body.classList.remove('locked');
+                if (gate) gate.style.display = 'none';
+                if (silent !== true) { try { sessionStorage.setItem(KEY, '1'); } catch(e){} }
+                /* 让系统按解锁后的视口重新排版 */
+                window.dispatchEvent(new Event('resize'));
+            }
+
+            var already = false;
+            try { already = sessionStorage.getItem(KEY) === '1'; } catch(e){}
+            if (already) { unlock(true); return; }
+
+            function submit(){
+                var v = (inp.value || '').trim();
+                if (v === PASS) { err.textContent = ''; unlock(); }
+                else {
+                    err.textContent = '口令不正确，请重新输入';
+                    inp.value = ''; inp.focus();
+                }
+            }
+
+            btn.addEventListener('click', submit);
+            inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
+            setTimeout(function(){ inp.focus(); }, 60);
+        })();
         /* 时间显示 */
         function pad(n){ return String(n).padStart(2,'0'); }
         function updateTime(){
