@@ -2208,14 +2208,27 @@ function classifyRow(row, typeCol, headers) {
 }
 
 // 整表分类：返回 {wn:[...], nw:[...]}（已按行分好类）
+// 判定顺序：类型列 → 整表表头特征 → 逐行兜底。
+// 关键：整表表头特征在「一张表内保内保外混排」时不可靠（表头同时命中两侧特征会平票判给保内），
+// 因此整表判定前先探测：若表内存在「只能判给另一侧」的行，则放弃整表结论、改为逐行判定，
+// 避免混排表把保外行整批误并入保内。
 function classifySheetRows(rows) {
   const headers = Object.keys(rows[0] || {});
   const sheetType = detectSheetType(headers);
   const typeCol = findTypeCol(headers);
+
+  // 无类型列且整表有倾向时，先验证该倾向是否会把「明确属于另一侧」的行吞掉
+  let useSheetType = !!sheetType;
+  if (!typeCol && sheetType) {
+    const other = sheetType === 'warranty' ? 'nonwarranty' : 'warranty';
+    const conflict = rows.some(r => classifyRow(r, null, headers) === other);
+    if (conflict) useSheetType = false;   // 存在反向行 → 整表结论不可靠，转逐行
+  }
+
   const wn = [], nw = [];
   rows.forEach(r => {
-    // 有「类型」列时逐行判定（混合表不会被整表类型覆盖）；否则用整表类型，再不行逐行兜底
-    const t = typeCol ? classifyRow(r, typeCol, headers) : (sheetType || classifyRow(r, null, headers));
+    const t = typeCol ? classifyRow(r, typeCol, headers)
+      : (useSheetType ? sheetType : classifyRow(r, null, headers));
     if (t === 'warranty') wn.push(r);
     else if (t === 'nonwarranty') nw.push(r);
   });
