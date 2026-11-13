@@ -669,8 +669,15 @@ function handleImport(input) {
         var headers = Object.keys(rows[0]);
         var sheetType = detectSheetType(headers);
         var typeCol = findTypeCol(headers);
+        // 整表表头特征在「一张表内保内保外混排」时不可靠（两侧特征平票会判给保内），
+        // 若表内存在「只能判给另一侧」的行则放弃整表结论、转逐行判定，避免吞掉保外行。
+        var useSheetType = !!sheetType;
+        if (!typeCol && sheetType) {
+          var otherType = sheetType === 'warranty' ? 'nonwarranty' : 'warranty';
+          if (rows.some(function (r) { return classifyRow(r, null, headers, wnDefs, nwDefs) === otherType; })) useSheetType = false;
+        }
         rows.forEach(function (r) {
-          var t = typeCol ? classifyRow(r, typeCol, headers, wnDefs, nwDefs) : (sheetType || classifyRow(r, null, headers, wnDefs, nwDefs));
+          var t = typeCol ? classifyRow(r, typeCol, headers, wnDefs, nwDefs) : (useSheetType ? sheetType : classifyRow(r, null, headers, wnDefs, nwDefs));
           if (t === 'warranty') {
             var m = mapRow(r, WN_COLUMN_MAP, wnDefs);
             if (!m.id) m.id = 'WN-' + (newWn.length + 1);
