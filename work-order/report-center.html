@@ -168,6 +168,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 <script src="../assets/report-core.js"></script>
 <script src="../assets/aftersales-guardrails.js"></script>
 <script src="../assets/identity-panel.js"></script>
+<script src="../assets/auth-core.js"></script>
+<script src="../assets/auth-gate.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script>
 /* ===== 报表中心 =====
@@ -187,13 +189,19 @@ var CFG_KEY = 'station_report_config';
 var WEEK_START_DOW = 0; // 周日至周六，对齐 0706 周报样本
 
 // ===== 岗位识别（与工单系统共用 af_identity，非安全边界，仅视图分区与留痕）=====
-var ME = { name: '', role: 'ADMIN' };
+// 登录门是否就位。就位时由它统一接管身份；未就位时退回原行为。
+var RPT_GATE_ON = (typeof NJ_GATE !== 'undefined' && typeof AUTH !== 'undefined');
+var ME = { name: '', role: RPT_GATE_ON ? 'REPORTER' : 'ADMIN' };
 if (typeof AFG !== 'undefined') {
-  ME = AFG.getIdentity() || { name: '', role: 'ADMIN' };
-  if (!ME.name) ME = AFG.setIdentity('未署名', ME.role);
+  ME = AFG.getIdentity() || ME;
+  if (!ME.name && !RPT_GATE_ON) ME = AFG.setIdentity('未署名', ME.role);
 }
 function roleLabel(r) { return (typeof AFG !== 'undefined') ? AFG.roleLabel(r) : r; }
 function canEnterReport(role) {
+  // 账号的个人微调优先；无账号体系时回落岗位默认
+  try {
+    if (typeof AUTH !== 'undefined' && ME.name) return AUTH.canEnter(ME.name, 'report');
+  } catch (e) {}
   return (typeof AFG === 'undefined') ? true : AFG.canPage(role, 'report');
 }
 function isReadonlyRole(role) {
@@ -896,6 +904,10 @@ function renderIdentityBar() {
     pageName: '报表中心',
     getNames: rptNameRoster,
     canEnter: canEnterReport,
+    locked: RPT_GATE_ON,                // 登录门就位时身份只读，不再允许自由切换
+    onChangePwd: function () { if (window.NJ_GATE) NJ_GATE.openChangePwd(); },
+    onManage: function () { if (window.NJ_GATE) NJ_GATE.openPanel(); },
+    onLogout: function () { if (window.NJ_GATE) NJ_GATE.logout(); },
     onChange: function (name, role) {
       ME = { name: name, role: role };
       if (!canEnterReport(ME.role)) { renderDenied(); return; }
@@ -952,7 +964,31 @@ window.__rptProbe = {
     return { wnDefs: wnDefs, nwDefs: nwDefs };
   }
 };
-boot();
+// ===== 登录门接管启动 =====
+function rptStartAfterLogin() {
+  var acc = (window.NJ_GATE && NJ_GATE.current) ? NJ_GATE.current() : null;
+  if (acc && typeof AFG !== 'undefined') {
+    ME = AFG.setIdentity(acc.name, acc.role);
+    if (typeof IDP !== 'undefined') IDP.setIdentity(acc.name, acc.role);
+  }
+  boot();
+}
+
+if (RPT_GATE_ON) {
+  NJ_GATE.init({
+    pageName: '报表中心',
+    getNames: rptNameRoster,
+    onEnter: function () { rptStartAfterLogin(); },
+    onLeave: function () {
+      // 退出后清掉侧栏身份，避免残留上一位同事的姓名
+      var b = document.getElementById('identityBar');
+      if (b) b.innerHTML = '';
+    }
+  });
+  NJ_GATE.start();
+} else {
+  boot();   // 账号模块未加载时退回原行为
+}
 })();
 </script>
 </body>

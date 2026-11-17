@@ -275,6 +275,9 @@ tbody tr { cursor: pointer; }
       <span class="icon">👷</span><span>工程师管理</span>
     </div>
     <div class="nav-section">系统</div>
+    <button type="button" class="nav-item" onclick="window.NingjiaIntro && window.NingjiaIntro.open()" style="width:100%;border-top:0;border-right:0;border-bottom:0;background:transparent;font:inherit;text-align:left">
+      <span class="icon">▶</span><span>观看品牌开场</span>
+    </button>
     <div class="nav-item" data-page="export" onclick="switchPage('export')">
       <span class="icon">📥</span><span>数据导出</span>
     </div>
@@ -297,6 +300,9 @@ tbody tr { cursor: pointer; }
 
 <script src="../assets/aftersales-guardrails.js"></script>
 <script src="../assets/identity-panel.js"></script>
+<script src="../assets/auth-core.js"></script>
+<script src="../assets/auth-gate.js"></script>
+<script src="../assets/ningjia-intro.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script>
 // ===== DATA STORE =====
@@ -351,8 +357,12 @@ if (typeof AFG === 'undefined') {
     '<div style="padding:40px;font-size:14px">护栏模块 <code>../assets/aftersales-guardrails.js</code> 未加载，为避免绕过状态机与质检闸门，本页已停止写入。请刷新或检查该文件是否随站点一同发布。</div>';
   throw new Error('aftersales-guardrails.js not loaded');
 }
-let ME = AFG.getIdentity() || { name: '', role: 'ADMIN' };
-if (!ME.name) ME = AFG.setIdentity((APP.engineers[0] || '未署名'), ME.role);
+// 登录门是否就位。就位时由它统一接管身份；未就位时退回原行为，
+// 避免账号模块加载失败导致整页不可用。
+const AF_GATE_ON = (typeof NJ_GATE !== 'undefined' && typeof AUTH !== 'undefined');
+let ME = { name: '', role: AF_GATE_ON ? 'REPORTER' : 'ADMIN' };
+ME = AFG.getIdentity() || ME;
+if (!ME.name && !AF_GATE_ON) ME = AFG.setIdentity((APP.engineers[0] || '未署名'), ME.role);
 
 function afEsc(v) {
   return String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -371,12 +381,10 @@ function renderIdentityBar() {
   IDP.init({
     pageName: '工单系统',
     getNames: afNameRoster,
-    canEnter: function () { return true; }, // 工单页各岗位均可进入，仅视图分区不同
-    onChange: function (name, role) {
-      ME = { name: name, role: role };
-      afApplyNavPermission();
-      renderPage();
-    }
+    locked: AF_GATE_ON,                 // 登录门就位时身份只读，不再允许自由切换
+    onChangePwd: function () { if (window.NJ_GATE) NJ_GATE.openChangePwd(); },
+    onManage: function () { if (window.NJ_GATE) NJ_GATE.openPanel(); },
+    onLogout: function () { if (window.NJ_GATE) NJ_GATE.logout(); }
   });
 }
 
@@ -387,22 +395,46 @@ function afSwitchIdentity(name, role) {
   renderPage();
 }
 
+// 生效权限：优先取账号的个人微调，其次回落岗位默认（无账号体系时退回 AFG）
+function afCanEnter(page) {
+  try {
+    if (typeof AUTH !== 'undefined' && ME.name) return AUTH.canEnter(ME.name, page);
+  } catch (e) {}
+  return AFG.canPage(ME.role, page);
+}
+
 function afApplyNavPermission() {
   document.querySelectorAll('.nav-item').forEach(el => {
-    el.style.display = AFG.canPage(ME.role, el.dataset.page) ? '' : 'none';
+    el.style.display = afCanEnter(el.dataset.page) ? '' : 'none';
   });
-  if (!AFG.canPage(ME.role, currentPage)) switchPage('dashboard');
+  if (!afCanEnter(currentPage)) switchPage('dashboard');
 }
 
 function afScopeHint() {
   return `<div class="scope-hint">当前岗位：${afEsc(AFG.roleLabel(ME.role))} · ${afEsc((AFG.ROLES[ME.role] || {}).scopeHint || '')}</div>`;
 }
 
-function afWarranty() { return AFG.visibleOrders(ME.role, APP.warrantyOrders, ME); }
+// 数据可见范围：账号可覆盖为「全部」或「仅本人相关」，否则跟随岗位口径
+function afScopeOverride() {
+  try {
+    if (typeof AUTH !== 'undefined' && ME.name) return AUTH.effectiveScope(ME.name);
+  } catch (e) {}
+  return 'role';
+}
+function afApplyScope(list, linkIndex) {
+  const sc = afScopeOverride();
+  if (sc === 'all') return list.slice();
+  if (sc === 'own') {
+    return list.filter(o => AFG.samePerson(o.engineer, ME.name) || AFG.samePerson(o.repairEngineer, ME.name)
+      || AFG.samePerson(o.reporter, ME.name));
+  }
+  return AFG.visibleOrders(ME.role, list, ME, linkIndex);
+}
+function afWarranty() { return afApplyScope(APP.warrantyOrders); }
 function afNonWarranty() {
   const idx = {};
   APP.warehouseLogs.forEach(l => { if (l.relatedOrder) idx[l.relatedOrder] = true; });
-  return AFG.visibleOrders(ME.role, APP.nonWarrantyOrders, ME, idx);
+  return afApplyScope(APP.nonWarrantyOrders, idx);
 }
 
 function afFindOrder(kind, id) {
@@ -2467,7 +2499,32 @@ async function initApp() {
   renderPage();
 }
 
-initApp();
+// ===== 登录门接管启动 =====
+// 未登录时业务内容整体不可见（body.nj-locked），登录成功后才加载数据并渲染。
+function afStartAfterLogin() {
+  const acc = (window.NJ_GATE && NJ_GATE.current) ? NJ_GATE.current() : null;
+  if (acc) {
+    ME = AFG.setIdentity(acc.name, acc.role);
+    if (typeof IDP !== 'undefined') IDP.setIdentity(acc.name, acc.role);
+  }
+  initApp();
+}
+
+if (AF_GATE_ON) {
+  NJ_GATE.init({
+    pageName: '工单系统',
+    getNames: afNameRoster,
+    onEnter: function () { afStartAfterLogin(); },
+    onLeave: function () {
+      // 退出后清掉侧栏身份，避免残留上一位同事的姓名
+      var b = document.getElementById('identityBar');
+      if (b) b.innerHTML = '';
+    }
+  });
+  NJ_GATE.start();
+} else {
+  initApp();   // 账号模块未加载时退回原行为，避免整页不可用
+}
 </script>
 </body>
 </html>

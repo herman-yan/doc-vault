@@ -94,7 +94,20 @@
     '.idp-mrow { display: flex; gap: 8px; }',
     '.idp-mrow .idp-search { margin-bottom: 0; }',
     '.idp-mlabel { font-size: 11px; color: #94a3b8; margin: 10px 0 6px; }',
-    '.idp-mhint { font-size: 11px; color: #94a3b8; margin-top: 10px; line-height: 1.5; }'
+    '.idp-mhint { font-size: 11px; color: #94a3b8; margin-top: 10px; line-height: 1.5; }',
+
+    /* 锁定态：账号菜单（登录后身份只读，只提供口令/权限/退出） */
+    '.idp-acc { display: flex; align-items: center; gap: 11px; padding: 14px 20px 12px; border-bottom: 1px solid #e2e8f0; }',
+    '.idp-acc-av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#2563eb,#60a5fa); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex: 0 0 auto; }',
+    '.idp-acc-nm { font-size: 14.5px; font-weight: 700; color: #0f172a; }',
+    '.idp-acc-rl { font-size: 11.5px; color: #64748b; margin-top: 2px; }',
+    '.idp-menu { padding: 8px; }',
+    '.idp-mi { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: none; border: 0; border-radius: 9px; padding: 11px 13px; font-size: 13px; color: #334155; cursor: pointer; }',
+    '.idp-mi:hover { background: #f1f5f9; }',
+    '.idp-mi .mi-i { font-size: 15px; width: 20px; text-align: center; flex: 0 0 auto; }',
+    '.idp-mi .mi-d { font-size: 11px; color: #94a3b8; margin-top: 1px; }',
+    '.idp-mi.warn { color: #b91c1c; }',
+    '.idp-mi.warn:hover { background: #fef2f2; }'
   ].join('\n');
 
   var styled = false;
@@ -111,7 +124,13 @@
     getNames: function () { return []; },
     onChange: function () {},
     canEnter: function () { return true; },
-    pageName: ''
+    pageName: '',
+    // locked=true：已由登录门确定身份，面板不再允许改人名/岗位，
+    // 只提供「修改口令 / 权限管理 / 退出登录」。
+    locked: false,
+    onLogout: function () {},
+    onChangePwd: function () {},
+    onManage: function () {}
   };
   var cur = { name: '', role: 'ADMIN' };   // 已生效
   var pend = { name: '', role: 'ADMIN' };  // 弹窗内待应用
@@ -137,14 +156,15 @@
   function barHtml() {
     var initial = (cur.name || '?').slice(0, 1);
     var ro = AFG && AFG.isReadonly && AFG.isReadonly(cur.role) ? ' · 只读' : '';
+    var hint = opts.locked ? '账号' : '切换';
     return '' +
-      '<div class="idp-bar" role="button" tabindex="0" onclick="IDP.open()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();IDP.open();}" aria-label="切换岗位身份">' +
+      '<div class="idp-bar" role="button" tabindex="0" onclick="IDP.open()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();IDP.open();}" aria-label="' + (opts.locked ? '账号菜单' : '切换岗位身份') + '">' +
         '<div class="idp-avatar">' + esc(initial) + '</div>' +
         '<div class="idp-meta">' +
           '<div class="idp-name">' + esc(cur.name || '未署名') + '</div>' +
           '<div class="idp-role">' + esc(roleLabel(cur.role)) + ro + '</div>' +
         '</div>' +
-        '<div class="idp-switch">切换</div>' +
+        '<div class="idp-switch">' + hint + '</div>' +
       '</div>';
   }
 
@@ -217,7 +237,38 @@
 
   function dirty() { return pend.name !== cur.name || pend.role !== cur.role; }
 
+  // 锁定态：账号菜单（身份不可改，仅提供口令 / 权限 / 退出）
+  function accountHtml() {
+    var ro = (AFG && AFG.isReadonly && AFG.isReadonly(cur.role)) ? ' · 只读' : '';
+    var isAdmin = !!(root.NJ_GATE && root.NJ_GATE.isAdmin && root.NJ_GATE.isAdmin());
+    var items = '' +
+      '<button class="idp-mi" onclick="IDP.changePwd()">' +
+        '<span class="mi-i">🔑</span><span><span>修改我的登录口令</span><div class="mi-d">换一个只有你知道的口令</div></span>' +
+      '</button>' +
+      (isAdmin
+        ? '<button class="idp-mi" onclick="IDP.manage()">' +
+            '<span class="mi-i">🛡️</span><span><span>权限管理</span><div class="mi-d">为同事指定岗位、可见页面与口令</div></span>' +
+          '</button>'
+        : '') +
+      '<button class="idp-mi warn" onclick="IDP.logout()">' +
+        '<span class="mi-i">🚪</span><span><span>退出登录</span><div class="mi-d">回到登录界面，切换为其他同事</div></span>' +
+      '</button>';
+    return '' +
+      '<div class="idp-modal" role="dialog" aria-label="账号菜单">' +
+        '<div class="idp-acc">' +
+          '<div class="idp-acc-av">' + esc((cur.name || '?').slice(0, 1)) + '</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div class="idp-acc-nm">' + esc(cur.name || '未署名') + (isAdmin ? ' <span class="idp-tag ro" style="background:#dbeafe;color:#1d4ed8">管理员</span>' : '') + '</div>' +
+            '<div class="idp-acc-rl">' + esc(roleLabel(cur.role)) + ro + '</div>' +
+          '</div>' +
+          '<button class="idp-x" onclick="IDP.close()" aria-label="关闭">×</button>' +
+        '</div>' +
+        '<div class="idp-menu">' + items + '</div>' +
+      '</div>';
+  }
+
   function modalHtml() {
+    if (opts.locked) return accountHtml();
     var ro = (AFG && AFG.isReadonly && AFG.isReadonly(cur.role)) ? ' · 只读' : '';
     return '' +
       '<div class="idp-modal" role="dialog" aria-label="切换岗位身份">' +
@@ -269,9 +320,19 @@
       if (options.onChange) opts.onChange = options.onChange;
       if (options.canEnter) opts.canEnter = options.canEnter;
       if (options.pageName) opts.pageName = options.pageName;
+      // init 视为一次完整配置：未显式传 locked 即回到默认（可切换岗位）
+      opts.locked = !!options.locked;
+      if (options.onLogout) opts.onLogout = options.onLogout;
+      if (options.onChangePwd) opts.onChangePwd = options.onChangePwd;
+      if (options.onManage) opts.onManage = options.onManage;
       if (AFG && AFG.getIdentity) {
         var id = AFG.getIdentity();
         if (id) cur = { name: id.name || '', role: id.role || 'ADMIN' };
+      }
+      // 锁定态下以登录会话为唯一身份来源（登录门已写入 af_identity）
+      if (opts.locked && root.NJ_GATE && root.NJ_GATE.current) {
+        var c = root.NJ_GATE.current();
+        if (c) cur = { name: c.name, role: c.role };
       }
       // cur.name 允许为空：空时只作展示占位「未署名」，不写进名单、不占用选项索引
       pend = { name: cur.name, role: cur.role };
@@ -376,6 +437,27 @@
       renderBar();
       IDP.close();
       try { opts.onChange(cur.name, cur.role); } catch (e) {}
+    },
+
+    // ===== 锁定态：账号菜单动作 =====
+    locked: function () { return !!opts.locked; },
+    changePwd: function () {
+      IDP.close();
+      try { opts.onChangePwd(); } catch (e) {}
+    },
+    manage: function () {
+      IDP.close();
+      try { opts.onManage(); } catch (e) {}
+    },
+    logout: function () {
+      IDP.close();
+      try { opts.onLogout(); } catch (e) {}
+    },
+    // 身份变化后同步折叠条（登录/切换账号时调用）
+    setIdentity: function (name, role) {
+      cur = { name: name || '', role: role || cur.role };
+      pend = { name: cur.name, role: cur.role };
+      renderBar();
     }
   };
 
