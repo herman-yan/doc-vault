@@ -2489,7 +2489,7 @@ async function initBackend() {
     };
     const gen = bj(D.meta && D.meta.generatedAt, false);
     const syn = bj(D.meta && D.meta.syncedAt, true);
-    b.textContent = '📄 静态快照' + (gen ? ' · 生成于 ' + gen : '') + (syn ? ' · 数据同步时间 ' + syn : '');
+    b.textContent = '📄 静态快照' + (gen ? ' · 生成于 ' + gen : '') + (syn ? ' · 数据同步时间 ' + syn : '') + ' · 每日 00:00 自动更新';
     b.classList.add('on');
     await switchView('dash');
     return;
